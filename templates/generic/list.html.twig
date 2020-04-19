@@ -1,0 +1,108 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}
+    {{ page_title|trans }}
+{% endblock %}
+
+{% block nav %}
+    {% if route_back is defined %}
+        <div class="navbar-collapse" style="width: 150px">
+        	<ul class="navbar-nav mr-auto ">
+        		{% if route_back is defined %}
+            		<li class="nav-item" style="width: 150px">
+            			<a class="nav-link" href="{{ route_back }}">{% trans %}Back{% endtrans %}</a>
+            		</li>
+        		{% endif %}
+        	</ul>
+        </div>
+    {% else %}
+    	<div class="navbar-collapse" style="width: 150px"></div>
+    {% endif %}
+    <div class="navbar-collapse navbar-brand justify-content-center">
+    	{{ page_title|trans }}
+    </div>
+    <div class="navbar-collapse" style="width: 150px"></div>
+{% endblock %}
+
+{% block content %}
+    {% set headers = headers(class) %}
+    <table class="table table-responsive-xl">
+    	<thead>
+    		<tr class="text-center">
+    			{% for header in headers %}
+    				<th>{{ header|trans }}</th>
+    			{% endfor %}
+    			{% if attribute(entities|first, 'isList') is defined %}
+    				<th></th>
+    			{%  endif %}
+    			<th></th>
+    			<th></th>
+    		</tr>
+    	</thead>
+    	<tbody>
+    		{% set entity_name = class|short_name %}
+    		{% for entity in entities %}
+        		<tr>
+        			{% for key, header in headers %}
+            			{% set value = attribute(entity, key) %}
+            			{% dump(value) %}
+            			{% if value is same as (false) %}
+            				<td class="col-xl-auto text-center">{% trans %}False{% endtrans %}</td>
+            			{% elseif value is same as (true) %}
+            				<td class="col-xl-auto text-center">{% trans %}True{% endtrans %}</td>
+            			{% elseif value.timezone is defined and value.nonExistingProperty is not defined %}
+            				<td class="col-xl-auto text-center">{{ value|date('d-m-Y') }}</td>
+            			{% elseif value matches '/^\\d/' %}
+                			{% if value < 10 %}
+                				<td class="col-xl-auto text-center">{{ value }}</td>
+                			{% else %}
+                				<td class="col-xl-auto text-right">{{ value }}</td>
+                			{% endif %}
+            			{% else %}
+            			<td class="col-xl-auto text-left">{{ value|truncate(30, false, "...") }}</td>
+            			{% endif %}
+        			{% endfor %}
+        			<td style="width: 200px;">
+        			    {% if attribute(entity, 'isList') is defined and attribute(entity, 'isList') == "True" %}
+            			    <a class="btn-secondary btn w-100 text-nowrap" href="{{ path(entity_name ~ '_item', {'id': entity.id}) }}">
+            			        {% trans %}List{% endtrans %}
+            				</a>
+        			    {% endif %}
+        			</td>
+        			<td style="width: 200px;">
+        				<a class="btn-success btn w-100 text-nowrap" href="{{ path(entity_name ~ '_edit', {'id': entity.id}) }}">
+        				    {% trans %}Edit{% endtrans %}
+        				</a>
+        			</td>
+        			<td style="width: 200px;">
+        				<a class="btn-danger btn w-100 text-nowrap" href="{{ path(entity_name ~ '_delete', {'id': entity.id}) }}">
+        				    {% trans %}Delete{% endtrans %}
+        				</a>
+        			</td>
+        		</tr>
+    		{% else %}
+        		<tr>
+        			<td>{% trans %}Empty list{% endtrans %}</td>
+        		</tr>
+    		{% endfor %}
+    	</tbody>
+    </table>
+    
+    <div class="text-center p-5">
+    	{% if app.request.attributes.get('_route_params') is empty %}
+    		<a class="btn-primary btn text-nowrap" style="width: 300px;" href="{{ path(entity_name ~ '_new') }}">
+    		    {% trans %}New{% endtrans %}
+    		</a>
+    	{% else %}
+        	<a class="btn-primary btn text-nowrap" style="width: 300px;" href="{{ path(entity_name ~ '_new', {'id': app.request.attributes.get('_route_params')|first}) }}">
+        	    {% trans %}New{% endtrans %}
+        	</a>
+    	{% endif %}
+    </div>
+{% endblock %}
+
+{% block text_alignment %}
+    {% if value matches '/True|False|\\[\\]/' or key == 'id' %}
+    	text-center text-right
+    {% endif %}
+{% endblock %}

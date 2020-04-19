@@ -1,0 +1,7 @@
+// customize some Bootstrap variables
+$enable-responsive-font-sizes: true;
+
+// the ~ allows you to reference things in node_modules
+@import "~bootswatch/dist/slate/variables";
+@import "~bootstrap/scss/bootstrap";
+@import "~bootswatch/dist/slate/bootswatch";

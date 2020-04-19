@@ -1,0 +1,79 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}{% trans %}Projects{% endtrans %}{% endblock %}
+
+{% block nav %}
+	<div class="navbar-collapse">
+		<ul class="navbar-nav mr-auto ">
+    		{% if route_back is defined %}
+        		<li class="nav-item" style="width: 150px">
+        			<a class="nav-link" href="{{ route_back }}">{% trans %}Back{% endtrans %}</a>
+        		</li>
+    		{% endif %}
+			{% if is_granted('ROLE_ADMIN') %}
+    			<li class="nav-item dropdown" style="width: 150px;">
+    				<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown2" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{% trans %}Project admin{% endtrans %}</a>
+    				<div class="dropdown-menu">
+    					<a class="dropdown-item" href="{{ path('project_edit', {'id': app.request.attributes.get('_route_params')|first}) }}">{% trans %}Edit project{% endtrans %}</a>
+    					<a class="dropdown-item" href="{{ path('codification', {'id': app.request.attributes.get('_route_params')|first}) }}">{% trans %}Codification{% endtrans %}</a>
+    					<a class="dropdown-item" href="{{ path('metadata', {'id': app.request.attributes.get('_route_params')|first}) }}">{% trans %}Metadatas{% endtrans %}</a>
+    					<a class="dropdown-item" href="{{ path('visa', {'id': app.request.attributes.get('_route_params')|first}) }}">{% trans %}Visas{% endtrans %}</a>
+    				</div>
+    			</li>
+    		{% endif %}
+		</ul>
+	</div>
+	<div class="navbar-collapse ">
+        {% trans %}Projects{% endtrans %}
+	</div>
+	<div class="navbar-collapse">
+		<ul class="navbar-nav ml-auto">
+			<li class="nav-item" style="width:150px">
+				<a class="nav-link" href="{{ path('logout') }}">{% trans %}Logout{% endtrans %}</a>
+			</li>
+		</ul>
+	</div>
+{% endblock %}
+
+{% block content %}
+	<div class="jumbotron w-100">
+		<ul class="nav nav-tabs mb-3" role="tablist">
+    		<li class="nav-item">
+    			<a class="nav-link active" id="companies-tab" data-toggle="tab" href="#companies" role="tab" aria-controls="companies" aria-selected="false">{% trans %}Companies{% endtrans %}</a>
+    		</li>
+    		<li class="nav-item">
+    			<a class="nav-link" id="mainContractors-tab" data-toggle="tab" href="#mainContractors" role="tab" aria-controls="home" aria-selected="true">{% trans %}Main contractors{% endtrans %}</a>
+    		</li>
+    	</ul>
+		<div class="tab-content" id="myTabContent"> 
+			<div class="tab-pane fade show active" id="companies" role="tabpanel" aria-labelledby="companies-tab">
+				<div class="row">
+            		{% for sub_contractor in sub_contractors %}
+                        <div class="card text-white bg-primary m-3" style="width: 20rem;">
+                            <a role="button" class="btn btn-primary text-center font-weight-bold" href="{{ path('serie_redirect', {'project': app.request.attributes.get('_route_params')|first, 'company': sub_contractor.id}) }}">{{ sub_contractor.name }}</a>
+                            <div class="card-body">
+                                <p class="card-text"></p>
+            				</div>
+                    	</div>
+                    {% else %}
+                		<div class="col pt-5">{% trans %}Empty list{% endtrans %}</div>
+                    {% endfor %}
+                </div>
+			</div>
+			<div class="tab-pane fade" id="mainContractors" role="tabpanel" aria-labelledby="mainContractors-tab">
+        		<div class="row">
+                    {% for main_contractor in main_contractors %}
+                        <div class="card text-white bg-primary m-3" style="width: 20rem;">
+                            <a role="button" class="btn btn-primary text-center font-weight-bold" href="{{ path('serie_redirect', {'project': app.request.attributes.get('_route_params')|first, 'company': main_contractor.id}) }}">{{ main_contractor.name }}</a>
+                            <div class="card-body">
+                                <p class="card-text"></p>
+            				</div>
+                    	</div>
+                    {% else %}
+                		<div class="col pt-5">{% trans %}Empty list{% endtrans %}</div>
+                    {% endfor %}
+				</div>
+			</div>
+		</div>
+	</div>
+{% endblock %}

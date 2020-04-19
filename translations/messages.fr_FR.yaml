@@ -1,0 +1,92 @@
+#Main
+'True': Vrai
+'False': Faux
+Ok: Ok
+Cancel: Annuler
+Save: Enregistrer
+Close: Fermer
+Back: Retour
+New: Nouveau
+Edit: Editer
+Delete: Supprimer
+Id: Id
+Name: Nom
+Empty list: Liste vide
+New entry created: Nouvelle entrée créée
+Datas updated: Informations mises à jour
+Confirm deletion of entry: Confirmer la suppression de l'entrée
+Entry deleted: Entrée supprimée
+
+#Control access
+Connection: Connexion
+User Name: Nom d'utilisateur
+Password: Mot de passe
+Email: Email
+Locale: Langue
+Activated: Activé
+Remember me: Se souvenir de moi
+Logout successful: Vous êtes déconnecté
+
+#Home
+Home: Accueil
+Project: Projet
+Admin: Administration
+Company: Entreprise
+User: Utilisateur
+Profil: Profil
+Account: Mon compte
+Logout: Se déconnecter
+
+#Account
+Last connected: Dernière connexion
+Edit account properties: Editer les propriétés du compte
+Change password: Changer le mot de passe
+Current password: Mot de passe actuel
+New password: Nouveau mot de passe
+Confirm new password: Confirmation du nouveau mot de passe
+Password changed: Mot de passe changé
+
+#Company
+Type: Type
+Priority: Priorité
+Main contractor: Entrepreneur principal
+Sub-contractor: Sous-traitant
+Supplier: Fournisseur
+Checker: Vérificateur
+
+#Profil
+Edit progress rules: Editer les règles d'avancement
+Edit references: Editer les réferences
+Edit metadatas: Editer les metadonnées
+Edit visas: Editer les visas
+Is admin: Est admin
+
+#User
+Edit user: Editer l'utilisateur
+Delete user: Supprimer l'utilisateur
+The last entry with Admin rights cannot be deleted: La dernière entrée avec des droits d'administrateur ne peut être supprimée
+
+#Project
+Projects: Projets
+New project: Nouveau projet
+Separator: Séparateur
+Users: Utilisateurs
+Project admin: Administration du projet
+Main contractors: Entrepreneurs principaux
+Companies: Entreprises
+
+#Codification
+Codification for: Codification pour
+Codification: Codification
+Value: Valeur
+Is list: Est une liste
+Is mandatory: Est obligatoire
+List: Liste
+List for the code: Liste pour le code
+
+#Metadata
+List for the metadata: Liste pour la metadonnées
+
+#Visa
+Visas for: Visas pour
+Revision required: Révision requise

@@ -1,0 +1,231 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}{% trans %}Projects{% endtrans %}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    {{ encore_entry_link_tags('document') }}
+{% endblock %}
+
+{% block nav %}
+	<div class="navbar-collapse">
+		<ul class="navbar-nav mr-auto ">
+    		{% if route_back is defined %}
+        		<li class="nav-item" style="width: 150px">
+        			<a class="nav-link" href="{{ route_back }}">{% trans %}Back{% endtrans %}</a>
+        		</li>
+    		{% endif %}
+			{% if is_granted('ROLE_EDIT') %}
+    			<li id="document_menu" class="nav-item dropdown" style="width: 150px;">
+    				<a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{% trans %}Documents{% endtrans %}</a>
+    				<div class="dropdown-menu">
+    					<a class="dropdown-item" href={{ path('document_new', {'id': app.request.attributes.get('_route_params')|first}) }}>{% trans %}New{% endtrans %}</a>
+    					<a id="document_edit" class="dropdown-item" href="#" data-link="{{ path('document_edit') }}">{% trans %}Edit{% endtrans %}</a>
+    					{% if is_granted('ROLE_MOVE') %}
+    						<a id="document_move" class="dropdown-item" href="#" data-link="{{ path('document_move') }}">{% trans %}Move{% endtrans %}</a>
+    					{% endif %}
+    					<a id="document_delete" class="dropdown-item" href="#" data-link="{{ path('document_delete') }}">{% trans %}Delete{% endtrans %}</a>
+    				</div>
+    			</li>
+    			
+    			<li id="version_menu" class="nav-item dropdown" style="width: 150px;">
+    				<a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{% trans %}Versions{% endtrans %}</a>
+    				<div class="dropdown-menu">
+    					<a id="version_new" class="dropdown-item" href="#" data-link="{{ path('version_new') }}">{% trans %}New{% endtrans %}</a>
+    					<a id="version_edit" class="dropdown-item" href="#" data-link="{{ path('version_edit') }}">{% trans %}Edit{% endtrans %}</a>
+    					<a id="version_delete" class="dropdown-item" href="#" data-link="{{ path('version_delete') }}">{% trans %}Delete{% endtrans %}</a>
+    				</div>
+    			</li>
+    		{% endif %}
+		</ul>
+	</div>
+	<div class="navbar-collapse "></div>
+	<div class="navbar-collapse">
+		<ul class="navbar-nav ml-auto">
+			<li class="nav-item" style="width:150px">
+				<a class="nav-link" href="{{ path('logout') }}">{% trans %}Logout{% endtrans %}</a>
+			</li>
+		</ul>
+	</div>
+{% endblock %}
+
+{% block content %}
+	<form class="w-100" id="form" method="get" action="{{ path('document', {'id': app.request.attributes.get('_route_params')|first}) }}">
+		<div class="jumbotron py-1">
+            <ul class="nav nav-tabs" id="myTab" role="tablist">
+                <li class="nav-item">
+                	<a class="nav-link active" id="main-tab" data-toggle="tab" href="#main" role="tab" aria-controls="main" aria-selected="true">{% trans %}Main{% endtrans %}</a>
+                </li>
+                <li class="nav-item">
+                	<a class="nav-link" id="search-tab" data-toggle="tab" href="#search" role="tab" aria-controls="search" aria-selected="false">{% trans %}Search{% endtrans %}</a>
+                </li>
+                <li class="nav-item">
+                	<a class="nav-link" id="series-tab" data-toggle="tab" href="#series" role="tab" aria-controls="series" aria-selected="false">{% trans %}Series{% endtrans %}</a>
+                </li>
+            </ul>
+    		<div class="tab-content pt-1" id="myTabContent">
+    			<div class="tab-pane fade show active" id="main" role="tabpanel" aria-labelledby="main-tab">
+        			{{ block('main') }}
+            	</div>
+    			<div class="tab-pane fade" id="search" role="tabpanel" aria-labelledby="search-tab">
+    				{{ block('search') }}
+    			</div>
+    			<div class="tab-pane fade" id="series" role="tabpanel" aria-labelledby="series-tab">
+    				{{ block('series') }}
+    			</div>
+    		</div>
+		</div>
+		
+    	<table class="table table-responsive-xl">
+            <thead>
+                <tr class="text-center">
+    				<th class="col-xl-auto" style="width:20px;">
+    					<input type="checkbox" id="check_all" unchecked="unchecked">
+    				</th>
+    				<th class="col-xl-auto" style="width:200px;">{% trans %}Reference{% endtrans %}</th>
+    				<th class="col-xl-auto text-center" style="width:25px;">{% trans %}Version{% endtrans %}</th>
+    				<th class="col-xl-auto">{% trans %}Name{% endtrans %}</th>
+    				<th class="col-xl-auto text-center" style="width:200px;">{% trans %}Date{% endtrans %}</th>
+    				<th class="col-xl-auto text-center" style="width:200px;">{% trans %}Writer{% endtrans %}</th>
+    				{% for item in metadatas %}
+    					 <th class="col-xl-auto">{{ item.name }}</th>
+    				 {% endfor %}
+                    <th style="width:200px;"></th>
+    			</tr>
+            </thead>
+    		<tbody>
+                {% for version in versions %}
+                    <tr>
+                    	<td>
+                    		<input type="checkbox" name="v[{{ version.id }}]" class="form-check-input" unchecked="unchecked" value="1">
+                    	</td>
+                    	<td>{{ version.document.reference }}</td>
+                    	<td>{{ version.name }}</td>
+                    	<td>{{ version.document.name }}</td>
+                    	<td>{{ version.date|date("m/d/Y") }}</td>
+                    	<td>{{ version.writer }}</td>
+                    	
+    				{% for item in metadatas %}
+    				    {% set value = version.getPropertyValueToString(item.name) %}
+                        {% if value matches '/^\\d+$/' %}
+                        	<td class="col-xl-auto text-center">{{ value }}</td>
+    				    {% elseif value matches '/^[-+]?[0-9]*\\.?[0-9]+$/' %}
+                        	<td class="col-xl-auto text-right">{{ value }}</td>
+                        {% else %}
+                        	<td class="col-xl-auto text-left">{{ value|truncate(30, false, "...") }}</td>
+                        {% endif %}
+    				 {% endfor %}
+                    	
+                        <td>
+                            <a class="btn-success btn w-100 text-nowrap" href="#">{% trans %}Details{% endtrans %}</a>
+                        </td>
+                    </tr>
+                {% else %}
+            		<tr>
+            			<td>{% trans %}Empty list{% endtrans %}</td>
+            		</tr>
+                {% endfor %}
+    		</tbody>
+        </table>
+    </form>
+{% endblock %}
+
+{% block main %}
+	<div class="row">
+    	<div class="col-6">
+            <div class="row">
+            	{% set codification_filters = app.request.query.get('c') %}
+            	{% for codification in codifications %}
+                    {% if codification.isList %}
+                        <select class="selectpicker col" name="c[{{ codification.id }}][]" multiple data-live-search="true" data-style="btn-primary" data-actions-box="true" data-title="{{ codification.name }}">
+                            {% for item in codification.codificationItems %}
+                            	{% if attribute(codification_filters, codification.id) is defined %}
+                            	    {% if item.value in attribute(codification_filters, codification.id) %}
+                    	            	<option selected="selected">{{ item.value }}</option>
+                    	            {% else %}
+                    	            	<option>{{ item.value }}</option>
+                    	            {% endif %}
+                	            {% else %}
+                	            	<option>{{ item.value }}</option>
+                            	{% endif %}
+                            {% endfor %}
+                        </select>
+            		{% endif %}
+                {% endfor %}
+    		</div>
+    	</div>
+        <div class="col-6">
+        	<div class="row">
+            	{% set metadata_filters = app.request.query.get('m') %}
+            	{% for metadata in metadatas %}
+                    {% if metadata.isList %}
+                        <select class="selectpicker col" name="m[{{ metadata.id }}][]" data-live-search="true" multiple data-style="btn-primary" data-actions-box="true" data-title="{{ metadata.name }}">            
+                        {% for item in metadata.metadataItems %}
+                            	{% if attribute(metadata_filters, metadata.id) is defined %}
+                            	    {% if item.value in attribute(metadata_filters, metadata.id) %}
+                    	            	<option selected="selected">{{ item.value }}</option>
+                    	            {% else %}
+                    	            	<option>{{ item.value }}</option>
+                    	            {% endif %}
+                	            {% else %}
+                	            	<option>{{ item.value }}</option>
+                            	{% endif %}
+                            {% endfor %}
+                        </select>
+            		{% elseif metadata.isBoolean %}
+                        <select class="selectpicker col" name="m[{{ metadata.id }}]" data-style="btn-primary" data-title="{{ metadata.name }}">
+        		        	<option {% if attribute(metadata_filters, metadata.id) is not defined %} selected="selected"{% endif %}></option> 
+                        	<option{% if attribute(metadata_filters, metadata.id) is defined and attribute(metadata_filters, metadata.id) == 1 %} selected="selected"{% endif %} value="1">{% trans %}True{% endtrans %}</option>
+                        	<option{% if attribute(metadata_filters, metadata.id) is defined and attribute(metadata_filters, metadata.id) == 0 %} selected="selected"{% endif %} value="0">{% trans %}False{% endtrans %}</option>
+                        </select>
+                        {#
+            		{% elseif metadata.isDate %}
+                        <div class="col">
+            				<input class="form-control" id="disabledInput" type="date" placeholder="{{ metadata.name }}">
+                        </div>
+                        #}
+            		{% endif %}
+                {% endfor %}
+        	</div>
+        </div>
+        <div class="col-1 offset-11 mt-2">
+        	<button type="submit" class="btn-primary btn-sm">{% trans %}Filter{% endtrans %}</button>
+        </div>
+    </div>
+{% endblock %}
+
+{% block search %}
+    <div class="row py-3">
+    	<label class="col-form-label col-form-label col-1" for="query">{% trans %}Query{% endtrans %}</label>
+    	<div class="col-auto">
+    		<input class="form-control" type="text" id="query" name="query">
+    		<small class="form-text text-muted">{% trans %}Symbol{% endtrans %} {{ current_serie.project.splitter }} {% trans %}must be used as splitter{% endtrans %}</small>
+    		<small class="form-text text-muted">{% trans %}The wild-card{% endtrans %} * {% trans %}can be used in place of one or several parameter{% endtrans %}</small>
+    	</div>
+		<div class="col-1">
+        	<button type="submit" class="btn-primary btn">{% trans %}Filter{% endtrans %}</button>
+        </div>
+    </div>
+{% endblock %}
+
+{% block series %}
+    <div class="row py-4">
+    	<div class="col">
+        	{% for serie in series %}
+        		{% if (serie.id == current_serie.id) %}
+        			<a class="btn btn-lg btn-primary text-white" style="width: 200px;">{{ serie.name }}</a>
+        		{% else %}
+        			<a class="btn btn-lg btn-outline-primary text-white" href="{{ path('document', {'id': serie.id}) }}" role="button" style="width: 200px;">{{ serie.name }}</a>
+        		{% endif %}
+        	{% endfor %}
+    	</div>
+    	<div class="col-auto">
+    		<a class="btn btn-primary" href="{{ path('serie', {'project': current_serie.project.id, 'company': current_serie.company.id}) }}" role="button">{% trans %}Manage series{% endtrans %}</a>
+    	</div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('document') }}
+{% endblock %}

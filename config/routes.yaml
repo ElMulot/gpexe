@@ -1,0 +1,333 @@
+login:
+    path: /login
+    controller: App\Controller\SecurityController::login
+    
+logout:
+    path: /logout
+    methods: GET
+    
+home:
+    path: /
+    controller: App\Controller\HomeController::index
+
+project:
+    path: /project
+    controller: App\Controller\ProjectController::index
+
+project_view:
+    path: /project/{id}
+    requirements:
+        id: \d+
+    controller: App\Controller\ProjectController::view
+
+project_new:
+    path: /project/new
+    controller: App\Controller\ProjectController::new
+
+project_edit:
+    path: /project/edit/{id}
+    requirements:
+        id: \d+
+    controller: App\Controller\ProjectController::edit
+
+project_delete:
+    path: /project/delete/{id}
+    methods: GET|DELETE
+    requirements:
+        id: \d+
+    controller: App\Controller\ProjectController::delete
+
+codification:
+    path: /project/{id}/codification
+    requirements:
+        id: \d+
+    controller: App\Controller\CodificationController::index
+
+codification_new:
+    path: /project/{id}/codification/new
+    requirements:
+        id: \d+
+    controller: App\Controller\CodificationController::new
+
+codification_edit:
+    path: /project/codification/edit/{id}
+    requirements:
+        id: \d+
+    controller: App\Controller\CodificationController::edit
+
+codification_delete:
+    path: /project/codification/delete/{id}
+    methods: GET|DELETE
+    requirements:
+        id: \d+
+    controller: App\Controller\CodificationController::delete
+    
+codification_item:
+    path: /project/codification/{id}/item
+    requirements:
+        id: \d+
+    controller: App\Controller\CodificationItemController::index
+
+codification_item_new:
+    path: /project/codification/{id}/item/new
+    requirements:
+        id: \d+
+    controller: App\Controller\CodificationItemController::new
+
+codification_item_edit:
+    path: /project/codification/item/edit/{id}
+    requirements:
+        id: \d+
+    controller: App\Controller\CodificationItemController::edit
+
+codification_item_delete:
+    path: /project/codification/item/delete/{id}
+    methods: GET|DELETE
+    requirements:
+        id: \d+
+    controller: App\Controller\CodificationItemController::delete
+
+metadata:
+    path: /project/{id}/metadata
+    requirements:
+        id: \d+
+    controller: App\Controller\MetadataController::index
+
+metadata_new:
+    path: /project/{id}/metadata/new
+    requirements:
+        id: \d+
+    controller: App\Controller\MetadataController::new
+
+metadata_edit:
+    path: /project/metadata/edit/{id}
+    requirements:
+        id: \d+
+    controller: App\Controller\MetadataController::edit
+
+metadata_delete:
+    path: /project/metadata/delete/{id}
+    methods: GET|DELETE
+    requirements:
+        id: \d+
+    controller: App\Controller\MetadataController::delete
+    
+metadata_item:
+    path: /project/metadata/{id}/item
+    requirements:
+        id: \d+
+    controller: App\Controller\MetadataItemController::index
+
+metadata_item_new:
+    path: /project/metadata/{id}/item/new
+    requirements:
+        id: \d+
+    controller: App\Controller\MetadataItemController::new
+
+metadata_item_edit:
+    path: /project/metadata/item/edit/{id}
+    requirements:
+        id: \d+
+    controller: App\Controller\MetadataItemController::edit
+
+metadata_item_delete:
+    path: /project/metadata/item/delete/{id}
+    methods: GET|DELETE
+    requirements:
+        id: \d+
+    controller: App\Controller\MetadataItemController::delete
+
+serie_redirect:  #redirigé directement vers document ou vers serie_new (si pas de serie créée)
+    path: /project/{project}/{company}/serie
+    requirements:
+        project: \d+
+        company: \d+
+    controller: App\Controller\SerieController::route
+
+serie: #administration des séries
+    path: /project/{project}/{company}/serie
+    requirements:
+        project: \d+
+        company: \d+
+    controller: App\Controller\SerieController::index
+
+serie_new:
+    path: /project/{project}/{company}/serie/new
+    requirements:
+        project: \d+
+        company: \d+
+    controller: App\Controller\SerieController::new
+
+serie_edit:
+    path: /project/serie/edit/{id}
+    requirements:
+        id: \d+
+    controller: App\Controller\SerieController::edit
+    
+serie_delete:
+    path: /project/serie/delete/{id}
+    requirements:
+        id: \d+
+    controller: App\Controller\SerieController::delete
+
+document:   #vue principale
+    path: /project/serie/{id}
+    requirements:
+        id: \d+
+    controller: App\Controller\DocumentController::index
+
+document_detail:
+    path: /project/serie/document/{id}/detail
+    requirements:
+        id: \d+
+    controller: App\Controller\DocumentController::detail
+
+document_new:
+    path: /project/serie/{id}/new
+    requirements:
+        id: \d+
+    controller: App\Controller\DocumentController::new
+
+document_edit:
+    path: /project/serie/document/edit/{id}
+    defaults: { id: 0 }
+    requirements:
+        id: \d+
+    controller: App\Controller\DocumentController::edit
+    
+document_move:
+    path: /project/serie/document/move/{id}
+    defaults: { id: 0 }
+    requirements:
+        id: \d+
+    controller: App\Controller\DocumentController::move
+
+document_delete:
+    path: /project/serie/document/delete/{id}
+    defaults: { id: 0 }
+    methods: GET|DELETE
+    requirements:
+        id: \d+
+    controller: App\Controller\DocumentController::delete
+    
+version_new:
+    path: /project/serie/document/{id}/version/new
+    defaults: { id: 0 }
+    requirements:
+        id: \d+
+    controller: App\Controller\VersionController::new
+
+version_edit:
+    path: /project/serie/document/version/edit/{id}
+    defaults: { id: 0 }
+    requirements:
+        id: \d+
+    controller: App\Controller\VersionController::edit
+
+version_delete:
+    path: /project/serie/document/version/delete/{id}
+    defaults: { id: 0 }
+    methods: GET|DELETE
+    requirements:
+        id: \d+
+    controller: App\Controller\VersionController::delete
+
+visa:
+    path: /project/{id}/visa
+    requirements:
+        id: \d+
+    controller: App\Controller\VisaController::index
+
+visa_new:
+    path: /project/{id}/visa/new
+    requirements:
+        id: \d+
+    controller: App\Controller\VisaController::new
+
+visa_edit:
+    path: /project/visa/edit/{id}
+    requirements:
+        id: \d+
+    controller: App\Controller\VisaController::edit
+
+visa_delete:
+    path: /project/visa/delete/{id}
+    methods: GET|DELETE
+    requirements:
+        id: \d+
+    controller: App\Controller\VisaController::delete
+
+account:
+    path: /account
+    controller: App\Controller\AccountController::index
+    
+edit_account:
+    path: /account/edit/
+    controller: App\Controller\AccountController::edit
+    
+change_password:
+    path: /account/changePassword
+    controller: App\Controller\AccountController::changePassword
+    
+profil:
+    path: /profil
+    controller: App\Controller\ProfilController::index
+
+profil_new:
+    path: /profil/new
+    controller: App\Controller\ProfilController::new
+
+profil_edit:
+    path: /profil/edit/{id}
+    requirements:
+        id: \d+
+    controller: App\Controller\ProfilController::edit
+
+profil_delete:
+    path: /profil/delete/{id}
+    methods: GET|DELETE
+    requirements:
+        id: \d+
+    controller: App\Controller\ProfilController::delete
+
+company:
+    path: /company
+    controller: App\Controller\CompanyController::index
+
+company_new:
+    path: /company/new
+    controller: App\Controller\CompanyController::new
+
+company_edit:
+    path: /company/edit/{id}
+    requirements:
+        id: \d+
+    controller: App\Controller\CompanyController::edit
+
+company_delete:
+    path: /company/delete/{id}
+    methods: GET|DELETE
+    requirements:
+        id: \d+
+    controller: App\Controller\CompanyController::delete
+    
+user:
+    path: /user
+    controller: App\Controller\UserController::index
+
+user_new:
+    path: /user/new
+    controller: App\Controller\UserController::new
+
+user_edit:
+    path: /user/edit/{id}
+    requirements:
+        id: \d+
+    controller: App\Controller\UserController::edit
+
+user_delete:
+    path: /user/delete/{id}
+    methods: GET|DELETE
+    requirements:
+        id: \d+
+    controller: App\Controller\UserController::delete

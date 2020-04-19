@@ -1,0 +1,40 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}
+    {{ page_title|trans }}
+{% endblock %}
+
+{% block stylesheets %}
+	{{ parent() }}
+    {{ encore_entry_link_tags('form') }}
+{% endblock %}
+
+{% block body %}
+    <div class="row justify-content-xl-center p-5">
+    	<div class="jumbotron col-xl-7">
+    		{% for label, messages in app.flashes %}
+        		{% for message in messages %}
+            		<div class="row justify-content-xl-center">
+            			<div class="alert alert-{{ label }} col-xl-5">{{ message|trans }}.</div>
+            		</div>
+        		{% endfor %}
+    		{% endfor %}
+    		{{ form(form) }}
+    		<div class="row mt-5">
+    				{% if route_back is defined %}
+        				<div class="col-6 text-right">
+        					<a class="btn-secondary btn w-75" href="{{ route_back }}">{% trans %}Cancel{% endtrans %}</a>
+        				</div>
+    				{% endif %}
+    			<div class="col-6 text-left">
+    				<button type="submit" form="form" class="btn-primary btn w-75">{% trans %}Save{% endtrans %}</button>
+    			</div>
+    		</div>
+    	</div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('form') }}
+{% endblock %}

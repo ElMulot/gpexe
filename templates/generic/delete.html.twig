@@ -1,0 +1,27 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}
+    {{ page_title|trans }}
+{% endblock %}
+
+{% block body %}
+    <div class="row justify-content-xl-center p-5">
+    	<div class="jumbotron col-xl-5">
+    		<form method="post" action="{{ path(entity|short_name ~ '_delete', {'id': entity.id}) }}">
+    			<p>{% trans %}Confirm deletion of entry{% endtrans %}'{{ entity.name|trans }}'</p>
+    			<input type="hidden" name="_method" value="DELETE">
+    			<input type="hidden" name="_token" value="{{ csrf_token('delete' ~ entity.id) }}">
+    			<div class="row mt-5">
+    				{% if route_back is defined %}
+        				<div class="col-6 text-right">
+        					<a class="btn-secondary btn w-75" href="{{ route_back }}">{% trans %}Cancel{% endtrans %}</a>
+        				</div>
+    				{% endif %}
+    				<div class="col-6 text-left">
+    					<button type="submit" class="btn-danger btn w-75">{% trans %}Delete{% endtrans %}</button>
+    				</div>
+    			</div>
+    		</form>
+    	</div>
+    </div>
+{% endblock %}

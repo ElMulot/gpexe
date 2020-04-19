@@ -1,0 +1,50 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}
+    {% trans %}Connection{% endtrans %}
+{% endblock %}
+
+{% block stylesheets %}
+    {{ encore_entry_link_tags('login') }}
+    {{ parent() }}
+{% endblock %}
+
+{% block body %}
+<div class="container">
+	<div id="formContent" class="jumbotron">
+        {%- if app.request('logout') -%}
+            <div class="alert alert-success">{% trans %}Logout successful{% endtrans %}</div>
+        {%- endif -%}  
+		<form method="post">
+			{% if error %}
+			<div class="alert alert-danger">
+				{{ error.messageKey|trans(error.messageData, 'security') }}
+			</div>
+			{% endif %}
+			
+			<label for="inputEmail">{% trans %}Email{% endtrans %}</label>
+			<input type="email" {% if last_username is defined %}value="{{ last_username }}"{% endif %} name="email" id="inputEmail" class="form-control" required autofocus>
+			<label for="inputPassword">{% trans %}Password{% endtrans %}</label>
+			<input type="password" name="password" id="inputPassword" class="form-control" required> <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+			<div class="checkbox mb-3">
+				<label>
+					<input type="checkbox" id="remember_me" name="_remember_me" checked/>
+					<label for="remember_me">{% trans %}Remember me{% endtrans %}</label>
+				</label>
+			</div>
+
+			<button class="btn btn-lg btn-primary btn-block" type="submit">
+				{% trans %}Ok{% endtrans %}
+			</button>
+		</form>
+	</div>
+</div>
+<div>
+	<p class="text-center"><small>v. {{ app_version }} - {{ app_date }} - {{ webmaster }}</small></p>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ encore_entry_script_tags('login') }}
+    {{ parent() }}
+{% endblock %}

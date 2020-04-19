@@ -1,0 +1,38 @@
+App\Entity\Company:
+    constraints:
+        - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity: name
+
+App\Entity\Profil:
+    constraints:
+        - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity: name
+
+App\Entity\Project:
+    constraints:
+        - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity: name
+
+App\Entity\User:
+    constraints:
+        - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity: email
+    properties:
+        email: [Email: ~]
+        name: [NotBlank: ~]
+        
+App\Entity\Metadata:
+    constraints:
+        - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity: name
+    properties:
+        name:
+          - NotEqualTo: 'initialDate'
+          - NotEqualTo: 'date'
+          - NotEqualTo: 'isRequired'
+          - NotEqualTo: 'writer'
+          - NotEqualTo: 'checker'
+          - NotEqualTo: 'approver'
+
+App\Entity\MetadataItem:
+    properties:
+        value: [NotEqualTo: 'Various']
+
+App\Entity\MetadataValue:
+    properties:
+        value: [NotEqualTo: '--Various--']
