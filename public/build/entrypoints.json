@@ -1,0 +1,51 @@
+{
+  "entrypoints": {
+    "app": {
+      "js": [
+        "/build/runtime.js",
+        "/build/vendors~app~document~form~login.js",
+        "/build/vendors~app.js",
+        "/build/app.js"
+      ],
+      "css": [
+        "/build/app.css"
+      ]
+    },
+    "form": {
+      "js": [
+        "/build/runtime.js",
+        "/build/vendors~app~document~form~login.js",
+        "/build/vendors~document~form.js",
+        "/build/vendors~form.js",
+        "/build/form.js"
+      ],
+      "css": [
+        "/build/vendors~form.css",
+        "/build/form.css"
+      ]
+    },
+    "login": {
+      "js": [
+        "/build/runtime.js",
+        "/build/vendors~app~document~form~login.js",
+        "/build/login.js"
+      ],
+      "css": [
+        "/build/login.css"
+      ]
+    },
+    "document": {
+      "js": [
+        "/build/runtime.js",
+        "/build/vendors~app~document~form~login.js",
+        "/build/vendors~document~form.js",
+        "/build/vendors~document.js",
+        "/build/document.js"
+      ],
+      "css": [
+        "/build/vendors~document.css",
+        "/build/document.css"
+      ]
+    }
+  }
+}
