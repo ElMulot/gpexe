@@ -2,49 +2,49 @@
   "entrypoints": {
     "app": {
       "js": [
-        "/build/runtime.js",
-        "/build/vendors~app~document~form~login.js",
-        "/build/vendors~app.js",
-        "/build/app.js"
+        "/gpexe/build/runtime.js",
+        "/gpexe/build/vendors~app~document~form~login.js",
+        "/gpexe/build/vendors~app.js",
+        "/gpexe/build/app.js"
       ],
       "css": [
-        "/build/app.css"
+        "/gpexe/build/app.css"
       ]
     },
     "form": {
       "js": [
-        "/build/runtime.js",
-        "/build/vendors~app~document~form~login.js",
-        "/build/vendors~document~form.js",
-        "/build/vendors~form.js",
-        "/build/form.js"
+        "/gpexe/build/runtime.js",
+        "/gpexe/build/vendors~app~document~form~login.js",
+        "/gpexe/build/vendors~document~form.js",
+        "/gpexe/build/vendors~form.js",
+        "/gpexe/build/form.js"
       ],
       "css": [
-        "/build/vendors~form.css",
-        "/build/form.css"
+        "/gpexe/build/vendors~form.css",
+        "/gpexe/build/form.css"
       ]
     },
     "login": {
       "js": [
-        "/build/runtime.js",
-        "/build/vendors~app~document~form~login.js",
-        "/build/login.js"
+        "/gpexe/build/runtime.js",
+        "/gpexe/build/vendors~app~document~form~login.js",
+        "/gpexe/build/login.js"
       ],
       "css": [
-        "/build/login.css"
+        "/gpexe/build/login.css"
       ]
     },
     "document": {
       "js": [
-        "/build/runtime.js",
-        "/build/vendors~app~document~form~login.js",
-        "/build/vendors~document~form.js",
-        "/build/vendors~document.js",
-        "/build/document.js"
+        "/gpexe/build/runtime.js",
+        "/gpexe/build/vendors~app~document~form~login.js",
+        "/gpexe/build/vendors~document~form.js",
+        "/gpexe/build/vendors~document.js",
+        "/gpexe/build/document.js"
       ],
       "css": [
-        "/build/vendors~document.css",
-        "/build/document.css"
+        "/gpexe/build/vendors~document.css",
+        "/gpexe/build/document.css"
       ]
     }
   }
