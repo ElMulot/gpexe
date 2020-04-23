@@ -34,13 +34,7 @@ class Company
     private $name;
 
     /**
-     * @ORM\Column(type="smallint",
-     *      columnDefinition="ENUM(
-     *          1,
-     *          2,
-     *          3,
-     *          4)",
-     *      options={"default": 3})
+     * @ORM\Column(type="smallint")
      */
     private $type;
 
@@ -137,26 +131,6 @@ class Company
 
         return $this;
     }
-    
-    public function isMainContractor(): bool
-    {
-        return ($this->getType() == self::MAIN_CONTRACTOR);
-    }
-    
-    public function isSubContractor(): bool
-    {
-        return ($this->getType() == self::SUB_CONTRACTOR);
-    }
-    
-    public function isSupplier(): bool
-    {
-        return ($this->getType() == self::SUPPLIER);
-    }
-    
-    public function isChecker(): bool
-    {
-        return ($this->getType() == self::CHECKER);
-    }
 
     /**
      * @return Collection|Serie[]
@@ -187,6 +161,26 @@ class Company
         }
 
         return $this;
+    }
+    
+    public function isMainContractor(): bool
+    {
+    	return ($this->getType() == self::MAIN_CONTRACTOR);
+    }
+    
+    public function isSubContractor(): bool
+    {
+    	return ($this->getType() == self::SUB_CONTRACTOR);
+    }
+    
+    public function isSupplier(): bool
+    {
+    	return ($this->getType() == self::SUPPLIER);
+    }
+    
+    public function isChecker(): bool
+    {
+    	return ($this->getType() == self::CHECKER);
     }
     
     public function __toString(): string

@@ -40,12 +40,12 @@ class Version
     private $isRequired;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\MetadataItem", cascade={"persist", "remove"})
+     * @ORM\ManyToMany(targetEntity="App\Entity\MetadataItem", cascade={"persist"})
      */
     private $metadataItems;
     
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\MetadataValue", orphanRemoval=true)
+     * @ORM\ManyToMany(targetEntity="App\Entity\MetadataValue", cascade={"persist", "remove"})
      */
     private $metadataValues;
 
@@ -65,7 +65,7 @@ class Version
     private $approver;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Document", inversedBy="versions")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Document", inversedBy="versions", cascade={"persist", "remove"})
      * @ORM\JoinColumn(nullable=false)
      */
     private $document;

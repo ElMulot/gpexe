@@ -41,12 +41,12 @@ class User implements UserInterface
     private $name;
 
     /**
-     * @ORM\Column(type="string", length=5, columnDefinition="ENUM('en_GB', 'fr_FR')", options={"default": "fr_FR"})
+     * @ORM\Column(type="string", length=5)
      */
     private $locale;
 
     /**
-     * @ORM\Column(type="boolean", options={"default": false})
+     * @ORM\Column(type="boolean")
      */
     private $activated;
 

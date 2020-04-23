@@ -29,7 +29,7 @@ class Document
     private $codificationItems;
     
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\CodificationValue", orphanRemoval=true)
+     * @ORM\ManyToMany(targetEntity="App\Entity\CodificationValue", cascade={"persist", "remove"})
      */
     private $codificationValues;
 
