@@ -5,6 +5,7 @@ namespace App\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use App\Entity\User;
 use App\Form\NewUserType;
@@ -14,17 +15,20 @@ use App\Repository\UserRepository;
 class UserController extends AbstractController
 {
     
+    private $translator;
+    
     private $passwordEncoder;
     
-    public function __construct(UserPasswordEncoderInterface $passwordEncoder)
+    public function __construct(TranslatorInterface $translator, UserPasswordEncoderInterface $passwordEncoder)
     {
+        $this->translator = $translator;
         $this->passwordEncoder = $passwordEncoder;
     }
     
     public function index(UserRepository $userRepository): Response
     {
         return $this->render('generic/list.html.twig', [
-            'page_title' => 'User',
+            'header' => $this->translator->trans('User'),
         	'route_back' =>  $this->generateUrl('project'),
             'class' => User::class,
             'entities' => $userRepository->findAll(),
@@ -48,7 +52,6 @@ class UserController extends AbstractController
         } else {
             $view = $form->createView();
             return $this->render('generic/form.html.twig', [
-                'page_title' => 'New user',
             	'route_back' =>  $this->generateUrl('user'),
                 'form' => $view,
             ]);
@@ -72,7 +75,6 @@ class UserController extends AbstractController
         } else {
             $view = $form->createView();
             return $this->render('generic/form.html.twig', [
-                'page_title' => 'Edit user',
             	'route_back' =>  $this->generateUrl('user'),
                 'form' => $view,
             ]);
@@ -81,7 +83,7 @@ class UserController extends AbstractController
     
     public function delete(Request $request, User $user): Response
     {
-        if ($this->isCsrfTokenValid('delete'.$user->getId(), $request->request->get('_token'))) {
+        if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($user);
             $entityManager->flush();
@@ -90,9 +92,8 @@ class UserController extends AbstractController
             return $this->redirectToRoute('user');
         } else {
             return $this->render('generic/delete.html.twig', [
-                'page_title' => 'Delete user',
             	'route_back' =>  $this->generateUrl('user'),
-                'entity' => $user,
+                'entities' => [$user],
             ]);
         }
         

@@ -1,9 +1,5 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}
-    {{ page_title|trans }}
-{% endblock %}
-
 {% block nav %}
     {% if route_back is defined %}
         <div class="navbar-collapse" style="width: 150px">
@@ -19,7 +15,7 @@
     	<div class="navbar-collapse" style="width: 150px"></div>
     {% endif %}
     <div class="navbar-collapse navbar-brand justify-content-center">
-    	{{ page_title|trans }}
+    	{{ header }}
     </div>
     <div class="navbar-collapse" style="width: 150px"></div>
 {% endblock %}
@@ -45,7 +41,6 @@
         		<tr>
         			{% for key, header in headers %}
             			{% set value = attribute(entity, key) %}
-            			{% dump(value) %}
             			{% if value is same as (false) %}
             				<td class="col-xl-auto text-center">{% trans %}False{% endtrans %}</td>
             			{% elseif value is same as (true) %}
@@ -89,15 +84,9 @@
     </table>
     
     <div class="text-center p-5">
-    	{% if app.request.attributes.get('_route_params') is empty %}
-    		<a class="btn-primary btn text-nowrap" style="width: 300px;" href="{{ path(entity_name ~ '_new') }}">
-    		    {% trans %}New{% endtrans %}
-    		</a>
-    	{% else %}
-        	<a class="btn-primary btn text-nowrap" style="width: 300px;" href="{{ path(entity_name ~ '_new', {'id': app.request.attributes.get('_route_params')|first}) }}">
-        	    {% trans %}New{% endtrans %}
-        	</a>
-    	{% endif %}
+    	<a class="btn-primary btn text-nowrap" style="width: 300px;" href="{{ path(entity_name ~ '_new', app.request.attributes.get('_route_params')) }}">
+    	    {% trans %}New{% endtrans %}
+    	</a>
     </div>
 {% endblock %}
 

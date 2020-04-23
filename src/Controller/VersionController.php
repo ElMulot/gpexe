@@ -84,7 +84,6 @@ class VersionController extends AbstractController
 					$this->addFlash('danger', 'The field  \'' . $metadata->getName() . '\' must not be empty');
 					$view = $form->createView();
 					return $this->render('generic/form.html.twig', [
-						'page_title' => 'New version',
 						'route_back' =>  $this->generateUrl('document', [
 							'id' => $document->getSerie()->getId(),
 						]),
@@ -106,7 +105,6 @@ class VersionController extends AbstractController
 		} else {
 			$view = $form->createView();
 			return $this->render('generic/form.html.twig', [
-				'page_title' => 'New document',
 				'route_back' =>  $this->generateUrl('document', [
 					'id' => $document->getSerie()->getId(),
 				]),
@@ -134,26 +132,18 @@ class VersionController extends AbstractController
 				return $this->redirectToRoute('project');
 			}
 			
-			/*
-			if (count($documents) > 1) {
-				$this->addFlash('danger', 'Only one reference must be selected');
-				return $this->redirectToRoute('document', [
-					'id' => $documents[0]->getSerie()->getId()
-				]);
-			}*/
-			
 			$document = $documents[0];
+			$serie = $document->getSerie();
+			$versions = $this->versionRepository->getVersions($serie, $request);
 			
 		} else {
 			
 			$document = $version->getDocument();
-			
+			$serie = $document->getSerie();
+			$versions[] = $version;
 		}
 
-		$serie = $document->getSerie();
-		$project = $serie->getProject();
-		
-		$versions = $this->versionRepository->getVersions($serie, $request);
+		$project = $serie->getProject();	
 		
 		$form = $this->createForm(VersionType::class, null, [
 			'serie' => $serie,
@@ -191,7 +181,6 @@ class VersionController extends AbstractController
 							$this->addFlash('danger', 'The field  \'' . $metadata->getName() . '\' must not be empty');
 							$view = $form->createView();
 							return $this->render('generic/form.html.twig', [
-								'page_title' => 'New version',
 								'route_back' =>  $this->generateUrl('document', [
 									'id' => $serie->getId(),
 								]),
@@ -227,13 +216,58 @@ class VersionController extends AbstractController
 		} else {
 			$view = $form->createView();
 			return $this->render('generic/form.html.twig', [
-				'page_title' => 'New version',
 				'route_back' =>  $this->generateUrl('document', [
 					'id' => $serie->getId(),
 				]),
 				'form' => $view,
 			]);
 		}
+	}
+	
+	public function delete(Request $request, Version $version=null): Response
+	{
+	    
+	    if (!$version) { //cas d'une édition depuis la vue principale
+	        
+	        $documents = $this->documentRepository->getDocumentsByRequest($request);
+	        
+	        if (!$documents) {
+	            return $this->redirectToRoute('project');
+	        }
+	        
+	        $document = $documents[0];
+	        $serie = $document->getSerie();
+	        $versions = $this->versionRepository->getVersions($serie, $request);
+	        
+	    } else {
+	        
+	        $document = $version->getDocument();
+	        $serie = $document->getSerie();
+	        $versions[] = $version;
+	    }
+	    
+	    if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
+	        $entityManager = $this->getDoctrine()->getManager();
+	        
+	        foreach ($versions as $version) {
+	            $entityManager->remove($version);
+	        }
+	        $entityManager->flush();
+	        
+	        $this->addFlash('success', 'deleted.version');
+	        $this->addFlash('_count', count($versions));
+	        return $this->redirectToRoute('document', [
+	            'id' => $serie->getId()
+	        ]);
+	    } else {
+	        return $this->render('generic/delete.html.twig', [
+	            'route_back' =>  $this->generateUrl('document', [
+	                'id' => $serie->getId(),
+	            ]),
+	            'entities' => $versions,
+	        ]);
+	    }
+	    
 	}
 	
 }

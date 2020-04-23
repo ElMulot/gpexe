@@ -23,7 +23,7 @@ class CodificationItemController extends AbstractController
 	public function index(CodificationItemRepository $codificationItemRepository, Codification $codification): Response
 	{
 		return $this->render('generic/list.html.twig', [
-			'page_title' => $this->translator->trans('List for the code') . ' : ' . $codification->getName(),
+			'header' => $this->translator->trans('List for the code') . ' : ' . $codification->getName(),
 			'route_back' => 'codification',
 			'parent_id' => $codification->getProject()->getId(),
 			'class' => CodificationItem::class,
@@ -51,7 +51,6 @@ class CodificationItemController extends AbstractController
 		} else {
 			$view = $form->createView();
 			return $this->render('generic/form.html.twig', [
-				'page_title' => 'New codification list',
 				'route_back' =>  $this->generateUrl('codification_item', [
 					'id' => $codification->getId(),
 				]),
@@ -76,7 +75,6 @@ class CodificationItemController extends AbstractController
 		} else {
 			$view = $form->createView();
 			return $this->render('generic/form.html.twig', [
-				'page_title' => 'Edit codification list',
 				'route_back' =>  $this->generateUrl('codification_item', [
 					'id' => $codificationItem->getCodification()->getId(),
 				]),
@@ -87,7 +85,7 @@ class CodificationItemController extends AbstractController
 
 	public function delete(Request $request, CodificationItem $codificationItem): Response
 	{
-		if ($this->isCsrfTokenValid('delete' . $codificationItem->getId(), $request->request->get('_token'))) {
+		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
 			$entityManager = $this->getDoctrine()->getManager();
 			$entityManager->remove($codificationItem);
 			$entityManager->flush();
@@ -98,11 +96,10 @@ class CodificationItemController extends AbstractController
 			]);
 		} else {
 			return $this->render('generic/delete.html.twig', [
-				'page_title' => 'Delete codification list',
 				'route_back' =>  $this->generateUrl('codification_item', [
 					'id' => $codificationItem->getCodification()->getId(),
 				]),
-				'entity' => $codificationItem
+				'entities' => [$codificationItem],
 			]);
 		}
 	}

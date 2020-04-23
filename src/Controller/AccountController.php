@@ -24,7 +24,6 @@ class AccountController extends AbstractController
     public function index(Request $request): Response
     {
         return $this->render('account/index.html.twig', [
-            'page_title' => 'Account',
         	'route_back' => $this->generateUrl('home'),
             'user' => $this->getUser()
         ]);
@@ -47,7 +46,6 @@ class AccountController extends AbstractController
         } else {
             $view = $form->createView();
             return $this->render('generic/form.html.twig', [
-                'page_title' => 'Edit account properties',
             	'route_back' => $this->generateUrl('account'),
                 'form' => $view
             ]);
@@ -72,7 +70,6 @@ class AccountController extends AbstractController
         } else {
             $view = $form->createView();
             return $this->render('generic/form.html.twig', [
-                'page_title' => 'Change password',
             	'route_back' => $this->generateUrl('account'),
                 'form' => $view,
             ]);

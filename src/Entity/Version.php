@@ -40,12 +40,12 @@ class Version
     private $isRequired;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\MetadataItem", cascade={"persist"})
+     * @ORM\ManyToMany(targetEntity="App\Entity\MetadataItem", cascade={"persist", "remove"})
      */
     private $metadataItems;
     
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\MetadataValue", orphanRemoval=true, cascade={"persist"})
+     * @ORM\ManyToMany(targetEntity="App\Entity\MetadataValue", orphanRemoval=true)
      */
     private $metadataValues;
 
@@ -411,6 +411,6 @@ class Version
     
     public function __toString(): string
     {
-    	return (string)$this->getName();
+    	return (string)$this->getDocument()->__toString() . ' - ' . $this->getName();
     }
 }

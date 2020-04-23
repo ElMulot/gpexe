@@ -1,0 +1,24 @@
+confirm:
+   document: Confirmer la suppression
+      {count, plural,
+         one   {du document}
+         other {des documents}
+      }
+   version: Confirmer la suppression
+      {count, plural,
+         one   {de la version}
+         other {des versions}
+      }
+      
+deleted:
+   document: >-
+      {count, plural,
+         one   {Document supprimé}
+         other {Documents supprimés}
+      }
+      
+   version: >-
+      {count, plural,
+         one   {Version supprimée}
+         other {Versions supprimées}
+      }

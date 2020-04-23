@@ -95,7 +95,6 @@ class DocumentController extends AbstractController
 		} else {
 			$view = $form->createView();
 			return $this->render('generic/form.html.twig', [
-				'page_title' => 'New document',
 				'route_back' =>  $this->generateUrl('document', [
 					'id' => $serie->getId(),
 				]),
@@ -139,20 +138,7 @@ class DocumentController extends AbstractController
 			$codifications = $project->getCodifications()->getValues();
 			
 			foreach ($codifications as $codification) {
-				
 				$value = $form->get('c_' .  $codification->getId())->getData();
-					
-				if ($value === null && $codification->getIsMandatory()) {
-					$this->addFlash('danger', 'The field  \'' . $codification->getName() . '\' must not be empty');
-					$view = $form->createView();
-					return $this->render('generic/form.html.twig', [
-						'page_title' => 'Edit Version',
-						'route_back' =>  $this->generateUrl('document', [
-							'id' => $document->getSerie()->getId(),
-						]),
-						'form' => $view,
-					]);
-				}
 				$document->setCodificationValue($codification, $value);
 			}
 			
@@ -160,81 +146,12 @@ class DocumentController extends AbstractController
 			$entityManager->persist($document);
 			$entityManager->flush();
 			
-			return $this->redirectToRoute('version_new', [
-				'id' => $document->getId()
+			return $this->redirectToRoute('document', [
+			    'id' => $serie->getId()
 			]);
 		} else {
 			$view = $form->createView();
 			return $this->render('generic/form.html.twig', [
-				'page_title' => 'New document',
-				'route_back' =>  $this->generateUrl('document', [
-					'id' => $serie->getId(),
-				]),
-				'form' => $view
-			]);
-		}
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		$document = new Document();
-		$document->setSerie($serie);
-		$project = $serie->getProject();
-		
-		$form = $this->createForm(DocumentType::class, $document, [
-			'project' => $project
-		]);
-		$form->handleRequest($request);
-		
-		if ($form->isSubmitted() && $form->isValid()) {
-			
-			$codifications = $project->getCodifications()->getValues();
-			
-			foreach ($codifications as $codification) {
-				
-				switch ($codification->getType()) {
-					
-					case Codification::FIXED:
-						break;
-						
-					case Codification::LIST:
-						$value = $form->get('c_' . $codification->getId())->getData();
-						if ($value)
-							$document->addCodificationItem($value);
-							break;
-							
-					case Codification::REGEX:
-						$value = $form->get('c_' . $codification->getId())->getData();
-						if ($value) {
-							$codificationValue = new CodificationValue();
-							$codificationValue->setValue($value);
-							$codificationValue->setCodification($codification);
-							$codificationValue->setDocument($document);
-							$document->addCodificationValue($codificationValue);
-						}
-						break;
-				}
-			}
-			
-			$entityManager = $this->getDoctrine()->getManager();
-			$entityManager->persist($document);
-			$entityManager->flush();
-			
-			return $this->redirectToRoute('version_new', [
-				'id' => $document->getId()
-			]);
-		} else {
-			$view = $form->createView();
-			return $this->render('generic/form.html.twig', [
-				'page_title' => 'New document',
 				'route_back' =>  $this->generateUrl('document', [
 					'id' => $serie->getId(),
 				]),
@@ -242,6 +159,48 @@ class DocumentController extends AbstractController
 			]);
 		}
 	}
+	
+	public function delete(Request $request, Document $document=null): Response
+	{
+	    
+	    if (!$document) { //cas d'une suppression depuis la vue principale
+	        
+	        $documents = $this->documentRepository->getDocumentsByRequest($request);
+	        
+	        if (!$documents) {
+	            return $this->redirectToRoute('project');
+	        }
+	        
+	        $document = $documents[0];
+	        
+	    }
+	    
+	    $serie = $document->getSerie();
+	    
+	    if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
+	        $entityManager = $this->getDoctrine()->getManager();
+	        
+	        foreach ($documents as $document) {
+	           $entityManager->remove($document);
+	        }
+	        $entityManager->flush();
+	        
+	        $this->addFlash('success', 'deleted.document');
+	        $this->addFlash('_count', count($documents));
+	        return $this->redirectToRoute('document', [
+	            'id' => $serie->getId()
+	        ]);
+	    } else {
+	        return $this->render('generic/delete.html.twig', [
+	            'route_back' =>  $this->generateUrl('document', [
+	                'id' => $serie->getId(),
+	            ]),
+	            'entities' => $documents,
+	        ]);
+	    }
+	    
+	}
+	
 }
 
 ?>

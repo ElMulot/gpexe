@@ -137,8 +137,8 @@ metadata_item_delete:
         id: \d+
     controller: App\Controller\MetadataItemController::delete
 
-serie_redirect:  #redirigé directement vers document ou vers serie_new (si pas de serie créée)
-    path: /project/{project}/{company}/serie
+serie_route:  #redirigé directement vers document ou vers serie_new (si pas de serie créée)
+    path: /project/{project}/{company}
     requirements:
         project: \d+
         company: \d+

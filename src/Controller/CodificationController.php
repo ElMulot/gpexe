@@ -23,7 +23,7 @@ class CodificationController extends AbstractController
 	public function index(CodificationRepository $codificationRepository, Project $project): Response
 	{
 		return $this->render('generic/list.html.twig', [
-			'page_title' => $this->translator->trans('Codification for') . ' : ' . $project->getName(),
+			'header' => $this->translator->trans('Codification for') . ' : ' . $project->getName(),
 			'route_back' =>  $this->generateUrl('project_view', [
 				'id' => $project->getId(),
 			]),
@@ -51,7 +51,6 @@ class CodificationController extends AbstractController
 		} else {
 			$view = $form->createView();
 			return $this->render('generic/form.html.twig', [
-				'page_title' => 'New codification',
 				'route_back' =>  $this->generateUrl('codification', [
 					'id' => $project->getId(),
 				]),
@@ -75,7 +74,6 @@ class CodificationController extends AbstractController
 		} else {
 			$view = $form->createView();
 			return $this->render('generic/form.html.twig', [
-				'page_title' => 'Edit Codification',
 				'route_back' =>  $this->generateUrl('codification', [
 					'id' => $codification->getProject()->getId(),
 				]),
@@ -86,7 +84,7 @@ class CodificationController extends AbstractController
 
 	public function delete(Request $request, Codification $codification): Response
 	{
-		if ($this->isCsrfTokenValid('delete' . $codification->getId(), $request->request->get('_token'))) {
+		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
 			$entityManager = $this->getDoctrine()->getManager();
 			$entityManager->remove($codification);
 			$entityManager->flush();
@@ -97,11 +95,10 @@ class CodificationController extends AbstractController
 			]);
 		} else {
 			return $this->render('generic/delete.html.twig', [
-                'page_title' => 'Delete codification',
 				'route_back' =>  $this->generateUrl('codification', [
 					'id' => $codification->getProject()->getId(),
 						]),
-                'entity' => $codification,
+			    'entities' => [$codification],
             ]);
         }
         

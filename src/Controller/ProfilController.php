@@ -5,16 +5,25 @@ namespace App\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use App\Entity\Profil;
 use App\Form\ProfilType;
 use App\Repository\ProfilRepository;
 
 class ProfilController extends AbstractController
 {
+    
+    private $translator;
+    
+    public function __construct(TranslatorInterface $translator)
+    {
+        $this->translator = $translator;
+    }
+    
     public function index(ProfilRepository $profilRepository): Response
     {
         return $this->render('generic/list.html.twig', [
-            'page_title' => 'Profils',
+            'header' => $this->translator->trans('Profils'),
         	'route_back' =>  $this->generateUrl('project'),
             'class' => Profil::class,
         	'entities' => $profilRepository->getProfils(),
@@ -37,7 +46,6 @@ class ProfilController extends AbstractController
         } else {
             $view = $form->createView();
             return $this->render('generic/form.html.twig', [
-                'page_title' => 'New profil',
             	'route_back' =>  $this->generateUrl('profil'),
                 'form' => $view,
             ]);
@@ -58,7 +66,6 @@ class ProfilController extends AbstractController
         } else {
             $view = $form->createView();
             return $this->render('generic/form.html.twig', [
-                'page_title' => 'Edit profil',
             	'route_back' =>  $this->generateUrl('profil'),
                 'form' => $view,
             ]);
@@ -67,7 +74,7 @@ class ProfilController extends AbstractController
     
     public function delete(Request $request, Profil $profil, ProfilRepository $profilRepository): Response
     {
-        if ($this->isCsrfTokenValid('delete'.$profil->getId(), $request->request->get('_token'))) {
+        if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($profil);
             $entityManager->flush();
@@ -79,9 +86,8 @@ class ProfilController extends AbstractController
             return $this->redirectToRoute('profil');
         } else {
             return $this->render('generic/delete.html.twig', [
-                'page_title' => 'Delete profil',
             	'route_back' =>  $this->generateUrl('profil'),
-                'entity' => $profil,
+                'entities' => [$profil],
             ]);
         }
         

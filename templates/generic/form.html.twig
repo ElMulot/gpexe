@@ -1,15 +1,12 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}
-    {{ page_title|trans }}
-{% endblock %}
-
 {% block stylesheets %}
 	{{ parent() }}
     {{ encore_entry_link_tags('form') }}
 {% endblock %}
 
 {% block body %}
+	{% dump(form) %}
     <div class="row justify-content-xl-center p-5">
     	<div class="jumbotron col-xl-7">
     		{% for label, messages in app.flashes %}

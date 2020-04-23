@@ -67,7 +67,6 @@ class ProjectController extends AbstractController
 		} else {
 			$view = $form->createView();
 			return $this->render('generic/form.html.twig', [
-				'page_title' => 'New project',
 				'route_back' =>  $this->generateUrl('project'),
 				'form' => $view
 			]);
@@ -90,7 +89,6 @@ class ProjectController extends AbstractController
 		} else {
 			$view = $form->createView();
 			return $this->render('generic/form.html.twig', [
-				'page_title' => 'Edit project',
 				'route_back' =>  $this->generateUrl('project_view', [
 					'id' => $project->getId()
 				]),
@@ -101,7 +99,7 @@ class ProjectController extends AbstractController
 
 	public function delete(Request $request, Project $project, ProjectRepository $projectRepository): Response
 	{
-		if ($this->isCsrfTokenValid('delete' . $project->getId(), $request->request->get('_token'))) {
+		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
 			$entityManager = $this->getDoctrine()->getManager();
 			$entityManager->remove($project);
 			$entityManager->flush();
@@ -112,11 +110,10 @@ class ProjectController extends AbstractController
 			]);
         } else {
             return $this->render('generic/delete.html.twig', [
-                'page_title' => 'Delete project',
             	'route_back' =>  $this->generateUrl('project_view', [
             		'id' => $project->getId()
             	]),
-                'entity' => $project,
+                'entities' => [$project],
             ]);
         }
         

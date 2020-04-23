@@ -23,7 +23,7 @@ class MetadataController extends AbstractController
 	public function index(MetadataRepository $metadataRepository, Project $project): Response
 	{
 		return $this->render('generic/list.html.twig', [
-			'page_title' => $this->translator->trans('Metadata for') . ' : ' . $project->getName(),
+			'header' => $this->translator->trans('Metadata for') . ' : ' . $project->getName(),
 			'route_back' =>  $this->generateUrl('project_view', [
 				'id' => $project->getId(),
 			]),
@@ -51,7 +51,6 @@ class MetadataController extends AbstractController
 		} else {
 			$view = $form->createView();
 			return $this->render('generic/form.html.twig', [
-				'page_title' => 'New metadata',
 				'route_back' =>  $this->generateUrl('metadata', [
 					'id' => $project->getId(),
 				]),
@@ -75,7 +74,6 @@ class MetadataController extends AbstractController
 		} else {
 			$view = $form->createView();
 			return $this->render('generic/form.html.twig', [
-				'page_title' => 'Edit Metadata',
 				'route_back' =>  $this->generateUrl('metadata', [
 					'id' => $metadata->getProject()->getId(),
 				]),
@@ -86,7 +84,7 @@ class MetadataController extends AbstractController
 
 	public function delete(Request $request, Metadata $metadata): Response
 	{
-		if ($this->isCsrfTokenValid('delete' . $metadata->getId(), $request->request->get('_token'))) {
+		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
 			$entityManager = $this->getDoctrine()->getManager();
 			$entityManager->remove($metadata);
 			$entityManager->flush();
@@ -97,15 +95,12 @@ class MetadataController extends AbstractController
 			]);
 		} else {
 			return $this->render('generic/delete.html.twig', [
-				'page_title' => 'Delete metadata',
 				'route_back' =>  $this->generateUrl('metadata', [
 					'id' => $metadata->getProject()->getId(),
 				]),
-				'entity' => $metadata,
+				'entities' => [$metadata],
 			]);
 		}
-		
-		
 	}
 	
 }

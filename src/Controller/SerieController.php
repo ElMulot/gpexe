@@ -27,8 +27,8 @@ class SerieController extends AbstractController
 	public function index(Project $project, Company $company): Response
     {
     	return $this->render('generic/list.html.twig', [
-    		'page_title' => $this->translator->trans('Series for') . ' : ' . $project->getName(),
-    		'route_back' =>  $this->generateUrl('serie_redirect', [
+    		'header' => $this->translator->trans('Series for') . ' : ' . $project->getName(),
+    		'route_back' =>  $this->generateUrl('serie_route', [
     			'project' => $project->getId(),
     			'company' => $company->getId(),
     		]),
@@ -65,14 +65,13 @@ class SerieController extends AbstractController
     		$entityManager->persist($serie);
     		$entityManager->flush();
     		
-    		$this->addFlash('success', 'New entry created');
+    		$this->addFlash('success', 'New serie created');
     		return $this->redirectToRoute('serie', [
     			'id' => $serie->getId()
     		]);
     	} else {
     		$view = $form->createView();
     		return $this->render('generic/form.html.twig', [
-    			'page_title' => 'New serie',
     			'route_back' =>  $this->generateUrl('serie', [
     				'project' => $project->getId(),
     				'company' => $company->getId(),
@@ -91,7 +90,7 @@ class SerieController extends AbstractController
     		$entityManager = $this->getDoctrine()->getManager();
     		$entityManager->persist($serie);
     		$entityManager->flush();
-    		$this->addFlash('success', 'Datas updated');
+    		$this->addFlash('success', 'Serie updated');
     		return $this->redirectToRoute('serie', [
     			'project' => $serie->getProject()->getId(),
     			'company' => $serie->getCompany()->getId(),
@@ -99,7 +98,6 @@ class SerieController extends AbstractController
     	} else {
     		$view = $form->createView();
     		return $this->render('generic/form.html.twig', [
-    			'page_title' => 'Edit serie',
     			'route_back' =>  $this->generateUrl('serie', [
     				'project' => $serie->getProject()->getId(),
     				'company' => $serie->getCompany()->getId(),
@@ -108,5 +106,28 @@ class SerieController extends AbstractController
     		]);
     	}
     }
+    
+    public function delete(Request $request, Serie $serie): Response
+    {
+        if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->remove($serie);
+            $entityManager->flush();
+            
+            $this->addFlash('success', 'Serie deleted');
+            return $this->redirectToRoute('serie', [
+                'project' => $serie->getProject()->getId()
+            ]);
+        } else {
+            return $this->render('generic/delete.html.twig', [
+                'route_back' =>  $this->generateUrl('serie', [
+                    'project' => $serie->getProject()->getId(),
+                    'company' => $serie->getCompany()->getId(),
+                ]),
+                'entities' => [$serie],
+            ]);
+        }
+    }
+    
 }
 ?>

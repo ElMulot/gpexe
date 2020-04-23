@@ -23,7 +23,7 @@ class MetadataItemController extends AbstractController
 	public function index(MetadataItemRepository $metadataItemRepository, Metadata $metadata): Response
 	{
 		return $this->render('generic/list.html.twig', [
-			'page_title' => $this->translator->trans('List for the metadata') . ' : ' . $metadata->getName(),
+			'header' => $this->translator->trans('List for the metadata') . ' : ' . $metadata->getName(),
 			'route_back' =>  $this->generateUrl('metadata', [
 				'id' => $metadata->getId(),
 			]),
@@ -51,7 +51,6 @@ class MetadataItemController extends AbstractController
 		} else {
 			$view = $form->createView();
 			return $this->render('generic/form.html.twig', [
-				'page_title' => 'New metadatas list',
 				'route_back' =>  $this->generateUrl('metadata_item', [
 					'id' => $metadata->getId(),
 				]),
@@ -76,7 +75,6 @@ class MetadataItemController extends AbstractController
 		} else {
 			$view = $form->createView();
 			return $this->render('generic/form.html.twig', [
-				'page_title' => 'Edit metadatas list',
 				'route_back' =>  $this->generateUrl('metadata_item', [
 					'id' => $metadataItem->getMetadata()->getId(),
 				]),
@@ -87,7 +85,7 @@ class MetadataItemController extends AbstractController
 
 	public function delete(Request $request, MetadataItem $metadataItem): Response
 	{
-		if ($this->isCsrfTokenValid('delete' . $metadataItem->getId(), $request->request->get('_token'))) {
+		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
 			$entityManager = $this->getDoctrine()->getManager();
 			$entityManager->remove($metadataItem);
 			$entityManager->flush();
@@ -98,11 +96,10 @@ class MetadataItemController extends AbstractController
 			]);
 		} else {
 			return $this->render('generic/delete.html.twig', [
-				'page_title' => 'Delete metadatas list',
 				'route_back' =>  $this->generateUrl('metadata_item', [
 					'id' => $metadataItem->getMetadata()->getId(),
 				]),
-				'entity' => $metadataItem
+				'entities' => [$metadataItem],
 			]);
 		}
 	}

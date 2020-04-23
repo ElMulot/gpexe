@@ -29,7 +29,7 @@ class Document
     private $codificationItems;
     
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\CodificationValue", cascade={"persist"})
+     * @ORM\ManyToMany(targetEntity="App\Entity\CodificationValue", orphanRemoval=true)
      */
     private $codificationValues;
 
@@ -270,7 +270,7 @@ class Document
     
     public function __toString(): string
     {
-    	return (string)$this->getName();
+    	return (string)$this->getReference();
     }
     
 }

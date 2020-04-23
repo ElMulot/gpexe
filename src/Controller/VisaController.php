@@ -24,7 +24,7 @@ class VisaController extends AbstractController
 	public function index(VisaRepository $visaRepository, Project $project): Response
 	{
 		return $this->render('generic/list.html.twig', [
-			'page_title' => $this->translator->trans('Visas for') . ' : ' . $project->getName(),
+			'header' => $this->translator->trans('Visas for') . ' : ' . $project->getName(),
 			'route_back' =>  $this->generateUrl('project_view', [
 				'id' => $project->getId(),
 			]),
@@ -55,7 +55,6 @@ class VisaController extends AbstractController
 		} else {
 			$view = $form->createView();
 			return $this->render('generic/form.html.twig', [
-				'page_title' => 'New visa',
 				'route_back' =>  $this->generateUrl('visa', [
 					'id' => $project->getId(),
 				]),
@@ -83,7 +82,6 @@ class VisaController extends AbstractController
 		} else {
 			$view = $form->createView();
 			return $this->render('generic/form.html.twig', [
-				'page_title' => 'Edit Visa',
 				'route_back' =>  $this->generateUrl('visa', [
 					'id' => $visa->getProject()->getId(),
 				]),
@@ -94,7 +92,7 @@ class VisaController extends AbstractController
 
 	public function delete(Request $request, Visa $visa): Response
 	{
-		if ($this->isCsrfTokenValid('delete' . $visa->getId(), $request->request->get('_token'))) {
+		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
 			$entityManager = $this->getDoctrine()->getManager();
 			$entityManager->remove($visa);
 			$entityManager->flush();
@@ -105,11 +103,10 @@ class VisaController extends AbstractController
 			]);
 		} else {
 			return $this->render('generic/delete.html.twig', [
-                'page_title' => 'Delete visa',
 				'route_back' =>  $this->generateUrl('visa', [
 					'id' => $visa->getProject()->getId(),
 				]),
-                'entity' => $visa,
+                'entities' => [$visa],
             ]);
         }
         
