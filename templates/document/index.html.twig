@@ -9,14 +9,14 @@
 	<div class="navbar-collapse">
 		<ul class="navbar-nav mr-auto ">
     		{% if route_back is defined %}
-        		<li class="nav-item" style="width: 150px">
+        		<li class="nav-item" style="{{ block('nav_item') }}">
         			<a class="nav-link" href="{{ route_back }}">{% trans %}Back{% endtrans %}</a>
         		</li>
     		{% endif %}
 			{% if is_granted('ROLE_EDIT') %}
-    			<li id="document_menu" class="nav-item dropdown" style="width: 150px;">
+    			<li id="document_menu" class="nav-item dropdown" style="{{ block('nav_item') }};">
     				<a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{% trans %}Documents{% endtrans %}</a>
-    				<div class="dropdown-menu">
+    				<div class="dropdown-menu" style="{{ block('nav_item') }}">
     					<a class="dropdown-item" href={{ path('document_new', app.request.attributes.get('_route_params')) }}>{% trans %}New{% endtrans %}</a>
     					<a id="document_edit" class="dropdown-item" href="#" data-link="{{ path('document_edit') }}">{% trans %}Edit{% endtrans %}</a>
     					{% if is_granted('ROLE_MOVE') %}
@@ -26,9 +26,9 @@
     				</div>
     			</li>
     			
-    			<li id="version_menu" class="nav-item dropdown" style="width: 150px;">
+    			<li id="version_menu" class="nav-item dropdown" style="{{ block('nav_item') }};">
     				<a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{% trans %}Versions{% endtrans %}</a>
-    				<div class="dropdown-menu">
+    				<div class="dropdown-menu" style="{{ block('nav_item') }}">
     					<a id="version_new" class="dropdown-item" href="#" data-link="{{ path('version_new') }}">{% trans %}New{% endtrans %}</a>
     					<a id="version_edit" class="dropdown-item" href="#" data-link="{{ path('version_edit') }}">{% trans %}Edit{% endtrans %}</a>
     					<a id="version_delete" class="dropdown-item" href="#" data-link="{{ path('version_delete') }}">{% trans %}Delete{% endtrans %}</a>

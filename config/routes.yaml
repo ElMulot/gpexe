@@ -10,6 +10,14 @@ home:
     path: /
     controller: App\Controller\HomeController::index
 
+about:
+    path: /about
+    controller: App\Controller\HomeController::about
+    
+requests:
+    path: /requests
+    controller: App\Controller\HomeController::requests
+
 project:
     path: /project
     controller: App\Controller\ProjectController::index

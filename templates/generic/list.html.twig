@@ -2,22 +2,22 @@
 
 {% block nav %}
     {% if route_back is defined %}
-        <div class="navbar-collapse" style="width: 150px">
+        <div class="navbar-collapse" style="{{ block('nav_item') }}">
         	<ul class="navbar-nav mr-auto ">
         		{% if route_back is defined %}
-            		<li class="nav-item" style="width: 150px">
+            		<li class="nav-item" style="{{ block('nav_item') }}">
             			<a class="nav-link" href="{{ route_back }}">{% trans %}Back{% endtrans %}</a>
             		</li>
         		{% endif %}
         	</ul>
         </div>
     {% else %}
-    	<div class="navbar-collapse" style="width: 150px"></div>
+    	<div class="navbar-collapse" style="{{ block('nav_item') }}"></div>
     {% endif %}
     <div class="navbar-collapse navbar-brand justify-content-center">
-    	{{ header }}
+        {% trans %}Home{% endtrans %}
     </div>
-    <div class="navbar-collapse" style="width: 150px"></div>
+    <div class="navbar-collapse" style="{{ block('nav_item') }}"></div>
 {% endblock %}
 
 {% block content %}

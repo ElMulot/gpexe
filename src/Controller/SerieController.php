@@ -67,7 +67,8 @@ class SerieController extends AbstractController
     		
     		$this->addFlash('success', 'New serie created');
     		return $this->redirectToRoute('serie', [
-    			'id' => $serie->getId()
+    		    'project' => $project->getId(),
+    		    'company' => $company->getId(),
     		]);
     	} else {
     		$view = $form->createView();
@@ -116,7 +117,8 @@ class SerieController extends AbstractController
             
             $this->addFlash('success', 'Serie deleted');
             return $this->redirectToRoute('serie', [
-                'project' => $serie->getProject()->getId()
+                'project' => $serie->getProject()->getId(),
+                'company' => $serie->getCompany()->getId(),
             ]);
         } else {
             return $this->render('generic/delete.html.twig', [

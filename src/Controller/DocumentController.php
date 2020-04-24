@@ -64,6 +64,34 @@ class DocumentController extends AbstractController
 			]),
 		]);
 	}
+	
+	public function detail(Request $request, Document $document): Response
+	{
+	    $project = $serie->getProject();
+	    $series = $this->serieRepository->getSeries($project, $serie->getCompany());
+	    $codifications = $this->codificationRepository->getCodifications($project);
+	    $metadatas = $this->metadataRepository->getMetadatas($project);
+	    
+	    $display = ['Checkbox o', 'Checkbox pas o', 'Date o', 'Date pas o', 'Liste o', 'Liste pas o', 'Text o', 'Text pas o'];
+	    foreach ($metadatas as $key => $metadata) {
+	        if (!in_array($metadata->getName(), $display)) {
+	            unset($metadatas[$key]);
+	        }
+	    }
+	    
+	    $versions = $this->versionRepository->getVersions($serie, $request);
+	    
+	    return $this->render('document/index.html.twig', [
+	        'codifications' => $codifications,
+	        'metadatas' => $metadatas,
+	        'current_serie' => $serie,
+	        'series' => $series,
+	        'versions' => $versions,
+	        'route_back' =>  $this->generateUrl('project_view', [
+	            'id' => $serie->getProject()->getId(),
+	        ]),
+	    ]);
+	}
 
 	public function new(Request $request, Serie $serie): Response
 	{
