@@ -4,8 +4,9 @@ namespace App\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
-use App\Entity\Document;
 use App\Entity\Serie;
+use App\Entity\Document;
+use App\Entity\Version;
 use App\Entity\Codification;
 use App\Entity\CodificationValue;
 use App\Form\DocumentType;
@@ -65,31 +66,11 @@ class DocumentController extends AbstractController
 		]);
 	}
 	
-	public function detail(Request $request, Document $document): Response
+	public function detail(Request $request, Version $version): Response
 	{
-	    $project = $serie->getProject();
-	    $series = $this->serieRepository->getSeries($project, $serie->getCompany());
-	    $codifications = $this->codificationRepository->getCodifications($project);
-	    $metadatas = $this->metadataRepository->getMetadatas($project);
-	    
-	    $display = ['Checkbox o', 'Checkbox pas o', 'Date o', 'Date pas o', 'Liste o', 'Liste pas o', 'Text o', 'Text pas o'];
-	    foreach ($metadatas as $key => $metadata) {
-	        if (!in_array($metadata->getName(), $display)) {
-	            unset($metadatas[$key]);
-	        }
-	    }
-	    
-	    $versions = $this->versionRepository->getVersions($serie, $request);
-	    
-	    return $this->render('document/index.html.twig', [
-	        'codifications' => $codifications,
-	        'metadatas' => $metadatas,
-	        'current_serie' => $serie,
-	        'series' => $series,
-	        'versions' => $versions,
-	        'route_back' =>  $this->generateUrl('project_view', [
-	            'id' => $serie->getProject()->getId(),
-	        ]),
+		
+	    return $this->render('document/detail.html.twig', [
+	        'a' => $version,
 	    ]);
 	}
 

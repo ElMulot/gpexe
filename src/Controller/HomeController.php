@@ -16,8 +16,8 @@ class HomeController extends AbstractController
     
     public function about(): Response
     {
-        return $this->render('home/about.html.twig', [
-            'items' => Yaml::parseFile(__DIR__.'/../Yaml/about.yaml'),
+    	return $this->render('home/about.html.twig', [
+    		'items' => Yaml::parseFile($this->getParameter('kernel.project_dir') . '/config/ressources/about.yaml'),
         ]);
     }
     

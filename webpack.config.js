@@ -72,16 +72,4 @@ Encore
     //.addEntry('admin', './assets/js/admin.js')
 ;
 
-const homeConfig = Encore.getWebpackConfig();
-homeConfig.name = 'home';
-
-Encore
-	.setOutputPath('public/build/')
-	.setPublicPath('/gpexe/build')
-	.setManifestKeyPrefix('build/')
-;
-
-const ivryConfig = Encore.getWebpackConfig();
-ivryConfig.name = 'ivry';
-
-module.exports = [ivryConfig, homeConfig];
+module.exports = Encore.getWebpackConfig();
