@@ -127,7 +127,6 @@ class VersionController extends AbstractController
 		if (!$version) { //cas d'une édition depuis la vue principale
 			
 			$documents = $this->documentRepository->getDocumentsByRequest($request);
-			
 			if (!$documents) {
 				return $this->redirectToRoute('project');
 			}

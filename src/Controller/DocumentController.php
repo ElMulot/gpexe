@@ -68,9 +68,10 @@ class DocumentController extends AbstractController
 	
 	public function detail(Request $request, Version $version): Response
 	{
+		$document = $version->getDocument();
 		
 	    return $this->render('document/detail.html.twig', [
-	        'a' => $version,
+	        'versions' => $this->versionRepository->getVersionsByDocument($document),
 	    ]);
 	}
 
@@ -118,7 +119,6 @@ class DocumentController extends AbstractController
 		if (!$document) { //cas d'une édition depuis la vue principale
 			
 			$documents = $this->documentRepository->getDocumentsByRequest($request);
-			
 			if (!$documents) {
 				return $this->redirectToRoute('project');
 			}

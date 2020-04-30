@@ -1,3 +1,9 @@
+delay: >-
+      {count, plural,
+         one   {# jour de retard}
+         other {# jours de retard}
+      }
+
 confirm:
    document: Confirmer la suppression
       {count, plural,

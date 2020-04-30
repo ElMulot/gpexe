@@ -45,7 +45,7 @@ class VersionRepository extends ServiceEntityRepository
 		
 			    	$versionIds = $request->query->get('v');
 			    	if (is_array($versionIds)) {
-			    		$query->andWhere($query->expr()->in('v.id', array_keys($versionIds)));
+			    		$query->andWhere($query->expr()->in('v.id', $versionIds));
 			    	}
 			    	
 			    } else {
@@ -131,5 +131,22 @@ class VersionRepository extends ServiceEntityRepository
     	->getQuery()
     	->getResult();
     	
+    }
+    
+    /**
+     * @return Version[]
+     *
+     */
+    public function getVersionsByDocument(Document $document)
+    {
+        return $this->createQueryBuilder('v')
+            ->innerJoin('v.document', 'd')
+            ->andWhere('d.id = :id')
+            ->setParameter('id', $document->getId())
+            ->addOrderBy('v.date', 'DESC')
+            ->addOrderBy('v.name', 'DESC')
+            ->getQuery()
+            ->getResult()
+        ;
     }
 }

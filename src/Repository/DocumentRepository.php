@@ -49,7 +49,7 @@ class DocumentRepository extends ServiceEntityRepository
     	if (is_array($versionIds)) {
     		$query = $this->createQueryBuilder('d')
     			->innerJoin('d.versions', 'v');
-    		return $query->andWhere($query->expr()->in('v.id', array_keys($versionIds)))
+    		return $query->andWhere($query->expr()->in('v.id', $versionIds))
     			->addGroupBy('d.id')
     			->getQuery()
     			->getResult();
