@@ -20,6 +20,7 @@ class MetadataType extends AbstractType
 	        		'Checkbox' => Metadata::BOOLEAN,
 	        		'Text' => Metadata::TEXT,
 	        		'Date' => Metadata::DATE,
+	        		'Link' => Metadata::LINK,
 	        		'List' => Metadata::LIST,
 	        	],
 	        	'expanded' => true,

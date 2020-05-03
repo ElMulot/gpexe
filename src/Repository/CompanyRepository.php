@@ -81,6 +81,7 @@ class CompanyRepository extends ServiceEntityRepository
     	->setParameter('id', $project->getId())
     	->andWhere('c.type IN (:type)')
     	->setParameter('type', [Company::MAIN_CONTRACTOR, Company::CHECKER])
+    	->addOrderBy('c.priority', 'DESC')
     	->addOrderBy('c.name')
     	->getQuery()
     	->getResult()

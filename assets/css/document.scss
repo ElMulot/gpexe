@@ -1,1 +1,56 @@
 //@import "~bootstrap-select/dist/css/bootstrap-select.min.css";
+
+table {
+	/*table-layout: fixed;*/
+}
+
+td {
+	overflow: hidden;
+	white-space: nowrap !important;
+	border: none;
+}
+
+.table-responsive {
+}
+
+td.text-truncate {
+	max-width:10em;
+}
+
+thead th {
+    position: sticky;
+    top: 0;
+}
+
+#review {
+	height: 8em;
+}
+
+.review-container {
+	height: 4em;
+	padding-left:1em;
+}
+
+.modal-content {
+	height: 75vh;
+}
+
+.modal-body {
+	height: 100%;
+	overflow: hidden;
+}
+
+.modal-body > div:first-child {
+	height: inherit;
+}
+
+#menu {
+	width:200px;
+	height: inherit;
+	overflow-y: auto;
+}
+
+#version {
+	height: inherit;
+	overflow-y: auto;
+}

@@ -2,12 +2,13 @@
 
 namespace App\Repository;
 
-use App\Entity\Company;
-use App\Entity\Document;
-use App\Entity\Project;
 use Symfony\Component\HttpFoundation\Request;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Component\Serializer\Encoder\JsonEncoder;
+use App\Entity\Company;
+use App\Entity\Document;
+use App\Entity\Project;
 
 /**
  * @method Document|null find($id, $lockMode = null, $lockVersion = null)
@@ -17,9 +18,13 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class DocumentRepository extends ServiceEntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
+    
+	private $encoder;
+	
+	public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Document::class);
+        $this->encoder = new JsonEncoder();
     }
     
     /**
@@ -43,9 +48,9 @@ class DocumentRepository extends ServiceEntityRepository
      * @return Document[]
      *
      */
-    public function getDocumentsByRequest(Request $request) {
-    	
-    	$versionIds = $request->query->get('v');
+    public function getDocumentsByRequest(Request $request)
+    {	
+    	$versionIds = $this->encoder->decode($request->query->get('versions'), 'json');
     	if (is_array($versionIds)) {
     		$query = $this->createQueryBuilder('d')
     			->innerJoin('d.versions', 'v');

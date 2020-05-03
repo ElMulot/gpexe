@@ -17,7 +17,8 @@ class Metadata
 	const BOOLEAN   		= 1;
 	const TEXT			    = 2;
 	const DATE			    = 3;
-	const LIST      	    = 4;
+	const LINK				= 4;
+	const LIST      	    = 5;
 	const DEFAULT           = self::LIST;
 	
     /**
@@ -34,11 +35,6 @@ class Metadata
 
     /**
      * @ORM\Column(type="smallint")
-     *      columnDefinition="ENUM(
-     *          1,
-     *          2,
-     *          3)",
-     *      options={"default": 3})
      */
     private $type;
 
@@ -148,7 +144,7 @@ class Metadata
         return $this;
     }
     
-    public function getIsBoolean(): ?bool
+    public function getIsBoolean(): bool
     {
     	return ($this->getType() == self::BOOLEAN);
     }
@@ -161,6 +157,11 @@ class Metadata
     public function isDate(): bool
     {
     	return ($this->getType() == self::DATE);
+    }
+    
+    public function isLink(): bool
+    {
+    	return ($this->getType() == self::LINK);
     }
     
     public function isList(): bool

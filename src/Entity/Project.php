@@ -48,6 +48,11 @@ class Project
     private $metadatas;
 
     /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Status", mappedBy="project", orphanRemoval=true)
+     */
+    private $statuses;
+    
+    /**
      * @ORM\OneToMany(targetEntity="App\Entity\Visa", mappedBy="project", orphanRemoval=true)
      */
     private $visas;
@@ -57,13 +62,20 @@ class Project
      */
     private $series;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Vue", mappedBy="Project", orphanRemoval=true)
+     */
+    private $vues;
+
     public function __construct()
     {
         $this->users = new ArrayCollection();
         $this->codifications = new ArrayCollection();
         $this->metadatas = new ArrayCollection();
+        $this->statuses = new ArrayCollection();
         $this->visas = new ArrayCollection();
         $this->series = new ArrayCollection();
+        $this->vues = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -182,6 +194,37 @@ class Project
 
         return $this;
     }
+    
+    /**
+     * @return Collection|Status[]
+     */
+    public function getStatuses(): Collection
+    {
+    	return $this->statuses;
+    }
+    
+    public function addStatus(Status $status): self
+    {
+    	if (!$this->statuses->contains($status)) {
+    		$this->statuses[] = $status;
+    		$status->setProject($this);
+    	}
+    	
+    	return $this;
+    }
+    
+    public function removeStatus(Status $status): self
+    {
+    	if ($this->statuses->contains($status)) {
+    		$this->statuses->removeElement($status);
+    		// set the owning side to null (unless already changed)
+    		if ($status->getProject() === $this) {
+    			$status->setProject(null);
+    		}
+    	}
+    	
+    	return $this;
+    }
 
     /**
      * @return Collection|Visa[]
@@ -248,6 +291,37 @@ class Project
     public function __toString(): string
     {
     	return (string)$this->getName();
+    }
+
+    /**
+     * @return Collection|Vue[]
+     */
+    public function getVues(): Collection
+    {
+        return $this->vues;
+    }
+
+    public function addVue(Vue $vue): self
+    {
+        if (!$this->vues->contains($vue)) {
+            $this->vues[] = $vue;
+            $vue->setProject($this);
+        }
+
+        return $this;
+    }
+
+    public function removeVue(Vue $vue): self
+    {
+        if ($this->vues->contains($vue)) {
+            $this->vues->removeElement($vue);
+            // set the owning side to null (unless already changed)
+            if ($vue->getProject() === $this) {
+                $vue->setProject(null);
+            }
+        }
+
+        return $this;
     }
 }
 ?>

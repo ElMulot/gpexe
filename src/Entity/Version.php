@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Util\ClassUtils;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -38,6 +39,12 @@ class Version
      * @ORM\Column(type="boolean")
      */
     private $isRequired;
+    
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Status")
+     * @ORM\JoinColumn(nullable=false)
+     */
+    private $status;
 
     /**
      * @ORM\ManyToMany(targetEntity="App\Entity\MetadataItem", cascade={"persist"})
@@ -70,10 +77,16 @@ class Version
      */
     private $document;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Review", mappedBy="version", orphanRemoval=true)
+     */
+    private $reviews;
+
     public function __construct()
     {
     	$this->metadataItems = new ArrayCollection();
     	$this->metadataValues = new ArrayCollection();
+     $this->reviews = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -125,6 +138,18 @@ class Version
     public function setIsRequired(bool $isRequired): self
     {
     	$this->isRequired = $isRequired;
+    	
+    	return $this;
+    }
+    
+    public function getStatus(): ?Status
+    {
+    	return $this->status;
+    }
+    
+    public function setStatus(?Status $status): self
+    {
+    	$this->status = $status;
     	
     	return $this;
     }
@@ -229,6 +254,48 @@ class Version
 
         return $this;
     }
+    
+    
+    /**
+     * @return Collection|Review[]
+     */
+    public function getReviews(): Collection
+    {
+    	return $this->reviews;
+    }
+    
+    public function addReview(Review $review): self
+    {
+    	if (!$this->reviews->contains($review)) {
+    		$this->reviews[] = $review;
+    		$review->setVersion($this);
+    	}
+    	
+    	return $this;
+    }
+    
+    public function removeReview(Review $review): self
+    {
+    	if ($this->reviews->contains($review)) {
+    		$this->reviews->removeElement($review);
+    		// set the owning side to null (unless already changed)
+    		if ($review->getVersion() === $this) {
+    			$review->setVersion(null);
+    		}
+    	}
+    	
+    	return $this;
+    }
+    
+    public function getReviewByCompany(Company $company): ?Review
+    {
+    	foreach ($this->getReviews()->getValues() as $review) {
+    		if ($review->getVisa()->getCompany() == $company) {
+    			return $review;
+    		}
+    	}
+    	return null;
+    }
 	    
     public function getPropertyValue(string $properyName)
     {
@@ -245,6 +312,9 @@ class Version
     			break;
     		case 'isRequired':
     			return $this->getIsRequired();
+    			break;
+    		case 'status':
+    			return $this->getStatus();
     			break;
     		case 'writer':
     			return $this->getWriter();
@@ -314,11 +384,11 @@ class Version
     			break;
     			
     		case 'object':
-    			switch (get_class($value)) {
+    			switch (ClassUtils::getClass($value)) {
     				case \DateTime::class:
     					return $value->format('d-m-Y');
     					break;
-    					
+					
     				case User::class:
     					return $value->getName();
     					break;
@@ -335,6 +405,9 @@ class Version
     						default:
     							return $value->getValue();
     					}
+    					break;
+    				default:
+    					return (string)$value;
     			}
     			break;
     			

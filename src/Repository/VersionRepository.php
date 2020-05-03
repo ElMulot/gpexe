@@ -2,11 +2,12 @@
 
 namespace App\Repository;
 
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use App\Entity\Version;
 use App\Entity\Serie;
 use App\Entity\Document;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\Persistence\ManagerRegistry;
 
 
 /**
@@ -17,9 +18,13 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class VersionRepository extends ServiceEntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
+    
+	private $encoder;
+	
+	public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Version::class, Document::class);
+        $this->encoder = new JsonEncoder();
     }
 
     /**
@@ -28,6 +33,7 @@ class VersionRepository extends ServiceEntityRepository
      */
     public function getVersions(Serie $serie, $request=null)
     {
+    	
     	$codificationQuery = [];
     	$subQuery = [];
     	$uid = 0;
@@ -41,9 +47,10 @@ class VersionRepository extends ServiceEntityRepository
 	    	
 	    	if ($request->query) {
 	    	
-			    if ($request->query->get('v')) {
-		
-			    	$versionIds = $request->query->get('v');
+			    if ($request->query->get('versions')) {
+					
+			    	
+			    	$versionIds = $this->encoder->decode($request->query->get('versions'), 'json');
 			    	if (is_array($versionIds)) {
 			    		$query->andWhere($query->expr()->in('v.id', $versionIds));
 			    	}

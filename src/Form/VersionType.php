@@ -39,6 +39,49 @@ class VersionType extends AbstractType
 		$this->userRepository = $userRepository;
 	}
 	
+	public function buildForm(FormBuilderInterface $builder, array $options)
+	{
+		$this->builder = $builder;
+		$multiple = false;
+		$serie = $options['serie'];
+		$project = $serie->getProject();
+		$versions = $options['versions'];
+		
+		if (!$versions) $this->builder->add('name');
+		
+		$this->buildRow('date', 'date', Metadata::DATE, true, $versions);
+		
+		$this->buildRow('isRequired', 'isRequired', Metadata::BOOLEAN, false, $versions);
+		
+		$this->buildRow('status', 'status', Metadata::LIST, true, $versions, $project->getStatuses());
+		
+		$metadatas = $this->metadataRepository->getMetadatas($project);
+		foreach ($metadatas as $metadata) {
+			if ($metadata->getType() == Metadata::LIST) {		
+				$this->buildRow($metadata->getName(), 'm_' . $metadata->getId(), $metadata->getType(), $metadata->getIsMandatory(), $versions, $metadata->getMetadataItems());
+			} else {
+				$this->buildRow($metadata->getName(), 'm_' . $metadata->getId(), $metadata->getType(), $metadata->getIsMandatory(), $versions);
+			}
+		}
+		
+		$this->buildRow('writer', 'writer', Metadata::LIST, false, $versions, $serie->getCompany()->getUsers());
+		
+		$choices = $this->userRepository->getCheckers($project);
+		
+		$this->buildRow('checker', 'checker', Metadata::LIST, false, $versions, $choices);
+		$this->buildRow('approver', 'approver', Metadata::LIST, false, $versions, $choices);
+		
+	}
+	
+	public function configureOptions(OptionsResolver $resolver)
+	{
+		$resolver->setDefaults([
+			'data_class' => Version::class,
+			'serie' => null,
+			'versions' => null,
+		]);
+	}
+	
 	private function checkMultiple(array $versions, string $properyName): bool
 	{
 		
@@ -95,6 +138,7 @@ class VersionType extends AbstractType
 				break;
 				
 			case Metadata::TEXT:
+			case Metadata::LINK:
 				
 				$data = null;
 				if (!$multiple && $version) {
@@ -169,47 +213,5 @@ class VersionType extends AbstractType
 		]);
 		
 		return true;
-	}
-	
-	public function buildForm(FormBuilderInterface $builder, array $options)
-	{
-		$this->builder = $builder;
-		$multiple = false;
-		$serie = $options['serie'];
-		$project = $serie->getProject();
-		$versions = $options['versions'];
-		
-		if (!$versions) $this->builder->add('name');
-		
-		$this->buildRow('date', 'date', Metadata::DATE, true, $versions);
-		
-		$this->buildRow('isRequired', 'isRequired', Metadata::BOOLEAN, false, $versions);
-		
-		
-		$metadatas = $this->metadataRepository->getMetadatas($project);
-		foreach ($metadatas as $metadata) {
-			if ($metadata->getType() == Metadata::LIST) {		
-				$this->buildRow($metadata->getName(), 'm_' . $metadata->getId(), $metadata->getType(), $metadata->getIsMandatory(), $versions, $metadata->getMetadataItems());
-			} else {
-				$this->buildRow($metadata->getName(), 'm_' . $metadata->getId(), $metadata->getType(), $metadata->getIsMandatory(), $versions);
-			}
-		}
-		
-		$this->buildRow('writer', 'writer', Metadata::LIST, false, $versions, $serie->getCompany()->getUsers());
-		
-		$choices = $this->userRepository->getCheckers($project);
-		
-		$this->buildRow('checker', 'checker', Metadata::LIST, false, $versions, $choices);
-		$this->buildRow('approver', 'approver', Metadata::LIST, false, $versions, $choices);
-		
-	}
-	
-	public function configureOptions(OptionsResolver $resolver)
-	{
-		$resolver->setDefaults([
-			'data_class' => Version::class,
-			'serie' => null,
-			'versions' => null,
-		]);
 	}
 }

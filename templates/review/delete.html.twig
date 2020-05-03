@@ -1,0 +1,13 @@
+<form name="review" method="POST">
+	<div class="row review-container">
+	    <p class="col">
+    	    {% trans %}Confirm deletion ?{% endtrans %}
+    	</p>
+	</div>
+	<input type="hidden" name="_method" value="DELETE">
+	<input type="hidden" name="_token" value="{{ csrf_token('delete') }}">
+    <div class="row justify-content-md-center">
+    	<button class="btn btn-sm btn-secondary w-25 m-1" data-url="{{ path('review', {'version': version.id, 'company': company.id}) }}">{% trans %}Cancel{% endtrans %}</button>
+    	<button class="btn btn-sm btn-danger w-25 m-1" data-url="{{ app.request.uri }}">{% trans %}Delete{% endtrans %}</button>
+    </div>
+</form>

@@ -50,9 +50,9 @@
 {% block content %}
 	<form class="w-100" id="form" method="get" action="{{ path('document', app.request.attributes.get('_route_params')) }}">
 		<div class="jumbotron py-1">
-            <ul class="nav nav-tabs" id="myTab" role="tablist">
+            <ul class="nav nav-tabs" role="tablist">
                 <li class="nav-item">
-                	<a class="nav-link active" id="main-tab" data-toggle="tab" href="#main" role="tab" aria-controls="main" aria-selected="true">{% trans %}Main{% endtrans %}</a>
+                	<a class="nav-link active" id="vues-tab" data-toggle="tab" href="#vues" role="tab" aria-controls="vues" aria-selected="true">{% trans %}Vues{% endtrans %}</a>
                 </li>
                 <li class="nav-item">
                 	<a class="nav-link" id="search-tab" data-toggle="tab" href="#search" role="tab" aria-controls="search" aria-selected="false">{% trans %}Search{% endtrans %}</a>
@@ -60,10 +60,13 @@
                 <li class="nav-item">
                 	<a class="nav-link" id="series-tab" data-toggle="tab" href="#series" role="tab" aria-controls="series" aria-selected="false">{% trans %}Series{% endtrans %}</a>
                 </li>
+                <li class="nav-item">
+                	<a class="nav-link" id="display-tab" data-toggle="tab" href="#display" role="tab" aria-controls="display" aria-selected="false">{% trans %}Display{% endtrans %}</a>
+                </li>
             </ul>
     		<div class="tab-content pt-1" id="myTabContent">
-    			<div class="tab-pane fade show active" id="main" role="tabpanel" aria-labelledby="main-tab">
-        			{{ block('main') }}
+    			<div class="tab-pane fade show active" id="vues" role="tabpanel" aria-labelledby="vues-tab">
+        			{{ block('vues') }}
             	</div>
     			<div class="tab-pane fade" id="search" role="tabpanel" aria-labelledby="search-tab">
     				{{ block('search') }}
@@ -71,20 +74,26 @@
     			<div class="tab-pane fade" id="series" role="tabpanel" aria-labelledby="series-tab">
     				{{ block('series') }}
     			</div>
+    			<div class="tab-pane fade" id="display" role="tabpanel" aria-labelledby="display-tab">
+        			{{ block('display') }}
+            	</div>
     		</div>
 		</div>
-		<input type="hidden" id="version" name="version">
+		{{ block('codification') }}
+		{{ block('metadata') }}
+		<input type="hidden" id="hide" name="hide" value="{{ app.request.query.get('hide') }}">
+		<input type="hidden" id="versions" name="versions">
 		<input type="hidden" id="sortAsc" name="sortAsc" value="{{ app.request.query.get('sortAsc') }}">
 		<input type="hidden" id="sortDesc" name="sortDesc" value="{{ app.request.query.get('sortDesc') }}">
+		<input type="hidden" id="page" name="page" value="{{ app.request.query.get('page') }}">
 	</form>
 
-    <div class="modal fade" id="detail" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    	<div class="modal-dialog modal-xl modal-dialog-scrollable modal-dialog-centered" role="document">
+    <div class="modal fade" id="detail" tabindex="-1" role="dialog" aria-hidden="true">
+    	<div class="modal-dialog modal-xl modal-dialog-centered" role="document">
     		<div class="modal-content">
     			<div class="modal-header">
     				<h5 class="modal-title">{% trans %}Document detail{% endtrans %}</h5>
-    				<button type="button" class="close" data-dismiss="modal"
-    					aria-label="Close">
+    				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
     					<span aria-hidden="true">&times;</span>
     				</button>
     			</div>
@@ -97,135 +106,166 @@
     		</div>
     	</div>
     </div>
-
-	<table class="table table-responsive-xl">
-        <thead>
-            <tr class="text-center">
-				<th class="col-xl-auto" style="width:20px;">
-					<input type="checkbox" id="check_all" unchecked="unchecked">
-				</th>
-				<th class="col-xl-auto" style="width:200px;">{% trans %}Reference{% endtrans %}</th>
-				<th class="col-xl-auto text-center" style="width:25px;">{% trans %}Version{% endtrans %}</th>
-				<th class="col-xl-auto">{% trans %}Name{% endtrans %}</th>
-				<th class="col-xl-auto text-center" style="width:200px;">{% trans %}Date{% endtrans %}</th>
-				<th class="col-xl-auto text-center" style="width:200px;">{% trans %}Writer{% endtrans %}</th>
-				{% for item in metadatas %}
-					 <th class="col-xl-auto">{{ item.name }}</th>
-				 {% endfor %}
-                <th style="width:200px;"></th>
-			</tr>
-        </thead>
-		<tbody>
-            {% for version in versions %}
+    <div class="w-100">
+    	<table class="table table-sm">
+            <thead>
                 <tr>
-                	<td>
-                		<input type="checkbox" class="form-check-input" unchecked="unchecked" value="{{ version.id }}">
-                	</td>
-                	<td>{{ version.document.reference }}</td>
-                	<td>{{ version.name }}</td>
-                	<td>{{ version.document.name }}</td>
-                	<td>{{ version.date|date("d-m-Y") }}</td>
-                	<td>{{ version.writer }}</td>
-                	
-				{% for item in metadatas %}
-				    {% set value = version.getPropertyValueToString(item.name) %}
-                    {% if value matches '/^\\d+$/' %}
-                    	<td class="col-xl-auto text-center">{{ value }}</td>
-				    {% elseif value matches '/^[-+]?[0-9]*\\.?[0-9]+$/' %}
-                    	<td class="col-xl-auto text-right">{{ value }}</td>
-                    {% else %}
-                    	<td class="col-xl-auto text-left">{{ value|truncate(30, false, "...") }}</td>
+    				<th class="px-0 border-0" style="max-width: 2em;">
+                		<div class="btn-group custom-control custom-checkbox btn btn-sm btn-primary rounded-0">
+                			<input type="checkbox" id="check_all" class="custom-control-input" unchecked="unchecked">
+                			<label class="custom-control-label mx-1" for="check_all"></label>
+                		</div>
+    				</th>
+    				<th class="px-0 border-0">
+    					<div class="btn-group w-100" role="group">
+        					<button class="btn btn-sm btn-primary w-100 text-nowrap rounded-0" type="button">
+        						{% trans %}Reference{% endtrans %}
+        					</button>
+        					<button class="btn btn-sm btn-primary dropdown-toggle rounded-0" type="button" id="b_reference" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        					</button>
+        					<div class="dropdown-menu" aria-labelledby="b_reference">
+        						<div id="reference" class="d-flex flex-row">
+        							
+                                </div>
+        					</div>
+    					</div>
+    				</th>
+    				<th class="px-0 border-0">
+    					<button class="btn btn-sm btn-primary w-100 text-nowrap rounded-0">
+    					    {% trans %}Version{% endtrans %}
+    					</button>
+    				</th>
+    				<th class="px-0 border-0">
+    					<button class="btn btn-sm btn-primary w-100 text-nowrap rounded-0">
+    					    {% trans %}Name{% endtrans %}
+    					</button>
+    				</th>
+    				<th class="px-0 border-0">
+    					<button class="btn btn-sm btn-primary w-100 text-nowrap rounded-0">
+    					    {% trans %}Date{% endtrans %}
+    					</button>
+    				</th>
+    				<th class="px-0 border-0">
+    					<button class="btn btn-sm btn-primary w-100 text-nowrap rounded-0">
+    					    {% trans %}Writer{% endtrans %}
+    					</button>
+    				</th>
+    				{% for metadata in metadatas %}
+    					{% if metadata.isBoolean or metadata.isList %}
+            				<th class="px-0 border-0">
+            					<div class="btn-group w-100" role="group">
+                					<button class="btn btn-sm btn-primary w-100 text-nowrap rounded-0" type="button">
+                                        {{ metadata.name }}
+                					</button>
+                					<button class="btn btn-sm btn-primary dropdown-toggle rounded-0" type="button" id="b_m_{{ metadata.id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                					</button>
+                					<div class="dropdown-menu" aria-labelledby="b_m_{{ metadata.id }}">
+                						<div id="m_{{ metadata.id }}" class="d-flex flex-row">
+                							
+                                        </div>
+                					</div>
+                				</div>
+            				</th>
+            			{% else %}
+            				<th class="px-0 border-0">
+            					<button class="btn btn-sm btn-primary w-100 text-nowrap rounded-0">
+                                    {{ metadata.name }}
+            					</button>
+            				</th>
+            			{% endif %}
+    				{% endfor %}
+                    <th style="width:200px;"></th>
+    			</tr>
+            </thead>
+    		<tbody>
+                {% for version in versions %}
+                    <tr>
+                    	<td style="max-width: 2em;">
+                    		<div class="custom-control custom-checkbox">
+                    			<input type="checkbox" id="c{{ version.id }}" class="custom-control-input" unchecked="unchecked" value="{{ version.id }}">
+                    			<label class="custom-control-label" for="c{{ version.id }}"></label>
+                    		</div>
+                    	</td>
+                    	<td class="small">{{ version.document.reference }}</td>
+                    	<td class="small">{{ version.name }}</td>
+                    	<td class="small">{{ version.document.name }}</td>
+                    	<td class="small">{{ version.date|date("d-m-Y") }}</td>
+                    	<td class="small">{{ version.writer }}</td>
+                    	
+        				{% for metadata in metadatas %}
+        				    {% set value = version.getPropertyValueToString(metadata) %}
+                            {% if metadata.isBoolean %}
+        				    	<td class="small text-center">{% if value == "1" %}{% trans %}Yes{% endtrans %}{% else %}{% trans %}No{% endtrans %}{% endif %}</td>
+                            {% elseif value matches '/^\\d+$/' %}
+                            	<td class="small text-center">{{ value }}</td>
+        				    {% elseif value matches '/^[-+]?[0-9]*\\.?[0-9]+$/' %}
+                            	<td class="small text-right">{{ value }}</td>
+                            {% else %}
+                            	<td class="small text-left text-truncate">{{ value }}</td>
+                            {% endif %}
+        				 {% endfor %}
+                    	
+                        <td>
+                            <a class="btn-success btn-sm btn w-100 text-nowrap" data-toggle="modal" data-target="#detail" data-url="{{ path('document_detail', {'id': version.id}) }}">{% trans %}Details{% endtrans %}</a>
+                        </td>
+                    </tr>
+                {% else %}
+            		<tr>
+            			<td class="border-0" style="max-width: 2em;"></td>
+            			<td class="border-0">{% trans %}Empty list{% endtrans %}</td>
+            		</tr>
+                {% endfor %}
+    		</tbody>
+        </table>
+        <div id="page">
+            {% if page_max > 1 %}
+                {% set page = app.request.get('page')|default(1) %}
+                {% set page_min = max(1, page-2) %}
+                <ul class="pagination justify-content-center">
+                    <li class="page-item{% if page == 1 %} disabled{% endif %}">
+                    	<a class="page-link" href="{{ path(app.request.attributes.get('_route'), app.request.query.all|merge({'id': current_serie.id, 'page': max(1, page-1)})) }}">
+                    		<span aria-hidden="true">&laquo;</span>
+                    	</a>
+                    </li>
+                    <li class="page-item{% if page==page_min %} active{% endif %}">
+                    	<a class="page-link" href="{{ path(app.request.attributes.get('_route'), app.request.query.all|merge({'id': current_serie.id, 'page': page_min})) }}">
+                    	    {{ page_min }}
+                    	</a>
+                    </li>
+                    <li class="page-item{% if page==page_min+1 %} active{% endif %}">
+                    	<a class="page-link" href="{{ path(app.request.attributes.get('_route'), app.request.query.all|merge({'id': current_serie.id, 'page': page_min+1})) }}">
+                    	    {{ page_min+1 }}
+                    	</a>
+                    </li>
+                    {% if page_max > 2 %}
+                    	<a class="page-link{% if page==page_min+2 %} active{% endif %}" href="{{ path(app.request.attributes.get('_route'), app.request.query.all|merge({'id': current_serie.id, 'page': page_min+2})) }}">
+                    	    {{ page_min+2 }}
+                    	</a>
                     {% endif %}
-				 {% endfor %}
-                	
-                    <td>
-                        <a class="btn-success btn w-100 text-nowrap" data-toggle="modal" data-target="#detail" data-url="{{ path('document_detail', {'id': version.id}) }}">{% trans %}Details{% endtrans %}</a>
-                    </td>
-                </tr>
-            {% else %}
-        		<tr>
-        			<td>{% trans %}Empty list{% endtrans %}</td>
-        		</tr>
-            {% endfor %}
-		</tbody>
-    </table>
+                    {% if page_max > 3 %}
+                    	<a class="page-link{% if page==page_min+3 %} active{% endif %}" href="{{ path(app.request.attributes.get('_route'), app.request.query.all|merge({'id': current_serie.id, 'page': page_min+3})) }}">
+                    	    {{ page_min+3 }}
+                    	</a>
+                    {% endif %}
+                    {% if page_max > 4 %}
+                    	<a class="page-link{% if page==page_min+4 %} active{% endif %}" href="{{ path(app.request.attributes.get('_route'), app.request.query.all|merge({'id': current_serie.id, 'page': page_min+4})) }}">
+                    	    {{ page_min+4 }}
+                    	</a>
+                    {% endif %}
+                    <li class="page-item{% if page == page_max %} disabled{% endif %}">
+                    	<a class="page-link" href="{{ path(app.request.attributes.get('_route'), app.request.query.all|merge({'id': current_serie.id, 'page': min(page+1, page_max)})) }}">
+                    		<span aria-hidden="true">&raquo;</span>
+                    	</a>
+                    </li>
+                </ul>
+    		{% endif %}
+		</div>
+    </div>
 {% endblock %}
 
-{% block main %}
-	{#
+{% block vues %}
 	<div class="row">
-    	<div class="col-6">
-            <div class="row">
-            	<select class="col" name="t_1[]" multiple data-title="Test">
-            		<option value="1">A</option>
-            		<option value="2">B</option>
-            		<option value="3">C</option>
-            	</select>
-            </div>
-        </div>
-    </div>
-	#}
-	<div class="row">
-    	<div class="col-6">
-            <div class="row">
-            	{% set codification_filters = app.request.query.get('c') %}
-            	{% for codification in codifications %}
-                    {% if codification.isList %}
-                        <select class="col" name="c[{{ codification.id }}][]" multiple data-title="{{ codification.name }}">
-                            {% for item in codification.codificationItems %}
-                            	{% if attribute(codification_filters, codification.id) is defined %}
-                            	    {% if item.value in attribute(codification_filters, codification.id) %}
-                    	            	<option selected="selected" value="{{ item.value }}">{{ item.value }}</option>
-                    	            {% else %}
-                    	            	<option value="{{ item.value }}">{{ item.value }}</option>
-                    	            {% endif %}
-                	            {% else %}
-                	            	<option value="{{ item.value }}">{{ item.value }}</option>
-                            	{% endif %}
-                            {% endfor %}
-                        </select>
-            		{% endif %}
-                {% endfor %}
-    		</div>
-    	</div>
-    	{#
-        <div class="col-6">
-        	<div class="row">
-            	{% set metadata_filters = app.request.query.get('m') %}
-            	{% for metadata in metadatas %}
-                    {% if metadata.isList %}
-                        <select class="selectpicker col" name="m[{{ metadata.id }}][]" data-live-search="true" multiple data-style="btn-primary" data-actions-box="true" data-title="{{ metadata.name }}">            
-                        {% for item in metadata.metadataItems %}
-                            	{% if attribute(metadata_filters, metadata.id) is defined %}
-                            	    {% if item.value in attribute(metadata_filters, metadata.id) %}
-                    	            	<option selected="selected">{{ item.value }}</option>
-                    	            {% else %}
-                    	            	<option>{{ item.value }}</option>
-                    	            {% endif %}
-                	            {% else %}
-                	            	<option>{{ item.value }}</option>
-                            	{% endif %}
-                            {% endfor %}
-                        </select>
-            		{% elseif metadata.isBoolean %}
-                        <select class="selectpicker col" name="m[{{ metadata.id }}]" data-style="btn-primary" data-title="{{ metadata.name }}">
-        		        	<option {% if attribute(metadata_filters, metadata.id) is not defined %} selected="selected"{% endif %}></option> 
-                        	<option{% if attribute(metadata_filters, metadata.id) is defined and attribute(metadata_filters, metadata.id) == 1 %} selected="selected"{% endif %} value="1">{% trans %}True{% endtrans %}</option>
-                        	<option{% if attribute(metadata_filters, metadata.id) is defined and attribute(metadata_filters, metadata.id) == 0 %} selected="selected"{% endif %} value="0">{% trans %}False{% endtrans %}</option>
-                        </select>
-                        {#
-            		{% elseif metadata.isDate %}
-                        <div class="col">
-            				<input class="form-control" id="disabledInput" type="date" placeholder="{{ metadata.name }}">
-                        </div>
-                        #} {#
-            		{% endif %}
-                {% endfor %}
-        	</div>
-        </div>#}
-        <div class="col-1 offset-11 mt-2">
-        	<button type="submit" class="btn-primary btn-sm">{% trans %}Filter{% endtrans %}</button>
-        </div>
+    	
     </div>
 {% endblock %}
 
@@ -259,6 +299,75 @@
     	</div>
     </div>
 {% endblock %}
+
+{% block display %}
+	<div class="row">
+    	{% for key, column in columns %}
+    		<a class="btn btn-sm btn-primary text-nowrap col-2 w-100 mx-2 text-left">
+        		<div class="custom-control custom-checkbox">
+        			<input type="checkbox" id="d_{{ key }}" class="custom-control-input"{% if column.display %} checked="checked"{% endif %} data-value="{{ key }}">
+        			<label class="custom-control-label" for="d_{{ key }}">{{ column.name }}</label>
+        		</div>
+    		</a>
+        {% endfor %}
+    </div>
+{% endblock %}
+
+{% block codification %}
+    {% set codification_filters = app.request.query.get('c') %}
+    {% for codification in codifications %}
+        {% if codification.isList %}
+            <select class="d-none" name="c[{{ codification.id }}][]" multiple data-title="{{ codification.name }}" data-target="reference" data-full_header="false">
+                {% for item in codification.codificationItems %}
+                	{% if attribute(codification_filters, codification.id) is defined %}
+                	    {% if item.value in attribute(codification_filters, codification.id) %}
+        	            	<option selected="selected" value="{{ item.value }}">{{ item.value }}</option>
+        	            {% else %}
+        	            	<option value="{{ item.value }}">{{ item.value }}</option>
+        	            {% endif %}
+    	            {% else %}
+    	            	<option value="{{ item.value }}">{{ item.value }}</option>
+                	{% endif %}
+                {% endfor %}
+            </select>
+    	{% endif %}
+    {% endfor %}
+{% endblock %}
+
+{% block metadata %}
+    {% set metadata_filters = app.request.query.get('m') %}
+    
+    {% for metadata in metadatas %}
+        {% if metadata.isList %}
+            <select class="d-none" name="m[{{ metadata.id }}][]" multiple data-title="{{ metadata.name }}" data-target="m_{{ metadata.id }}" data-full_header="true">            
+            {% for item in metadata.metadataItems %}
+                	{% if attribute(metadata_filters, metadata.id) is defined %}
+                	    {% if item.value in attribute(metadata_filters, metadata.id) %}
+        	            	<option selected="selected" value="{{ item.value }}">{{ item.value }}</option>
+        	            {% else %}
+        	            	<option value="{{ item.value }}">{{ item.value }}</option>
+        	            {% endif %}
+    	            {% else %}
+    	            	<option value="{{ item.value }}">{{ item.value }}</option>
+                	{% endif %}
+                {% endfor %}
+            </select>
+    	{% elseif metadata.isBoolean %}
+            <select class="d-none" class="w-100" name="m[{{ metadata.id }}]" data-title="{{ metadata.name }}" data-target="m_{{ metadata.id }}" data-dropdown="true">
+            	<option {% if attribute(metadata_filters, metadata.id) is not defined %} selected="selected"{% endif %}>{% trans %}n/a{% endtrans %}</option> 
+            	<option{% if attribute(metadata_filters, metadata.id) is defined and attribute(metadata_filters, metadata.id) == 1 %} selected="selected"{% endif %} value="1">{% trans %}True{% endtrans %}</option>
+            	<option{% if attribute(metadata_filters, metadata.id) is defined and attribute(metadata_filters, metadata.id) == 0 %} selected="selected"{% endif %} value="0">{% trans %}False{% endtrans %}</option>
+            </select>
+            {#
+    	{% elseif metadata.isDate %}
+            <div class="col">
+    			<input class="form-control" id="disabledInput" type="date" placeholder="{{ metadata.name }}">
+            </div>
+            #}
+    	{% endif %}
+    {% endfor %}
+{% endblock %}
+
 
 {% block javascripts %}
     {{ parent() }}

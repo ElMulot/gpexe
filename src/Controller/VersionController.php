@@ -10,6 +10,7 @@ use App\Entity\Version;
 use App\Entity\Metadata;
 use App\Entity\MetadataValue;
 use App\Form\VersionType;
+use App\Repository\CompanyRepository;
 use App\Repository\DocumentRepository;
 use App\Repository\VersionRepository;
 use PhpParser\Node\Stmt\Foreach_;
@@ -17,14 +18,30 @@ use PhpParser\Node\Stmt\Foreach_;
 class VersionController extends AbstractController
 {
 	
+	private $companyRepository;
+	
 	private $documentRepository;
 	
 	private $versionRepository;
 	
-	public function __construct(DocumentRepository $documentRepository, VersionRepository $versionRepository)
+	public function __construct(CompanyRepository $companyRepository, DocumentRepository $documentRepository, VersionRepository $versionRepository)
 	{
+		$this->companyRepository = $companyRepository;
 		$this->documentRepository = $documentRepository;
 		$this->versionRepository = $versionRepository;
+	}
+	
+	public function detail(Version $version): Response
+	{
+		$document = $version->getDocument();
+		$project = $document->getSerie()->getProject();
+		
+		return $this->render('version/detail.html.twig', [
+			'version' => $version,
+			'document' => $document,
+			'project' => $project,
+			'checkers' => $this->companyRepository->getCheckerCompanies($project),
+		]);
 	}
 	
 	public function new(Request $request, Document $document=null): Response
@@ -67,6 +84,7 @@ class VersionController extends AbstractController
 			$version->setInitialDate($form->get('date')->getData());
 			$version->setDate($form->get('date')->getData());
 			$version->setIsRequired($form->get('isRequired')->getData());
+			$version->setStatus($form->get('status')->getData());
 			$version->setWriter($form->get('writer')->getData());
 			$version->setChecker($form->get('checker')->getData());
 			$version->setApprover($form->get('approver')->getData());
@@ -113,17 +131,8 @@ class VersionController extends AbstractController
 		}
 	}
 	
-	private function isMultiple($form, string $propertyName): bool
-	{
-		if ($form->has($propertyName . '_multiple')) {
-			if ($form->get($propertyName . '_multiple')->getData() == 1) return true;
-		}
-		return false;
-	}
-	
 	public function edit(Request $request, Version $version=null): Response
 	{
-		
 		if (!$version) { //cas d'une édition depuis la vue principale
 			
 			$documents = $this->documentRepository->getDocumentsByRequest($request);
@@ -164,6 +173,10 @@ class VersionController extends AbstractController
 				
 				if ($this->isMultiple($form, 'isRequired') == false) {
 					$version->setIsRequired($form->get('isRequired')->getData());
+				}
+				
+				if ($this->isMultiple($form, 'status') == false) {
+					$version->setStatus($form->get('status')->getData());
 				}
 				
 				$metadatas = $project->getMetadatas()->getValues();
@@ -267,6 +280,14 @@ class VersionController extends AbstractController
 	        ]);
 	    }
 	    
+	}
+	
+	private function isMultiple($form, string $propertyName): bool
+	{
+		if ($form->has($propertyName . '_multiple')) {
+			if ($form->get($propertyName . '_multiple')->getData() == 1) return true;
+		}
+		return false;
 	}
 	
 }

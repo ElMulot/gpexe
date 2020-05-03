@@ -3,7 +3,7 @@
 {% block body %}
     <div class="row justify-content-xl-center p-5">
     	<div class="jumbotron col-xl-5">
-    		<form method="post" action="{{ app.request.uri }}">
+    		<form method="POST" action="{{ app.request.uri }}">
     			{% if entities|length == 1 %}
     				<p>{{ ('confirm.' ~ entities|first|short_name)|trans({'count':entities|length}) }} : {{ entities|first }}</p>
     			{% else %}
@@ -17,11 +17,11 @@
     			<div class="row mt-5">
     				{% if route_back is defined %}
         				<div class="col-6 text-right">
-        					<a class="btn-secondary btn w-75" href="{{ route_back }}">{% trans %}Cancel{% endtrans %}</a>
+        					<a class="btn btn-secondary w-75" href="{{ route_back }}">{% trans %}Cancel{% endtrans %}</a>
         				</div>
     				{% endif %}
     				<div class="col-6 text-left">
-    					<button type="submit" class="btn-danger btn w-75">{% trans %}Delete{% endtrans %}</button>
+    					<button type="submit" class="btn btn-danger w-75">{% trans %}Delete{% endtrans %}</button>
     				</div>
     			</div>
     		</form>

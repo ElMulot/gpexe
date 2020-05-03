@@ -145,6 +145,56 @@ metadata_item_delete:
         id: \d+
     controller: App\Controller\MetadataItemController::delete
 
+status:
+    path: /project/{id}/status
+    requirements:
+        id: \d+
+    controller: App\Controller\StatusController::index
+
+status_new:
+    path: /project/{id}/status/new
+    requirements:
+        id: \d+
+    controller: App\Controller\StatusController::new
+
+status_edit:
+    path: /project/status/edit/{id}
+    requirements:
+        id: \d+
+    controller: App\Controller\StatusController::edit
+
+status_delete:
+    path: /project/status/delete/{id}
+    methods: GET|DELETE
+    requirements:
+        id: \d+
+    controller: App\Controller\StatusController::delete
+
+visa:
+    path: /project/{id}/visa
+    requirements:
+        id: \d+
+    controller: App\Controller\VisaController::index
+
+visa_new:
+    path: /project/{id}/visa/new
+    requirements:
+        id: \d+
+    controller: App\Controller\VisaController::new
+
+visa_edit:
+    path: /project/visa/edit/{id}
+    requirements:
+        id: \d+
+    controller: App\Controller\VisaController::edit
+
+visa_delete:
+    path: /project/visa/delete/{id}
+    methods: GET|DELETE
+    requirements:
+        id: \d+
+    controller: App\Controller\VisaController::delete
+
 serie_route:  #redirigé directement vers document ou vers serie_new (si pas de serie créée)
     path: /project/{project}/{company}
     requirements:
@@ -217,7 +267,13 @@ document_delete:
     requirements:
         id: \d+
     controller: App\Controller\DocumentController::delete
-    
+
+version_detail:
+    path: /project/serie/document/version/detail/{id}
+    requirements:
+        id: \d+
+    controller: App\Controller\VersionController::detail
+
 version_new:
     path: /project/serie/document/{id}/version/new
     defaults: { id: 0 }
@@ -240,31 +296,32 @@ version_delete:
         id: \d+
     controller: App\Controller\VersionController::delete
 
-visa:
-    path: /project/{id}/visa
+review:
+    path: /project/serie/document/version/{version}/{company}/review
+    requirements:
+        version: \d+
+        company: \d+
+    controller: App\Controller\ReviewController::index
+    
+review_new:
+    path: /project/serie/document/version/{version}/{company}/review/new
+    requirements:
+        version: \d+
+        company: \d+
+    controller: App\Controller\ReviewController::new
+
+review_edit:
+    path: /project/serie/document/version/review/edit/{id}
     requirements:
         id: \d+
-    controller: App\Controller\VisaController::index
+    controller: App\Controller\ReviewController::edit
 
-visa_new:
-    path: /project/{id}/visa/new
+review_delete:
+    path: /project/serie/document/version/review/delete/{id}
     requirements:
         id: \d+
-    controller: App\Controller\VisaController::new
-
-visa_edit:
-    path: /project/visa/edit/{id}
-    requirements:
-        id: \d+
-    controller: App\Controller\VisaController::edit
-
-visa_delete:
-    path: /project/visa/delete/{id}
-    methods: GET|DELETE
-    requirements:
-        id: \d+
-    controller: App\Controller\VisaController::delete
-
+    controller: App\Controller\ReviewController::delete
+    
 account:
     path: /account
     controller: App\Controller\AccountController::index

@@ -16,9 +16,12 @@ class VisaController extends AbstractController
 
 	private $translator;
 	
-	public function __construct(TranslatorInterface $translator)
+	private $companyRepository;
+	
+	public function __construct(TranslatorInterface $translator, CompanyRepository $companyRepository)
 	{
 		$this->translator = $translator;
+		$this->companyRepository = $companyRepository;
 	}
 	
 	public function index(VisaRepository $visaRepository, Project $project): Response
@@ -33,11 +36,11 @@ class VisaController extends AbstractController
 		]);
 	}
 
-	public function new(Request $request, Project $project, CompanyRepository $companyRepository): Response
+	public function new(Request $request, Project $project): Response
 	{
 		$visa = new Visa();
 		$visa->setProject($project);
-		$checkerCompanies = $companyRepository->getCheckerCompanies($project);
+		$checkerCompanies = $this->companyRepository->getCheckerCompanies($project);
 		$form = $this->createForm(VisaType::class, $visa, [
 			'choices' => $checkerCompanies,
 		]);
@@ -63,10 +66,10 @@ class VisaController extends AbstractController
 		}
 	}
 
-	public function edit(Request $request, Visa $visa, CompanyRepository $companyRepository): Response
+	public function edit(Request $request, Visa $visa): Response
 	{
 		$form = $this->createForm(VisaType::class, $visa);
-		$checkerCompanies = $companyRepository->getCheckerCompanies($visa->getProject());
+		$checkerCompanies = $this->companyRepository->getCheckerCompanies($visa->getProject());
 		$form = $this->createForm(VisaType::class, $visa, [
 			'choices' => $checkerCompanies,
 		]);

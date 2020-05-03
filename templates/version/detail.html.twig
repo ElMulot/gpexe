@@ -1,0 +1,98 @@
+<div class="card border rounded border-dark">
+	<div class="card-header font-weight-bold text-white">{{ document.reference ~ project.splitter ~ version.name }} - {{ document.name }}</div>
+	<div class="card-body">
+		<div class="row">
+			<div class="col-4">
+                {% if version.isRequired %}
+                    {% trans %}Expected date{% endtrans %} :
+                {% else %}
+                    {% trans %}Date of issue{% endtrans %} :
+                {% endif %}
+			</div>
+			<div class="col-8">
+				{{ version.date|date('d-m-Y') }}
+				{% if version.date.diff(version.initialDate).days %}
+			    	<span> ({{ 'delay'|trans({'count': version.date.diff(version.initialDate).days}) }})</span>
+			    {% endif %}
+			</div>
+			<div class="col-4">
+                {% trans %}Status :{% endtrans %}
+			</div>
+			<div class="col-8">
+				{{ version.status }}
+			</div>
+		</div>
+	</div>
+</div>
+<div class="row p-3">
+	<div class="card col w-50 border rounded border-dark p-0">
+		<div class="card-header font-weight-bold text-white">{% trans %}Responsible people{% endtrans %}</div>
+		<div class="card-body">
+			<div class="row">
+				<div class="col-4">
+					{% trans %}Writer{% endtrans %} :
+				</div>
+				<div class="col-8">
+					{{ version.writer }}
+				</div>
+				<div class="col-4">
+					{% trans %}Checker{% endtrans %} :
+				</div>
+				<div class="col-8">
+					{{ version.checker }}
+				</div>
+				<div class="col-4">
+					{% trans %}Approver{% endtrans %} :
+				</div>
+				<div class="col-8">
+					{{ version.approver }}
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="col w-50 p-0 ml-2">
+        <div id="review_tabs" class="nav nav-tabs border-dark">
+        	{% for checker in checkers %}
+            	<a class="nav-item nav-link {% if checker == app.user.company %} active{% endif %}" data-url="{{ path('review', {'version': version.id, 'company': checker.id}) }}">
+					{{ checker.name }}
+				</a>
+        	{% endfor %}
+        </div>
+        <div id="review" class="tab-content border border-top-0 rounded-bottom border-dark p-3">
+        	
+        </div>
+	</div>
+</div>
+<div class="card border rounded border-dark">
+	<div class="card-header font-weight-bold text-white">{% trans %}Metadatas{% endtrans %}</div>
+	<div class="card-body">
+		<div class="row">
+			{% for metadata in project.metadatas %}
+				<div class="col-4">
+					{{ metadata.name }} :
+				</div>
+				<div class="col-8">
+					{% if metadata.isBoolean %}
+    					{% if version.getPropertyValueToString(metadata.name) is empty  %}
+    						{% trans %}No{% endtrans %}
+    					{% else %}
+    						{% trans %}Yes{% endtrans %}
+    					{% endif %}
+    				{% elseif metadata.isText or metadata.isDate or metadata.isList %}
+    					{% if version.getPropertyValueToString(metadata.name) is empty  %}
+    						{% trans %}n/a{% endtrans %}
+    					{% else %}
+    						{{ version.getPropertyValueToString(metadata.name) }}
+    					{% endif %}
+    				{% elseif metadata.isLink %}
+    					{% if version.getPropertyValueToString(metadata.name) is empty  %}
+    						{% trans %}n/a{% endtrans %}
+    					{% else %}
+    						<a class="btn btn-primary text-nowrap" href="{{ version.getPropertyValueToString(metadata.name) }}">{% trans %}Click here{% endtrans %}</a>
+    					{% endif %}
+    				{% endif %}
+				</div>
+    		{% endfor %}
+		</div>
+	</div>
+</div>

@@ -1,69 +1,29 @@
-{% set document = versions|first.document %}
-{% set project = document.serie.project %}
-<div class="d-flex">
-	<div class="d-flex flex-column" style="width:200px;">
-        <div class="nav flex-column nav-pills mb-auto" id="tab" role="tablist" aria-orientation="vertical">
+<div class="row">
+	<div id="menu" class="col-auto d-flex flex-column">
+        <div id="version_tabs" class="nav nav-pills mb-auto" aria-orientation="vertical">
         	{% for version in versions %}
-                <a class="nav-link{% if loop.first %} active{% endif %}" id="p-{{ version.id }}" data-toggle="pill" href="#c-{{ version.id }}" role="tab" aria-controls="c-{{ version.id }}" aria-selected="{% if loop.first %}true{%else%}false{% endif %}">
-                    {{ version.name }}{% if version.isRequired %} <span class="badge badge-secondary">{% trans %}to be produced{% endtrans %}</span>{% endif %}
-                    {# ajouter les status annulés #}
+                <a class="nav-link w-100 my-1{% if version == current_version %} active{% endif %}" data-url="{{ path('version_detail', {'id': version.id}) }}">
+                    {{ version.name }} 
+                    {% if version.isRequired %}
+                    	<span class="badge badge-info">{% trans %}to be produced{% endtrans %}</span>
+                    {% elseif version.status.isInformation %}
+						<span class="badge badge-success">{% trans %}information{% endtrans %}</span>
+                    {% elseif version.status.isCancel %}
+                    	<span class="badge badge-secondary">{% trans %}cancelled{% endtrans %}</span>
+                    {% elseif version.status.isAsBuilt %}
+						<span class="badge badge-success">{% trans %}as built{% endtrans %}</span>
+					{% endif %}
 				</a>
 			{% endfor %}
         </div>
         {% if is_granted('ROLE_EDIT') %}
             <div class="align-items-end">
             	<a class="btn btn-primary w-100 text-nowrap my-1" href="{{ path('version_new', {'id': document.id }) }}">{% trans %}New{% endtrans %}</a>
-            	<a class="btn btn-primary w-100 text-nowrap my-1" href="{{ path('version_edit') }}>{% trans %}Edit{% endtrans %}</a>
-            	<a class="btn btn-primary w-100 text-nowrap my-1" href="{{ path('version_delete') }}>{% trans %}Delete{% endtrans %}</a>
+            	<a class="btn btn-primary w-100 text-nowrap my-1" href="{{ path('version_edit') }}">{% trans %}Edit{% endtrans %}</a>
+            	<a class="btn btn-primary w-100 text-nowrap my-1" href="{{ path('version_delete') }}">{% trans %}Delete{% endtrans %}</a>
             </div>
 		{% endif %}
 	</div>
-    <div class="flex-grow-1">
-        <div class="tab-content" id="tabContent">
-        	{% for version in versions %}
-        		<div class="tab-pane px-3 fade{% if loop.first %} show active{% endif %}" id="c-{{ version.id }}" role="tabpanel" aria-labelledby="p-{{ version.id }}">
-        			<div class="p-3 border rounded border-dark">
-        				<div class="w-100 font-weight-bold">{{ document.reference ~ project.splitter ~ version.name }} - {{ document.name }}</div>
-        				<div class="w-100 mt-3">
-            				{% if version.isRequired %}{% trans %}Expected date{% endtrans %}{% else %}{% trans %}Date of issue{% endtrans %}{% endif %} : {{ version.date|date("d-m-Y") }}
-            				{% if version.date.diff(version.initialDate).days %}
-        				    	<span> ({{ 'delay'|trans({'count': version.date.diff(version.initialDate).days}) }})</span>
-        				    {% endif %}
-        				</div>
-        			</div>
-        			<div class="my-3 p-3 border rounded border-dark">
-            			{% if version.isRequired %}
-            				<p class="font-weight-bold">{% trans %}Information to put on the front page{% endtrans %} :</p>
-            			{% endif %}
-        				<div class="col p-0">
-        					{% trans %}Writer{% endtrans %} :{{ version.writer }}
-        				</div>
-        				<div class="col p-0">
-        					{% trans %}Checker{% endtrans %} :{{ version.checker }}
-        				</div>
-        				<div class="col p-0">
-        					{% trans %}Approver{% endtrans %} :{{ version.approver }}
-        				</div>
-        			</div>
-        			<div class="p-3 border rounded border-dark">
-            			<div class="w-100 p-0 font-weight-bold">{% trans %}Données complémentaires{% endtrans %} :</div>
-        			    {% for metadata in project.metadatas %}
-                			<div class="row">
-                				<div class="col-4">
-                					{{ metadata.name }} :
-                				</div>
-                				<div class="col-8">
-                					{% if version.getPropertyValueToString(metadata.name) is empty %}
-                						n/a
-                					{% else %}
-                						{{ version.getPropertyValueToString(metadata.name) }}
-                					{% endif %}
-                				</div>
-                			</div>
-                		{% endfor %}
-        			</div>
-        		</div>
-			{% endfor %}
-        </div>
-    </div>
+	<div id="version" class="col px-3" >
+	</div>
 </div>

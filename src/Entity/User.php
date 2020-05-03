@@ -73,6 +73,11 @@ class User implements UserInterface
      * @ORM\ManyToMany(targetEntity="App\Entity\Project", mappedBy="users")
      */
     private $projects;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Vue", mappedBy="User", orphanRemoval=true)
+     */
+    private $vues;
     
 	
     public function __construct()
@@ -81,6 +86,7 @@ class User implements UserInterface
         $this->lastConnected = new \DateTime;
     	$this->projects = new ArrayCollection();
      	$this->versions = new ArrayCollection();
+      $this->vues = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -256,6 +262,37 @@ class User implements UserInterface
     public function __toString(): string
     {
     	return (string)$this->getName();
+    }
+
+    /**
+     * @return Collection|Vue[]
+     */
+    public function getVues(): Collection
+    {
+        return $this->vues;
+    }
+
+    public function addVue(Vue $vue): self
+    {
+        if (!$this->vues->contains($vue)) {
+            $this->vues[] = $vue;
+            $vue->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeVue(Vue $vue): self
+    {
+        if ($this->vues->contains($vue)) {
+            $this->vues->removeElement($vue);
+            // set the owning side to null (unless already changed)
+            if ($vue->getUser() === $this) {
+                $vue->setUser(null);
+            }
+        }
+
+        return $this;
     }
 }
 ?>

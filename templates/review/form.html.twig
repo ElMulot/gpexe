@@ -1,0 +1,10 @@
+{% form_theme form 'form/review.html.twig' %}
+
+{{ form_start(form) }}
+	{{ form_row(form.visa) }}
+{{ form_end(form) }}
+
+<div class="row justify-content-md-center">
+	<button class="btn btn-sm btn-secondary w-25 m-1" data-url="{{ path('review', {'version': version.id, 'company': company.id}) }}">{% trans %}Cancel{% endtrans %}</button>
+	<button class="btn btn-sm btn-primary w-25 m-1" data-url="{{ app.request.uri }}">{% trans %}Save{% endtrans %}</button>
+</div>

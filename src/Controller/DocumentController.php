@@ -4,20 +4,27 @@ namespace App\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Contracts\Translation\TranslatorInterface;
+use Symfony\Component\Serializer\Encoder\JsonEncoder;
+use App\Entity\Codification;
+use App\Entity\CodificationValue;
 use App\Entity\Serie;
 use App\Entity\Document;
 use App\Entity\Version;
-use App\Entity\Codification;
-use App\Entity\CodificationValue;
+use App\Entity\Review;
 use App\Form\DocumentType;
-use App\Repository\DocumentRepository;
-use App\Repository\VersionRepository;
+use App\Form\ReviewType;
 use App\Repository\CodificationRepository;
 use App\Repository\MetadataRepository;
 use App\Repository\SerieRepository;
+use App\Repository\DocumentRepository;
+use App\Repository\VersionRepository;
 
 class DocumentController extends AbstractController
 {
+	private $encoder;
+	
+	private $translator;
 	
 	private $codificationRepository;
 	
@@ -29,8 +36,10 @@ class DocumentController extends AbstractController
 	
 	private $versionRepository;
 	
-	public function __construct(CodificationRepository $codificationRepository, MetadataRepository $metadataRepository, SerieRepository $serieRepository, DocumentRepository $documentRepository, VersionRepository $versionRepository)
+	public function __construct(TranslatorInterface $translator, CodificationRepository $codificationRepository, MetadataRepository $metadataRepository, SerieRepository $serieRepository, DocumentRepository $documentRepository, VersionRepository $versionRepository)
 	{
+		$this->encoder = new JsonEncoder();
+		$this->translator = $translator;
 		$this->codificationRepository = $codificationRepository;
 		$this->metadataRepository = $metadataRepository;
 		$this->serieRepository = $serieRepository;
@@ -45,14 +54,33 @@ class DocumentController extends AbstractController
 		$codifications = $this->codificationRepository->getCodifications($project);
 		$metadatas = $this->metadataRepository->getMetadatas($project);
 		
-		$display = ['Checkbox o', 'Checkbox pas o', 'Date o', 'Date pas o', 'Liste o', 'Liste pas o', 'Text o', 'Text pas o'];
-		foreach ($metadatas as $key => $metadata) {
-			if (!in_array($metadata->getName(), $display)) {
-				unset($metadatas[$key]);
+		$columns = [
+			'reference' => ['name' => $this->translator->trans('Reference'),	'display' => true],
+			'version' 	=> ['name' => $this->translator->trans('Version'), 		'display' => true],
+			'name' 		=> ['name' => $this->translator->trans('Name'), 		'display' => true],
+			'date'		=> ['name' => $this->translator->trans('Date'), 		'display' => true],
+			'writer' 	=> ['name' => $this->translator->trans('Writer'), 		'display' => true],
+			'checker' 	=> ['name' => $this->translator->trans('Checker'), 		'display' => true],
+			'approver' 	=> ['name' => $this->translator->trans('Approver'), 	'display' => true],
+		];
+		
+		foreach ($metadatas as $metadata) {
+			$columns[$metadata->getId()] = ['name' => $metadata->getName(), 'display' => true];
+		}
+		
+		$hiddenColumns = [];
+		if ($request->query->get('hide')) {
+			$hiddenColumns = $this->encoder->decode($request->query->get('hide'), 'json');
+		}
+		
+		foreach ($columns as $key => $column) {
+			if (in_array($key, $hiddenColumns)) {
+				$columns[$key]['display'] = false;
 			}
 		}
 		
 		$versions = $this->versionRepository->getVersions($serie, $request);
+		$page_max = ceil(count($versions)/1);
 		
 		return $this->render('document/index.html.twig', [
 			'codifications' => $codifications,
@@ -60,18 +88,23 @@ class DocumentController extends AbstractController
 			'current_serie' => $serie,
 			'series' => $series,
 			'versions' => $versions,
+			'columns' => $columns,
+			'page_max' => $page_max,
 			'route_back' =>  $this->generateUrl('project_view', [
 				'id' => $serie->getProject()->getId(),
 			]),
 		]);
 	}
 	
-	public function detail(Request $request, Version $version): Response
+	public function detail(Version $version): Response
 	{
 		$document = $version->getDocument();
+		$project = $document->getSerie()->getProject();
 		
 	    return $this->render('document/detail.html.twig', [
-	        'versions' => $this->versionRepository->getVersionsByDocument($document),
+	        'current_version' => $version,
+	    	'versions' => $this->versionRepository->getVersionsByDocument($document),
+	    	'document' => $document,
 	    ]);
 	}
 

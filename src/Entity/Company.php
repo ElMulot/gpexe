@@ -57,7 +57,7 @@ class Company
     {
     	$this->type = self::DEFAULT;
     	$this->users = new ArrayCollection();
-     $this->series = new ArrayCollection();
+     	$this->series = new ArrayCollection();
     }
 
     public function getId(): ?int

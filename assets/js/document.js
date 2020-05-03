@@ -1,29 +1,17 @@
 const $ = require('jquery');
 const Popper = require('popper.js');
+//require('bootstrap-table');
+//require('sticky-table-headers');
 
 require('../css/document.scss');
-//require('bootstrap-select');
-//require('./bootstrap-select/bootstrap-select.js');
-//require('./bootstrap-select/defaults-fr_FR.js');
 
 require('./multiselect/multiselect.js');
 require('./multiselect/fr_FR.js');
 
-
 $(document).ready(function() {
 	
-	/*
-	$.fn.selectpicker.Constructor.BootstrapVersion = '4';
-	
-	$("select[multiple]").selectpicker({
-		header: true,
-		liveSearch:true,
-		style: 'btn-primary',
-		actionsBox: true,
-	});
-	*/
-	
-	$("select[multiple]").multiselect();
+	$("select").multiselect();
+	//$("table").stickyTableHeaders();
 	
 	$('#document_edit').hide();
 	$('#document_move').hide();
@@ -31,6 +19,29 @@ $(document).ready(function() {
 	$('#version_menu').hide();		
 	
 	var checkboxes = [];
+	console.log($('#display').find('input'));
+	$('#display').find('input').on('click', function() {
+		console.log('ok');
+		var data = [];
+		if ($('#hide').val()) {
+			data = JSON.parse($('#hide').val());
+		}
+		
+		var index = data.indexOf($(this).data('value'));
+		
+		if ($(this).is(':checked')) {
+			if (index > -1) {
+				data.splice(index, 1);
+			}
+		} else {
+			if (index == -1) {
+				data.push($(this).data('value'));
+			}
+		}
+		
+		$('#hide').val(JSON.stringify(data));
+		$('#form').submit();
+	});
 	
 	$('table').find('input').each(function() {
 		
@@ -43,19 +54,108 @@ $(document).ready(function() {
 		}
 	});
 	
-	$('table').find('a').each(function() {
+	$('#detail').on('show.bs.modal', function(event) {
 		
+		$('.modal-body')
+			.empty()
+			.append('<div class="d-flex justify-content-center">' +
+						'<div class="spinner-border" role="status">' +
+							'<span class="sr-only">Loading...</span>' +
+						'</div>' +
+					'</div>');
+	
 		$.ajax({
-			url : $(this).data('url'),
+			url : $(event.relatedTarget).data('url'),
 			type: 'GET',
 			
 			success: function(result) {
 				$('.modal-body').empty();
 				$('.modal-body').html(result);
+				
+				$('#version_tabs').find('a').each(function() {
+					$(this).on('click', function(event) {
+						getDetail(event.target);
+					});
+					
+					if ($(this).hasClass('active')) {
+						$(this).trigger('click');
+					}
+				});
+				
 			},
 		});
-		
 	});
+	
+	function getDetail(that) {
+		$(that).parent().find('a.active').removeClass('active');
+		$(that).addClass('active');
+		
+		$('#version')
+			.empty()
+			.append('<div class="d-flex justify-content-center">' +
+					'<div class="spinner-border" role="status">' +
+						'<span class="sr-only">Loading...</span>' +
+					'</div>' +
+				'</div>');
+		
+		$.ajax({
+			url : $(that).data('url'),
+			type: 'GET',
+			
+			success: function(result) {
+				$('#version').empty();
+				$('#version').html(result);
+				$('#review_tabs').find('a').each(function() {
+					$(this).on('click', function(event) {
+						getReview(event.target);
+					});
+					
+					/*
+					$(this).on('show.bs.tab', function(event) {
+						event.target.trigger('click');
+					});
+					*/
+					if ($(this).hasClass('active')) {
+						$(this).trigger('click');
+					}
+				});
+				
+
+			},
+		});
+	}
+	
+	function getReview(that) {
+		$(that).parent().find('a.active').removeClass('active');
+		$(that).addClass('active');
+		
+		var url = $(that).data('url');
+		var method = $('form[name="review"]').attr('method') || 'GET';
+		var data = $('form[name="review"]').serializeArray()
+		
+		$('#review')
+			.empty()
+			.append('<div class="d-flex justify-content-center">' +
+					'<div class="spinner-border spinner-border-sm" role="status">' +
+						'<span class="sr-only">Loading...</span>' +
+					'</div>' +
+				'</div>');
+		
+		$.ajax({
+			url : url,
+			type: method,
+			data: data,
+			
+			success: function(result) {
+				$('#review').empty();
+				$('#review').html(result);
+				$('#review').find('button').on('click', function() {
+					getReview(this)
+				});
+
+			},
+		});
+	}
 	
 	function lineChecked() {
 		
@@ -96,10 +196,10 @@ $(document).ready(function() {
 			var array = [];
 			for (const checkbox of checkboxes) {
 				if (checkbox.is(':checked')) {
-					array.push('v[]=' + checkbox.val());
+					array.push(checkbox.val());
 				}
 			}
-			$('#version').val(array.join('&'));
+			$('#versions').val(JSON.stringify(array));
 			
 			$('#document_edit').show();
 			$('#document_move').show();
@@ -149,109 +249,6 @@ $(document).ready(function() {
 		$('#form').prop('action', $(this).data('link'));
 		$('#form').submit();
 	});
-	
-	/*
-	console.log($.fn.selectpicker.Constructor.prototype.createDropdown);
-	
-	$.fn.selectpicker.Constructor.prototype.createDropdown = function () {
-	  // Options
-	  // If we are multiple or showTick option is set, then add the show-tick class
-	  var showTick = (this.multiple || this.options.showTick) ? ' show-tick' : '',
-	      multiselectable = this.multiple ? ' aria-multiselectable="true"' : '',
-	      inputGroup = '',
-	      autofocus = this.autofocus ? ' autofocus' : '';
-	
-	  if (version.major < 4 && this.$element.parent().hasClass('input-group')) {
-	    inputGroup = ' input-group-btn';
-	  }
-	
-	  // Elements
-	  var drop,
-	      header = '',
-	      searchbox = '',
-	      actionsbox = '',
-	      donebutton = '';
-	
-	  if (this.options.header) {
-	    header =
-	      '<div class="' + classNames.POPOVERHEADER + '">' +
-	        '<button type="button" class="close" aria-hidden="true">&times;</button>' +
-	          this.options.header +
-	      '</div>';
-	  }
-	
-	  if (this.options.liveSearch) {
-		  
-	    searchbox =
-	      '<div class="bs-searchbox">' +
-	        '<input type="search" class="form-control" autocomplete="off"' +
-	          (
-	            this.options.liveSearchPlaceholder === null ? ''
-	            :
-	            ' placeholder="' + htmlEscape(this.options.liveSearchPlaceholder) + '"'
-	          ) +
-	          ' role="combobox" aria-label="Search" aria-controls="' + this.selectId + '" aria-autocomplete="list">' +
-	      '</div>';
-	  }
-	
-  if (this.multiple && this.options.actionsBox) {
-    actionsbox =
-        '<div class="bs-actionsbox">' +
-          '<div class="btn-group btn-group-sm btn-block">' +
-            '<button type="button" class="actions-btn bs-select-all btn ' + classNames.BUTTONCLASS + '">' +
-              this.options.selectAllText +
-            '</button>' +
-            '<button type="button" class="actions-btn bs-deselect-all btn ' + classNames.BUTTONCLASS + '">' +
-              this.options.deselectAllText +
-            '</button>' +
-          '</div>' +
-        '</div>';
-  }
-	
-	  if (this.multiple && this.options.doneButton) {
-	    donebutton =
-	      '<div class="bs-donebutton">' +
-	        '<div class="btn-group btn-block">' +
-	          '<button type="button" class="btn btn-sm ' + classNames.BUTTONCLASS + '">' +
-	            this.options.doneButtonText +
-	          '</button>' +
-	        '</div>' +
-	      '</div>';
-	  }
-	
-	  drop =
-	    '<div class="dropdown bootstrap-select' + showTick + inputGroup + '">' +
-	      '<button type="button" class="' + this.options.styleBase + ' dropdown-toggle" ' + (this.options.display === 'static' ? 'data-display="static"' : '') + 'data-toggle="dropdown"' + autofocus + ' role="combobox" aria-owns="' + this.selectId + '" aria-haspopup="listbox" aria-expanded="false">' +
-	        '<div class="filter-option">' +
-	          '<div class="filter-option-inner">' +
-	            '<div class="filter-option-inner-inner"></div>' +
-	          '</div> ' +
-	        '</div>' +
-	        (
-	          version.major === '4' ? ''
-	          :
-	          '<span class="bs-caret">' +
-	            this.options.template.caret +
-	          '</span>'
-	        ) +
-	      '</button>' +
-	      '<div class="' + classNames.MENU + ' ' + (version.major === '4' ? '' : classNames.SHOW) + '">' +
-	        header +
-	        searchbox +
-	        actionsbox +
-	        '<div class="inner ' + classNames.SHOW + '" role="listbox" id="' + this.selectId + '" tabindex="-1" ' + multiselectable + '>' +
-	            '<ul class="' + classNames.MENU + ' inner ' + (version.major === '4' ? classNames.SHOW : '') + '" role="presentation">' +
-	            '</ul>' +
-	        '</div>' +
-	        donebutton +
-	      '</div>' +
-	    '</div>';
-	
-	  return $(drop);
-	};
-	
-	console.log($.fn.selectpicker.Constructor.prototype.createDropdown);
-	*/
 });
 
 

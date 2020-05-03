@@ -23,6 +23,13 @@ const $ = require('jquery');
 			;
 		},
 		
+		radio: function() {
+			return $(document.createElement('input'))
+				.attr('type', 'radio')
+				.addClass('custom-control-input')
+			;
+		},
+		
 		label: function() {
 			return $(document.createElement('label'))
 				.addClass('custom-control-label w-100 text-nowrap')
@@ -31,23 +38,13 @@ const $ = require('jquery');
 		
 		button: function() {
 			return $(document.createElement('button'))
-				.attr('type', 'button')
 				.addClass('btn btn-primary')
 			;
 		},
 		
 		smallButton: function() {
 			return $(document.createElement('button'))
-				.attr('type', 'button')
-				.addClass('btn btn-sm mx-1')
-			;
-		},
-		
-		closeButton: function() {
-			return $(document.createElement('button'))
-				.attr('type', 'button')
-				.addClass('close')
-				.append('<span>&times;</span>')
+				.addClass('btn btn-sm btn-primary mx-1')
 			;
 		},
 		
@@ -79,27 +76,36 @@ const $ = require('jquery');
 		multiselect: function() {
 			
 			$(this).each(function() {
-				init(this);
+				createMultiselect(this);
 			});
 		}
 	
 	
 	});
-	
-	function init(that) {
 		
-		if (n = $(that).prop('name').match(/(.+)\[\]$/i)) {
-			var name = n[1];
+	function createMultiselect(that) {
+		
+		var multipleAttr = (typeof $(that).attr('multiple') !== typeof undefined && $(that).attr('multiple') !== false);
+		
+		if(multipleAttr) {
+			if (n = $(that).prop('name').match(/(.+)\[\]$/i)) {
+				var name = n[1];
+			} else {
+				return false;
+			}
 		} else {
-			return false;
+			var name = $(that).prop('name');
 		}
 		
 		var select = {
-			element: $(that),
-			name: name,
-			title: $(that).data('title'),
-			locale: $(that).data('locale'),
-			options: [],
+				element: $(that),
+				name: name,
+				multiple: multipleAttr,
+				title: $(that).data('title'),
+				locale: $(that).data('locale'),
+				target: $(that).data('target'),
+				fullHeader: $(that).data('full_header'),
+				options: [],
 		};
 		
 		$(that).find('option').each(function() {
@@ -111,158 +117,176 @@ const $ = require('jquery');
 			});
 		});
 		
-		$(that).hide();
-		
-		var div = $(that).after(create.div).next()
-			.addClass('btn-group col')
-			.attr('role', 'group')
-		;
-		
-		select.sortButton = div.append(create.button).children().last()
-			.append(select.title)
-		;
-		
-		var divGroup = div.append(create.div).children().last()
-			.addClass('btn-group')
-			.attr('role', 'group')
-		;
-		
-		select.dropdownButton = divGroup.append(create.button).children().last()
-			.attr('id', select.name + '_b')
-			.addClass('dropdown-toggle')
-			.attr('data-toggle', 'dropdown')
-		;
-		
-		select.dropdownMenu = divGroup.append(create.div).children().last()
-			.addClass('dropdown-menu dropdown-menu-right')
+		select.dropdownMenu = $('#' + select.target).append(create.div).children().last()
+			.addClass('mx-1')
 			.css('min-width', '15em')
 		;
 		
-		select.dropdownMenu.parent().on('show.bs.dropdown', createMenu);
+		select.dropDownButton = $('#' + select.target).parent().parent();
 		
-		
+		select.dropDownButton.on('show.bs.dropdown', createMenu);
+
 		function createMenu() {
-	
+			
 			select.dropdownMenu.empty();
 			
-			var header = select.dropdownMenu.append(create.div).children().last()
-				.addClass('text-center border-bottom border-dark pb-2 px-1')
-			;
+			if (select.multiple) {
+				var header = select.dropdownMenu.append(create.div).children().last()
+					.addClass('text-center border-bottom border-dark pb-2 px-1')
+				;
 			
-			header.append(create.smallButton).children().last()
-				.append(icon.arrowUp)
-				.addClass('px-2 ' + ($('#sortAsc').val() == select.name?'btn-outline-primary bg-dark text-white':'btn-primary'))
-				.on('click', sortAsc)
-			;
-			
-			header.append(create.smallButton).children().last()
-				.text(text.filter)
-				.addClass('px-3')
-				.on('click', filter)
-			;
-			
-			header.append(create.smallButton).children().last()
-				.append(icon.arrowDown)
-				.addClass('px-2 ' + ($('#sortDesc').val() == select.name?'btn-outline-primary bg-dark text-white':'btn-primary'))
-				.on('click', sortDesc)
-			;
-			
-			header.append(create.closeButton).children().last()
-				.on('click', function() { 
-					select.dropdownButton.popover('hide');
-				})
-			;
-			
-			var search = select.dropdownMenu.append(create.div).children().last()
-				.addClass('text-center border-bottom border-dark p-2')
-			;
-			
-			search.append(create.input).children().last()
-				.on('input', function() {
-					var searchValue = $(this).val().toLowerCase()
+				if (select.fullHeader) {
+					header.append(create.smallButton).children().last()
+						.append(icon.arrowUp)
+						.addClass('px-2 ' + ($('#sortAsc').val() == select.name?'btn-outline-primary bg-dark text-white':'btn-primary'))
+						.on('click', sortAsc)
+					;
 					
-					if (searchValue == '') {
-						select.selectAllDiv.show();
-						for (const o of select.options) {
-							o.div.show();
-							o.checkbox.prop('checked', false);
-						}
-					} else {
-						select.selectAllDiv.hide();
-						for (const o of select.options) {
-							if (o.text.toLowerCase().indexOf(searchValue) == -1) {
-								o.div.hide();
-								o.checkbox.prop('checked', false);
-							} else {
+					header.append(create.smallButton).children().last()
+						.text(text.filter)
+						.addClass('px-3')
+						.on('click', filter)
+					;
+					
+					header.append(create.smallButton).children().last()
+						.append(icon.arrowDown)
+						.addClass('px-2 ' + ($('#sortDesc').val() == select.name?'btn-outline-primary bg-dark text-white':'btn-primary'))
+						.on('click', sortDesc)
+					;
+				} else {
+					header.text(select.title)
+					;
+				}
+			
+				var search = select.dropdownMenu.append(create.div).children().last()
+					.addClass('text-center border-bottom border-dark p-2')
+				;
+				
+				search.append(create.input).children().last()
+					.on('input', function() {
+						var searchValue = $(this).val().toLowerCase()
+						
+						if (searchValue == '') {
+							select.selectAllDiv.show();
+							for (const o of select.options) {
 								o.div.show();
-								o.checkbox.prop('checked', true);
-							}	
+								o.checkbox.prop('checked', false);
+							}
+						} else {
+							select.selectAllDiv.hide();
+							for (const o of select.options) {
+								if (o.text.toLowerCase().indexOf(searchValue) == -1) {
+									o.div.hide();
+									o.checkbox.prop('checked', false);
+								} else {
+									o.div.show();
+									o.checkbox.prop('checked', true);
+								}	
+							}
 						}
-					}
-				});
+					});
+				
+				if (!select.fullHeader) {
+					search.addClass('d-flex flex-row');
+					search.append(create.smallButton).children().last()
+						.text(text.filter)
+						.addClass('px-3')
+						.on('click', filter)
+					;
+				}
+			}
 			
 			var body = select.dropdownMenu.append(create.div).children().last()
-				.addClass('px-2 pt-3')
+				.addClass('px-2' + ((select.multiple)?' pt-3':''))
 			;
-				
-			select.selectAllDiv = body.append(create.div).children().last()
-				.addClass('custom-control custom-checkbox')
-			;
-			
-			select.selectAllCheckbox = select.selectAllDiv.append(create.checkbox).children().last()
-				.attr('id', select.name + '_selectAll')
-				.on('change', function() {
-					
-					var checked = $(this).is(':checked');
-					for (const o of select.options) {	
-						o.checkbox.prop('checked', checked);
-					}
-					
-				})
-			;
-			
-			select.selectAllLabel = select.selectAllDiv.append(create.label).children().last()
-				.attr('for', select.name + '_selectAll')
-				.text(text.selectAll)
-			;
-			
-			for (const o of select.options) {
-				
-				o.div = body.append(create.div).children().last()
+
+			if (select.multiple) {
+				select.selectAllDiv = body.append(create.div).children().last()
 					.addClass('custom-control custom-checkbox')
 				;
 				
-				o.checkbox = o.div.append(create.checkbox).children().last()
-					.attr('id', select.name + '_' + o.value)
-					.attr('checked', o.selected)
+				select.selectAllCheckbox = select.selectAllDiv.append(create.checkbox).children().last()
+					.attr('id', select.name + '_selectAll')
 					.on('change', function() {
 						
-						var checked;
-						var unchecked;
-						
-						for (const o of select.options) {
-							if ($(o.checkbox).is(':checked')) {
-								checked = true;
-							} else {
-								unchecked = true;
-							}
-						}
-						
-						if (checked && unchecked) {
-							select.selectAllCheckbox.prop('indeterminate', true);
-						} else {
-							select.selectAllCheckbox.prop('indeterminate', false);
-							select.selectAllCheckbox.prop('checked', checked);
+						var checked = $(this).is(':checked');
+						for (const o of select.options) {	
+							o.checkbox.prop('checked', checked);
 						}
 						
 					})
 				;
-				
-				o.label = o.div.append(create.label).children().last()
-					.attr('for', select.name + '_' + o.value)
-					.text(o.text)
+			
+				select.selectAllLabel = select.selectAllDiv.append(create.label).children().last()
+					.attr('for', select.name + '_selectAll')
+					.text(text.selectAll)
 				;
 				
+				for (const o of select.options) {
+					
+					o.div = body.append(create.div).children().last()
+						.addClass('custom-control custom-checkbox')
+					;
+					
+					o.checkbox = o.div.append(create.checkbox).children().last()
+						.attr('id', select.name + '_' + o.value)
+						.attr('checked', o.selected)
+						.on('change', function() {
+							
+							var checked;
+							var unchecked;
+							
+							for (const o of select.options) {
+								if ($(o.checkbox).is(':checked')) {
+									checked = true;
+								} else {
+									unchecked = true;
+								}
+							}
+							
+							if (checked && unchecked) {
+								select.selectAllCheckbox.prop('indeterminate', true);
+							} else {
+								select.selectAllCheckbox.prop('indeterminate', false);
+								select.selectAllCheckbox.prop('checked', checked);
+							}
+							
+						})
+					;
+					
+					o.label = o.div.append(create.label).children().last()
+						.attr('for', select.name + '_' + o.value)
+						.text(o.text)
+					;
+				}
+				
+			} else {
+				
+				for (const o of select.options) {
+					
+					o.div = body.append(create.div).children().last()
+						.addClass('custom-control custom-checkbox')
+					;
+					
+					o.checkbox = o.div.append(create.checkbox).children().last()
+						.attr('id', select.name + '_' + o.value)
+						.attr('checked', o.selected)
+						.on('change', function() {
+							
+							for (const o of select.options) {
+								o.element.prop('selected', o.checkbox.is(':checked'));
+							}
+							
+							$('#form').submit();
+							
+						})
+					;
+					
+					o.label = o.div.append(create.label).children().last()
+						.attr('for', select.name + '_' + o.value)
+						.text(o.text)
+					;
+				}
 			}
 			
 		}
@@ -275,9 +299,8 @@ const $ = require('jquery');
 			
 		function filter() {
 			for (const o of select.options) {
-				o.element.prop('selected', o.checkbox.is(':checked'));
+				o.element.attr('selected', o.checkbox.is(':checked'));
 			}
-			
 			$('#form').submit();
 		}
 			
@@ -287,7 +310,8 @@ const $ = require('jquery');
 			filter();
 		}
 		
-		select.dropdownMenu.parent().on('hide.bs.dropdown', function (e) {
+		select.dropDownButton.on('hide.bs.dropdown', function (e) {
+			
 			if(e.clickEvent && $.contains(e.relatedTarget.parentNode, e.clickEvent.target)) {
 				e.preventDefault()
 			} else {
