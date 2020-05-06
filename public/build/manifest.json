@@ -1,6 +1,7 @@
 {
   "build/app.css": "/build/app.css",
   "build/app.js": "/build/app.js",
+  "build/document.css": "/build/document.css",
   "build/document.js": "/build/document.js",
   "build/form.css": "/build/form.css",
   "build/form.js": "/build/form.js",
@@ -8,12 +9,11 @@
   "build/login.js": "/build/login.js",
   "build/runtime.js": "/build/runtime.js",
   "build/vendors~app.js": "/build/vendors~app.js",
-  "build/vendors~app~form~login.js": "/build/vendors~app~form~login.js",
-  "build/vendors~form.css": "/build/vendors~form.css",
-  "build/vendors~form.js": "/build/vendors~form.js",
-  "build/document.css": "/build/document.css",
   "build/vendors~app~document.js": "/build/vendors~app~document.js",
   "build/vendors~app~document~form~login.js": "/build/vendors~app~document~form~login.js",
   "build/vendors~document.js": "/build/vendors~document.js",
-  "build/vendors~document~form.js": "/build/vendors~document~form.js"
+  "build/vendors~document~form.js": "/build/vendors~document~form.js",
+  "build/vendors~form.css": "/build/vendors~form.css",
+  "build/vendors~form.js": "/build/vendors~form.js",
+  "build/vendors~app~form~login.js": "/build/vendors~app~form~login.js"
 }

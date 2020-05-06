@@ -68,11 +68,12 @@ class DocumentController extends AbstractController
 			$columns[$metadata->getId()] = ['name' => $metadata->getName(), 'display' => true];
 		}
 		
-		$hiddenColumns = [];
-		if ($request->query->get('hide')) {
-			$hiddenColumns = $this->encoder->decode($request->query->get('hide'), 'json');
-		}
 		
+		if ($request->query->has('hide')) {
+			$hiddenColumns = $request->query->get('hide');
+		} else {
+			$hiddenColumns = [];
+		}
 		foreach ($columns as $key => $column) {
 			if (in_array($key, $hiddenColumns)) {
 				$columns[$key]['display'] = false;
