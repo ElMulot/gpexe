@@ -15,6 +15,7 @@ use App\Entity\Review;
 use App\Form\DocumentType;
 use App\Form\ReviewType;
 use App\Repository\CodificationRepository;
+use App\Repository\UserRepository;
 use App\Repository\MetadataRepository;
 use App\Repository\SerieRepository;
 use App\Repository\DocumentRepository;
@@ -28,6 +29,8 @@ class DocumentController extends AbstractController
 	
 	private $codificationRepository;
 	
+	private $userRepository;
+	
 	private $metadataRepository;
 	
 	private $serieRepository;
@@ -36,11 +39,12 @@ class DocumentController extends AbstractController
 	
 	private $versionRepository;
 	
-	public function __construct(TranslatorInterface $translator, CodificationRepository $codificationRepository, MetadataRepository $metadataRepository, SerieRepository $serieRepository, DocumentRepository $documentRepository, VersionRepository $versionRepository)
+	public function __construct(TranslatorInterface $translator, CodificationRepository $codificationRepository, UserRepository $userRepository, MetadataRepository $metadataRepository, SerieRepository $serieRepository, DocumentRepository $documentRepository, VersionRepository $versionRepository)
 	{
 		$this->encoder = new JsonEncoder();
 		$this->translator = $translator;
 		$this->codificationRepository = $codificationRepository;
+		$this->userRepository = $userRepository;
 		$this->metadataRepository = $metadataRepository;
 		$this->serieRepository = $serieRepository;
 		$this->documentRepository = $documentRepository;
@@ -59,6 +63,8 @@ class DocumentController extends AbstractController
 			'version' 	=> ['name' => $this->translator->trans('Version'), 		'display' => true],
 			'name' 		=> ['name' => $this->translator->trans('Name'), 		'display' => true],
 			'date'		=> ['name' => $this->translator->trans('Date'), 		'display' => true],
+		    'status'	=> ['name' => $this->translator->trans('Date'), 		'display' => true],
+		    'date'		=> ['name' => $this->translator->trans('Date'), 		'display' => true],
 			'writer' 	=> ['name' => $this->translator->trans('Writer'), 		'display' => true],
 			'checker' 	=> ['name' => $this->translator->trans('Checker'), 		'display' => true],
 			'approver' 	=> ['name' => $this->translator->trans('Approver'), 	'display' => true],
@@ -85,7 +91,9 @@ class DocumentController extends AbstractController
 		
 		return $this->render('document/index.html.twig', [
 			'codifications' => $codifications,
-			'metadatas' => $metadatas,
+		    'writers' => $this->userRepository->getUsersByCompany($serie->getCompany()),
+		    'checkers' => $this->userRepository->getCheckers($project),
+		    'metadatas' => $metadatas,
 			'current_serie' => $serie,
 			'series' => $series,
 			'versions' => $versions,

@@ -1,5 +1,4 @@
 const $ = require('jquery');
-const Popper = require('popper.js');
 require('sticky-table-headers');
 
 require('../css/document.scss');

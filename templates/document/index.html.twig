@@ -80,6 +80,8 @@
 	</div>
 	<form id="form" method="GET" action="{{ path('document', app.request.attributes.get('_route_params')) }}">
 		{{ block('codification') }}
+		{{ block('writer') }}
+		{{ block('checker') }}
 		{{ block('metadata') }}
 	</form>
 
@@ -111,63 +113,74 @@
                 			<label class="custom-control-label mx-1" for="check_all"></label>
                 		</div>
     				</th>
-    				<th class="px-0 border-0">
-    					<div class="btn-group w-100" role="group">
-        					<button class="btn btn-sm btn-primary w-100 text-nowrap rounded-0" type="button">
-        						{% trans %}Reference{% endtrans %}
-        					</button>
-        					<button class="btn btn-sm btn-primary dropdown-toggle rounded-0" type="button" id="b_reference" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-        					</button>
-        					<div class="dropdown-menu" aria-labelledby="b_reference">
-        						<div id="reference" class="d-flex flex-row">
-        							
-                                </div>
+    				{% if columns.reference.display %}
+        				<th class="px-0 border-0">
+        					<div class="btn-group w-100" role="group">
+            					<button class="btn btn-sm btn-primary w-100 text-nowrap rounded-0" type="button">
+            						{% trans %}Reference{% endtrans %}
+            					</button>
+            					<button class="btn btn-sm btn-primary dropdown-toggle rounded-0" type="button" id="b_reference" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            					</button>
+            					<div class="dropdown-menu" aria-labelledby="b_reference">
+            						<div id="reference" class="d-flex flex-row">
+            							
+                                    </div>
+            					</div>
         					</div>
-    					</div>
-    				</th>
-    				<th class="px-0 border-0">
-    					<button class="btn btn-sm btn-primary w-100 text-nowrap rounded-0">
-    					    {% trans %}Version{% endtrans %}
-    					</button>
-    				</th>
-    				<th class="px-0 border-0">
-    					<button class="btn btn-sm btn-primary w-100 text-nowrap rounded-0">
-    					    {% trans %}Name{% endtrans %}
-    					</button>
-    				</th>
-    				<th class="px-0 border-0">
-    					<button class="btn btn-sm btn-primary w-100 text-nowrap rounded-0">
-    					    {% trans %}Date{% endtrans %}
-    					</button>
-    				</th>
-    				<th class="px-0 border-0">
-    					<button class="btn btn-sm btn-primary w-100 text-nowrap rounded-0">
-    					    {% trans %}Writer{% endtrans %}
-    					</button>
-    				</th>
-    				{% for metadata in metadatas %}
-    					{% if metadata.isBoolean or metadata.isList %}
-            				<th class="px-0 border-0">
-            					<div class="btn-group w-100" role="group">
-                					<button class="btn btn-sm btn-primary w-100 text-nowrap rounded-0" type="button">
-                                        {{ metadata.name }}
-                					</button>
-                					<button class="btn btn-sm btn-primary dropdown-toggle rounded-0" type="button" id="b_m_{{ metadata.id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                					</button>
-                					<div class="dropdown-menu" aria-labelledby="b_m_{{ metadata.id }}">
-                						<div id="m_{{ metadata.id }}" class="d-flex flex-row">
-                							
-                                        </div>
-                					</div>
-                				</div>
-            				</th>
-            			{% else %}
+        				</th>
+        			{% endif %}
+    				{% for column in columns|filter((v, k) => k in ['version', 'name', 'date']) %}
+            			{% if column.display %}
             				<th class="px-0 border-0">
             					<button class="btn btn-sm btn-primary w-100 text-nowrap rounded-0">
-                                    {{ metadata.name }}
+            			            {{ column.name }}
             					</button>
             				</th>
             			{% endif %}
+            		{% endfor %}
+            		{% for key, column in columns|filter((v, k) => k in ['writer', 'checker', 'approver']) %}
+        				{% if column.display %}
+            				<th class="px-0 border-0">
+            					<div class="btn-group w-100" role="group">
+                					<button class="btn btn-sm btn-primary w-100 text-nowrap rounded-0" type="button">
+                                        {{ column.name }}
+                					</button>
+                					<button class="btn btn-sm btn-primary dropdown-toggle rounded-0" type="button" id="b_{{ key }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                					</button>
+                					<div class="dropdown-menu" aria-labelledby="b_{{ key }}">
+                						<div id="{{ key }}" class="d-flex flex-row">
+                							
+                                        </div>
+                					</div>
+            					</div>
+            				</th>
+        				{% endif %}
+    				{% endfor %}
+    				{% for metadata in metadatas %}
+    					{% if columns[metadata.id].display %}
+        					{% if metadata.isBoolean or metadata.isList %}
+                				<th class="px-0 border-0">
+                					<div class="btn-group w-100" role="group">
+                    					<button class="btn btn-sm btn-primary w-100 text-nowrap rounded-0" type="button">
+                                            {{ metadata.name }}
+                    					</button>
+                    					<button class="btn btn-sm btn-primary dropdown-toggle rounded-0" type="button" id="b_m_{{ metadata.id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    					</button>
+                    					<div class="dropdown-menu" aria-labelledby="b_m_{{ metadata.id }}">
+                    						<div id="m_{{ metadata.id }}" class="d-flex flex-row">
+                    							
+                                            </div>
+                    					</div>
+                    				</div>
+                				</th>
+                			{% else %}
+                				<th class="px-0 border-0">
+                					<button class="btn btn-sm btn-primary w-100 text-nowrap rounded-0">
+                                        {{ metadata.name }}
+                					</button>
+                				</th>
+                			{% endif %}
+                		{% endif %}
     				{% endfor %}
                     <th style="width:200px;"></th>
     			</tr>
@@ -181,7 +194,10 @@
                     			<label class="custom-control-label" for="c{{ version.id }}"></label>
                     		</div>
                     	</td>
-                    	<td class="small">{{ version.document.reference }}</td>
+                    	
+                    	{% if columns.reference.display %}
+                    		<td class="small">{{ version.document.reference }}</td>
+                    	{% endif %}
                     	<td class="small">{{ version.name }}</td>
                     	<td class="small">{{ version.document.name }}</td>
                     	<td class="small">{{ version.date|date("d-m-Y") }}</td>
@@ -331,9 +347,47 @@
     {% endfor %}
 {% endblock %}
 
+{% block writer %}
+	{% set writer_filters = app.request.query.get('writer') %}
+	<select class="d-none" name="writer[]" multiple data-title="{{ columns.writer.name }}" data-target="writer" data-full_header="true">
+        {% for writer in writers %}
+        	    {% if writer.name in writer_filters %}
+	            	<option selected="selected" value="{{ writer.name }}">{{ writer.name }}</option>
+	            {% else %}
+	            	<option value="{{ writer.name }}">{{ writer.name }}</option>
+	            {% endif %}
+        {% endfor %}
+	</select>
+{% endblock %}
+
+{% block checker %}
+	{% set checker_filters = app.request.query.get('checker') %}
+	<select class="d-none" name="checker[]" multiple data-title="{{ columns.checker.name }}" data-target="checker" data-full_header="true">
+        {% for checker in checkers %}
+        	    {% if checker.name in checker_filters %}
+	            	<option selected="selected" value="{{ checker.name }}">{{ checker.name }}</option>
+	            {% else %}
+	            	<option value="{{ checker.name }}">{{ checker.name }}</option>
+	            {% endif %}
+        {% endfor %}
+	</select>
+{% endblock %}
+
+{% block approver %}
+	{% set approver_filters = app.request.query.get('approver') %}
+	<select class="d-none" name="approver[]" multiple data-title="{{ columns.approver.name }}" data-target="approver" data-full_header="true">
+        {% for approver in checkers %}
+        	    {% if approver.name in approver_filters %}
+	            	<option selected="selected" value="{{ approver.name }}">{{ approver.name }}</option>
+	            {% else %}
+	            	<option value="{{ approver.name }}">{{ approver.name }}</option>
+	            {% endif %}
+        {% endfor %}
+	</select>
+{% endblock %}
+
 {% block metadata %}
     {% set metadata_filters = app.request.query.get('m') %}
-    
     {% for metadata in metadatas %}
         {% if metadata.isList %}
             <select class="d-none" name="m[{{ metadata.id }}][]" multiple data-title="{{ metadata.name }}" data-target="m_{{ metadata.id }}" data-full_header="true">            

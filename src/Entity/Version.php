@@ -300,11 +300,23 @@ class Version
     public function getPropertyValue(string $properyName)
     {
     	
+        /* A faire :
+        - renommer version/name par issue
+        - ajouter type pour metadata
+        - ajouter les autres propriétés dans getPropertyValue
+         */
+        
     	switch ($properyName) {
     		/*case 'name':
     			return $this->getName();
     			break;*/
-    		case 'date':
+    	    case 'serieName':
+    	        return $this->getDocument()->getSerie()->getName();
+    	    case 'reference':
+    	          return $this->getDocument()->getReference();
+    	    case 'name':
+    	        return $this->getDocument()->getName();
+    	    case 'date':
     			return $this->getDate();
     			break;
     		case 'initialDate':
