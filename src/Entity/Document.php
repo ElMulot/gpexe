@@ -34,6 +34,18 @@ class Document
     private $codificationValues;
 
     /**
+     * @ORM\ManyToMany(targetEntity="App\Entity\MetadataItem", cascade={"persist"})
+     * @ORM\JoinTable(name="document_metadata_item")
+     */
+    private $metadataItems;
+    
+    /**
+     * @ORM\ManyToMany(targetEntity="App\Entity\MetadataValue", cascade={"persist", "remove"})
+     * @ORM\JoinTable(name="document_metadata_value")
+     */
+    private $metadataValues;
+    
+    /**
      * @ORM\OneToMany(targetEntity="App\Entity\Version", mappedBy="document", orphanRemoval=true)
      */
     private $versions;

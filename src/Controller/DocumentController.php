@@ -197,15 +197,20 @@ class DocumentController extends AbstractController
 			$entityManager->persist($document);
 			$entityManager->flush();
 			
-			return $this->redirectToRoute('document', [
-			    'id' => $serie->getId()
-			]);
+			$request->query->remove('version');
+			return $this->redirectToRoute('document', array_merge([
+				'id' => $serie->getId(),
+			],
+			$request->query->all())
+			);
 		} else {
 			$view = $form->createView();
+			$request->query->remove('version');
 			return $this->render('generic/form.html.twig', [
-				'route_back' =>  $this->generateUrl('document', [
+				'route_back' =>  $this->generateUrl('document', array_merge([
 					'id' => $serie->getId(),
-				]),
+				],
+				$request->query->all())),
 				'form' => $view
 			]);
 		}

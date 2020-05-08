@@ -22,12 +22,6 @@ class MetadataValue
     private $value;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Version")
-     * @ORM\JoinColumn(nullable=false)
-     */
-    private $version;
-
-    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Metadata")
      * @ORM\JoinColumn(nullable=false)
      */
@@ -46,18 +40,6 @@ class MetadataValue
     public function setValue(string $value): self
     {
         $this->value = $value;
-
-        return $this;
-    }
-
-    public function getVersion(): ?Version
-    {
-        return $this->version;
-    }
-
-    public function setVersion(?Version $version): self
-    {
-        $this->version = $version;
 
         return $this;
     }

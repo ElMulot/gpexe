@@ -24,10 +24,17 @@ class Serie
     private $name;
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=true)
+     * @ORM\ManyToMany(targetEntity="App\Entity\MetadataItem", cascade={"persist"})
+     * @ORM\JoinTable(name="serie_metadata_item")
      */
-    private $pirsFolderPath;
-
+    private $metadataItems;
+    
+    /**
+     * @ORM\ManyToMany(targetEntity="App\Entity\MetadataValue", cascade={"persist", "remove"})
+     * @ORM\JoinTable(name="serie_metadata_value")
+     */
+    private $metadataValues;
+    
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Company", inversedBy="series")
      * @ORM\JoinColumn(nullable=false)
@@ -63,18 +70,6 @@ class Serie
     public function setName(string $name): self
     {
         $this->name = $name;
-
-        return $this;
-    }
-
-    public function getPirsFolderPath(): ?string
-    {
-        return $this->pirsFolderPath;
-    }
-
-    public function setPirsFolderPath(?string $pirsFolderPath): self
-    {
-        $this->pirsFolderPath = $pirsFolderPath;
 
         return $this;
     }

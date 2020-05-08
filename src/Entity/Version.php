@@ -48,11 +48,13 @@ class Version
 
     /**
      * @ORM\ManyToMany(targetEntity="App\Entity\MetadataItem", cascade={"persist"})
+     * @ORM\JoinTable(name="version_metadata_item")
      */
     private $metadataItems;
     
     /**
      * @ORM\ManyToMany(targetEntity="App\Entity\MetadataValue", cascade={"persist", "remove"})
+     * @ORM\JoinTable(name="version_metadata_value")
      */
     private $metadataValues;
 

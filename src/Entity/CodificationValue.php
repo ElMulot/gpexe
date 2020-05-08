@@ -24,12 +24,6 @@ class CodificationValue
     private $value;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Document")
-     * @ORM\JoinColumn(nullable=false)
-     */
-    private $document;
-
-    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Codification")
      * @ORM\JoinColumn(nullable=false)
      */
@@ -48,18 +42,6 @@ class CodificationValue
     public function setValue(string $value): self
     {
         $this->value = $value;
-
-        return $this;
-    }
-
-    public function getDocument(): ?Document
-    {
-    	return $this->document;
-    }
-
-    public function setDocument(?Document $document): self
-    {
-    	$this->document = $document;
 
         return $this;
     }

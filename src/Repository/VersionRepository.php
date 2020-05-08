@@ -47,10 +47,8 @@ class VersionRepository extends ServiceEntityRepository
 	    	
 	    	if ($request->query) {
 	    	
-			    if ($request->query->get('versions')) {
-					
-			    	
-			    	$versionIds = $this->encoder->decode($request->query->get('versions'), 'json');
+	    		if ($versionIds = $request->query->get('version')) {
+	    			
 			    	if (is_array($versionIds)) {
 			    		$query->andWhere($query->expr()->in('v.id', $versionIds));
 			    	}

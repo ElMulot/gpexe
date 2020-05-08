@@ -21,6 +21,11 @@ class Metadata
 	const LIST      	    = 5;
 	const DEFAULT           = self::LIST;
 	
+	const SERIE				= 1;
+	const DOCUMENT			= 2;
+	const VERSION			= 3;
+	
+	
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
@@ -43,6 +48,11 @@ class Metadata
      */
     private $isMandatory;
 
+    /**
+     * @ORM\Column(type="smallint")
+     */
+    private $parent;
+    
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Project", inversedBy="metadatas")
      * @ORM\JoinColumn(nullable=false)
@@ -99,6 +109,18 @@ class Metadata
         $this->isMandatory = $isMandatory;
 
         return $this;
+    }
+    
+    public function getParent(): ?int
+    {
+    	return $this->parent;
+    }
+    
+    public function setParent(int $parent): self
+    {
+    	$this->parent = $parent;
+    	
+    	return $this;
     }
 
     public function getProject(): ?Project
@@ -167,6 +189,21 @@ class Metadata
     public function isList(): bool
     {
     	return ($this->getType() == self::LIST);
+    }
+    
+    public function parentIsSerie(): bool
+    {
+    	return ($this->getParent() == self::SERIE);
+    }
+    
+    public function parentIsDocument(): bool
+    {
+    	return ($this->getParent() == self::DOCUMENT);
+    }
+    
+    public function parentIsVersion(): bool
+    {
+    	return ($this->getParent() == self::VERSION);
     }
     
     public function __toString(): string

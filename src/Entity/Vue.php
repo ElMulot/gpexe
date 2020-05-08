@@ -19,29 +19,29 @@ class Vue
     /**
      * @ORM\Column(type="string", length=100)
      */
-    private $Name;
+    private $name;
 
     /**
      * @ORM\Column(type="string", length=2048)
      */
-    private $Value;
+    private $value;
 
     /**
      * @ORM\Column(type="boolean")
      */
-    private $Share;
+    private $share;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Project", inversedBy="vues")
      * @ORM\JoinColumn(nullable=false)
      */
-    private $Project;
+    private $project;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\User", inversedBy="vues")
      * @ORM\JoinColumn(nullable=false)
      */
-    private $User;
+    private $user;
 
     public function getId(): ?int
     {
@@ -50,60 +50,60 @@ class Vue
 
     public function getName(): ?string
     {
-        return $this->Name;
+        return $this->name;
     }
 
-    public function setName(string $Name): self
+    public function setName(string $name): self
     {
-        $this->Name = $Name;
+        $this->name = $name;
 
         return $this;
     }
 
     public function getValue(): ?string
     {
-        return $this->Value;
+        return $this->value;
     }
 
-    public function setValue(string $Value): self
+    public function setValue(string $value): self
     {
-        $this->Value = $Value;
+        $this->value = $value;
 
         return $this;
     }
 
     public function getShare(): ?bool
     {
-        return $this->Share;
+        return $this->share;
     }
 
-    public function setShare(bool $Share): self
+    public function setShare(bool $share): self
     {
-        $this->Share = $Share;
+    	$this->share = $share;
 
         return $this;
     }
 
     public function getProject(): ?Project
     {
-        return $this->Project;
+        return $this->project;
     }
 
-    public function setProject(?Project $Project): self
+    public function setProject(?Project $project): self
     {
-        $this->Project = $Project;
+    	$this->project = $project;
 
         return $this;
     }
 
     public function getUser(): ?User
     {
-        return $this->User;
+        return $this->user;
     }
 
-    public function setUser(?User $User): self
+    public function setUser(?User $user): self
     {
-        $this->User = $User;
+    	$this->user = $user;
 
         return $this;
     }

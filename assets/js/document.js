@@ -61,17 +61,9 @@ $(document).ready(function() {
 		return false;
 	});
 	
-	var checkboxes = [];
-	
-	$('table').find('input').each(function() {
-		
-		if ($(this).prop('type') == 'checkbox') {
-			$(this).prop('checked', false);
-			$(this).on('click', lineChecked);
-			if ($(this).prop('id') != 'check_all') {
-				checkboxes.push($(this));
-			}
-		}
+	$('table').find('input[type="checkbox"]').each(function() {
+		$(this).prop('checked', false);
+		$(this).on('click', lineChecked);
 	});
 	
 	$('#detail').on('show.bs.modal', function(event) {
@@ -106,40 +98,34 @@ $(document).ready(function() {
 		});
 	});
 	
-	$('#document_edit').on('click', function(event) {
-		event.preventDefault();
-		$('#form').prop('action', $(this).data('url'));
-		$('#form').submit();
+	$('#document_edit').on('click', function() {
+		location.assign($(this).data('url') + '?' + paramsArray.toString());
+		return false;
 	});
 	
 	$('#document_move').on('click', function(event) {
-		event.preventDefault();
-		$('#form').prop('action', $(this).data('url'));
-		$('#form').submit();
+		location.assign($(this).data('url') + '?' + paramsArray.toString());
+		return false;
 	});
 	
 	$('#document_delete').on('click', function(event) {
-		event.preventDefault();
-		$('#form').prop('action', $(this).data('url'));
-		$('#form').submit();
+		location.assign($(this).data('url') + '?' + paramsArray.toString());
+		return false;
 	});
 	
 	$('#version_new').on('click', function(event) {
-		event.preventDefault();
-		$('#form').prop('action', $(this).data('url'));
-		$('#form').submit();
+		location.assign($(this).data('url') + '?' + paramsArray.toString());
+		return false;
 	});
 	
 	$('#version_edit').on('click', function(event) {
-		event.preventDefault();
-		$('#form').prop('action', $(this).data('url'));
-		$('#form').submit();
+		location.assign($(this).data('url') + '?' + paramsArray.toString());
+		return false;
 	});
 	
 	$('#version_delete').on('click', function(event) {
-		event.preventDefault();
-		$('#form').prop('action', $(this).data('url'));
-		$('#form').submit();
+		location.assign($(this).data('url') + '?' + paramsArray.toString());
+		return false;
 	});
 	
 	
@@ -236,7 +222,7 @@ $(document).ready(function() {
 		
 		if ($(this).prop('id') == 'check_all') {
 			
-			$('table').find('input').each(function() {
+			$('table').find('input[type="checkbox"]').each(function() {
 				checked = $('#check_all').is(':checked');
 				unchecked = !checked;
 				$(this).prop('checked', checked);
@@ -244,7 +230,7 @@ $(document).ready(function() {
 			
 		} else {
 			
-			$('table').find('input').each(function() {
+			$('table').find('input[type="checkbox"]').each(function() {
 				
 				if ($(this).prop('id') != 'check_all') {
 					if ($(this).is(':checked')) {
@@ -263,14 +249,13 @@ $(document).ready(function() {
 			});
 		}
 		
+		paramsArray.delete('version[]');
 		if (checked) {
-			var array = [];
-			for (const checkbox of checkboxes) {
-				if (checkbox.is(':checked')) {
-					array.push(checkbox.val());
+			$('table').find('input[type="checkbox"]').each(function() {
+				if ($(this).prop('id') != 'check_all') {
+					paramsArray.append('version[]', $(this).val());
 				}
-			}
-			$('#versions').val(JSON.stringify(array));
+			});
 			
 			$('#document_edit').show();
 			$('#document_move').show();

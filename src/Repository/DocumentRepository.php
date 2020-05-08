@@ -50,7 +50,7 @@ class DocumentRepository extends ServiceEntityRepository
      */
     public function getDocumentsByRequest(Request $request)
     {	
-    	$versionIds = $this->encoder->decode($request->query->get('versions'), 'json');
+    	$versionIds = $request->query->get('version');
     	if (is_array($versionIds)) {
     		$query = $this->createQueryBuilder('d')
     			->innerJoin('d.versions', 'v');
