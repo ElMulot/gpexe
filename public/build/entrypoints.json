@@ -4,7 +4,6 @@
       "js": [
         "/build/runtime.js",
         "/build/vendors~app~document~form~login.js",
-        "/build/vendors~app~document.js",
         "/build/vendors~app.js",
         "/build/app.js"
       ],
@@ -39,7 +38,6 @@
       "js": [
         "/build/runtime.js",
         "/build/vendors~app~document~form~login.js",
-        "/build/vendors~app~document.js",
         "/build/vendors~document~form.js",
         "/build/vendors~document.js",
         "/build/document.js"
