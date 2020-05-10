@@ -189,12 +189,12 @@ class Codification
     
     public function getFullId(): string
     {
-    	return 'c[' . $this->id . ']';
+    	return 'codification[' . $this->id . ']';
     }
     
     public function getSnakeCaseFullId(): string
     {
-    	return 'c_' . $this->id;
+    	return 'codification_' . $this->id;
     }
     
     public function getFullCodename(): string

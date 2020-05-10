@@ -97,7 +97,7 @@ class VersionController extends AbstractController
 			
 			foreach ($this->metadataRepository->getMetadatasForVersion($project) as $metadata) {
 				
-				$value = $form->get('m_' . $metadata->getId())->getData();
+				$value = $form->get($metadata->getCodeName())->getData();
 				
 				if ($value === null && $metadata->getIsMandatory()) {
 					$this->addFlash('danger', 'The field  \'' . $metadata->getName() . '\' must not be empty');
@@ -182,9 +182,9 @@ class VersionController extends AbstractController
 				
 				foreach ($this->metadataRepository->getMetadatasForVersion($project) as $metadata) {
 					
-					if ($this->isMultiple($form, 'm_' . $metadata->getId()) == false) {
+					if ($this->isMultiple($form, $metadata->getCodeName()) == false) {
 					
-						$value = $form->get('m_' . $metadata->getId())->getData();
+						$value = $form->get($metadata->getCodeName())->getData();
 						
 						if ($value === null && $metadata->getIsMandatory()) {
 							$this->addFlash('danger', 'The field  \'' . $metadata->getName() . '\' must not be empty');

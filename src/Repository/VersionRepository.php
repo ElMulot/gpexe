@@ -4,10 +4,10 @@ namespace App\Repository;
 
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
-use Symfony\Component\Serializer\Encoder\JsonEncoder;
-use App\Entity\Version;
 use App\Entity\Serie;
 use App\Entity\Document;
+use App\Entity\Version;
+use App\Entity\Review;
 
 
 /**
@@ -18,8 +18,6 @@ use App\Entity\Document;
  */
 class VersionRepository extends ServiceEntityRepository
 {
-    
-	private $encoder;
 	
 	private $uid;
 	
@@ -28,24 +26,27 @@ class VersionRepository extends ServiceEntityRepository
 	public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Version::class, Document::class);
-        $this->encoder = new JsonEncoder();
     }
 
     /**
      * @return Version[]
      *
      */
-    public function getVersions(Serie $serie, $request=null)
+    public function getVersions(Serie $serie=null, $request=null)
     {
     	
     	$codificationQuery = [];
     	$subQuery = [];
     	
     	$this->query = $this->createQueryBuilder('v')
-	    	->innerJoin('v.document', 'd')
-	    	->andWhere('d.serie = :serie')
-	    	->setParameter('serie', $serie);
+    		->innerJoin('v.status', 't')
+    		->innerJoin('v.document', 'd')
+    		->innerJoin('d.serie', 's');
 
+    	if ($serie) {
+    		$this->query->andWhere('d.serie = :id')->setParameter('id', $serie);
+    	}
+    	
 	    if ($request) {
     		if ($versionIds = $request->query->get('id')) {
     			
@@ -55,116 +56,198 @@ class VersionRepository extends ServiceEntityRepository
 		    	
 		    } else {
 		    	
-		    	if ($codifications = $request->query->get('codification')) {
+		    	$codifications = $request->query->get('codification') ?? [];
+		    	
+	    		foreach ($codifications as $codification => $ids) {
 		    		
-		    		foreach ($codifications as $codename => $values) {
-			    		
-			    		$subQuery = $this->getEntityManager()->createQueryBuilder()
-			    			->select('d' . $codename)
-			    			->from(Document::class, 'd' . $codename)
-			    			->innerJoin('d' . $codename . '.codificationItems', 'i' . $codename)
-			    			->innerJoin('i' . $codename . '.codification', 'c' . $codename);
-			    		
-			    		foreach ($values as $value) {
-			    			if ($value) {
-			    				
-			    				$andQuery = $this->query->expr()->andX(
-			    					$this->addEq('i' . $codename . '.value', $value),
-			    					$this->addEq('c' . $codename . '.codename', $codename));
-			    				$subQuery->orWhere($andQuery);
-			    				
-			    				/*
-			    				$andQuery = $this->query->expr()->andX(
-			    					$this->query->expr()->eq('c'.$codename . '.codename', ':i' . $uid),
-			    					$this->query->expr()->eq('i'.$codename . '.value', ':v' . $uid));
-			    				
-			    				
-			    				$this->query->setParameter('i' . $uid, $codename)
-			    					->setParameter('v' . $uid, $codename);
-			    				$subQuery->orWhere($andQuery);
-			    				$uid = $uid + 1;
-			    				*/
-			    			}
-			    			
-			    		}
-			    		$this->query->andWhere($this->query->expr()->in('d.id', $subQuery->getDQL()));
-			    		
-			    	}
-			    	
+		    		$subQuery = $this->getEntityManager()->createQueryBuilder()
+			    		->select('d' . $codification)
+			    		->from(Document::class, 'd' . $codification)
+			    		->innerJoin('d' . $codification . '.codificationItems', 'i' . $codification);
+		    		
+			    		foreach ($ids as $id) {
+			    			if ($id) {
+		    				
+		    				$andQuery = $this->query->expr()->andX(
+		    					$this->addEq('i' . $codification . '.id', $id),
+		    					$this->addEq('i' . $codification . '.codification', $codification));
+		    				$subQuery->orWhere($andQuery);
+		    			}
+		    			
+		    		}
+		    		$this->query->andWhere($this->query->expr()->in('d.id', $subQuery->getDQL()));
+		    		
 		    	}
 		    	
-		    	$metadatas = ($request->query->get('serie') ?? []) + ($request->query->get('document') ?? []) + ($request->query->get('version') ?? []);
-		    		
-	    		foreach ($metadatas as $codename => $values) {
+		    	$metadatas = [];
+		    	
+		    	foreach ($request->query->get('serie') ?? [] as $field => $value) {
+		    		switch ($field) {
+		    			case 'name':
+		    				$this->query
+		    					->andWhere($this->query->expr()->in('d.serie', $values));
+		    				break;
+		    			case 'company':
+		    				$this->query
+			    				->andWhere($this->query->expr()->in('s.company', $values));
+		    				break;
+		    			default:
+		    				$metadatas[$field] = $value;
+		    		}
+		    	}
+		    	
+		    	foreach ($request->query->get('document') ?? [] as $field => $value) {
+		    		switch ($field) {
+		    			default:
+		    				$metadatas[$field] = $value;
+		    		}
+		    	}
+		    	
+		    	foreach ($request->query->get('version') ?? [] as $field => $value) {
+		    		switch ($field) {
+		    			case 'isRequired':
+		    				$this->query
+			    				->andWhere('v.isRequired = :isRequired')
+			    				->setParameter('isRequired', ($value != "0"));
+		    				break;
+		    			case 'writer':
+		    				$this->query
+		    					->andWhere($this->query->expr()->in('v.writer', $value));
+		    				break;
+		    			case 'checker':
+		    				$this->query
+		    					->andWhere($this->query->expr()->in('v.checker', $value));
+		    				break;
+		    			case 'approver':
+		    				$this->query
+		    					->andWhere($this->query->expr()->in('v.approver', $value));
+		    				break;
+		    			default:
+		    				$metadatas[$field] = $value;
+		    		}
+		    	}
+		    	
+		    	foreach ($request->query->get('status') ?? [] as $field => $value) {
+		    		switch ($field) {
+		    			case 'value':
+		    				$this->query->andWhere($this->query->expr()->in('v.status', $value));
+		    				break;
+		    			case 'type':
+		    				$this->query->andWhere($this->query->expr()->in('t.type', $value));
+		    				break;
+		    		}
+		    	}
+		    			    	
+	    		foreach ($metadatas as $metadata => $ids) {
 	    			
-	    			$subQuery = $this->createQueryBuilder('v' . $codename)
-	    				->innerJoin('v' . $codename . '.metadataItems', 'i' . $codename)
-	    				->innerJoin('i' . $codename . '.metadata', 'm' . $codename);
+	    			$subQuery = $this->createQueryBuilder('v' . $metadata)
+	    				->innerJoin('v' . $metadata . '.metadataItems', 'i' . $metadata);
 	    			
-	    			if (is_array($values)) {
-	    				foreach ($values as $value) {
-	    					if ($value) {
+	    			if (is_array($ids)) {
+	    				foreach ($ids as $id) {
+	    					if ($id) {
 	    						$andQuery = $this->query->expr()->andX(
-	    							$this->addEq('i' . $codename . '.value', $value),
-	    							$this->addEq('m' . $codename . '.codename', $codename));
+	    							$this->addEq('i' . $metadata . '.id', $id),
+	    							$this->addEq('i' . $metadata . '.metadata', $id));
 	    						$subQuery->orWhere($andQuery);
-	    						
-	    						/*
-	    						$subQuery->orWhere($this->addEq('m' . $codename . '.value', $value));
-	    						
-		    					$andQuery = $this->query->expr()->andX(
-		    						$this->query->expr()->eq('m' . $metadataId . '.metadata', ':i' . $uid),
-		    						$this->query->expr()->eq('m' . $metadataId . '.value', ':v' . $uid));
-		    				
-		    					
-		    					$this->query->setParameter('i' . $uid, $metadataId)
-		    						->setParameter('v' . $uid, $metadataValue);
-			    				$subQuery->orWhere($andQuery);
-			    				$uid = $uid + 1;
-			    				*/
 		    				}
 		    				
 		    			}
-		    			$this->query->andWhere($this->query->expr()->in('v.id', $subQuery->getDQL()));
 	    			
 	    			} else { //boolean
 	    				
-	    				if ($values == "0") {
+	    				if ($ids == "0") {
 	    					
 	    					$orQuery = $this->query->expr()->orX(
-	    						$this->addNotEq('i' . $codename . '.value', $values),
-	    						$this->addNotEq('m' . $codename . '.codename', $codename));
+	    						$this->addNotEq('i' . $metadata . '.id', $ids),
+	    						$this->addNotEq('i' . $metadata . '.metadata', $metadata));
 	    					$subQuery->orWhere($orQuery);
 	    				
-	    				} elseif ($values == "1") {
+	    				} elseif ($ids == "1") {
 	    					
 	    					$andQuery = $this->query->expr()->andX(
-	    						$this->addEq('i' . $codename . '.value', $values),
-	    						$this->addEq('m' . $codename . '.codename', $codename));
+	    						$this->addEq('i' . $metadata . '.id', $ids),
+	    						$this->addEq('i' . $metadata . '.metadata', $metadata));
 	    					$subQuery->orWhere($andQuery);
-	    					
-	    					/*
-	    					$andQuery = $this->query->expr()->andX(
-	    						$this->query->expr()->eq('m' . $metadataId . '.metadata', ':i' . $uid),
-	    						$this->query->expr()->eq('m' . $metadataId . '.value', ':v' . $uid));
-	    					
-	    					
-	    					$this->query->setParameter('i' . $uid, $metadataId)
-	    					->setParameter('v' . $uid, $metadataValues);
-	    					$subQuery->orWhere($andQuery);
-	    					$uid = $uid + 1;
-	    					*/
 	    				}
 	    					
-	    				$this->query->andWhere($this->query->expr()->in('v.id', $subQuery->getDQL()));
+	    				
 	    			}
+	    			
+	    			$this->query->andWhere($this->query->expr()->in('v.id', $subQuery->getDQL()));
 	    		}
+	    		
+	    		if ($visas = $request->query->get('visa')) {
+	    			$subQuery = $this->getEntityManager()->createQueryBuilder()
+			    		->select('r')
+			    		->from(Review::class, 'r')
+		    			->innerJoin('r.user', 'u')
+		    			->andWhere($this->query->expr()->in('r.visa', array_keys($visas)))
+		    			->andWhere($this->query->expr()->in('u.company', array_values($visas)));
+		    		$this->query->andWhere($this->query->expr()->in('v.id', $subQuery->getDQL()));
+	    		}
+	    		
+	    		if ($request->query->get('sortAsc') || $request->query->get('sortDesc')) {
+	    			$field = $request->query->get('sortAsc') || $request->query->get('sortDesc');
+	    			$order = ($request->query->get('sortAsc'))?'ASC':'DESC';
+	    			
+	    			switch ($field) {
+	    				case 'version[name]':
+	    					$this->query->addOrderBy('v.name', $order);
+	    					break;
+	    				case 'document[name]':
+	    					$this->query->addOrderBy('d.name', $order);
+	    					break;
+	    				case 'version[date]':
+	    					$this->query->addOrderBy('v.date', $order);
+	    					break;
+	    				case 'version[initialDate]':
+	    					$this->query->addOrderBy('v.initialDate', $order);
+	    					break;
+	    				case 'version[writer]':
+	    					$this->query
+	    						->innerJoin('v.writer', 'w')
+	    						->addOrderBy('w.name', $order);
+	    					break;
+	    				case 'version[checker]':
+	    					$this->query
+		    					->innerJoin('v.checker', 'c')
+		    					->addOrderBy('c.name', $order);
+	    					break;
+	    				case 'version[approver]':
+	    					$this->query
+		    					->innerJoin('v.approver', 'a')
+		    					->addOrderBy('a.name', $order);
+	    					break;
+	    				case 'serie[name]':
+	    					$this->query->addOrderBy('s.name', $order);
+	    					break;
+	    				case 'serie[company]':
+	    					$this->query
+		    					->innerJoin('s.company', 'c')
+		    					->addOrderBy('c.name', $order);
+	    					break;
+	    				case 'status[name]':
+	    					$this->query->addOrderBy('t.name', $order);
+	    					break;
+	    				case 'status[value]':
+	    					$this->query->addOrderBy('t.value', $order);
+	    					break;
+	    				case 'status[type]':
+	    					$this->query->addOrderBy('t.type', $order);
+	    					break;
+	    			}
+	    			
+	    		}
+	    		
 		    }
+	    } else {
+	    	$this->query->addOrderBy('v.date');
 	    }
 	    
-    	return $this->query->addOrderBy('v.date')
-    	->getQuery()
-    	->getResult();
+    	return $this->query
+	    	->getQuery()
+	    	->getResult();
     	
     }
     

@@ -17,6 +17,7 @@ use App\Entity\Metadata;
 use App\Entity\MetadataItem;
 use App\Entity\Serie;
 use App\Entity\Status;
+use App\Entity\Visa;
 use App\Repository\CompanyRepository;
 use App\Repository\UserRepository;
 use App\Repository\CodificationRepository;
@@ -29,9 +30,9 @@ class SelectorsType extends AbstractType
 	
 	private $companyRepository;
 	
-	private $codificationRepository;
-	
 	private $userRepository;
+	
+	private $codificationRepository;
 	
 	private $metadataRepository;
 	
@@ -50,28 +51,30 @@ class SelectorsType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
     	$request = $builder->getData();
+    	
+    	$metadatas = $options['metadatas'];
     	$series = $options['series'];
-    	$current_serie = $options['current_serie'];
+    	$checkerCompanies = $options['checkerCompanies'];
     	$project = $options['project'];
     	$columns = $options['columns'];
-    	$metadatas = $options['metadatas'];
+    	$current_serie = $options['current_serie'];
+    	
     	$codifications = $this->codificationRepository->getCodifications($project);
     	$checkers = $this->userRepository->getCheckers($project);
     	
     	foreach ($codifications as $codification) {
     		
     		if ($codification->isList() && $columns['document[reference]']['display']) {
-	    		$builder->add('codification_' . $codification->getCodename(), EntityType::class, [
+	    		$builder->add($codification->getSnakeCaseFullId(), EntityType::class, [
 	    			'class' => CodificationItem::class,
 	    			'choices' => $codification->getCodificationItems(),
 	    			'label' => false,
 	    			'mapped' => false,
 	    			'multiple' => true,
 	    			'required' => false,
-	    			'choice_value' => 'value',
 	    			'attr' => [
-	    				'name' => $codification->getFullCodeName() . '[]',
-	    				'selected_values' => $request->query->get('codification')[$codification->getCodeName()] ?? [],
+	    				'name' => $codification->getFullId() . '[]',
+	    				'selected_values' => $request->query->get('codification')[$codification->getId()] ?? [],
 	    				'data-title' => $codification->getName(),
 	    				'data-target' => 'document_reference',
 	    				'data-full-header' => false,
@@ -108,7 +111,6 @@ class SelectorsType extends AbstractType
 	    		'mapped' => false,
     			'multiple' => true,
 	    		'required' => false,
-    			'choice_value' => 'name',
 	    		'attr' => [
 	    			'name' => 'version[writer][]',
 	    			'selected_values' => $request->query->get('version')['writer'] ?? [],
@@ -127,7 +129,6 @@ class SelectorsType extends AbstractType
     			'mapped' => false,
     			'multiple' => true,
     			'required' => false,
-    			'choice_value' => 'name',
     			'attr' => [
     				'name' => 'version[checker][]',
     				'selected_values' => $request->query->get('version')['checker'] ?? [],
@@ -146,7 +147,6 @@ class SelectorsType extends AbstractType
     			'mapped' => false,
     			'multiple' => true,
     			'required' => false,
-    			'choice_value' => 'name',
     			'attr' => [
     				'name' => 'version[approver][]',
     				'selected_values' => $request->query->get('version')['approver'] ?? [],
@@ -165,9 +165,8 @@ class SelectorsType extends AbstractType
     			'mapped' => false,
     			'multiple' => true,
     			'required' => false,
-    			'choice_value' => 'name',
     			'attr' => [
-    				'name' => 'serie[name]',
+    				'name' => 'serie[name][]',
     				'selected_values' => $request->query->get('serie')['name'] ?? [],
     				'data-title' => $this->translator->trans('Serie name'),
     				'data-target' => 'serie_name',
@@ -184,7 +183,6 @@ class SelectorsType extends AbstractType
     			'mapped' => false,
     			'multiple' => true,
     			'required' => false,
-    			'choice_value' => 'name',
     			'attr' => [
     				'name' => 'serie[company][]',
     				'selected_values' => $request->query->get('serie')['company'] ?? [],
@@ -203,7 +201,6 @@ class SelectorsType extends AbstractType
     			'mapped' => false,
     			'multiple' => true,
     			'required' => false,
-    			'choice_value' => 'value',
     			'attr' => [
     				'name' => 'status[value][]',
     				'selected_values' => $request->query->get('status')['value'] ?? [],
@@ -227,7 +224,7 @@ class SelectorsType extends AbstractType
     			'multiple' => true,
     			'required' => false,
     			'attr' => [
-    				'name' => 'status[type]',
+    				'name' => 'status[type][]',
     				'selected_values' => $request->query->get('status')['type'] ?? null,
     				'data-title' => $this->translator->trans('Status type'),
     				'data-target' => 'status_type',
@@ -238,11 +235,11 @@ class SelectorsType extends AbstractType
     	
     	foreach ($metadatas as $metadata) {
     		
-    		if ($columns[$metadata->getFullCodename()]['display']) {
+    		if ($columns[$metadata->getFullId()]['display']) {
     			
     			switch ($metadata->getType()) {
     				case Metadata::BOOLEAN:
-    					$builder->add($metadata->getSnakeCodeName(), ChoiceType::class, [
+    					$builder->add($metadata->getSnakeCaseFullId(), ChoiceType::class, [
 	    					'choices' => [
 		    					'Yes' => '1',
 		    					'No' => '0',
@@ -252,17 +249,17 @@ class SelectorsType extends AbstractType
 	    					'multiple' => false,
 	    					'required' => false,
 	    					'attr' => [
-		    					'name' => $metadata->getFullCodeName(),
-		    					'selected_values' => $request->query->get($metadata->getParentName())[$metadata->getCodeName()] ?? null,
+		    					'name' => $metadata->getFullId(),
+		    					'selected_values' => $request->query->get($metadata->getParentName())[$metadata->getId()] ?? null,
 		    					'data-title' => $metadata->getName(),
-		    					'data-target' => $metadata->getSnakeCodeName(),
+		    					'data-target' => $metadata->getSnakeCaseFullId(),
 		    					'data-full-header' => false,
 		    				],
     					]);
     					break;
     				
     				case Metadata::LIST:
-    					$builder->add($metadata->getSnakeCodeName(), EntityType::class, [
+    					$builder->add($metadata->getSnakeCaseFullId(), EntityType::class, [
 	    					'class' => MetadataItem::class,
 	    					'choices' => $metadata->getMetadataItems(),
 	    					'label' => false,
@@ -271,15 +268,37 @@ class SelectorsType extends AbstractType
 	    					'required' => false,
 	    					'choice_value' => 'value',
 	    					'attr' => [
-		    					'name' => $metadata->getFullCodeName() . '[]',
-		    					'selected_values' => $request->query->get($metadata->getParentName())[$metadata->getCodeName()] ?? [],
+		    					'name' => $metadata->getFullId() . '[]',
+		    					'selected_values' => $request->query->get($metadata->getParentName())[$metadata->getId()] ?? [],
 		    					'data-title' => $metadata->getName(),
-		    					'data-target' => $metadata->getSnakeCodeName(),
+		    					'data-target' => $metadata->getSnakeCaseFullId(),
 		    					'data-full-header' => true,
 	    					],
     					]);
     					break;
     			}
+    		}
+    	}
+    	
+    	foreach ($checkerCompanies as $company) {
+    		if (!$project->getVisasByCompany($company)->isEmpty()) {
+	    		if ($columns['visa[' . $company->getId() . ']']['display']) {
+	    			$builder->add('visa_' . $company->getId(), EntityType::class, [
+	    				'class' => Visa::class,
+	    				'choices' => $project->getVisasByCompany($company),
+	    				'label' => false,
+	    				'mapped' => false,
+	    				'multiple' => false,
+	    				'required' => false,
+	    				'attr' => [
+	    					'name' => 'visa[' . $company->getId() . ']',
+	    					'selected_values' => $request->query->get('visa')[$company->getId()] ?? null,
+	    					'data-title' => $this->translator->trans('Visa') . ' ' . $company->getName(),
+	    					'data-target' => 'visa_' . $company->getId(),
+	    					'data-full-header' => false,
+	    				],
+	    			]);
+	    		}
     		}
     	}
     	
@@ -291,7 +310,7 @@ class SelectorsType extends AbstractType
         	'csrf_protection' => false,
         	'current_serie' => null,
         ]);
-        $resolver->setRequired(['metadatas', 'series', 'project', 'columns']);
+        $resolver->setRequired(['metadatas', 'series', 'checkerCompanies', 'project', 'columns']);
     }
 }
 

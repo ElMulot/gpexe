@@ -232,6 +232,20 @@ class Project
     public function getVisas(): Collection
     {
         return $this->visas;
+    } 
+    
+    /**
+     * @return Collection|Visa[]
+     */
+    public function getVisasByCompany(Company $company): Collection
+    {
+    	$visas = new ArrayCollection();
+    	foreach ($this->getVisas()->getValues() as $visa) {
+    		if ($visa->getCompany() == $company) {
+    			$visas[] = $visa;
+    		}
+    	}
+    	return $visas;
     }
 
     public function addVisa(Visa $visa): self
@@ -287,11 +301,6 @@ class Project
 
         return $this;
     }
-    
-    public function __toString(): string
-    {
-    	return (string)$this->getName();
-    }
 
     /**
      * @return Collection|Vue[]
@@ -322,6 +331,12 @@ class Project
         }
 
         return $this;
+    }
+    
+    
+    public function __toString(): string
+    {
+    	return (string)$this->getName();
     }
 }
 ?>

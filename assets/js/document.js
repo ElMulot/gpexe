@@ -1,4 +1,5 @@
 const $ = require('jquery');
+const popper = require('popper.js');
 require('sticky-table-headers');
 
 require('../css/document.scss');
@@ -15,7 +16,7 @@ $(document).ready(function() {
 	$('#form').on('submit', function(event) {
 		event.preventDefault;
 		$(event.target).find('select').each(function() {
-			if ($(this).val()  == '' || !$(this).val()?.length) {
+			if ($(this).val().toString()  == '') {
 				$(this).attr('disabled', 'disabled');
 			}
 		});
@@ -23,8 +24,8 @@ $(document).ready(function() {
 		return true;
 	});
 	
-	$('#form').find('select').each(function() {
-		createMultiselect(this);
+	$('table').find('th').each(function() {
+		createHeader(this);
 	});
 	
 	$('table').stickyTableHeaders();
@@ -52,6 +53,7 @@ $(document).ready(function() {
 			}
 			paramsArray.delete('hide[]');
 			hide.forEach(e => paramsArray.append('hide[]', e));
+			
 			location.assign(location.origin + location.pathname + '?' + paramsArray.toString());
 		}
 		return false;
@@ -280,24 +282,28 @@ $(document).ready(function() {
 		
 		if(multipleAttr) {
 			if (n = $(that).prop('name').match(/(.+)\[\]$/i)) {
+				var fullName = n[0];
 				var name = n[1];
 			} else {
 				return false;
 			}
 		} else {
-			var name = $(that).prop('name');
-			
+			var fullName = $(that).prop('name')
+			var name = fullName;
+			/*
 			$(that).prepend(create.option).children().first()
 				.text(text.notApplicable)
 			;
 			if ($(that).find('option[selected]').length === 0) {
 				$(that).children().first().attr('selected', true);
 			}
+			*/
 		}
 		
 		var select = {
 				element: $(that),
 				name: name,
+				fullName: fullName,
 				multiple: multipleAttr,
 				title: $(that).data('title'),
 				locale: $(that).data('locale'),
@@ -315,6 +321,57 @@ $(document).ready(function() {
 			});
 		});
 		
+		if ($('#' + select.target).children().length == 0) {
+			
+			var columnTitle = $('#' + select.target).text().trim();
+			console.log(columnTitle);
+			$('#' + select.target).empty();
+			
+			select.dropdownButton = $('#' + select.target).append(create.div).children().last()
+				.addClass('btn-group w-100')
+				.attr('role', 'group')
+			;
+			select.dropdownButton.append(create.menuButton).children().last()
+				.addClass('w-100')
+				.attr('type', 'button')
+				.text(select.title)
+			;
+			
+			select.dropdownButton.append(create.menuButton).children().last()
+				.addClass('px-0')
+				.css('width', '3em')
+				.attr('type', 'button')
+				.attr('id', 'b_' + select.target)
+				.attr('data-toggle', 'dropdown')
+				.attr('aria-haspopup', true)
+				.attr('aria-expanded', false)
+				.append((paramsArray.get(select.fullName))?icon.funnelFill:icon.funnel)
+				.append((paramsArray.get('sortAsc') == select.name)?icon.arrowUp:'')
+				.append((paramsArray.get('sortDesc') == select.name)?icon.arrowDown:'')
+			;
+			
+			var div = select.dropdownButton.append(create.div).children().last()
+				.addClass('dropdown-menu')
+				.attr('aria-labelledby', 'b_' + select.target)
+				.append(create.div).children().last()
+					.addClass('d-flex flex-row')
+					.attr('id', 'm_' + select.target)
+			;
+			
+
+			
+		} else {
+			if (!(select.dropdownButton = $('#b_' + select.target).parent())) return;
+			if (!(div = $('#m_' + select.target))) return;
+		}
+		
+		select.dropdownMenu = div.append(create.div).children().last()
+			.addClass('mx-1')
+			.css('min-width', '15em')
+		;
+		
+		select.dropdownButton.on('show.bs.dropdown', createMenu);
+		/*
 		select.dropdownMenu = $('#' + select.target).append(create.div).children().last()
 			.addClass('mx-1')
 			.css('min-width', '15em')
@@ -323,10 +380,10 @@ $(document).ready(function() {
 		select.dropDownButton = $('#' + select.target).parent().parent();
 		
 		select.dropDownButton.on('show.bs.dropdown', createMenu);
-		
+		*/
 		function createMenu() {
 			
-			select.dropdownMenu.css('zIndex', 1);
+			//select.dropdownMenu.css('zIndex', 1);
 			select.dropdownMenu.empty();
 			
 			if (select.multiple) {
@@ -460,6 +517,28 @@ $(document).ready(function() {
 				
 			} else {
 				
+				select.notApplicableDiv = body.append(create.div).children().last()
+					.addClass('custom-control custom-checkbox')
+				;
+				
+				select.notApplicableCheckbox = select.notApplicableDiv.append(create.checkbox).children().last()
+					.attr('id', select.name + '_notApplicable')
+					.on('change', function() {
+						
+						var checked = $(this).is(':checked');
+						for (const o of select.options) {	
+							o.checkbox.prop('checked', false);
+						}
+						paramsArray.delete(select.name);
+						location.assign(location.origin + location.pathname + '?' + paramsArray.toString());
+					})
+				;
+			
+				select.notApplicableLabel = select.notApplicableDiv.append(create.label).children().last()
+					.attr('for', select.name + '_notApplicable')
+					.text(text.notApplicable)
+				;
+				
 				for (const o of select.options) {
 					
 					o.div = body.append(create.div).children().last()
@@ -468,17 +547,21 @@ $(document).ready(function() {
 					
 					o.checkbox = o.div.append(create.checkbox).children().last()
 						.attr('id', select.name + '_' + o.value)
-						.attr('checked', o.selected)
+						.attr('checked', paramsArray.get(select.name) == o.value)
 						.on('click', function() {
 							
 							body.find('input').not(this).prop('checked', false);
+							paramsArray.delete(select.name);
 							
-							for (const o of select.options) {
-								o.element.prop('selected', o.checkbox.is(':checked'));
+							if (!select.notApplicableCheckbox.is(':checked')) {
+								for (const o of select.options) {
+									if (o.checkbox.is(':checked')) {
+										paramsArray.append(select.name, o.value);
+									}
+								}
 							}
 							
-							$('#form').submit();
-							return true;
+							location.assign(location.origin + location.pathname + '?' + paramsArray.toString());
 						})
 					;
 					
@@ -493,24 +576,40 @@ $(document).ready(function() {
 				 
 		function sortAsc() {
 			paramsArray.delete('sortDesc');
-			paramsArray.set('sortAsc', select.name);
-			location.assign(location.origin + location.pathname + '?' + paramsArray.toString());
+			if (paramsArray.get('sortAsc') == select.name) {
+				paramsArray.delete('sortAsc');
+			} else {
+				paramsArray.set('sortAsc', select.name);
+			}	
+			filter();
 		}
 			
 		function filter() {
-			for (const o of select.options) {
-				o.element.attr('selected', o.checkbox.is(':checked'));
+			
+			paramsArray.delete(select.name + '[]');
+			if (!select.selectAllCheckbox.is(':checked')) {
+				
+				for (const o of select.options) {
+					if (o.checkbox.is(':checked')) {
+						paramsArray.append(select.name + '[]', o.value);
+					}
+				}
 			}
-			$('#form').submit();
+			
+			location.assign(location.origin + location.pathname + '?' + paramsArray.toString());
 		}
 			
 		function sortDesc() {
 			paramsArray.delete('sortAsc');
-			paramsArray.set('sortDesc', select.name);
-			location.assign(location.origin + location.pathname + '?' + paramsArray.toString());
+			if (paramsArray.get('sortDesc') == select.name) {
+				paramsArray.delete('sortDesc');
+			} else {
+				paramsArray.set('sortDesc', select.name);
+			}	
+			filter();
 		}
 		
-		select.dropDownButton.on('hide.bs.dropdown', function (e) {
+		select.dropdownButton.on('hide.bs.dropdown', function (e) {
 			
 			if(e.clickEvent && $.contains(e.relatedTarget.parentNode, e.clickEvent.target)) {
 				e.preventDefault()
@@ -557,9 +656,9 @@ $(document).ready(function() {
 			;
 		},
 		
-		button: function() {
+		menuButton: function() {
 			return $(document.createElement('button'))
-				.addClass('btn btn-primary')
+				.addClass('btn btn-sm btn-primary text-nowrap rounded-0')
 			;
 		},
 		
@@ -590,6 +689,17 @@ $(document).ready(function() {
 				'<svg class="bi bi-arrow-bar-down" width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">' +
 			  		'<path fill-rule="evenodd" d="M11.354 10.146a.5.5 0 010 .708l-3 3a.5.5 0 01-.708 0l-3-3a.5.5 0 01.708-.708L8 12.793l2.646-2.647a.5.5 0 01.708 0z" clip-rule="evenodd"/>' +
 			  		'<path fill-rule="evenodd" d="M8 6a.5.5 0 01.5.5V13a.5.5 0 01-1 0V6.5A.5.5 0 018 6zM2 3.5a.5.5 0 01.5-.5h11a.5.5 0 010 1h-11a.5.5 0 01-.5-.5z" clip-rule="evenodd"/>' +
+				'</svg>',
+		
+		funnel:
+				'<svg class="bi bi-funnel" width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">' +
+					'<path fill-rule="evenodd" d="M1.5 1.5A.5.5 0 012 1h12a.5.5 0 01.5.5v2a.5.5 0 01-.128.334L10 8.692V13.5a.5.5 0 01-.342.474l-3 1A.5.5 0 016 14.5V8.692L1.628 3.834A.5.5 0 011.5 3.5v-2zm1 .5v1.308l4.372 4.858A.5.5 0 017 8.5v5.306l2-.666V8.5a.5.5 0 01.128-.334L13.5 3.308V2h-11z" clip-rule="evenodd"/>' +
+				'</svg>',
+				
+		funnelFill:
+				'<svg class="bi bi-funnel-fill" width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">' +
+					'<path d="M2 3.5v-2h12v2l-4.5 5v5l-3 1v-6L2 3.5z"/>' +
+					'<path fill-rule="evenodd" d="M1.5 1.5A.5.5 0 012 1h12a.5.5 0 01.5.5v2a.5.5 0 01-.128.334L10 8.692V13.5a.5.5 0 01-.342.474l-3 1A.5.5 0 016 14.5V8.692L1.628 3.834A.5.5 0 011.5 3.5v-2zm1 .5v1.308l4.372 4.858A.5.5 0 017 8.5v5.306l2-.666V8.5a.5.5 0 01.128-.334L13.5 3.308V2h-11z" clip-rule="evenodd"/>' +
 				'</svg>',
 		
 	};

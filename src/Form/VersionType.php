@@ -118,7 +118,7 @@ class VersionType extends AbstractType
 				
 				$data = false;
 				if (!$multiple && $version) {
-					if ($version->getPropertyValue($name)) {
+					if ($version->getPropertyValue($label)) {
 						$data = true;
 					}
 				}

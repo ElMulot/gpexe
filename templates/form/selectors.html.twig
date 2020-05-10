@@ -8,7 +8,7 @@
 
 {% block form_start %}
     {% do form.setMethodRendered() %}
-    <form id="form" method="GET" action="{{ path(app.request.attributes.get('_route'), app.request.query.all|merge(app.request.attributes.get('_route_params'))) }}">
+    <div id="form">
 {% endblock %}
 
 {% block form_widget %}
@@ -41,5 +41,5 @@
 {% endblock attributes %}
 
 {% block form_end %}
-    </form>
+    </div>
 {% endblock %}

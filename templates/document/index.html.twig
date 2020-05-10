@@ -113,22 +113,11 @@
     				{% for column in columns %}
     					{% if column.display %}
     						{% if column.type is constant('App\\Entity\\Metadata::BOOLEAN') or column.type is constant('App\\Entity\\Metadata::LIST')  %}
-            					<th>
-                					<div class="btn-group w-100" role="group">
-                    					<button class="btn btn-sm btn-primary w-100 text-nowrap rounded-0" type="button">
-                                            {{ column.name }}
-                    					</button>
-                    					<button class="btn btn-sm btn-primary dropdown-toggle rounded-0" type="button" id="b_{{ column.target }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    					</button>
-                    					<div class="dropdown-menu" aria-labelledby="b_{{ column.target }}">
-                    						<div id="{{ column.target }}" class="d-flex flex-row">
-                    							
-                                            </div>
-                    					</div>
-                					</div>
+            					<th id="{{ column.id }}" data-title="{{ column.name }}" data-sort="{{ column.sort }}">
+                					
                 				</th>
     						{% else %}
-                				<th class="px-0 border-0">
+                				<th id="{{ column.id }}" data-title="{{ column.name }}" data-sort="{{ column.sort }}">
                 					<button class="btn btn-sm btn-primary w-100 text-nowrap rounded-0">
                 			            {{ column.name }}
                 					</button>

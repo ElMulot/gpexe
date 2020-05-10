@@ -15,6 +15,7 @@ use App\Entity\Review;
 use App\Form\SelectorsType;
 use App\Form\DocumentType;
 use App\Form\ReviewType;
+use App\Repository\CompanyRepository;
 use App\Repository\UserRepository;
 use App\Repository\CodificationRepository;
 use App\Repository\MetadataRepository;
@@ -28,6 +29,8 @@ class DocumentController extends AbstractController
 	const MAX_RECORDS = 50;
 		
 	private $translator;
+	
+	private $companyRepository;
 	
 	private $userRepository;
 	
@@ -43,9 +46,10 @@ class DocumentController extends AbstractController
 	
 	private $versionRepository;
 	
-	public function __construct(TranslatorInterface $translator, UserRepository $userRepository, CodificationRepository $codificationRepository, MetadataRepository $metadataRepository, StatusRepository $statusRepository, SerieRepository $serieRepository, DocumentRepository $documentRepository, VersionRepository $versionRepository)
+	public function __construct(TranslatorInterface $translator, CompanyRepository $companyRepository, UserRepository $userRepository, CodificationRepository $codificationRepository, MetadataRepository $metadataRepository, StatusRepository $statusRepository, SerieRepository $serieRepository, DocumentRepository $documentRepository, VersionRepository $versionRepository)
 	{
 		$this->translator = $translator;
+		$this->companyRepository = $companyRepository;
 		$this->userRepository = $userRepository;
 		$this->codificationRepository = $codificationRepository;
 		$this->metadataRepository = $metadataRepository;
@@ -59,102 +63,114 @@ class DocumentController extends AbstractController
 	{
 		$project = $serie->getProject();
 		$metadatas = $this->metadataRepository->getMetadatas($project);
+		$checkerCompanies = $this->companyRepository->getCheckerCompanies($project);
 		$series = $this->serieRepository->getSeries($project, $serie->getCompany());
 		
 		$columns = [
 			'document[reference]' => [
 				'name' => $this->translator->trans('Reference'),
 				'type' => Metadata::LIST,
-				'target' => 'document_reference',
+				'id' => 'document_reference',
 				'display' => true,
 			],
 			'version[name]' => [
 				'name' => $this->translator->trans('Version'),
 				'type' => Metadata::TEXT,
-				'target' => 'version_name',
+				'id' => 'version_name',
 				'display' => true,
 			],
 			'document[name]' => [
 				'name' => $this->translator->trans('Name'),
 				'type' => Metadata::TEXT,
-				'target' => 'document_name',
+				'id' => 'document_name',
 				'display' => true,
 			],
 			'version[date]' => [
 				'name' => $this->translator->trans('Date'),
 				'type' => Metadata::DATE,
-				'target' => 'version_date',
+				'id' => 'version_date',
 				'display' => true,
 			],
 		    'version[initialDate]' => [
 		    	'name' => $this->translator->trans('Initial Date'),
 		    	'type' => Metadata::DATE,
-		    	'target' => 'version_initialDate',
+		    	'id' => 'version_initialDate',
 		    	'display' => true,
 		    ],
 			'version[isRequired]' => [
 				'name' => $this->translator->trans('Is required'),
 				'type' => Metadata::BOOLEAN,
-				'target' => 'version_isRequired',
+				'id' => 'version_isRequired',
 				'display' => true,
 			],
 			'version[writer]' => [
 				'name' => $this->translator->trans('Writer'),
 				'type' => Metadata::LIST,
-				'target' => 'version_writer',
+				'id' => 'version_writer',
 				'display' => true,
 			],
 			'version[checker]' => [
 				'name' => $this->translator->trans('Checker'),
 				'type' => Metadata::LIST,
-				'target' => 'version_checker',
+				'id' => 'version_checker',
 				'display' => true,
 			],
 			'version[approver]' => [
 				'name' => $this->translator->trans('Approver'),
 				'type' => Metadata::LIST,
-				'target' => 'version_approver',
+				'id' => 'version_approver',
 				'display' => true,
 			],
 			'serie[name]' => [
 				'name' => $this->translator->trans('Serie name'),
-				'type' => Metadata::TEXT,
-				'target' => 'serie_name',
+				'type' => Metadata::LIST,
+				'id' => 'serie_name',
 				'display' => true,
 			],
 			'serie[company]' => [
 				'name' => $this->translator->trans('Company'),
-				'type' => Metadata::TEXT,
-				'target' => 'serie_company',
+				'type' => Metadata::LIST,
+				'id' => 'serie_company',
 				'display' => true,
 			],
 			'status[name]' => [
 				'name' => $this->translator->trans('Status name'),
 				'type' => Metadata::TEXT,
-				'target' => 'status_name',
+				'id' => 'status_name',
 				'display' => true,
 			],
 			'status[value]' => [
 				'name' => $this->translator->trans('Status value'),
 				'type' => Metadata::LIST,
-				'target' => 'status_value',
+				'id' => 'status_value',
 				'display' => true,
 			],
 			'status[type]' => [
 				'name' => $this->translator->trans('Status type'),
-				'type' => Metadata::TEXT,
-				'target' => 'status_type',
+				'type' => Metadata::LIST,
+				'id' => 'status_type',
 				'display' => true,
 			],
 		];
 		
 		foreach ($metadatas as $metadata) {
-			$columns[$metadata->getFullCodename()] = [
+			$columns[$metadata->getFullId()] = [
 				'name' => $metadata->getName(),
 				'type' => $metadata->getType(),
-				'target' => $metadata->getSnakeCodeName(),
+				'id' => $metadata->getSnakeCaseFullId(),
 				'display' => true,
 			];
+		}
+		
+		foreach ($checkerCompanies as $company) {
+			if (!$project->getVisasByCompany($company)->isEmpty()) {
+				$columns['visa[' . $company->getId() . ']'] = [
+					'name' => $company->getName(),
+					'type' => Metadata::LIST,
+					'id' => 'visa_' . $company->getId(),
+					'display' => true,
+				];
+			}
 		}
 		
 		if ($request->query->has('hide')) {
@@ -171,6 +187,7 @@ class DocumentController extends AbstractController
 		$form = $this->createForm(SelectorsType::class, $request, [
 			'metadatas' => $metadatas,
 			'series' => $series,
+			'checkerCompanies' => $checkerCompanies,
 			'current_serie' => $serie,
 			'project' => $project,
 			'columns' => $columns,

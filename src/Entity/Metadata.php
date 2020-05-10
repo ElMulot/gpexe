@@ -195,26 +195,14 @@ class Metadata
     	}
     }
     
-    public function getShortParentName(): string
-    {
-    	switch ($this->parent) {
-    		case self::SERIE:
-    			return 's';
-    		case self::DOCUMENT:
-    			return 'd';
-    		case self::VERSION:
-    			return 'v';
-    	}
-    }
-    
     public function getFullId(): string
     {
-    	return $this->getShortParentName() . '[' . $this->id . ']';
+    	return $this->getParentName() . '[' . $this->id . ']';
     }
     
     public function getSnakeCaseFullId(): string
     {
-    	return $this->getShortParentName() . '_' . $this->id;
+    	return $this->getParentName() . '_' . $this->id;
     }
     
     public function getFullCodename(): string
