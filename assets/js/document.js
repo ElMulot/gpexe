@@ -24,8 +24,8 @@ $(document).ready(function() {
 		return true;
 	});
 	
-	$('table').find('th').each(function() {
-		createHeader(this);
+	$('table').find('th[data-title]').each(function() {
+		createTableHeader(this);
 	});
 	
 	$('table').stickyTableHeaders();
@@ -273,302 +273,286 @@ $(document).ready(function() {
 	}
 	
 	//---------------
-	// multiSelect
+	// tableHeader
 	//---------------
 	
-	function createMultiselect(that) {
+	function createTableHeader(that) {
 		
-		var multipleAttr = (typeof $(that).attr('multiple') !== typeof undefined && $(that).attr('multiple') !== false);
-		
-		if(multipleAttr) {
-			if (n = $(that).prop('name').match(/(.+)\[\]$/i)) {
-				var fullName = n[0];
-				var name = n[1];
-			} else {
-				return false;
-			}
-		} else {
-			var fullName = $(that).prop('name')
-			var name = fullName;
-			/*
-			$(that).prepend(create.option).children().first()
-				.text(text.notApplicable)
-			;
-			if ($(that).find('option[selected]').length === 0) {
-				$(that).children().first().attr('selected', true);
-			}
-			*/
+		var tableHeader = {
+			element: $(that),
+			id: $(that).attr('id'),
+			title: $(that).data('title'),
+			sort: $(that).data('sort'),
+			isFiltered: false,
+			isSortedAsc: false,
+			isSortedDesc: false,
+			selects: [],
 		}
 		
-		var select = {
-				element: $(that),
-				name: name,
-				fullName: fullName,
-				multiple: multipleAttr,
-				title: $(that).data('title'),
-				locale: $(that).data('locale'),
-				target: $(that).data('target'),
-				fullHeader: $(that).data('full-header') || false,
-				options: [],
-		};
-		
-		$(that).find('option').each(function() {
-			select.options.push({
-				element: $(this),
-				value: $(this).attr('value'),
-				text: $(this).text(),
-				selected: $(this).attr('selected'),
+		$(that).find('select').each(function() {
+			
+			var name = $(that).prop('name') + (multipleAttr)?'[]':'';
+			var multipleAttr = (typeof $(that).attr('multiple') !== typeof undefined && $(that).attr('multiple') !== false);
+			
+			var select = {
+					element: $(that),
+					id: $(that).prop('id'),
+					name: name,
+					multiple: multipleAttr,
+					title: $(that).data('title'),
+					options: [],
+			};
+			
+			$(this).find('option').each(function() {
+				select.options.push({
+					value: $(this).attr('value'),
+					text: $(this).text(),
+					selected: paramsArray.getAll(name).indexOf($(this).attr('value')),
+				});
 			});
+			
+			tableHeader.selects.push(select);
+			
+			if (paramsArray.has(name)) tableHeader.isFiltered = true;
+			if (paramsArray.get('sortDesc') == name) tableHeader.isSortedAsc = true;
+			if (paramsArray.get('sortDesc') == name) tableHeader.isSortedDesc = true;
+			
 		});
 		
-		if ($('#' + select.target).children().length == 0) {
-			
-			var columnTitle = $('#' + select.target).text().trim();
-			console.log(columnTitle);
-			$('#' + select.target).empty();
-			
-			select.dropdownButton = $('#' + select.target).append(create.div).children().last()
+		if (tableHeader.selects.length) {
+		
+			tableHeader.dropdownButton = tableHeader.element.append(create.div).children().last()
 				.addClass('btn-group w-100')
 				.attr('role', 'group')
-			;
-			select.dropdownButton.append(create.menuButton).children().last()
-				.addClass('w-100')
-				.attr('type', 'button')
-				.text(select.title)
+				.on('hide.bs.dropdown', function (e) {
+					
+					if(e.clickEvent && $.contains(e.relatedTarget.parentNode, e.clickEvent.target)) {
+						e.preventDefault()
+					} else {
+						tableHeader.dropdownMenu.empty();
+					}
+				})
 			;
 			
-			select.dropdownButton.append(create.menuButton).children().last()
+			tableHeader.dropdownButton.append(create.menuButton).children().last()
+				.addClass('w-100')
+				.attr('type', 'button')
+				.text(tableHeader.title)
+			;
+		
+			tableHeader.dropdownButton.append(create.menuButton).children().last()
 				.addClass('px-0')
 				.css('width', '3em')
 				.attr('type', 'button')
-				.attr('id', 'b_' + select.target)
+				.attr('id', 'b_' + tableHeader.id)
 				.attr('data-toggle', 'dropdown')
 				.attr('aria-haspopup', true)
 				.attr('aria-expanded', false)
-				.append((paramsArray.get(select.fullName))?icon.funnelFill:icon.funnel)
-				.append((paramsArray.get('sortAsc') == select.name)?icon.arrowUp:'')
-				.append((paramsArray.get('sortDesc') == select.name)?icon.arrowDown:'')
+				.append(tableHeader.isFiltered?icon.funnelFill:icon.funnel)
+				.append(tableHeader.isSortedAsc?icon.arrowUp:'')
+				.append(tableHeader.isSortedDesc?icon.arrowDown:'')
 			;
-			
-			var div = select.dropdownButton.append(create.div).children().last()
+		
+			tableHeader.dropdownMenu = tableHeader.dropdownButton.append(create.div).children().last()
 				.addClass('dropdown-menu')
-				.attr('aria-labelledby', 'b_' + select.target)
+				.attr('aria-labelledby', 'b_' + tableHeader.id)
 				.append(create.div).children().last()
 					.addClass('d-flex flex-row')
-					.attr('id', 'm_' + select.target)
 			;
 			
-
-			
+			tableHeader.dropdownButton.on('show.bs.dropdown', createMenu);
+		
 		} else {
-			if (!(select.dropdownButton = $('#b_' + select.target).parent())) return;
-			if (!(div = $('#m_' + select.target))) return;
+			tableHeader.element.append(create.menuButton).children().last()
+				.addClass('w-100')
+				.text(tableHeader.title)
+			;
 		}
-		
-		select.dropdownMenu = div.append(create.div).children().last()
-			.addClass('mx-1')
-			.css('min-width', '15em')
-		;
-		
-		select.dropdownButton.on('show.bs.dropdown', createMenu);
-		/*
-		select.dropdownMenu = $('#' + select.target).append(create.div).children().last()
-			.addClass('mx-1')
-			.css('min-width', '15em')
-		;
-		
-		select.dropDownButton = $('#' + select.target).parent().parent();
-		
-		select.dropDownButton.on('show.bs.dropdown', createMenu);
-		*/
+	
 		function createMenu() {
 			
 			//select.dropdownMenu.css('zIndex', 1);
-			select.dropdownMenu.empty();
+			tableHeader.dropdownMenu.empty();
 			
-			if (select.multiple) {
-				var header = select.dropdownMenu.append(create.div).children().last()
-					.addClass('text-center border-bottom border-dark pb-2 px-1')
+			for (select of tableHeader.selects) {
+				
+				select.content = tableHeader.dropdownMenu.append(create.div).children().last()
+					.addClass('mx-1')
+					.css('min-width', '15em')
 				;
-			
-				if (select.fullHeader) {
-					header.append(create.smallButton).children().last()
+				
+				if (select.multiple) {
+					select.header = select.content.append(create.div).children().last()
+						.addClass('text-center border-bottom border-dark pb-2 px-1')
+					;
+					
+					select.header.append(create.smallButton).children().last()
 						.append(icon.arrowUp)
 						.addClass('px-2 ' + (paramsArray.get('sortAsc') == select.name?'btn-outline-primary bg-dark text-white':'btn-primary'))
 						.on('click', sortAsc)
 					;
 					
-					header.append(create.smallButton).children().last()
+					select.header.append(create.smallButton).children().last()
 						.text(text.filter)
 						.addClass('px-3 btn-primary')
 						.on('click', filter)
 					;
 					
-					header.append(create.smallButton).children().last()
+					select.header.append(create.smallButton).children().last()
 						.append(icon.arrowDown)
 						.addClass('px-2 ' + (paramsArray.get('sortDesc') == select.name?'btn-outline-primary bg-dark text-white':'btn-primary'))
 						.on('click', sortDesc)
 					;
-				} else {
-					header.text(select.title);
-				}
-			
-				var search = select.dropdownMenu.append(create.div).children().last()
-					.addClass('text-center border-bottom border-dark p-2')
-				;
 				
-				search.append(create.input).children().last()
-					.on('input', function() {
-						var searchValue = $(this).val().toLowerCase()
-						
-						if (searchValue == '') {
-							select.selectAllDiv.show();
-							for (const o of select.options) {
-								o.div.show();
-								o.checkbox.prop('checked', false);
-							}
-						} else {
-							select.selectAllDiv.hide();
-							for (const o of select.options) {
-								if (o.text.toLowerCase().indexOf(searchValue) == -1) {
-									o.div.hide();
-									o.checkbox.prop('checked', false);
-								} else {
+					select.search = select.dropdownMenu.append(create.div).children().last()
+						.addClass('text-center border-bottom border-dark p-2')
+					;
+					
+					select.search.append(create.input).children().last()
+						.on('input', function() {
+							var searchValue = $(this).val().toLowerCase()
+							
+							if (searchValue == '') {
+								select.selectAllDiv.show();
+								for (const o of select.options) {
 									o.div.show();
-									o.checkbox.prop('checked', true);
-								}	
+									o.checkbox.prop('checked', false);
+								}
+							} else {
+								select.selectAllDiv.hide();
+								for (const o of select.options) {
+									if (o.text.toLowerCase().indexOf(searchValue) == -1) {
+										o.div.hide();
+										o.checkbox.prop('checked', false);
+									} else {
+										o.div.show();
+										o.checkbox.prop('checked', true);
+									}	
+								}
 							}
-						}
-					});
-				
-				if (!select.fullHeader) {
-					search.addClass('d-flex flex-row');
-					search.append(create.smallButton).children().last()
-						.text(text.filter)
-						.addClass('px-3 btn-primary')
-						.on('click', filter)
+						})
 					;
 				}
-			}
-			
-			var body = select.dropdownMenu.append(create.div).children().last()
-				.addClass('px-2' + ((select.multiple)?' pt-3':''))
-			;
-
-			if (select.multiple) {
-				select.selectAllDiv = body.append(create.div).children().last()
-					.addClass('custom-control custom-checkbox')
+				
+				select.body = select.content.append(create.div).children().last()
+					.addClass('px-2' + ((select.multiple)?' pt-3':''))
 				;
 				
-				select.selectAllCheckbox = select.selectAllDiv.append(create.checkbox).children().last()
-					.attr('id', select.name + '_selectAll')
-					.on('change', function() {
-						
-						var checked = $(this).is(':checked');
-						for (const o of select.options) {	
-							o.checkbox.prop('checked', checked);
-						}
-						
-					})
-				;
-			
-				select.selectAllLabel = select.selectAllDiv.append(create.label).children().last()
-					.attr('for', select.name + '_selectAll')
-					.text(text.selectAll)
-				;
-				
-				for (const o of select.options) {
-					
-					o.div = body.append(create.div).children().last()
+				if (select.multiple) {
+					select.selectAllDiv = body.append(create.div).children().last()
 						.addClass('custom-control custom-checkbox')
 					;
 					
-					o.checkbox = o.div.append(create.checkbox).children().last()
-						.attr('id', select.name + '_' + o.value)
-						.attr('checked', o.selected)
+					select.selectAllCheckbox = select.selectAllDiv.append(create.checkbox).children().last()
+						.attr('id', select.name + '_selectAll')
 						.on('change', function() {
 							
-							var checked;
-							var unchecked;
-							
-							for (const o of select.options) {
-								if ($(o.checkbox).is(':checked')) {
-									checked = true;
-								} else {
-									unchecked = true;
-								}
-							}
-							
-							if (checked && unchecked) {
-								select.selectAllCheckbox.prop('indeterminate', true);
-							} else {
-								select.selectAllCheckbox.prop('indeterminate', false);
-								select.selectAllCheckbox.prop('checked', checked);
+							var checked = $(this).is(':checked');
+							for (const o of select.options) {	
+								o.checkbox.prop('checked', checked);
 							}
 							
 						})
 					;
-					
-					o.label = o.div.append(create.label).children().last()
-						.attr('for', select.name + '_' + o.value)
-						.text(o.text)
+				
+					select.selectAllLabel = select.selectAllDiv.append(create.label).children().last()
+						.attr('for', select.name + '_selectAll')
+						.text(text.selectAll)
 					;
-				}
-				
-			} else {
-				
-				select.notApplicableDiv = body.append(create.div).children().last()
-					.addClass('custom-control custom-checkbox')
-				;
-				
-				select.notApplicableCheckbox = select.notApplicableDiv.append(create.checkbox).children().last()
-					.attr('id', select.name + '_notApplicable')
-					.on('change', function() {
-						
-						var checked = $(this).is(':checked');
-						for (const o of select.options) {	
-							o.checkbox.prop('checked', false);
-						}
-						paramsArray.delete(select.name);
-						location.assign(location.origin + location.pathname + '?' + paramsArray.toString());
-					})
-				;
-			
-				select.notApplicableLabel = select.notApplicableDiv.append(create.label).children().last()
-					.attr('for', select.name + '_notApplicable')
-					.text(text.notApplicable)
-				;
-				
-				for (const o of select.options) {
 					
-					o.div = body.append(create.div).children().last()
+					for (const o of select.options) {
+						
+						o.div = body.append(create.div).children().last()
+							.addClass('custom-control custom-checkbox')
+						;
+						
+						o.checkbox = o.div.append(create.checkbox).children().last()
+							.attr('id', select.name + '_' + o.value)
+							.attr('checked', o.selected)
+							.on('change', function() {
+								
+								var checked;
+								var unchecked;
+								
+								for (const o of select.options) {
+									if ($(o.checkbox).is(':checked')) {
+										checked = true;
+									} else {
+										unchecked = true;
+									}
+								}
+								
+								if (checked && unchecked) {
+									select.selectAllCheckbox.prop('indeterminate', true);
+								} else {
+									select.selectAllCheckbox.prop('indeterminate', false);
+									select.selectAllCheckbox.prop('checked', checked);
+								}
+								
+							})
+						;
+						
+						o.label = o.div.append(create.label).children().last()
+							.attr('for', select.name + '_' + o.value)
+							.text(o.text)
+						;
+					}
+					
+				} else {
+					
+					select.notApplicableDiv = select.body.append(create.div).children().last()
 						.addClass('custom-control custom-checkbox')
 					;
 					
-					o.checkbox = o.div.append(create.checkbox).children().last()
-						.attr('id', select.name + '_' + o.value)
-						.attr('checked', paramsArray.get(select.name) == o.value)
-						.on('click', function() {
+					select.notApplicableCheckbox = select.notApplicableDiv.append(create.checkbox).children().last()
+						.attr('id', select.name + '_notApplicable')
+						.on('change', function() {
 							
-							body.find('input').not(this).prop('checked', false);
-							paramsArray.delete(select.name);
-							
-							if (!select.notApplicableCheckbox.is(':checked')) {
-								for (const o of select.options) {
-									if (o.checkbox.is(':checked')) {
-										paramsArray.append(select.name, o.value);
-									}
-								}
+							var checked = $(this).is(':checked');
+							for (const o of select.options) {	
+								o.checkbox.prop('checked', false);
 							}
-							
+							paramsArray.delete(select.name);
 							location.assign(location.origin + location.pathname + '?' + paramsArray.toString());
 						})
 					;
-					
-					o.label = o.div.append(create.label).children().last()
-						.attr('for', select.name + '_' + o.value)
-						.text(o.text)
+				
+					select.notApplicableLabel = select.notApplicableDiv.append(create.label).children().last()
+						.attr('for', select.name + '_notApplicable')
+						.text(text.notApplicable)
 					;
+					
+					for (const o of select.options) {
+						
+						o.div = select.body.append(create.div).children().last()
+							.addClass('custom-control custom-checkbox')
+						;
+						
+						o.checkbox = o.div.append(create.checkbox).children().last()
+							.attr('id', select.name + '_' + o.value)
+							.attr('checked', paramsArray.get(select.name) == o.value)
+							.on('click', function() {
+								
+								body.find('input').not(this).prop('checked', false);
+								paramsArray.delete(select.name);
+								
+								if (!select.notApplicableCheckbox.is(':checked')) {
+									for (const o of select.options) {
+										if (o.checkbox.is(':checked')) {
+											paramsArray.append(select.name, o.value);
+										}
+									}
+								}
+								
+								location.assign(location.origin + location.pathname + '?' + paramsArray.toString());
+							})
+						;
+						
+						o.label = o.div.append(create.label).children().last()
+							.attr('for', select.name + '_' + o.value)
+							.text(o.text)
+						;
+					}
 				}
 			}
 			
@@ -608,16 +592,6 @@ $(document).ready(function() {
 			}	
 			filter();
 		}
-		
-		select.dropdownButton.on('hide.bs.dropdown', function (e) {
-			
-			if(e.clickEvent && $.contains(e.relatedTarget.parentNode, e.clickEvent.target)) {
-				e.preventDefault()
-			} else {
-				select.dropdownMenu.empty();
-			}
-		});
-		
 	}
 	
 	

@@ -8,14 +8,13 @@
 
 {% block form_start %}
     {% do form.setMethodRendered() %}
-    <div id="form">
 {% endblock %}
 
 {% block form_widget %}
 	<select {{ block('widget_attributes') }}{% if multiple %} multiple="multiple"{% endif %}>
         {% for choice in choices %}
-			<option value="{{ choice.value }}"{% if choice.value in attr.selected_values %} selected="selected"{% endif %}>
-		        {{ choice.label }}	    
+			<option value="{{ choice.value }}">
+		        {{ choice.label }}
 			</option>
         {% endfor %}
 	</select>
@@ -41,5 +40,4 @@
 {% endblock attributes %}
 
 {% block form_end %}
-    </div>
 {% endblock %}

@@ -11,8 +11,9 @@ use App\Entity\Metadata;
 use App\Entity\Serie;
 use App\Entity\Document;
 use App\Entity\Version;
+use App\Entity\Status;
 use App\Entity\Review;
-use App\Form\SelectorsType;
+use App\Form\SelectType;
 use App\Form\DocumentType;
 use App\Form\ReviewType;
 use App\Repository\CompanyRepository;
@@ -66,109 +67,306 @@ class DocumentController extends AbstractController
 		$checkerCompanies = $this->companyRepository->getCheckerCompanies($project);
 		$series = $this->serieRepository->getSeries($project, $serie->getCompany());
 		
+		$codifications = $this->codificationRepository->getCodifications($project);
+		
+		$codificationTable = [];
+		foreach ($codifications as $codification) {
+			if ($codification->isList()) {
+				$codificationControls[] = [
+					'full_id' 				=> $codification->getFullId(),
+					'snake_case_full_id' 	=> $codification->getSnakeCaseFullId(),
+					'title' 					=> $codification->getName(),
+					'multiple'				=> true,
+					'choices' 				=> $codification->getCodificationItems(),
+				];
+			}
+		}
+		
+		$writers = ($serie)?$this->userRepository->getUsersByCompany($serie->getCompany()):$this->userRepository->getUsers();
+		$checkers = $this->userRepository->getCheckers($project);
+		
 		$columns = [
 			'document[reference]' => [
-				'name' => $this->translator->trans('Reference'),
-				'type' => Metadata::LIST,
 				'id' => 'document_reference',
+				'title' => $this->translator->trans('Reference'),
+				'type' => Metadata::LIST,
 				'display' => true,
+				'sort' => false,
+				'form' => $this->createForm(SelectType::class, null, [
+						'controls' => $codificationControls,
+					])
+					->createView(),
 			],
 			'version[name]' => [
-				'name' => $this->translator->trans('Version'),
-				'type' => Metadata::TEXT,
 				'id' => 'version_name',
+				'title' => $this->translator->trans('Version'),
+				'type' => Metadata::TEXT,
 				'display' => true,
+				'sort' => true,
 			],
 			'document[name]' => [
-				'name' => $this->translator->trans('Name'),
-				'type' => Metadata::TEXT,
 				'id' => 'document_name',
+				'title' => $this->translator->trans('Name'),
+				'type' => Metadata::TEXT,
 				'display' => true,
+				'sort' => true,
 			],
 			'version[date]' => [
-				'name' => $this->translator->trans('Date'),
-				'type' => Metadata::DATE,
 				'id' => 'version_date',
+				'title' => $this->translator->trans('Date'),
+				'type' => Metadata::DATE,
 				'display' => true,
+				'sort' => true,
 			],
 		    'version[initialDate]' => [
-		    	'name' => $this->translator->trans('Initial Date'),
-		    	'type' => Metadata::DATE,
 		    	'id' => 'version_initialDate',
+		    	'title' => $this->translator->trans('Initial Date'),
+		    	'type' => Metadata::DATE,
 		    	'display' => true,
+		    	'sort' => true,
 		    ],
 			'version[isRequired]' => [
-				'name' => $this->translator->trans('Is required'),
-				'type' => Metadata::BOOLEAN,
 				'id' => 'version_isRequired',
+				'title' => $this->translator->trans('Is required'),
+				'type' => Metadata::BOOLEAN,
 				'display' => true,
+				'sort' => true,
+				'form' => $this->createForm(SelectType::class, null, [
+						'controls' => [
+							[
+								'full_id' => 'version[isRequired]',
+								'snake_case_full_id' => 'version_isRequired',
+								'title' => $this->translator->trans('Is required'),
+								'multiple' => false,
+								'choices' => [
+									'Yes' => '1',
+									'No' => '0',
+								],
+							],
+						],
+					])
+					->createView(),
 			],
 			'version[writer]' => [
-				'name' => $this->translator->trans('Writer'),
-				'type' => Metadata::LIST,
 				'id' => 'version_writer',
+				'title' => $this->translator->trans('Writer'),
+				'type' => Metadata::LIST,
 				'display' => true,
+				'sort' => true,
+				'form' => $this->createForm(SelectType::class, null, [
+						'controls' => [
+							[
+								'full_id' => 'version[writer]',
+								'snake_case_full_id' => 'version_writer',
+								'title' => $this->translator->trans('Writer'),
+								'multiple' => true,
+								'choices' => $writers,
+							],
+						],
+					])
+					->createView(),
 			],
 			'version[checker]' => [
-				'name' => $this->translator->trans('Checker'),
-				'type' => Metadata::LIST,
 				'id' => 'version_checker',
+				'title' => $this->translator->trans('Checker'),
+				'type' => Metadata::LIST,
 				'display' => true,
+				'sort' => true,
+				'form' => $this->createForm(SelectType::class, null, [
+						'controls' => [
+							[
+								'full_id' => 'version[checker]',
+								'snake_case_full_id' => 'version_checker',
+								'title' => $this->translator->trans('Checker'),
+								'multiple' => true,
+								'choices' => $checkers,
+							],
+						],
+					])
+					->createView(),
 			],
 			'version[approver]' => [
-				'name' => $this->translator->trans('Approver'),
-				'type' => Metadata::LIST,
 				'id' => 'version_approver',
+				'title' => $this->translator->trans('Approver'),
+				'type' => Metadata::LIST,
 				'display' => true,
+				'sort' => true,
+				'form' => $this->createForm(SelectType::class, null, [
+						'controls' => [
+							[
+								'full_id' => 'version[approver]',
+								'snake_case_full_id' => 'version_approver',
+								'title' => $this->translator->trans('Approver'),
+								'multiple' => true,
+								'choices' => $checkers,
+							],
+						],
+					])
+					->createView(),
 			],
 			'serie[name]' => [
-				'name' => $this->translator->trans('Serie name'),
-				'type' => Metadata::LIST,
 				'id' => 'serie_name',
+				'title' => $this->translator->trans('Serie name'),
+				'type' => Metadata::LIST,
 				'display' => true,
+				'sort' => true,
+				'form' => $this->createForm(SelectType::class, null, [
+						'controls' => [
+							[
+								'full_id' => 'serie[name]',
+								'snake_case_full_id' => 'serie_name',
+								'title' => $this->translator->trans('Serie name'),
+								'multiple' => true,
+								'choices' => $series,
+							],
+						],
+					])
+					->createView(),
 			],
 			'serie[company]' => [
-				'name' => $this->translator->trans('Company'),
-				'type' => Metadata::LIST,
 				'id' => 'serie_company',
+				'title' => $this->translator->trans('Company'),
+				'type' => Metadata::LIST,
 				'display' => true,
+				'sort' => true,
+				'form' => $this->createForm(SelectType::class, null, [
+						'controls' => [
+							[
+								'full_id' => 'serie[company]',
+								'snake_case_full_id' => 'serie_company',
+								'title' => $this->translator->trans('Company'),
+								'multiple' => true,
+								'choices' => $this->companyRepository->getCompaniesByProject($project),
+							],
+						],
+					])
+					->createView(),
 			],
 			'status[name]' => [
-				'name' => $this->translator->trans('Status name'),
-				'type' => Metadata::TEXT,
 				'id' => 'status_name',
+				'title' => $this->translator->trans('Status name'),
+				'type' => Metadata::TEXT,
 				'display' => true,
+				'sort' => true,
 			],
 			'status[value]' => [
-				'name' => $this->translator->trans('Status value'),
-				'type' => Metadata::LIST,
 				'id' => 'status_value',
+				'title' => $this->translator->trans('Status value'),
+				'type' => Metadata::LIST,
 				'display' => true,
+				'sort' => true,
+				'form' => $this->createForm(SelectType::class, null, [
+						'controls' => [
+							[
+								'full_id' => 'status[value]',
+								'snake_case_full_id' => 'status_value',
+								'title' => $this->translator->trans('Status value'),
+								'multiple' => true,
+								'choices' => $this->statusRepository->getStatuses($project),
+							],
+						],
+					])
+					->createView(),
 			],
 			'status[type]' => [
-				'name' => $this->translator->trans('Status type'),
-				'type' => Metadata::LIST,
 				'id' => 'status_type',
+				'title' => $this->translator->trans('Status type'),
+				'type' => Metadata::LIST,
 				'display' => true,
+				'sort' => true,
+				'form' => $this->createForm(SelectType::class, null, [
+						'controls' => [
+							[
+								'full_id' => 'status[type]',
+								'snake_case_full_id' => 'status_typee',
+								'title' => $this->translator->trans('Status type'),
+								'multiple' => true,
+								'choices' => [
+									$this->translator->trans('Information') => Status::INFORMATION,
+									$this->translator->trans('Review') => Status::REVIEW,
+									$this->translator->trans('Cancel') => Status::CANCEL,
+									$this->translator->trans('As built') => Status::AS_BUILT,
+								],
+							],
+						],
+					])
+					->createView(),
 			],
 		];
 		
 		foreach ($metadatas as $metadata) {
-			$columns[$metadata->getFullId()] = [
-				'name' => $metadata->getName(),
-				'type' => $metadata->getType(),
-				'id' => $metadata->getSnakeCaseFullId(),
-				'display' => true,
-			];
+			
+			switch ($metadata->getType()) {
+				
+				case Metadata::BOOLEAN:
+					$columns[$metadata->getFullId()] = [
+						'id' => $metadata->getSnakeCaseFullId(),
+						'title' => $metadata->getName(),
+						'type' => Metadata::BOOLEAN,
+						'display' => true,
+						'sort' => false,
+						'form' => $this->createForm(SelectType::class, null, [
+								'controls' => [
+									[
+										'full_id' => $metadata->getFullId(),
+										'snake_case_full_id' => $metadata->getSnakeCaseFullId(),
+										'title' => $metadata->getName(),
+										'multiple' => false,
+										'choices' => [
+											'Yes' => '1',
+											'No' => '0',
+										],
+									],
+								],
+							])
+							->createView(),
+					];
+					break;
+					
+				case Metadata::LIST:
+					$columns[$metadata->getFullId()] = [
+						'id' => $metadata->getFullId(),
+						'title' => $metadata->getName(),
+						'type' => Metadata::LIST,
+						'display' => true,
+						'sort' => false,
+						'form' => $this->createForm(SelectType::class, null, [
+								'controls' => [
+									[
+										'full_id' => $metadata->getFullId(),
+										'snake_case_full_id' => $metadata->getSnakeCaseFullId(),
+										'title' => $metadata->getName(),
+										'multiple' => true,
+										'choices' => $metadata->getMetadataItems(),
+									],
+								],
+							])
+							->createView(),
+					];
+					break;
+			}
 		}
 		
 		foreach ($checkerCompanies as $company) {
 			if (!$project->getVisasByCompany($company)->isEmpty()) {
 				$columns['visa[' . $company->getId() . ']'] = [
-					'name' => $company->getName(),
-					'type' => Metadata::LIST,
 					'id' => 'visa_' . $company->getId(),
+					'title' => $this->translator->trans('Visa') . ' ' . $company->getName(),
+					'type' => Metadata::LIST,
 					'display' => true,
+					'sort' => false,
+					'form' => $this->createForm(SelectType::class, null, [
+							'controls' => [
+								[
+									'full_id' => 'visa[' . $company->getId() . ']',
+									'snake_case_full_id' => 'visa_' . $company->getId(),
+									'title' => $this->translator->trans('Visa') . ' ' . $company->getName(),
+									'multiple' => true,
+									'choices' => $project->getVisasByCompany($company),
+								],
+							],
+						])
+						->createView(),
 				];
 			}
 		}
@@ -184,16 +382,6 @@ class DocumentController extends AbstractController
 			}
 		}
 		
-		$form = $this->createForm(SelectorsType::class, $request, [
-			'metadatas' => $metadatas,
-			'series' => $series,
-			'checkerCompanies' => $checkerCompanies,
-			'current_serie' => $serie,
-			'project' => $project,
-			'columns' => $columns,
-		]);
-		$view = $form->createView();
-		
 		$versions = $this->versionRepository->getVersions($serie, $request);
 		$page_max = ceil(count($versions)/self::MAX_RECORDS);
 		
@@ -206,7 +394,6 @@ class DocumentController extends AbstractController
 			'route_back' =>  $this->generateUrl('project_view', [
 				'id' => $serie->getProject()->getId(),
 			]),
-			'form' => $view,
 		]);
 	}
 	

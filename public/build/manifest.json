@@ -9,9 +9,11 @@
   "build/login.js": "/build/login.js",
   "build/runtime.js": "/build/runtime.js",
   "build/vendors~app.js": "/build/vendors~app.js",
+  "build/vendors~app~document.js": "/build/vendors~app~document.js",
   "build/vendors~app~document~form~login.js": "/build/vendors~app~document~form~login.js",
   "build/vendors~document.js": "/build/vendors~document.js",
   "build/vendors~document~form.js": "/build/vendors~document~form.js",
   "build/vendors~form.css": "/build/vendors~form.css",
-  "build/vendors~form.js": "/build/vendors~form.js"
+  "build/vendors~form.js": "/build/vendors~form.js",
+  "build/vendors~app~form~login.js": "/build/vendors~app~form~login.js"
 }

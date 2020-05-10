@@ -1,5 +1,4 @@
 {% extends 'layout.html.twig' %}
-{% form_theme form with ['form/selectors.html.twig'] only %}
 
 {% block stylesheets %}
     {{ parent() }}
@@ -80,8 +79,6 @@
 		</div>
 	</div>
 	
-	{{ form(form) }}
-	
     <div class="modal fade" id="detail" tabindex="-1" role="dialog" aria-hidden="true">
     	<div class="modal-dialog modal-xl modal-dialog-centered" role="document">
     		<div class="modal-content">
@@ -112,17 +109,12 @@
     				</th>
     				{% for column in columns %}
     					{% if column.display %}
-    						{% if column.type is constant('App\\Entity\\Metadata::BOOLEAN') or column.type is constant('App\\Entity\\Metadata::LIST')  %}
-            					<th id="{{ column.id }}" data-title="{{ column.name }}" data-sort="{{ column.sort }}">
-                					
-                				</th>
-    						{% else %}
-                				<th id="{{ column.id }}" data-title="{{ column.name }}" data-sort="{{ column.sort }}">
-                					<button class="btn btn-sm btn-primary w-100 text-nowrap rounded-0">
-                			            {{ column.name }}
-                					</button>
-                				</th>
-    						{% endif %}
+    						<th id="{{ column.id }}" data-title="{{ column.title }}" data-sort="{% if column.sort %}true{% else %}false{% endif %}">
+        						{% if column.form is defined %}
+            						{% form_theme column.form with ['form/select.html.twig'] only %}	
+        					        {{ form(column.form) }}
+                                {% endif %}
+    						</th>
     					{% endif %}
     				{% endfor %}
                     <th style="width:200px;"></th>
@@ -259,11 +251,11 @@
 
 {% block display %}
 	<div class="row">
-    	{% for key, column in columns %}
+    	{% for column in columns %}
     		<a class="btn btn-sm btn-primary text-nowrap col-2 w-100 mx-2 text-left">
         		<div class="custom-control custom-checkbox">
-        			<input type="checkbox" id="d_{{ key }}" class="custom-control-input"{% if column.display %} checked="checked"{% endif %} data-value="{{ key }}">
-        			<label class="custom-control-label" for="d_{{ key }}">{{ column.name }}</label>
+        			<input type="checkbox" id="d_{{ column.id }}" class="custom-control-input"{% if column.display %} checked="checked"{% endif %} data-value="{{ column.id }}">
+        			<label class="custom-control-label" for="d_{{ column.id }}">{{ column.title }}</label>
         		</div>
     		</a>
         {% endfor %}
