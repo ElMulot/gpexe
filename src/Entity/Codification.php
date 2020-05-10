@@ -30,6 +30,11 @@ class Codification
      * @ORM\Column(type="string", length=100)
      */
     private $name;
+    
+    /**
+     * @ORM\Column(type="string", length=100)
+     */
+    private $codename;
 
     /**
      * @ORM\Column(type="smallint")
@@ -80,7 +85,19 @@ class Codification
 
         return $this;
     }
-
+    
+    public function getCodename(): ?string
+    {
+    	return $this->codename;
+    }
+    
+    public function setCodename(string $codename): self
+    {
+    	$this->codename = $codename;
+    	
+    	return $this;
+    }
+    
     public function getType(): ?int
     {
     	return $this->type;
@@ -170,6 +187,21 @@ class Codification
     	return null;
     }
     
+    public function getFullId(): string
+    {
+    	return 'c[' . $this->id . ']';
+    }
+    
+    public function getSnakeCaseFullId(): string
+    {
+    	return 'c_' . $this->id;
+    }
+    
+    public function getFullCodename(): string
+    {
+    	return 'codification[' . $this->codename . ']';
+    }
+    
     public function isFixed(): bool
     {
     	return ($this->getType() == self::FIXED);
@@ -189,5 +221,6 @@ class Codification
     {
     	return (string)$this->getName();
     }
+
 }
 ?>

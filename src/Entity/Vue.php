@@ -22,7 +22,7 @@ class Vue
     private $name;
 
     /**
-     * @ORM\Column(type="string", length=2048)
+     * @ORM\Column(type="string", length=2047)
      */
     private $value;
 

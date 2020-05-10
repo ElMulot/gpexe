@@ -61,7 +61,7 @@ $(document).ready(function() {
 		return false;
 	});
 	
-	$('table').find('input[type="checkbox"]').each(function() {
+	$('td').find('input[type="checkbox"]').each(function() {
 		$(this).prop('checked', false);
 		$(this).on('click', lineChecked);
 	});
@@ -249,11 +249,11 @@ $(document).ready(function() {
 			});
 		}
 		
-		paramsArray.delete('version[]');
+		paramsArray.delete('id[]');
 		if (checked) {
 			$('table').find('input[type="checkbox"]').each(function() {
-				if ($(this).prop('id') != 'check_all') {
-					paramsArray.append('version[]', $(this).val());
+				if ($(this).prop('id') != 'check_all' && $(this).is(':checked')) {
+					paramsArray.append('id[]', $(this).val());
 				}
 			});
 			
@@ -286,6 +286,13 @@ $(document).ready(function() {
 			}
 		} else {
 			var name = $(that).prop('name');
+			
+			$(that).prepend(create.option).children().first()
+				.text(text.notApplicable)
+			;
+			if ($(that).find('option[selected]').length === 0) {
+				$(that).children().first().attr('selected', true);
+			}
 		}
 		
 		var select = {
@@ -295,7 +302,7 @@ $(document).ready(function() {
 				title: $(that).data('title'),
 				locale: $(that).data('locale'),
 				target: $(that).data('target'),
-				fullHeader: $(that).data('full_header'),
+				fullHeader: $(that).data('full-header') || false,
 				options: [],
 		};
 		
@@ -316,7 +323,7 @@ $(document).ready(function() {
 		select.dropDownButton = $('#' + select.target).parent().parent();
 		
 		select.dropDownButton.on('show.bs.dropdown', createMenu);
-
+		
 		function createMenu() {
 			
 			select.dropdownMenu.css('zIndex', 1);
@@ -346,8 +353,7 @@ $(document).ready(function() {
 						.on('click', sortDesc)
 					;
 				} else {
-					header.text(select.title)
-					;
+					header.text(select.title);
 				}
 			
 				var search = select.dropdownMenu.append(create.div).children().last()
@@ -463,14 +469,16 @@ $(document).ready(function() {
 					o.checkbox = o.div.append(create.checkbox).children().last()
 						.attr('id', select.name + '_' + o.value)
 						.attr('checked', o.selected)
-						.on('change', function() {
+						.on('click', function() {
+							
+							body.find('input').not(this).prop('checked', false);
 							
 							for (const o of select.options) {
 								o.element.prop('selected', o.checkbox.is(':checked'));
 							}
 							
 							$('#form').submit();
-							
+							return true;
 						})
 					;
 					
@@ -537,10 +545,9 @@ $(document).ready(function() {
 			;
 		},
 		
-		radio: function() {
-			return $(document.createElement('input'))
-				.attr('type', 'radio')
-				.addClass('custom-control-input')
+		option: function() {
+			return $(document.createElement('option'))
+				.attr('value', '')
 			;
 		},
 		
@@ -568,6 +575,7 @@ $(document).ready(function() {
 	    noneSelected: 'None selected',
 	    multipleSeparator: ', ',
 	    selectAll: 'Select all',
+	    notApplicable: 'n/a',
 	    filter: 'Filter'
 	};
 	

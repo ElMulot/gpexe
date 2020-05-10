@@ -17,17 +17,28 @@ App\Entity\User:
         email: [Email: ~]
         name: [NotBlank: ~]
         
+App\Entity\Codification:
+    constraints:
+        - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity: codename
+    properties:
+        codename:
+          - Regex: '/\S/'
+          
 App\Entity\Metadata:
     constraints:
-        - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity: name
+        - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity: codename
     properties:
-        name:
-          - NotEqualTo: 'initialDate'
+        codename:
+          - Regex: '/\S/'
+          - NotEqualTo: 'name'
           - NotEqualTo: 'date'
+          - NotEqualTo: 'initialDate'
           - NotEqualTo: 'isRequired'
           - NotEqualTo: 'writer'
           - NotEqualTo: 'checker'
           - NotEqualTo: 'approver'
+          - NotEqualTo: 'reference'
+          - NotEqualTo: 'company'
 
 App\Entity\MetadataItem:
     properties:

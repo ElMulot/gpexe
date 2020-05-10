@@ -36,6 +36,23 @@ class CompanyRepository extends ServiceEntityRepository
     /**
      * @return Company[]
      */
+    public function getCompaniesByProject(Project $project)
+    {
+    	return $this->createQueryBuilder('c')
+    	->innerJoin('c.users', 'u')
+    	->innerJoin('u.projects', 'p')
+    	->andWhere('p.id = :id')
+    	->setParameter('id', $project->getId())
+    	->addOrderBy('c.name')
+    	->getQuery()
+    	->getResult()
+    	;
+    }
+    
+    
+    /**
+     * @return Company[]
+     */
     public function getMainContractors(Project $project)
     {
     	return $this->createQueryBuilder('c')

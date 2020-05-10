@@ -25,7 +25,7 @@ class MetadataItemController extends AbstractController
 		return $this->render('generic/list.html.twig', [
 			'header' => $this->translator->trans('List for the metadata') . ' : ' . $metadata->getName(),
 			'route_back' =>  $this->generateUrl('metadata', [
-				'id' => $metadata->getId(),
+				'id' => $metadata->getProject()->getId(),
 			]),
 			'class' => MetadataItem::class,
 			'entities' => $metadataItemRepository->getMetadataItem($metadata),

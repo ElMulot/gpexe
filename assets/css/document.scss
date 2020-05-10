@@ -2,6 +2,16 @@
 
 table {
 	/*table-layout: fixed;*/
+	font-size: 80%;
+	font-weight: 400;
+}
+
+th {
+    position: sticky;
+    top: 0;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    border: 0 !important;
 }
 
 td {
@@ -10,16 +20,39 @@ td {
 	border: none;
 }
 
-.table-responsive {
+.type-reference {
+	text-align: center;
 }
 
-td.text-truncate {
+.type-boolean {
+	text-align: center;
+	max-width: 2em;
+}
+
+.type-text {
+	text-align: left;
 	max-width:10em;
+	text-overflow: ellipsis;
 }
 
-thead th {
-    position: sticky;
-    top: 0;
+.type-date {
+	text-align: center;
+	max-width:6em;
+}
+
+.type-integer {
+	text-align: center;
+	max-width:4em;
+}
+
+.text-float {
+	text-align: right;
+	max-width:4em;
+}
+
+.type-link {
+	text-align: center;
+	max-width:5em;
 }
 
 #page {

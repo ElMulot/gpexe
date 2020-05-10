@@ -5,33 +5,37 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Contracts\Translation\TranslatorInterface;
-use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use App\Entity\Codification;
 use App\Entity\CodificationValue;
+use App\Entity\Metadata;
 use App\Entity\Serie;
 use App\Entity\Document;
 use App\Entity\Version;
 use App\Entity\Review;
+use App\Form\SelectorsType;
 use App\Form\DocumentType;
 use App\Form\ReviewType;
-use App\Repository\CodificationRepository;
 use App\Repository\UserRepository;
+use App\Repository\CodificationRepository;
 use App\Repository\MetadataRepository;
+use App\Repository\StatusRepository;
 use App\Repository\SerieRepository;
 use App\Repository\DocumentRepository;
 use App\Repository\VersionRepository;
 
 class DocumentController extends AbstractController
 {
-	private $encoder;
-	
+	const MAX_RECORDS = 50;
+		
 	private $translator;
-	
-	private $codificationRepository;
 	
 	private $userRepository;
 	
+	private $codificationRepository;
+	
 	private $metadataRepository;
+	
+	private $statusRepository;
 	
 	private $serieRepository;
 	
@@ -39,13 +43,13 @@ class DocumentController extends AbstractController
 	
 	private $versionRepository;
 	
-	public function __construct(TranslatorInterface $translator, CodificationRepository $codificationRepository, UserRepository $userRepository, MetadataRepository $metadataRepository, SerieRepository $serieRepository, DocumentRepository $documentRepository, VersionRepository $versionRepository)
+	public function __construct(TranslatorInterface $translator, UserRepository $userRepository, CodificationRepository $codificationRepository, MetadataRepository $metadataRepository, StatusRepository $statusRepository, SerieRepository $serieRepository, DocumentRepository $documentRepository, VersionRepository $versionRepository)
 	{
-		$this->encoder = new JsonEncoder();
 		$this->translator = $translator;
-		$this->codificationRepository = $codificationRepository;
 		$this->userRepository = $userRepository;
+		$this->codificationRepository = $codificationRepository;
 		$this->metadataRepository = $metadataRepository;
+		$this->statusRepository = $statusRepository;
 		$this->serieRepository = $serieRepository;
 		$this->documentRepository = $documentRepository;
 		$this->versionRepository = $versionRepository;
@@ -54,26 +58,104 @@ class DocumentController extends AbstractController
 	public function index(Request $request, Serie $serie): Response
 	{
 		$project = $serie->getProject();
-		$series = $this->serieRepository->getSeries($project, $serie->getCompany());
-		$codifications = $this->codificationRepository->getCodifications($project);
 		$metadatas = $this->metadataRepository->getMetadatas($project);
+		$series = $this->serieRepository->getSeries($project, $serie->getCompany());
 		
 		$columns = [
-			'reference' => ['name' => $this->translator->trans('Reference'),	'display' => true],
-			'version' 	=> ['name' => $this->translator->trans('Version'), 		'display' => true],
-			'name' 		=> ['name' => $this->translator->trans('Name'), 		'display' => true],
-			'date'		=> ['name' => $this->translator->trans('Date'), 		'display' => true],
-		    'status'	=> ['name' => $this->translator->trans('Date'), 		'display' => true],
-		    'date'		=> ['name' => $this->translator->trans('Date'), 		'display' => true],
-			'writer' 	=> ['name' => $this->translator->trans('Writer'), 		'display' => true],
-			'checker' 	=> ['name' => $this->translator->trans('Checker'), 		'display' => true],
-			'approver' 	=> ['name' => $this->translator->trans('Approver'), 	'display' => true],
+			'document[reference]' => [
+				'name' => $this->translator->trans('Reference'),
+				'type' => Metadata::LIST,
+				'target' => 'document_reference',
+				'display' => true,
+			],
+			'version[name]' => [
+				'name' => $this->translator->trans('Version'),
+				'type' => Metadata::TEXT,
+				'target' => 'version_name',
+				'display' => true,
+			],
+			'document[name]' => [
+				'name' => $this->translator->trans('Name'),
+				'type' => Metadata::TEXT,
+				'target' => 'document_name',
+				'display' => true,
+			],
+			'version[date]' => [
+				'name' => $this->translator->trans('Date'),
+				'type' => Metadata::DATE,
+				'target' => 'version_date',
+				'display' => true,
+			],
+		    'version[initialDate]' => [
+		    	'name' => $this->translator->trans('Initial Date'),
+		    	'type' => Metadata::DATE,
+		    	'target' => 'version_initialDate',
+		    	'display' => true,
+		    ],
+			'version[isRequired]' => [
+				'name' => $this->translator->trans('Is required'),
+				'type' => Metadata::BOOLEAN,
+				'target' => 'version_isRequired',
+				'display' => true,
+			],
+			'version[writer]' => [
+				'name' => $this->translator->trans('Writer'),
+				'type' => Metadata::LIST,
+				'target' => 'version_writer',
+				'display' => true,
+			],
+			'version[checker]' => [
+				'name' => $this->translator->trans('Checker'),
+				'type' => Metadata::LIST,
+				'target' => 'version_checker',
+				'display' => true,
+			],
+			'version[approver]' => [
+				'name' => $this->translator->trans('Approver'),
+				'type' => Metadata::LIST,
+				'target' => 'version_approver',
+				'display' => true,
+			],
+			'serie[name]' => [
+				'name' => $this->translator->trans('Serie name'),
+				'type' => Metadata::TEXT,
+				'target' => 'serie_name',
+				'display' => true,
+			],
+			'serie[company]' => [
+				'name' => $this->translator->trans('Company'),
+				'type' => Metadata::TEXT,
+				'target' => 'serie_company',
+				'display' => true,
+			],
+			'status[name]' => [
+				'name' => $this->translator->trans('Status name'),
+				'type' => Metadata::TEXT,
+				'target' => 'status_name',
+				'display' => true,
+			],
+			'status[value]' => [
+				'name' => $this->translator->trans('Status value'),
+				'type' => Metadata::LIST,
+				'target' => 'status_value',
+				'display' => true,
+			],
+			'status[type]' => [
+				'name' => $this->translator->trans('Status type'),
+				'type' => Metadata::TEXT,
+				'target' => 'status_type',
+				'display' => true,
+			],
 		];
 		
 		foreach ($metadatas as $metadata) {
-			$columns[$metadata->getId()] = ['name' => $metadata->getName(), 'display' => true];
+			$columns[$metadata->getFullCodename()] = [
+				'name' => $metadata->getName(),
+				'type' => $metadata->getType(),
+				'target' => $metadata->getSnakeCodeName(),
+				'display' => true,
+			];
 		}
-		
 		
 		if ($request->query->has('hide')) {
 			$hiddenColumns = $request->query->get('hide');
@@ -86,14 +168,19 @@ class DocumentController extends AbstractController
 			}
 		}
 		
+		$form = $this->createForm(SelectorsType::class, $request, [
+			'metadatas' => $metadatas,
+			'series' => $series,
+			'current_serie' => $serie,
+			'project' => $project,
+			'columns' => $columns,
+		]);
+		$view = $form->createView();
+		
 		$versions = $this->versionRepository->getVersions($serie, $request);
-		$page_max = ceil(count($versions)/1);
+		$page_max = ceil(count($versions)/self::MAX_RECORDS);
 		
 		return $this->render('document/index.html.twig', [
-			'codifications' => $codifications,
-		    'writers' => $this->userRepository->getUsersByCompany($serie->getCompany()),
-		    'checkers' => $this->userRepository->getCheckers($project),
-		    'metadatas' => $metadatas,
 			'current_serie' => $serie,
 			'series' => $series,
 			'versions' => $versions,
@@ -102,6 +189,7 @@ class DocumentController extends AbstractController
 			'route_back' =>  $this->generateUrl('project_view', [
 				'id' => $serie->getProject()->getId(),
 			]),
+			'form' => $view,
 		]);
 	}
 	
@@ -130,11 +218,38 @@ class DocumentController extends AbstractController
 
 		if ($form->isSubmitted() && $form->isValid()) {
 			
-			$codifications = $project->getCodifications()->getValues();
-
-			foreach ($codifications as $codification) {
+			foreach ($this->codificationRepository->getCodifications($project) as $codification) {
 				$value = $form->get('c_' . $codification->getId())->getData();
+				
+				if ($value === null && $metadata->getIsMandatory()) {
+					$this->addFlash('danger', 'The field  \'' . $codification->getName() . '\' must not be empty');
+					$view = $form->createView();
+					return $this->render('generic/form.html.twig', [
+						'route_back' =>  $this->generateUrl('document', [
+							'id' => $document->getSerie()->getId(),
+						]),
+						'form' => $view,
+					]);
+				}
+				
 				$document->setCodificationValue($codification, $value);
+			}
+			
+			foreach ($this->metadataRepository->getMetadatasForDocument($project) as $metadata) {
+				$value = $form->get('m_' . $metadata->getId())->getData();
+				
+				if ($value === null && $metadata->getIsMandatory()) {
+					$this->addFlash('danger', 'The field  \'' . $metadata->getName() . '\' must not be empty');
+					$view = $form->createView();
+					return $this->render('generic/form.html.twig', [
+						'route_back' =>  $this->generateUrl('document', [
+							'id' => $document->getSerie()->getId(),
+						]),
+						'form' => $view,
+					]);
+				}
+				
+				$document->setMetadataValue($metadata, $value);
 			}
 			
 			$entityManager = $this->getDoctrine()->getManager();
@@ -186,18 +301,45 @@ class DocumentController extends AbstractController
 		
 		if ($form->isSubmitted() && $form->isValid()) {
 			
-			$codifications = $project->getCodifications()->getValues();
-			
-			foreach ($codifications as $codification) {
+			foreach ($this->codificationRepository->getCodifications($project) as $codification) {
 				$value = $form->get('c_' .  $codification->getId())->getData();
+				
+				if ($value === null && $metadata->getIsMandatory()) {
+					$this->addFlash('danger', 'The field  \'' . $codification->getName() . '\' must not be empty');
+					$view = $form->createView();
+					return $this->render('generic/form.html.twig', [
+						'route_back' =>  $this->generateUrl('document', [
+							'id' => $serie->getId(),
+						]),
+						'form' => $view,
+					]);
+				}
+				
 				$document->setCodificationValue($codification, $value);
+			}
+			
+			foreach ($this->metadataRepository->getMetadatasForDocument($project) as $metadata) {
+				$value = $form->get('m_' . $metadata->getId())->getData();
+				
+				if ($value === null && $metadata->getIsMandatory()) {
+					$this->addFlash('danger', 'The field  \'' . $metadata->getName() . '\' must not be empty');
+					$view = $form->createView();
+					return $this->render('generic/form.html.twig', [
+						'route_back' =>  $this->generateUrl('document', [
+							'id' => $serie->getId(),
+						]),
+						'form' => $view,
+					]);
+				}
+				
+				$document->setMetadataValue($metadata, $value);
 			}
 			
 			$entityManager = $this->getDoctrine()->getManager();
 			$entityManager->persist($document);
 			$entityManager->flush();
 			
-			$request->query->remove('version');
+			$request->query->remove('id');
 			return $this->redirectToRoute('document', array_merge([
 				'id' => $serie->getId(),
 			],
@@ -205,7 +347,7 @@ class DocumentController extends AbstractController
 			);
 		} else {
 			$view = $form->createView();
-			$request->query->remove('version');
+			$request->query->remove('id');
 			return $this->render('generic/form.html.twig', [
 				'route_back' =>  $this->generateUrl('document', array_merge([
 					'id' => $serie->getId(),

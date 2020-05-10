@@ -124,7 +124,6 @@
 
 {% block checkbox_widget %}
 	<div class="custom-control custom-checkbox">
-		{% dump(attr) %}
     	<input id="{{ id }}" type="checkbox" class="custom-control-input" {{ block('widget_attributes') }}{% if required  %} data-required="true"{% endif %}{% if checked %} checked="checked"{% endif %}{% if value is defined %} value="{{ value }}"{% endif %} />
     	<label class="custom-control-label" for="{{ id }}">{{ label }}</label>
 	</div>

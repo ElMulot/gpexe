@@ -53,7 +53,7 @@ class Version
     private $metadataItems;
     
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\MetadataValue", cascade={"persist", "remove"})
+     * @ORM\ManyToMany(targetEntity="App\Entity\MetadataValue", cascade={"persist", "remove"}, orphanRemoval=true)
      * @ORM\JoinTable(name="version_metadata_value")
      */
     private $metadataValues;
@@ -88,7 +88,7 @@ class Version
     {
     	$this->metadataItems = new ArrayCollection();
     	$this->metadataValues = new ArrayCollection();
-     $this->reviews = new ArrayCollection();
+     	$this->reviews = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -298,99 +298,143 @@ class Version
     	}
     	return null;
     }
-	    
-    public function getPropertyValue(string $properyName)
+	
+    public function getMetadataValue(Metadata $metadata) {
+    	
+    	switch ($metadata->getType()) {
+    		
+    		case Metadata::BOOLEAN:
+    		case Metadata::TEXT:
+    		case Metadata::DATE:
+    		case Metadata::LINK:
+    			foreach ($this->getMetadataValues()->getValues() as $metadataValue) {
+    				if ($metadataValue->getMetadata() == $metadata) {
+    					return $metadataValue;
+    				}
+    			}
+    			break;
+    			
+    		case Metadata::LIST:
+    			foreach ($this->getMetadataItems()->getValues() as $metadataItem) {
+    				if ($metadataItem->getMetadata() == $metadata) {
+    					return $metadataItem;
+    				}
+    			}
+    			break;
+    	}
+    	
+    }
+    
+    public function setMetadataValue(Metadata $metadata, $value): bool
     {
     	
-        /* A faire :
-        - renommer version/name par issue
-        - ajouter type pour metadata
-        - ajouter les autres propriétés dans getPropertyValue
-         */
-        
-    	switch ($properyName) {
-    		/*case 'name':
+    	switch ($metadata->getType()) {
+    		case Metadata::BOOLEAN:
+    			$value = ($value)?true:false;
+    			break;
+    		case Metadata::DATE:
+    			if ($value instanceof \DateTime) {
+    				$value = $value->format('d-m-Y');
+    			}
+    			break;
+    	}
+    	
+    	switch ($metadata->getType()) {
+    		
+    		case Metadata::BOOLEAN:
+    		case Metadata::TEXT:
+    		case Metadata::DATE:
+    			foreach ($this->getMetadataValues()->getValues() as $metadataValue) {
+    				if ($metadataValue->getMetadata() == $metadata) {
+    					if ($metadataValue->getValue() == $value) {
+    						return false;
+    					} else {
+    						$this->metadataValues->removeElement($metadataValue);
+    					}
+    				}
+    			}
+    			
+    			if ($value) {
+    				$metadataValue = new MetadataValue();
+    				$metadataValue->setValue($value);
+    				$metadataValue->setMetadata($metadata);
+    				$this->addMetadataValue($metadataValue);
+    				return true;
+    			}
+    			
+    			return false;
+    			break;
+    			
+    		case Metadata::LIST:
+    			foreach ($this->getMetadataItems()->getValues() as $metadataItem) {
+    				if ($metadataItem->getMetadata() == $metadata) {
+    					if ($metadataItem->getValue() == $value) {
+    						return false;
+    					} else {
+    						$this->metadataItems->removeElement($metadataItem);
+    					}
+    				}
+    			}
+    			
+    			if ($value) {
+    				foreach ($metadata->getMetadataItems()->getValues() as $metadataItem) {
+    					if ($metadataItem->getValue() == $value) {
+    						$this->addMetadataItem($metadataItem);
+    					}
+    				}
+    				return true;
+    			}
+    			
+    			return false;
+    			break;
+    	}
+    }
+    
+    public function getPropertyValue(string $codename)
+    {
+    	
+    	switch ($codename) {
+    		case 'version[name]':
     			return $this->getName();
-    			break;*/
-    	    case 'serieName':
-    	        return $this->getDocument()->getSerie()->getName();
-    	    case 'reference':
-    	          return $this->getDocument()->getReference();
-    	    case 'name':
-    	        return $this->getDocument()->getName();
-    	    case 'date':
+    			break;
+    	    case 'version[date]':
     			return $this->getDate();
     			break;
-    		case 'initialDate':
+    		case 'version[initialDate]':
     			return $this->getInitialDate();
     			break;
-    		case 'isRequired':
+    		case 'version[isRequired]':
     			return $this->getIsRequired();
     			break;
-    		case 'status':
-    			return $this->getStatus();
-    			break;
-    		case 'writer':
+    		case 'version[writer]':
     			return $this->getWriter();
     			break;
-    		case 'checker':
+    		case 'version[checker]':
     			return $this->getChecker();
     			break;
-    		case 'approver':
+    		case 'version[approver]':
     			return $this->getApprover();
     			break;
     		default:
-    			
-    			foreach ($this->getDocument()->getSerie()->getProject()->getMetadatas()->getValues() as $metadata) {
-    				
-    				if ($metadata->getName() == $properyName) {
-    					
-    					switch ($metadata->getType()) {
-    						
-    						case Metadata::BOOLEAN:
-    							foreach ($this->getMetadataValues()->getValues() as $metadataValue) {
-    								if ($metadataValue->getMetadata() == $metadata) {
-    									return $metadataValue;
-    								}
-    							}
-    							break;
-    							
-    						case Metadata::TEXT:
-    							foreach ($this->getMetadataValues()->getValues() as $metadataValue) {
-    								if ($metadataValue->getMetadata() == $metadata) {
-    									return $metadataValue;
-    								}
-    							}
-    							break;
-    							
-    						case Metadata::DATE:
-    							foreach ($this->getMetadataValues()->getValues() as $metadataValue) {
-    								if ($metadataValue->getMetadata() == $metadata) {
-    									return $metadataValue;
-    								}
-    							}
-    							break;
-    							
-    						case Metadata::LIST:
-    							foreach ($this->getMetadataItems()->getValues() as $metadataItem) {
-    								if ($metadataItem->getMetadata() == $metadata) {
-    									return $metadataItem;
-    								}
-    							}
-    							break;
-    					}
-    					
-    				}
-    				
+    			if (preg_match('/version\[\w+\]/', $codename)) {
+	    			foreach ($this->getDocument()->getSerie()->getProject()->getMetadatas()->getValues() as $metadata) {
+	    				if ($metadata->getFullCodename() == $codename) {
+	    					return $this->getMetadataValue($metadata);
+	    				}
+	    			}
+    			} elseif (preg_match('/status\[\w+\]/', $codename)) {
+    				return $this->getStatus()->getPropertyValue($codename);
+    			} else {
+    				return $this->getDocument()->getPropertyValue($codename);
     			}
     	}
     	
     	return null;
     }
     
-    public function getPropertyValueToString(string $properyName): string
+    public function getPropertyValueToString(string $codename): string
     {
-    	$value = $this->getPropertyValue($properyName);
+    	$value = $this->getPropertyValue($codename);
     	
     	switch (gettype($value)) {
     		case 'boolean':
@@ -427,72 +471,6 @@ class Version
     			
     		default:
     			return (string)$value;
-    	}
-    }
-    
-    public function setMetadataValue(Metadata $metadata, $value): bool
-    {
-    	
-    	switch ($metadata->getType()) {
-    		case Metadata::BOOLEAN:
-    			$value = ($value == '1')?true:false;
-    			break;
-    		case Metadata::DATE:
-    			if ($value instanceof \DateTime) {
-    				$value = $value->format('d-m-Y');
-    			}
-    			break;
-    	}
-    	
-    	switch ($metadata->getType()) {
-    		
-    		case Metadata::BOOLEAN:
-    		case Metadata::TEXT:
-    		case Metadata::DATE:
-    			foreach ($this->getMetadataValues()->getValues() as $metadataValue) {
-    				if ($metadataValue->getMetadata() == $metadata) {
-    					if ($metadataValue->getValue() == $value) {
-    						return false;
-    					} else {
-    						$this->metadataValues->removeElement($metadataValue);
-    					}
-    				}
-    			}
-    			
-    			if ($value != '') {
-    				$metadataValue = new MetadataValue();
-    				$metadataValue->setValue($value);
-    				$metadataValue->setVersion($this);
-    				$metadataValue->setMetadata($metadata);
-    				$this->addMetadataValue($metadataValue);
-    				return true;
-    			}
-    			
-    			return false;
-    			break;
-    			
-    		case Metadata::LIST:
-    			foreach ($this->getMetadataItems()->getValues() as $metadataItem) {
-    				if ($metadataItem->getMetadata() == $metadata) {
-    					if ($metadataItem->getValue() == $value) {
-    						return false;
-    					} else {
-    						$this->metadataItems->removeElement($metadataItem);
-    					}
-    				}
-    			}
-    			
-    			if ($value) {
-    				foreach ($metadata->getMetadataItems()->getValues() as $metadataItem) {
-    					if ($metadataItem->getValue() == $value) {
-    						$this->addMetadataItem($metadataItem);
-    					}
-    				}
-    				return true;
-    			}
-    			
-    			return false;
-    			break;
     	}
     }
     

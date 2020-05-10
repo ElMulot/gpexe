@@ -27,8 +27,59 @@ class MetadataRepository extends ServiceEntityRepository
     public function getMetadatas(Project $project)
     {
     	return $this->createQueryBuilder('m')
-    	->andWhere('m.project = :val')
-    	->setParameter('val', $project)
+    	->andWhere('m.project = :project')
+    	->setParameter('project', $project)
+    	->addOrderBy('m.name')
+    	->getQuery()
+    	->getResult()
+    	;
+    }
+    
+    /**
+     * @return Metadata[]
+     *
+     */
+    public function getMetadatasForSerie(Project $project)
+    {
+    	return $this->createQueryBuilder('m')
+    	->andWhere('m.project = :project')
+    	->setParameter('project', $project)
+    	->andWhere('m.parent = :parent')
+    	->setParameter('parent', Metadata::SERIE)
+    	->addOrderBy('m.name')
+    	->getQuery()
+    	->getResult()
+    	;
+    }
+    
+    /**
+     * @return Metadata[]
+     *
+     */
+    public function getMetadatasForDocument(Project $project)
+    {
+    	return $this->createQueryBuilder('m')
+    	->andWhere('m.project = :project')
+    	->setParameter('project', $project)
+    	->andWhere('m.parent = :parent')
+    	->setParameter('parent', Metadata::DOCUMENT)
+    	->addOrderBy('m.name')
+    	->getQuery()
+    	->getResult()
+    	;
+    }
+    
+    /**
+     * @return Metadata[]
+     *
+     */
+    public function getMetadatasForVersion(Project $project)
+    {
+    	return $this->createQueryBuilder('m')
+    	->andWhere('m.project = :project')
+    	->setParameter('project', $project)
+    	->andWhere('m.parent = :parent')
+    	->setParameter('parent', Metadata::VERSION)
     	->addOrderBy('m.name')
     	->getQuery()
     	->getResult()

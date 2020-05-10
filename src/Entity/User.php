@@ -75,7 +75,7 @@ class User implements UserInterface
     private $projects;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Vue", mappedBy="User", orphanRemoval=true)
+     * @ORM\OneToMany(targetEntity="App\Entity\Vue", mappedBy="user", orphanRemoval=true)
      */
     private $vues;
     

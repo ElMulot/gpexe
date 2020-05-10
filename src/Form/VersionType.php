@@ -4,14 +4,12 @@ namespace App\Form;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\TextareaType;
+use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
-use Doctrine\Common\Collections\Collection;
-use Doctrine\Common\Collections\ArrayCollection;
-
 use App\Entity\Version;
 use App\Entity\Metadata;
 use App\Entity\MetadataItem;
@@ -42,34 +40,36 @@ class VersionType extends AbstractType
 	public function buildForm(FormBuilderInterface $builder, array $options)
 	{
 		$this->builder = $builder;
-		$multiple = false;
-		$serie = $options['serie'];
+		
+		if ($options['versions']) {
+			$versions = $options['versions'];
+		} else {
+			$versions[0] = $this->buider->getData();
+			$this->builder->add('name');
+		}
+		$serie = $versions[0]->getDocument()->getSerie();
 		$project = $serie->getProject();
-		$versions = $options['versions'];
 		
-		if (!$versions) $this->builder->add('name');
+		$this->buildRow('date', 'date', 'version[date]', Metadata::DATE, true, $versions);
 		
-		$this->buildRow('date', 'date', Metadata::DATE, true, $versions);
+		$this->buildRow('isRequired', 'isRequired', 'version[isRequired]', Metadata::BOOLEAN, false, $versions);
 		
-		$this->buildRow('isRequired', 'isRequired', Metadata::BOOLEAN, false, $versions);
+		$this->buildRow('status', 'status', 'status[value]', Metadata::LIST, true, $versions, $project->getStatuses());
 		
-		$this->buildRow('status', 'status', Metadata::LIST, true, $versions, $project->getStatuses());
-		
-		$metadatas = $this->metadataRepository->getMetadatas($project);
-		foreach ($metadatas as $metadata) {
+		foreach ($this->metadataRepository->getMetadatasForVersion($project) as $metadata) {
 			if ($metadata->getType() == Metadata::LIST) {		
-				$this->buildRow($metadata->getName(), 'm_' . $metadata->getId(), $metadata->getType(), $metadata->getIsMandatory(), $versions, $metadata->getMetadataItems());
+				$this->buildRow($metadata->getName(), $metadata->getCodename(), $metadata->getFullCodename(), $metadata->getType(), $metadata->getIsMandatory(), $versions, $metadata->getMetadataItems());
 			} else {
-				$this->buildRow($metadata->getName(), 'm_' . $metadata->getId(), $metadata->getType(), $metadata->getIsMandatory(), $versions);
+				$this->buildRow($metadata->getName(), $metadata->getCodename(), $metadata->getFullCodename(), $metadata->getType(), $metadata->getIsMandatory(), $versions);
 			}
 		}
 		
-		$this->buildRow('writer', 'writer', Metadata::LIST, false, $versions, $serie->getCompany()->getUsers());
+		$this->buildRow('writer', 'writer', 'version[writer]', Metadata::LIST, false, $versions, $serie->getCompany()->getUsers());
 		
 		$choices = $this->userRepository->getCheckers($project);
 		
-		$this->buildRow('checker', 'checker', Metadata::LIST, false, $versions, $choices);
-		$this->buildRow('approver', 'approver', Metadata::LIST, false, $versions, $choices);
+		$this->buildRow('checker', 'checker', 'version[checker]', Metadata::LIST, false, $versions, $choices);
+		$this->buildRow('approver', 'approver', 'version[approver]', Metadata::LIST, false, $versions, $choices);
 		
 	}
 	
@@ -82,17 +82,17 @@ class VersionType extends AbstractType
 		]);
 	}
 	
-	private function checkMultiple(array $versions, string $properyName): bool
+	private function checkMultiple(array $versions, string $label): bool
 	{
 		
 		if ($versions) {
 			foreach ($versions as $version) {
 				if (isset($value)) {
-					if ($value != $version->getPropertyValueToString($properyName)) {
+					if ($value != $version->getPropertyValueToString($label)) {
 						return true;
 					}
 				} else {
-					$value = $version->getPropertyValueToString($properyName);
+					$value = $version->getPropertyValueToString($label);
 				}
 			}
 		}
@@ -100,16 +100,16 @@ class VersionType extends AbstractType
 		return false;
 	}
 	
-	private function buildRow(string $name, string $id, int $type, bool $required, array $versions=null, $choices=null)
+	private function buildRow(string $name, string $id, string $label, int $type, bool $required, array $versions=null, $choices=null)
 	{
 		
 		$multiple = false;
 		
-		if ($versions) {
+		if (count($versions) > 1) {
 			$multiple = $this->checkMultiple($versions, $name);
 			$version = $versions[0];
 		} else {
-			$version = $this->builder->getData();
+			$version = $versions[0];
 		}
 		
 		switch ($type) {
@@ -118,7 +118,7 @@ class VersionType extends AbstractType
 				
 				$data = false;
 				if (!$multiple && $version) {
-					if ($version->getPropertyValue($name) == '1') {
+					if ($version->getPropertyValue($name)) {
 						$data = true;
 					}
 				}
@@ -138,14 +138,13 @@ class VersionType extends AbstractType
 				break;
 				
 			case Metadata::TEXT:
-			case Metadata::LINK:
 				
 				$data = null;
 				if (!$multiple && $version) {
-					$data = $version->getPropertyValue($name);
+					$data = $version->getPropertyValue($label);
 				}
 				
-				$this->builder->add($id, TextType::class, [
+				$this->builder->add($id, TextareaType::class, [
 					'label' => $name,
 					'mapped' => false,
 					'data' => $data,
@@ -161,7 +160,7 @@ class VersionType extends AbstractType
 				$data = null;
 				if ($required) $data = new \DateTime('now');
 				if (!$multiple && $version) {
-					if ($data = $version->getPropertyValue($name)) {
+					if ($data = $version->getPropertyValue($label)) {
 						if ($data instanceof MetadataValue) $data = new \DateTime($data->getValue());
 					}
 				}
@@ -181,11 +180,29 @@ class VersionType extends AbstractType
 				
 				break;
 				
+			case Metadata::LINK:
+				
+				$data = null;
+				if (!$multiple && $version) {
+					$data = $version->getPropertyValue($label);
+				}
+				
+				$this->builder->add($id, TextType::class, [
+					'label' => $name,
+					'mapped' => false,
+					'data' => $data,
+					'required' => $required,
+					'attr' => [
+						'data-multiple' => $multiple,
+					],
+				]);
+				break;
+				
 			case Metadata::LIST:
 				
 				$data = null;
 				if (!$multiple && $version) {
-					$data = $version->getPropertyValue($name);
+					$data = $version->getPropertyValue($label);
 				}
 				
 				$this->builder->add($id, EntityType::class, [

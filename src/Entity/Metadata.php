@@ -39,6 +39,11 @@ class Metadata
     private $name;
 
     /**
+     * @ORM\Column(type="string", length=100)
+     */
+    private $codename;
+    
+    /**
      * @ORM\Column(type="smallint")
      */
     private $type;
@@ -87,6 +92,18 @@ class Metadata
         return $this;
     }
 
+    public function getCodename(): ?string
+    {
+    	return $this->codename;
+    }
+    
+    public function setCodename(string $codename): self
+    {
+    	$this->codename = $codename;
+    	
+    	return $this;
+    }
+    
     public function getType(): ?int
     {
         return $this->type;
@@ -164,6 +181,50 @@ class Metadata
         }
 
         return $this;
+    }
+    
+    public function getParentName(): string
+    {
+    	switch ($this->parent) {
+    		case self::SERIE:
+    			return 'serie';
+    		case self::DOCUMENT:
+    			return 'document';
+    		case self::VERSION:
+    			return 'version';
+    	}
+    }
+    
+    public function getShortParentName(): string
+    {
+    	switch ($this->parent) {
+    		case self::SERIE:
+    			return 's';
+    		case self::DOCUMENT:
+    			return 'd';
+    		case self::VERSION:
+    			return 'v';
+    	}
+    }
+    
+    public function getFullId(): string
+    {
+    	return $this->getShortParentName() . '[' . $this->id . ']';
+    }
+    
+    public function getSnakeCaseFullId(): string
+    {
+    	return $this->getShortParentName() . '_' . $this->id;
+    }
+    
+    public function getFullCodename(): string
+    {
+    	return $this->getParentName() . '[' . $this->codename . ']';
+    }
+    
+    public function getSnakeCodeName(): string
+    {
+    	return $this->getParentName() . '_' . $this->codename;
     }
     
     public function getIsBoolean(): bool

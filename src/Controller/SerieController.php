@@ -11,6 +11,7 @@ use App\Entity\Project;
 use App\Entity\Company;
 use App\Form\SerieType;
 use App\Repository\SerieRepository;
+use App\Repository\MetadataRepository;
 
 class SerieController extends AbstractController
 {
@@ -18,10 +19,13 @@ class SerieController extends AbstractController
 	
 	private $serieRepository;
 	
-	public function __construct(TranslatorInterface $translator, SerieRepository $serieRepository)
+	private $metadataRepository;
+	
+	public function __construct(TranslatorInterface $translator, SerieRepository $serieRepository, MetadataRepository $metadataRepository)
 	{
 		$this->translator = $translator;
 		$this->serieRepository = $serieRepository;
+		$this->metadataRepository = $metadataRepository;
 	}
 	
 	public function index(Project $project, Company $company): Response
@@ -61,6 +65,24 @@ class SerieController extends AbstractController
     	$form->handleRequest($request);
     	
     	if ($form->isSubmitted() && $form->isValid()) {
+    		
+    		foreach ($this->metadataRepository->getMetadatasForSerie($project) as $metadata) {
+    			$value = $form->get('m_' . $metadata->getId())->getData();
+    			
+    			if ($value === null && $metadata->getIsMandatory()) {
+    				$this->addFlash('danger', 'The field  \'' . $metadata->getName() . '\' must not be empty');
+    				$view = $form->createView();
+    				return $this->render('generic/form.html.twig', [
+    					'route_back' =>  $this->generateUrl('document', [
+    						'id' => $document->getSerie()->getId(),
+    					]),
+    					'form' => $view,
+    				]);
+    			}
+    			
+    			$serie->setMetadataValue($metadata, $value);
+    		}
+    		
     		$entityManager = $this->getDoctrine()->getManager();
     		$entityManager->persist($serie);
     		$entityManager->flush();
@@ -84,10 +106,31 @@ class SerieController extends AbstractController
     
     public function edit(Request $request, Serie $serie): Response
     {
+    	$project = $serie->getProject();
+    	
     	$form = $this->createForm(SerieType::class, $serie);
     	$form->handleRequest($request);
     	
+    	
     	if ($form->isSubmitted() && $form->isValid()) {
+    		
+    		foreach ($this->metadataRepository->getMetadatasForSerie($project) as $metadata) {
+    			$value = $form->get('m_' . $metadata->getId())->getData();
+    			
+    			if ($value === null && $metadata->getIsMandatory()) {
+    				$this->addFlash('danger', 'The field  \'' . $metadata->getName() . '\' must not be empty');
+    				$view = $form->createView();
+    				return $this->render('generic/form.html.twig', [
+    					'route_back' =>  $this->generateUrl('document', [
+    						'id' => $document->getSerie()->getId(),
+    					]),
+    					'form' => $view,
+    				]);
+    			}
+    			
+    			$serie->setMetadataValue($metadata, $value);
+    		}
+    		
     		$entityManager = $this->getDoctrine()->getManager();
     		$entityManager->persist($serie);
     		$entityManager->flush();

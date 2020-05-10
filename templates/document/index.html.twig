@@ -1,4 +1,5 @@
 {% extends 'layout.html.twig' %}
+{% form_theme form with ['form/selectors.html.twig'] only %}
 
 {% block stylesheets %}
     {{ parent() }}
@@ -78,13 +79,9 @@
         	</div>
 		</div>
 	</div>
-	<form id="form" method="GET" action="{{ path('document', app.request.attributes.get('_route_params')) }}">
-		{{ block('codification') }}
-		{{ block('writer') }}
-		{{ block('checker') }}
-		{{ block('metadata') }}
-	</form>
-
+	
+	{{ form(form) }}
+	
     <div class="modal fade" id="detail" tabindex="-1" role="dialog" aria-hidden="true">
     	<div class="modal-dialog modal-xl modal-dialog-centered" role="document">
     		<div class="modal-content">
@@ -113,74 +110,31 @@
                 			<label class="custom-control-label mx-1" for="check_all"></label>
                 		</div>
     				</th>
-    				{% if columns.reference.display %}
-        				<th class="px-0 border-0">
-        					<div class="btn-group w-100" role="group">
-            					<button class="btn btn-sm btn-primary w-100 text-nowrap rounded-0" type="button">
-            						{% trans %}Reference{% endtrans %}
-            					</button>
-            					<button class="btn btn-sm btn-primary dropdown-toggle rounded-0" type="button" id="b_reference" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            					</button>
-            					<div class="dropdown-menu" aria-labelledby="b_reference">
-            						<div id="reference" class="d-flex flex-row">
-            							
-                                    </div>
-            					</div>
-        					</div>
-        				</th>
-        			{% endif %}
-    				{% for column in columns|filter((v, k) => k in ['version', 'name', 'date']) %}
-            			{% if column.display %}
-            				<th class="px-0 border-0">
-            					<button class="btn btn-sm btn-primary w-100 text-nowrap rounded-0">
-            			            {{ column.name }}
-            					</button>
-            				</th>
-            			{% endif %}
-            		{% endfor %}
-            		{% for key, column in columns|filter((v, k) => k in ['writer', 'checker', 'approver']) %}
-        				{% if column.display %}
-            				<th class="px-0 border-0">
-            					<div class="btn-group w-100" role="group">
-                					<button class="btn btn-sm btn-primary w-100 text-nowrap rounded-0" type="button">
-                                        {{ column.name }}
-                					</button>
-                					<button class="btn btn-sm btn-primary dropdown-toggle rounded-0" type="button" id="b_{{ key }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                					</button>
-                					<div class="dropdown-menu" aria-labelledby="b_{{ key }}">
-                						<div id="{{ key }}" class="d-flex flex-row">
-                							
-                                        </div>
-                					</div>
-            					</div>
-            				</th>
-        				{% endif %}
-    				{% endfor %}
-    				{% for metadata in metadatas %}
-    					{% if columns[metadata.id].display %}
-        					{% if metadata.isBoolean or metadata.isList %}
-                				<th class="px-0 border-0">
+    				{% for column in columns %}
+    					{% if column.display %}
+    						{% if column.type is constant('App\\Entity\\Metadata::BOOLEAN') or column.type is constant('App\\Entity\\Metadata::LIST')  %}
+            					<th>
                 					<div class="btn-group w-100" role="group">
                     					<button class="btn btn-sm btn-primary w-100 text-nowrap rounded-0" type="button">
-                                            {{ metadata.name }}
+                                            {{ column.name }}
                     					</button>
-                    					<button class="btn btn-sm btn-primary dropdown-toggle rounded-0" type="button" id="b_m_{{ metadata.id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    					<button class="btn btn-sm btn-primary dropdown-toggle rounded-0" type="button" id="b_{{ column.target }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     					</button>
-                    					<div class="dropdown-menu" aria-labelledby="b_m_{{ metadata.id }}">
-                    						<div id="m_{{ metadata.id }}" class="d-flex flex-row">
+                    					<div class="dropdown-menu" aria-labelledby="b_{{ column.target }}">
+                    						<div id="{{ column.target }}" class="d-flex flex-row">
                     							
                                             </div>
                     					</div>
-                    				</div>
+                					</div>
                 				</th>
-                			{% else %}
+    						{% else %}
                 				<th class="px-0 border-0">
                 					<button class="btn btn-sm btn-primary w-100 text-nowrap rounded-0">
-                                        {{ metadata.name }}
+                			            {{ column.name }}
                 					</button>
                 				</th>
-                			{% endif %}
-                		{% endif %}
+    						{% endif %}
+    					{% endif %}
     				{% endfor %}
                     <th style="width:200px;"></th>
     			</tr>
@@ -195,27 +149,28 @@
                     		</div>
                     	</td>
                     	
-                    	{% if columns.reference.display %}
-                    		<td class="small">{{ version.document.reference }}</td>
-                    	{% endif %}
-                    	<td class="small">{{ version.name }}</td>
-                    	<td class="small">{{ version.document.name }}</td>
-                    	<td class="small">{{ version.date|date("d-m-Y") }}</td>
-                    	<td class="small">{{ version.writer }}</td>
-                    	
-        				{% for metadata in metadatas %}
-        				    {% set value = version.getPropertyValueToString(metadata) %}
-                            {% if metadata.isBoolean %}
-        				    	<td class="small text-center">{% if value == "1" %}{% trans %}Yes{% endtrans %}{% else %}{% trans %}No{% endtrans %}{% endif %}</td>
-                            {% elseif value matches '/^\\d+$/' %}
-                            	<td class="small text-center">{{ value }}</td>
-        				    {% elseif value matches '/^[-+]?[0-9]*\\.?[0-9]+$/' %}
-                            	<td class="small text-right">{{ value }}</td>
-                            {% else %}
-                            	<td class="small text-left text-truncate">{{ value }}</td>
-                            {% endif %}
+        				{% for codename, column in columns %}
+        					{% if column.display %}
+        				    	{% set value = version.getPropertyValueToString(codename) %}
+            					{% if codename == 'document[reference]' %}
+            				    	<td class="type-reference">{{ value }}</td>
+	    						{% elseif column.type is constant('App\\Entity\\Metadata::BOOLEAN') %}
+	    							<td class="type-boolean">{% if value == "1" %}{% trans %}Yes{% endtrans %}{% else %}{% trans %}No{% endtrans %}{% endif %}</td>
+								{% elseif column.type is constant('App\\Entity\\Metadata::DATE')  %}
+									<td class="type-date">{{ value|date("d-m-Y") }}</td>
+								{% elseif column.type is constant('App\\Entity\\Metadata::LINK')  %}
+        				    		<td class="type-link"><a href="{{ value }}">{% trans %}Link{% endtrans %}</a></td>
+        				    	{% else %}
+                                    {% if value matches '/^\\d+$/' %}
+                                    	<td class="type-integer">{{ value }}</td>
+                				    {% elseif value matches '/^[-+]?[0-9]*\\.?[0-9]+$/' %}
+                                    	<td class="type-float">{{ value }}</td>
+                                    {% else %}
+                                    	<td class="type-text">{{ value }}</td>
+                                    {% endif %}
+        				    	{% endif %}
+        				    {% endif %}
         				 {% endfor %}
-                    	
                         <td>
                             <a class="btn-success btn-sm btn w-100 text-nowrap" data-toggle="modal" data-target="#detail" data-url="{{ path('document_detail', {'id': version.id}) }}">{% trans %}Details{% endtrans %}</a>
                         </td>
@@ -325,100 +280,6 @@
         {% endfor %}
     </div>
 {% endblock %}
-
-{% block codification %}
-    {% set codification_filters = app.request.query.get('c') %}
-    {% for codification in codifications %}
-        {% if codification.isList %}
-            <select class="d-none" name="c[{{ codification.id }}][]" multiple data-title="{{ codification.name }}" data-target="reference" data-full_header="false">
-                {% for item in codification.codificationItems %}
-                	{% if attribute(codification_filters, codification.id) is defined %}
-                	    {% if item.value in attribute(codification_filters, codification.id) %}
-        	            	<option selected="selected" value="{{ item.value }}">{{ item.value }}</option>
-        	            {% else %}
-        	            	<option value="{{ item.value }}">{{ item.value }}</option>
-        	            {% endif %}
-    	            {% else %}
-    	            	<option value="{{ item.value }}">{{ item.value }}</option>
-                	{% endif %}
-                {% endfor %}
-            </select>
-    	{% endif %}
-    {% endfor %}
-{% endblock %}
-
-{% block writer %}
-	{% set writer_filters = app.request.query.get('writer') %}
-	<select class="d-none" name="writer[]" multiple data-title="{{ columns.writer.name }}" data-target="writer" data-full_header="true">
-        {% for writer in writers %}
-        	    {% if writer.name in writer_filters %}
-	            	<option selected="selected" value="{{ writer.name }}">{{ writer.name }}</option>
-	            {% else %}
-	            	<option value="{{ writer.name }}">{{ writer.name }}</option>
-	            {% endif %}
-        {% endfor %}
-	</select>
-{% endblock %}
-
-{% block checker %}
-	{% set checker_filters = app.request.query.get('checker') %}
-	<select class="d-none" name="checker[]" multiple data-title="{{ columns.checker.name }}" data-target="checker" data-full_header="true">
-        {% for checker in checkers %}
-        	    {% if checker.name in checker_filters %}
-	            	<option selected="selected" value="{{ checker.name }}">{{ checker.name }}</option>
-	            {% else %}
-	            	<option value="{{ checker.name }}">{{ checker.name }}</option>
-	            {% endif %}
-        {% endfor %}
-	</select>
-{% endblock %}
-
-{% block approver %}
-	{% set approver_filters = app.request.query.get('approver') %}
-	<select class="d-none" name="approver[]" multiple data-title="{{ columns.approver.name }}" data-target="approver" data-full_header="true">
-        {% for approver in checkers %}
-        	    {% if approver.name in approver_filters %}
-	            	<option selected="selected" value="{{ approver.name }}">{{ approver.name }}</option>
-	            {% else %}
-	            	<option value="{{ approver.name }}">{{ approver.name }}</option>
-	            {% endif %}
-        {% endfor %}
-	</select>
-{% endblock %}
-
-{% block metadata %}
-    {% set metadata_filters = app.request.query.get('m') %}
-    {% for metadata in metadatas %}
-        {% if metadata.isList %}
-            <select class="d-none" name="m[{{ metadata.id }}][]" multiple data-title="{{ metadata.name }}" data-target="m_{{ metadata.id }}" data-full_header="true">            
-            {% for item in metadata.metadataItems %}
-                	{% if attribute(metadata_filters, metadata.id) is defined %}
-                	    {% if item.value in attribute(metadata_filters, metadata.id) %}
-        	            	<option selected="selected" value="{{ item.value }}">{{ item.value }}</option>
-        	            {% else %}
-        	            	<option value="{{ item.value }}">{{ item.value }}</option>
-        	            {% endif %}
-    	            {% else %}
-    	            	<option value="{{ item.value }}">{{ item.value }}</option>
-                	{% endif %}
-                {% endfor %}
-            </select>
-    	{% elseif metadata.isBoolean %}
-            <select class="d-none" class="w-100" name="m[{{ metadata.id }}]" data-title="{{ metadata.name }}" data-target="m_{{ metadata.id }}" data-dropdown="true">
-            	<option {% if attribute(metadata_filters, metadata.id) is not defined %} selected="selected"{% endif %} value="">{% trans %}n/a{% endtrans %}</option> 
-            	<option{% if attribute(metadata_filters, metadata.id) is defined and attribute(metadata_filters, metadata.id) == 1 %} selected="selected"{% endif %} value="1">{% trans %}True{% endtrans %}</option>
-            	<option{% if attribute(metadata_filters, metadata.id) is defined and attribute(metadata_filters, metadata.id) == 0 %} selected="selected"{% endif %} value="0">{% trans %}False{% endtrans %}</option>
-            </select>
-            {#
-    	{% elseif metadata.isDate %}
-            <div class="col">
-    			<input class="form-control" id="disabledInput" type="date" placeholder="{{ metadata.name }}">
-            </div>
-            #}
-    	{% endif %}
-    {% endfor %}
-{% endblock %}
-
 
 {% block javascripts %}
     {{ parent() }}

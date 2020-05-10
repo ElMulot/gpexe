@@ -77,7 +77,7 @@ class ProjectController extends AbstractController
 	{
 		$form = $this->createForm(ProjectType::class, $project);
 		$form->handleRequest($request);
-
+		
 		if ($form->isSubmitted() && $form->isValid()) {
 			$entityManager = $this->getDoctrine()->getManager();
 			$entityManager->flush();

@@ -5,6 +5,7 @@ namespace App\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use App\Entity\Document;
 use App\Entity\Version;
 use App\Entity\Metadata;
@@ -13,10 +14,11 @@ use App\Form\VersionType;
 use App\Repository\CompanyRepository;
 use App\Repository\DocumentRepository;
 use App\Repository\VersionRepository;
-use PhpParser\Node\Stmt\Foreach_;
+use App\Repository\MetadataRepository;
 
 class VersionController extends AbstractController
 {
+	private $translator;
 	
 	private $companyRepository;
 	
@@ -24,11 +26,15 @@ class VersionController extends AbstractController
 	
 	private $versionRepository;
 	
-	public function __construct(CompanyRepository $companyRepository, DocumentRepository $documentRepository, VersionRepository $versionRepository)
+	private $metadataRepository;
+	
+	public function __construct(TranslatorInterface $translator, CompanyRepository $companyRepository, DocumentRepository $documentRepository, VersionRepository $versionRepository, MetadataRepository $metadataRepository)
 	{
+		$this->translator = $translator;
 		$this->companyRepository = $companyRepository;
 		$this->documentRepository = $documentRepository;
 		$this->versionRepository = $versionRepository;
+		$this->metadataRepository = $metadataRepository;
 	}
 	
 	public function detail(Version $version): Response
@@ -89,14 +95,9 @@ class VersionController extends AbstractController
 			$version->setChecker($form->get('checker')->getData());
 			$version->setApprover($form->get('approver')->getData());
 			
-			
-			$metadatas = $project->getMetadatas()->getValues();
-			
-			foreach ($metadatas as $metadata) {
+			foreach ($this->metadataRepository->getMetadatasForVersion($project) as $metadata) {
 				
-				$id = $metadata->getId();
-				
-				$value = $form->get('m_' . $id)->getData();
+				$value = $form->get('m_' . $metadata->getId())->getData();
 				
 				if ($value === null && $metadata->getIsMandatory()) {
 					$this->addFlash('danger', 'The field  \'' . $metadata->getName() . '\' must not be empty');
@@ -179,15 +180,11 @@ class VersionController extends AbstractController
 					$version->setStatus($form->get('status')->getData());
 				}
 				
-				$metadatas = $project->getMetadatas()->getValues();
-				
-				foreach ($metadatas as $metadata) {
+				foreach ($this->metadataRepository->getMetadatasForVersion($project) as $metadata) {
 					
-					$id = $metadata->getId();
+					if ($this->isMultiple($form, 'm_' . $metadata->getId()) == false) {
 					
-					if ($this->isMultiple($form, 'm_' . $id) == false) {
-					
-						$value = $form->get('m_' . $id)->getData();
+						$value = $form->get('m_' . $metadata->getId())->getData();
 						
 						if ($value === null && $metadata->getIsMandatory()) {
 							$this->addFlash('danger', 'The field  \'' . $metadata->getName() . '\' must not be empty');

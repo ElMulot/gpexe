@@ -15,6 +15,7 @@ class MetadataType extends AbstractType
     {
         $builder
         	->add('name')
+        	->add('codename')
         	->add('type', ChoiceType::class, [
 	        	'choices' => [
 	        		'Checkbox' => Metadata::BOOLEAN,
@@ -27,8 +28,19 @@ class MetadataType extends AbstractType
         		'disabled' => ($builder->getData()->getId() != null),
         	])
 	        ->add('isMandatory', CheckboxType::class, [
+	        	'required' => false,
 	        	'disabled' => ($builder->getData()->getId() && !$builder->getData()->getIsMandatory()),
-        ]);
+        	])
+        	->add('parent', ChoiceType::class, [
+        		'choices' => [
+        			'Serie' => Metadata::SERIE,
+        			'Document' => Metadata::DOCUMENT,
+        			'Version' => Metadata::VERSION,
+        		],
+        		'expanded' => true,
+        		'disabled' => ($builder->getData()->getId() != null),
+        	])
+		;
     }
 
     public function configureOptions(OptionsResolver $resolver)

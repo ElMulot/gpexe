@@ -29,7 +29,7 @@ class Document
     private $codificationItems;
     
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\CodificationValue", cascade={"persist", "remove"})
+     * @ORM\ManyToMany(targetEntity="App\Entity\CodificationValue", cascade={"persist", "remove"}, orphanRemoval=true)
      */
     private $codificationValues;
 
@@ -40,7 +40,7 @@ class Document
     private $metadataItems;
     
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\MetadataValue", cascade={"persist", "remove"})
+     * @ORM\ManyToMany(targetEntity="App\Entity\MetadataValue", cascade={"persist", "remove"}, orphanRemoval=true)
      * @ORM\JoinTable(name="document_metadata_value")
      */
     private $metadataValues;
@@ -133,6 +133,59 @@ class Document
     	return $this;
     }
 	
+    /**
+     * @return Collection|MetadataItem[]
+     */
+    public function getMetadataItems(): Collection
+    {
+    	return $this->metadataItems;
+    }
+    
+    public function addMetadataItem(MetadataItem $metadataItem): self
+    {
+    	if (!$this->metadataItems->contains($metadataItem)) {
+    		$this->metadataItems[] = $metadataItem;
+    	}
+    	
+    	return $this;
+    }
+    
+    public function removeMetadataItem(MetadataItem $metadataItem): self
+    {
+    	if ($this->metadataItems->contains($metadataItem)) {
+    		$this->metadataItems->removeElement($metadataItem);
+    	}
+    	
+    	return $this;
+    }
+    
+    /**
+     * @return Collection|MetadataValue[]
+     */
+    
+    public function getMetadataValues(): Collection
+    {
+    	return $this->metadataValues;
+    }
+    
+    public function addMetadataValue(MetadataValue $metadataValue): self
+    {
+    	if (!$this->metadataValues->contains($metadataValue)) {
+    		$this->metadataValues[] = $metadataValue;
+    	}
+    	
+    	return $this;
+    }
+    
+    public function removeMetadataValue(MetadataValue $metadataValue): self
+    {
+    	if ($this->metadataValues->contains($metadataValue)) {
+    		$this->metadataValues->removeElement($metadataValue);
+    	}
+    	
+    	return $this;
+    }
+    
     /**
      * @return Collection|Version[]
      */
@@ -278,6 +331,156 @@ class Document
     	}
     	
     	return false;
+    }
+    
+    public function getMetadataValue(Metadata $metadata) {
+    	
+    	switch ($metadata->getType()) {
+    		
+    		case Metadata::BOOLEAN:
+    		case Metadata::TEXT:
+    		case Metadata::DATE:
+    		case Metadata::LINK:
+    			foreach ($this->getMetadataValues()->getValues() as $metadataValue) {
+    				if ($metadataValue->getMetadata() == $metadata) {
+    					return $metadataValue;
+    				}
+    			}
+    			break;
+    			
+    		case Metadata::LIST:
+    			foreach ($this->getMetadataItems()->getValues() as $metadataItem) {
+    				if ($metadataItem->getMetadata() == $metadata) {
+    					return $metadataItem;
+    				}
+    			}
+    			break;
+    	}
+    	
+    }
+    
+    public function setMetadataValue(Metadata $metadata, $value): bool
+    {
+    	
+    	switch ($metadata->getType()) {
+    		case Metadata::BOOLEAN:
+    			$value = ($value)?true:false;
+    			break;
+    		case Metadata::DATE:
+    			if ($value instanceof \DateTime) {
+    				$value = $value->format('d-m-Y');
+    			}
+    			break;
+    	}
+    	
+    	switch ($metadata->getType()) {
+    		
+    		case Metadata::BOOLEAN:
+    		case Metadata::TEXT:
+    		case Metadata::DATE:
+    			foreach ($this->getMetadataValues()->getValues() as $metadataValue) {
+    				if ($metadataValue->getMetadata() == $metadata) {
+    					if ($metadataValue->getValue() == $value) {
+    						return false;
+    					} else {
+    						$this->metadataValues->removeElement($metadataValue);
+    					}
+    				}
+    			}
+    			
+    			if ($value) {
+    				$metadataValue = new MetadataValue();
+    				$metadataValue->setValue($value);
+    				$metadataValue->setMetadata($metadata);
+    				$this->addMetadataValue($metadataValue);
+    				return true;
+    			}
+    			
+    			return false;
+    			break;
+    			
+    		case Metadata::LIST:
+    			foreach ($this->getMetadataItems()->getValues() as $metadataItem) {
+    				if ($metadataItem->getMetadata() == $metadata) {
+    					if ($metadataItem->getValue() == $value) {
+    						return false;
+    					} else {
+    						$this->metadataItems->removeElement($metadataItem);
+    					}
+    				}
+    			}
+    			
+    			if ($value) {
+    				foreach ($metadata->getMetadataItems()->getValues() as $metadataItem) {
+    					if ($metadataItem->getValue() == $value) {
+    						$this->addMetadataItem($metadataItem);
+    					}
+    				}
+    				return true;
+    			}
+    			
+    			return false;
+    			break;
+    	}
+    }
+    
+    public function getPropertyValue(string $codename)
+    {
+    	
+    	switch ($codename) {
+    		case 'document[name]':
+    			return $this->getName();
+    			break;
+    		case 'document[reference]':
+    			return $this->getReference();
+    			break;
+    		default:
+    			if (preg_match('/document\[\w+\]/', $codename)) {
+    				foreach ($this->getSerie()->getProject()->getMetadatas()->getValues() as $metadata) {
+    					if ($metadata->getFullCodename() == $codename) {
+    						return $this->getMetadataValue($metadata);
+    					}
+    				}
+    			} else {
+    				return $this->getSerie()->getPropertyValue($codename);
+    			}
+    	}
+    	
+    	return null;
+    }
+    
+    public function getPropertyValueToString(string $codename): string
+    {
+    	$value = $this->getPropertyValue($codename);
+    	
+    	switch (gettype($value)) {
+    		case 'boolean':
+    			return ($value)?'Yes':'No';
+    			break;
+    			
+    		case 'object':
+    			switch (ClassUtils::getClass($value)) {
+    				case MetadataItem::class:
+    				case MetadataValue::class:
+    					switch (gettype($value->getValue())) {
+    						case 'boolean':
+    							return ($value->getValue())?'Yes':'No';
+    							break;
+    						case 'object':
+    							return $value->getValue()->format('d-m-Y');
+    							break;
+    						default:
+    							return $value->getValue();
+    					}
+    					break;
+    				default:
+    					return (string)$value;
+    			}
+    			break;
+    			
+    		default:
+    			return (string)$value;
+    	}
     }
     
     public function __toString(): string

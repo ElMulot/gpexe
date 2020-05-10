@@ -11,10 +11,7 @@ class MetadataItemType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
-        $builder
-            ->add('value')
-            ->add('Metadata')
-        ;
+        $builder->add('value');
     }
 
     public function configureOptions(OptionsResolver $resolver)

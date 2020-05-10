@@ -63,7 +63,7 @@ class Project
     private $series;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Vue", mappedBy="Project", orphanRemoval=true)
+     * @ORM\OneToMany(targetEntity="App\Entity\Vue", mappedBy="project", orphanRemoval=true)
      */
     private $vues;
 

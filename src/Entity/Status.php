@@ -109,11 +109,6 @@ class Status
     {
     	return ($this->getType() == self::AS_BUILT);
     }
-    
-    public function __toString(): string
-    {
-    	return (string)$this->getValue() . ' - ' . $this->getName();
-    }
 
     public function getProject(): ?Project
     {
@@ -125,5 +120,41 @@ class Status
         $this->project = $project;
 
         return $this;
+    }
+    
+    public function getPropertyValue(string $label)
+    {
+    	
+    	switch ($label) {
+    		case 'status.name':
+    			return $this->getName();
+    			break;
+    		case 'status.value':
+    			return $this->getValue();
+    			break;
+    		case 'status.type':
+    			return $this->getType();
+    			break;
+    		case 'status.isInformation':
+    			return $this->getIsInformation();
+    			break;
+    		case 'status.isReview':
+    			return $this->getIsReview();
+    			break;
+    		case 'status.isCancel':
+    			return $this->getIsCancel();
+    			break;
+    		case 'status.isAsBuilt':
+    			return $this->getIsAsBuilt();
+    			break;
+    	}
+    	
+    	return null;
+    }
+    
+    
+    public function __toString(): string
+    {
+    	return (string)$this->getValue();
     }
 }

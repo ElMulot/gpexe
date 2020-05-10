@@ -29,7 +29,7 @@ class MetadataItemRepository extends ServiceEntityRepository
     	return $this->createQueryBuilder('m')
     	->andWhere('m.metadata = :val')
     	->setParameter('val', $metadata)
-    	->addOrderBy('m.name')
+    	->addOrderBy('m.value')
     	->getQuery()
     	->getResult()
     	;
