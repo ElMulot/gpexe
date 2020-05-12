@@ -11,8 +11,8 @@
 			</div>
 			<div class="col-8">
 				{{ version.date|date('d-m-Y') }}
-				{% if version.date.diff(version.initialDate).days %}
-			    	<span> ({{ 'delay'|trans({'count': version.date.diff(version.initialDate).days}) }})</span>
+				{% if version.date.diff(version.initialScheduledDate).days %}
+			    	<span> ({{ 'delay'|trans({'count': version.scheduledDate.diff(version.initialScheduledDate).days}) }})</span>
 			    {% endif %}
 			</div>
 			<div class="col-4">

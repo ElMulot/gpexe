@@ -31,8 +31,9 @@ App\Entity\Metadata:
         codename:
           - Regex: '/\S/'
           - NotEqualTo: 'name'
-          - NotEqualTo: 'date'
-          - NotEqualTo: 'initialDate'
+          - NotEqualTo: 'initialScheduleDate'
+          - NotEqualTo: 'scheduleDate'
+          - NotEqualTo: 'deliveryDate'
           - NotEqualTo: 'isRequired'
           - NotEqualTo: 'writer'
           - NotEqualTo: 'checker'

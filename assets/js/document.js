@@ -291,15 +291,15 @@ $(document).ready(function() {
 		
 		$(that).find('select').each(function() {
 			
-			var name = $(that).prop('name') + (multipleAttr)?'[]':'';
-			var multipleAttr = (typeof $(that).attr('multiple') !== typeof undefined && $(that).attr('multiple') !== false);
+			var multipleAttr = (typeof $(this).attr('multiple') !== typeof undefined && $(this).attr('multiple') !== false);
+			var name = $(this).prop('name') + ((multipleAttr)?'[]':'');
 			
 			var select = {
-					element: $(that),
-					id: $(that).prop('id'),
+					element: $(this),
+					id: $(this).prop('id'),
 					name: name,
 					multiple: multipleAttr,
-					title: $(that).data('title'),
+					title: $(this).data('title'),
 					options: [],
 			};
 			
@@ -307,7 +307,7 @@ $(document).ready(function() {
 				select.options.push({
 					value: $(this).attr('value'),
 					text: $(this).text(),
-					selected: paramsArray.getAll(name).indexOf($(this).attr('value')),
+					selected: paramsArray.getAll(name).includes($(this).attr('value')),
 				});
 			});
 			
@@ -363,10 +363,12 @@ $(document).ready(function() {
 			tableHeader.dropdownButton.on('show.bs.dropdown', createMenu);
 		
 		} else {
+			
 			tableHeader.element.append(create.menuButton).children().last()
 				.addClass('w-100')
 				.text(tableHeader.title)
 			;
+			
 		}
 	
 		function createMenu() {
@@ -374,7 +376,7 @@ $(document).ready(function() {
 			//select.dropdownMenu.css('zIndex', 1);
 			tableHeader.dropdownMenu.empty();
 			
-			for (select of tableHeader.selects) {
+			for (let select of tableHeader.selects) {
 				
 				select.content = tableHeader.dropdownMenu.append(create.div).children().last()
 					.addClass('mx-1')
@@ -404,7 +406,7 @@ $(document).ready(function() {
 						.on('click', sortDesc)
 					;
 				
-					select.search = select.dropdownMenu.append(create.div).children().last()
+					select.search = select.header.append(create.div).children().last()
 						.addClass('text-center border-bottom border-dark p-2')
 					;
 					
@@ -439,7 +441,7 @@ $(document).ready(function() {
 				;
 				
 				if (select.multiple) {
-					select.selectAllDiv = body.append(create.div).children().last()
+					select.selectAllDiv = select.body.append(create.div).children().last()
 						.addClass('custom-control custom-checkbox')
 					;
 					
@@ -454,7 +456,7 @@ $(document).ready(function() {
 							
 						})
 					;
-				
+					
 					select.selectAllLabel = select.selectAllDiv.append(create.label).children().last()
 						.attr('for', select.name + '_selectAll')
 						.text(text.selectAll)
@@ -462,7 +464,7 @@ $(document).ready(function() {
 					
 					for (const o of select.options) {
 						
-						o.div = body.append(create.div).children().last()
+						o.div = select.body.append(create.div).children().last()
 							.addClass('custom-control custom-checkbox')
 						;
 						
@@ -533,7 +535,7 @@ $(document).ready(function() {
 							.attr('checked', paramsArray.get(select.name) == o.value)
 							.on('click', function() {
 								
-								body.find('input').not(this).prop('checked', false);
+								select.body.find('input').not(this).prop('checked', false);
 								paramsArray.delete(select.name);
 								
 								if (!select.notApplicableCheckbox.is(':checked')) {
@@ -554,43 +556,43 @@ $(document).ready(function() {
 						;
 					}
 				}
-			}
 			
-		}
-				 
-		function sortAsc() {
-			paramsArray.delete('sortDesc');
-			if (paramsArray.get('sortAsc') == select.name) {
-				paramsArray.delete('sortAsc');
-			} else {
-				paramsArray.set('sortAsc', select.name);
-			}	
-			filter();
-		}
-			
-		function filter() {
-			
-			paramsArray.delete(select.name + '[]');
-			if (!select.selectAllCheckbox.is(':checked')) {
-				
-				for (const o of select.options) {
-					if (o.checkbox.is(':checked')) {
-						paramsArray.append(select.name + '[]', o.value);
+				function sortAsc() {
+					paramsArray.delete('sortDesc');
+					if (paramsArray.get('sortAsc') == select.name) {
+						paramsArray.delete('sortAsc');
+					} else {
+						paramsArray.set('sortAsc', select.name);
+					}	
+					filter();
+				}
+					
+				function filter() {
+					
+					paramsArray.delete(select.name);
+					if (!select.selectAllCheckbox.is(':checked')) {
+						
+						for (const o of select.options) {
+							if (o.checkbox.is(':checked')) {
+								paramsArray.append(select.name, o.value);
+							}
+						}
 					}
+					
+					location.assign(location.origin + location.pathname + '?' + paramsArray.toString());
+				}
+					
+				function sortDesc() {
+					paramsArray.delete('sortAsc');
+					if (paramsArray.get('sortDesc') == select.name) {
+						paramsArray.delete('sortDesc');
+					} else {
+						paramsArray.set('sortDesc', select.name);
+					}	
+					filter();
 				}
 			}
 			
-			location.assign(location.origin + location.pathname + '?' + paramsArray.toString());
-		}
-			
-		function sortDesc() {
-			paramsArray.delete('sortAsc');
-			if (paramsArray.get('sortDesc') == select.name) {
-				paramsArray.delete('sortDesc');
-			} else {
-				paramsArray.set('sortDesc', select.name);
-			}	
-			filter();
 		}
 	}
 	

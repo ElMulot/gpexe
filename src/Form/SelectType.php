@@ -52,7 +52,8 @@ class SelectType extends AbstractType
     {
     	foreach ($options['controls'] as $control) {
     		
-    		if (is_array($control['choices'])) {
+    		if (is_array($control['choices']) && is_scalar(current($control['choices']))) {
+    			
     			$builder->add($control['snake_case_full_id'], ChoiceType::class, [
     				'choices' => $control['choices'],
     				'mapped' => false,
@@ -64,6 +65,7 @@ class SelectType extends AbstractType
     					'data-title' => $control['title'],
     				],
     			]);
+    			
     		} elseif (is_object($control['choices'])) {
     			
     			$builder->add($control['snake_case_full_id'], EntityType::class, [
@@ -72,12 +74,30 @@ class SelectType extends AbstractType
     				'mapped' => false,
     				'required' => false,
     				'multiple' => $control['multiple'],
+    				'choice_label' => $control['choice_label'],
     				'attr' => [
     					'name' => $control['full_id'],
     					'id' => $control['snake_case_full_id'],
     					'data-title' => $control['title'],
     				],
     			]);
+    			
+    		} else {
+    			
+    			$builder->add($control['snake_case_full_id'], EntityType::class, [
+    				'class' => get_class(current($control['choices'])),
+    				'choices' => $control['choices'],
+    				'mapped' => false,
+    				'required' => false,
+    				'multiple' => $control['multiple'],
+    				'choice_label' => $control['choice_label'],
+    				'attr' => [
+    					'name' => $control['full_id'],
+    					'id' => $control['snake_case_full_id'],
+    					'data-title' => $control['title'],
+    				],
+    			]);
+    			
     		}
     	}
     }

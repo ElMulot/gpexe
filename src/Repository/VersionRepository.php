@@ -85,11 +85,11 @@ class VersionRepository extends ServiceEntityRepository
 		    		switch ($field) {
 		    			case 'name':
 		    				$this->query
-		    					->andWhere($this->query->expr()->in('d.serie', $values));
+		    					->andWhere($this->query->expr()->in('d.serie', $value));
 		    				break;
 		    			case 'company':
 		    				$this->query
-			    				->andWhere($this->query->expr()->in('s.company', $values));
+			    				->andWhere($this->query->expr()->in('s.company', $value));
 		    				break;
 		    			default:
 		    				$metadatas[$field] = $value;
@@ -198,11 +198,14 @@ class VersionRepository extends ServiceEntityRepository
 	    				case 'document[name]':
 	    					$this->query->addOrderBy('d.name', $order);
 	    					break;
-	    				case 'version[date]':
-	    					$this->query->addOrderBy('v.date', $order);
+	    				case 'version[initial_scheduled_date]':
+	    					$this->query->addOrderBy('v.initialScheduledDate', $order);
 	    					break;
-	    				case 'version[initialDate]':
-	    					$this->query->addOrderBy('v.initialDate', $order);
+	    				case 'version[scheduled_date]':
+	    					$this->query->addOrderBy('v.scheduledDate', $order);
+	    					break;
+	    				case 'version[delivery_date]':
+	    					$this->query->addOrderBy('v.deliveryDate', $order);
 	    					break;
 	    				case 'version[writer]':
 	    					$this->query

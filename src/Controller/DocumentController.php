@@ -78,6 +78,7 @@ class DocumentController extends AbstractController
 					'title' 					=> $codification->getName(),
 					'multiple'				=> true,
 					'choices' 				=> $codification->getCodificationItems(),
+					'choice_label' 			=> 'value',
 				];
 			}
 		}
@@ -111,20 +112,27 @@ class DocumentController extends AbstractController
 				'display' => true,
 				'sort' => true,
 			],
-			'version[date]' => [
-				'id' => 'version_date',
-				'title' => $this->translator->trans('Date'),
+			'version[initial_scheduled_date]' => [
+				'id' => 'version_initial_scheduled_date',
+				'title' => $this->translator->trans('Initial scheduled date'),
 				'type' => Metadata::DATE,
 				'display' => true,
 				'sort' => true,
 			],
-		    'version[initialDate]' => [
-		    	'id' => 'version_initialDate',
-		    	'title' => $this->translator->trans('Initial Date'),
+		    'version[scheduled_date]' => [
+		    	'id' => 'version_scheduled_date',
+		    	'title' => $this->translator->trans('Scheduled Date'),
 		    	'type' => Metadata::DATE,
 		    	'display' => true,
 		    	'sort' => true,
 		    ],
+			'version[delivery_date]' => [
+				'id' => 'version_delivery_date',
+				'title' => $this->translator->trans('Delivery Date'),
+				'type' => Metadata::DATE,
+				'display' => true,
+				'sort' => true,
+			],
 			'version[isRequired]' => [
 				'id' => 'version_isRequired',
 				'title' => $this->translator->trans('Is required'),
@@ -161,6 +169,7 @@ class DocumentController extends AbstractController
 								'title' => $this->translator->trans('Writer'),
 								'multiple' => true,
 								'choices' => $writers,
+								'choice_label' => 'name',
 							],
 						],
 					])
@@ -180,6 +189,7 @@ class DocumentController extends AbstractController
 								'title' => $this->translator->trans('Checker'),
 								'multiple' => true,
 								'choices' => $checkers,
+								'choice_label' => 'name',
 							],
 						],
 					])
@@ -199,6 +209,7 @@ class DocumentController extends AbstractController
 								'title' => $this->translator->trans('Approver'),
 								'multiple' => true,
 								'choices' => $checkers,
+								'choice_label' => 'name',
 							],
 						],
 					])
@@ -218,6 +229,7 @@ class DocumentController extends AbstractController
 								'title' => $this->translator->trans('Serie name'),
 								'multiple' => true,
 								'choices' => $series,
+								'choice_label' => 'name',
 							],
 						],
 					])
@@ -237,6 +249,7 @@ class DocumentController extends AbstractController
 								'title' => $this->translator->trans('Company'),
 								'multiple' => true,
 								'choices' => $this->companyRepository->getCompaniesByProject($project),
+								'choice_label' => 'name',
 							],
 						],
 					])
@@ -263,6 +276,7 @@ class DocumentController extends AbstractController
 								'title' => $this->translator->trans('Status value'),
 								'multiple' => true,
 								'choices' => $this->statusRepository->getStatuses($project),
+								'choice_label' => 'value',
 							],
 						],
 					])
@@ -338,6 +352,7 @@ class DocumentController extends AbstractController
 										'title' => $metadata->getName(),
 										'multiple' => true,
 										'choices' => $metadata->getMetadataItems(),
+										'choice_label' => 'value',
 									],
 								],
 							])
@@ -363,6 +378,7 @@ class DocumentController extends AbstractController
 									'title' => $this->translator->trans('Visa') . ' ' . $company->getName(),
 									'multiple' => true,
 									'choices' => $project->getVisasByCompany($company),
+									'choice_label' => 'name',
 								],
 							],
 						])

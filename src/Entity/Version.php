@@ -27,13 +27,19 @@ class Version
     /**
      * @ORM\Column(type="date")
      */
-    private $initialDate;
+    private $initialScheduledDate;
 
     /**
      * @ORM\Column(type="date")
      * @ORM\JoinColumn(nullable=false)
      */
-    private $date;
+    private $scheduledDate;
+    
+    /**
+     * @ORM\Column(type="date")
+     * @ORM\JoinColumn(nullable=false)
+     */
+    private $deliveryDate;
     
     /**
      * @ORM\Column(type="boolean")
@@ -108,28 +114,40 @@ class Version
         return $this;
     }
 
-    public function getInitialDate(): ?\DateTimeInterface
+    public function getInitialScheduledDate(): ?\DateTimeInterface
     {
-        return $this->initialDate;
+    	return $this->initialScheduledDate;
     }
-
-    public function setInitialDate(\DateTimeInterface $initialDate): self
+    
+    public function setInitialScheduledDate(\DateTimeInterface $initialScheduledDate): self
     {
-        $this->initialDate = $initialDate;
+    	$this->initialScheduledDate = $initialScheduledDate;
 
         return $this;
     }
 
-    public function getDate(): ?\DateTimeInterface
+    public function getScheduleDate(): ?\DateTimeInterface
     {
-        return $this->date;
+    	return $this->scheduleDate;
     }
 
-    public function setDate(\DateTimeInterface $date): self
+    public function setScheduleDate(\DateTimeInterface $scheduleDate): self
     {
-        $this->date = $date;
+    	$this->scheduleDate = $scheduleDate;
 
         return $this;
+    }
+    
+    public function getDeliveryDate(): ?\DateTimeInterface
+    {
+    	return $this->deliveryDate;
+    }
+    
+    public function setDeliveryDate(\DateTimeInterface $deliveryDate): self
+    {
+    	$this->deliveryDate = $deliveryDate;
+    	
+    	return $this;
     }
     
     public function getIsRequired(): ?bool
