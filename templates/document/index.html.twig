@@ -211,8 +211,19 @@
 {% endblock %}
 
 {% block vues %}
-	<div class="row">
-    	
+    <div class="row py-4">
+    	<div class="col">
+        	{% for vue in vues %}
+        		{% if (vue.id == current_vue.id) %}
+        			<a class="btn btn-lg btn-primary text-white" style="width: 200px;">{{ vue.name }}</a>
+        		{% else %}
+        			<a class="btn btn-lg btn-outline-primary text-white" href="{{ path('document', {'serie': serie.id}) }}" role="button" style="width: 200px;">{{ vue.name }}</a>
+        		{% endif %}
+        	{% endfor %}
+    	</div>
+    	<div class="col-auto">
+    		<a class="btn btn-primary" href="{{ path('vue_new', {'serie': current_serie.id }) }}" role="button">{% trans %}New vue{% endtrans %}</a>
+    	</div>
     </div>
 {% endblock %}
 
@@ -239,7 +250,7 @@
         		{% if (serie.id == current_serie.id) %}
         			<a class="btn btn-lg btn-primary text-white" style="width: 200px;">{{ serie.name }}</a>
         		{% else %}
-        			<a class="btn btn-lg btn-outline-primary text-white" href="{{ path('document', {'id': serie.id}) }}" role="button" style="width: 200px;">{{ serie.name }}</a>
+        			<a class="btn btn-lg btn-outline-primary text-white" href="{{ path('document', {'serie': serie.id}) }}" role="button" style="width: 200px;">{{ serie.name }}</a>
         		{% endif %}
         	{% endfor %}
     	</div>

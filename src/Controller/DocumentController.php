@@ -13,6 +13,7 @@ use App\Entity\Document;
 use App\Entity\Version;
 use App\Entity\Status;
 use App\Entity\Review;
+use App\Entity\Vue;
 use App\Form\SelectType;
 use App\Form\DocumentType;
 use App\Form\ReviewType;
@@ -24,6 +25,7 @@ use App\Repository\StatusRepository;
 use App\Repository\SerieRepository;
 use App\Repository\DocumentRepository;
 use App\Repository\VersionRepository;
+use App\Repository\VueRepository;
 
 class DocumentController extends AbstractController
 {
@@ -47,7 +49,9 @@ class DocumentController extends AbstractController
 	
 	private $versionRepository;
 	
-	public function __construct(TranslatorInterface $translator, CompanyRepository $companyRepository, UserRepository $userRepository, CodificationRepository $codificationRepository, MetadataRepository $metadataRepository, StatusRepository $statusRepository, SerieRepository $serieRepository, DocumentRepository $documentRepository, VersionRepository $versionRepository)
+	private $vueRepository;
+	
+	public function __construct(TranslatorInterface $translator, CompanyRepository $companyRepository, UserRepository $userRepository, CodificationRepository $codificationRepository, MetadataRepository $metadataRepository, StatusRepository $statusRepository, SerieRepository $serieRepository, DocumentRepository $documentRepository, VersionRepository $versionRepository, VueRepository $vueRepository)
 	{
 		$this->translator = $translator;
 		$this->companyRepository = $companyRepository;
@@ -58,16 +62,26 @@ class DocumentController extends AbstractController
 		$this->serieRepository = $serieRepository;
 		$this->documentRepository = $documentRepository;
 		$this->versionRepository = $versionRepository;
+		$this->vueRepository = $vueRepository;
 	}
 	
-	public function index(Request $request, Serie $serie): Response
+	public function index(Request $request, Serie $serie, Vue $vue = null): Response
 	{
 		$project = $serie->getProject();
 		$metadatas = $this->metadataRepository->getMetadatas($project);
 		$checkerCompanies = $this->companyRepository->getCheckerCompanies($project);
 		$series = $this->serieRepository->getSeries($project, $serie->getCompany());
-		
+		$vues = $this->vueRepository->getVues($project, $this->getUser());
+		$writers = ($serie)?$this->userRepository->getUsersByCompany($serie->getCompany()):$this->userRepository->getUsers();
+		$checkers = $this->userRepository->getCheckers($project);
 		$codifications = $this->codificationRepository->getCodifications($project);
+		
+		if ($vue) {
+			$request->query->replace($vue);
+		} else {
+			$vue = $this->vueRepository->getDefaultVue($project, $this->getUser());
+			$request->query->replace($vue);
+		}
 		
 		$codificationTable = [];
 		foreach ($codifications as $codification) {
@@ -82,9 +96,6 @@ class DocumentController extends AbstractController
 				];
 			}
 		}
-		
-		$writers = ($serie)?$this->userRepository->getUsersByCompany($serie->getCompany()):$this->userRepository->getUsers();
-		$checkers = $this->userRepository->getCheckers($project);
 		
 		$columns = [
 			'document[reference]' => [
@@ -404,6 +415,8 @@ class DocumentController extends AbstractController
 		return $this->render('document/index.html.twig', [
 			'current_serie' => $serie,
 			'series' => $series,
+			'current_vue' => $vue,
+			'vues' => $vues,
 			'versions' => $versions,
 			'columns' => $columns,
 			'page_max' => $page_max,
@@ -446,7 +459,7 @@ class DocumentController extends AbstractController
 					$view = $form->createView();
 					return $this->render('generic/form.html.twig', [
 						'route_back' =>  $this->generateUrl('document', [
-							'id' => $document->getSerie()->getId(),
+							'serie' => $document->getSerie()->getId(),
 						]),
 						'form' => $view,
 					]);
@@ -463,7 +476,7 @@ class DocumentController extends AbstractController
 					$view = $form->createView();
 					return $this->render('generic/form.html.twig', [
 						'route_back' =>  $this->generateUrl('document', [
-							'id' => $document->getSerie()->getId(),
+							'serie' => $document->getSerie()->getId(),
 						]),
 						'form' => $view,
 					]);
@@ -483,7 +496,7 @@ class DocumentController extends AbstractController
 			$view = $form->createView();
 			return $this->render('generic/form.html.twig', [
 				'route_back' =>  $this->generateUrl('document', [
-					'id' => $serie->getId(),
+					'serie' => $serie->getId(),
 				]),
 				'form' => $view
 			]);
@@ -503,7 +516,7 @@ class DocumentController extends AbstractController
 			if (count($documents) > 1) {
 				$this->addFlash('danger', 'Only one reference must be selected');
 				return $this->redirectToRoute('document', [
-					'id' => $documents[0]->getSerie()->getId()
+					'serie' => $documents[0]->getSerie()->getId()
 				]);
 			}
 			
@@ -529,7 +542,7 @@ class DocumentController extends AbstractController
 					$view = $form->createView();
 					return $this->render('generic/form.html.twig', [
 						'route_back' =>  $this->generateUrl('document', [
-							'id' => $serie->getId(),
+							'serie' => $serie->getId(),
 						]),
 						'form' => $view,
 					]);
@@ -546,7 +559,7 @@ class DocumentController extends AbstractController
 					$view = $form->createView();
 					return $this->render('generic/form.html.twig', [
 						'route_back' =>  $this->generateUrl('document', [
-							'id' => $serie->getId(),
+							'serie' => $serie->getId(),
 						]),
 						'form' => $view,
 					]);
@@ -561,7 +574,7 @@ class DocumentController extends AbstractController
 			
 			$request->query->remove('id');
 			return $this->redirectToRoute('document', array_merge([
-				'id' => $serie->getId(),
+				'serie' => $serie->getId(),
 			],
 			$request->query->all())
 			);
@@ -570,7 +583,7 @@ class DocumentController extends AbstractController
 			$request->query->remove('id');
 			return $this->render('generic/form.html.twig', [
 				'route_back' =>  $this->generateUrl('document', array_merge([
-					'id' => $serie->getId(),
+					'serie' => $serie->getId(),
 				],
 				$request->query->all())),
 				'form' => $view
@@ -606,12 +619,12 @@ class DocumentController extends AbstractController
 	        $this->addFlash('success', 'deleted.document');
 	        $this->addFlash('_count', count($documents));
 	        return $this->redirectToRoute('document', [
-	            'id' => $serie->getId()
+	            'serie' => $serie->getId()
 	        ]);
 	    } else {
 	        return $this->render('generic/delete.html.twig', [
 	            'route_back' =>  $this->generateUrl('document', [
-	                'id' => $serie->getId(),
+	                'serie' => $serie->getId(),
 	            ]),
 	            'entities' => $documents,
 	        ]);

@@ -30,6 +30,11 @@ class Vue
      * @ORM\Column(type="boolean")
      */
     private $share;
+    
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $default;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Project", inversedBy="vues")
@@ -82,6 +87,18 @@ class Vue
     	$this->share = $share;
 
         return $this;
+    }
+    
+    public function getDefault(): ?bool
+    {
+    	return $this->default;
+    }
+    
+    public function setDefault(bool $default): self
+    {
+    	$this->default = $default;
+    	
+    	return $this;
     }
 
     public function getProject(): ?Project
