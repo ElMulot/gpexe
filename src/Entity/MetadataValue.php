@@ -22,7 +22,7 @@ class MetadataValue
     private $value;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Metadata")
+     * @ORM\ManyToOne(targetEntity=Metadata::class)
      * @ORM\JoinColumn(nullable=false)
      */
     private $metadata;

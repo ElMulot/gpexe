@@ -27,13 +27,13 @@ class Visa
     private $revisionRequired;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Company")
+     * @ORM\ManyToOne(targetEntity=Company::class)
      * @ORM\JoinColumn(nullable=false)
      */
     private $company;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Project", inversedBy="visas")
+     * @ORM\ManyToOne(targetEntity=Project::class, inversedBy="visas")
      * @ORM\JoinColumn(nullable=false)
      */
     private $project;

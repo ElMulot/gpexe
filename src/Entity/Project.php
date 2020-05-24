@@ -33,39 +33,44 @@ class Project
     private $splitter;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\User", inversedBy="projects")
+     * @ORM\ManyToMany(targetEntity=User::class, inversedBy="projects")
      */
     private $users;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Codification", mappedBy="project", orphanRemoval=true)
+     * @ORM\OneToMany(targetEntity=Codification::class, mappedBy="project", orphanRemoval=true)
      */
     private $codifications;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Metadata", mappedBy="project", orphanRemoval=true)
+     * @ORM\OneToMany(targetEntity=Metadata::class, mappedBy="project", orphanRemoval=true)
      */
     private $metadatas;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Status", mappedBy="project", orphanRemoval=true)
+     * @ORM\OneToMany(targetEntity=Status::class, mappedBy="project", orphanRemoval=true)
      */
     private $statuses;
     
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Visa", mappedBy="project", orphanRemoval=true)
+     * @ORM\OneToMany(targetEntity=Visa::class, mappedBy="project", orphanRemoval=true)
      */
     private $visas;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Serie", mappedBy="project", orphanRemoval=true)
+     * @ORM\OneToMany(targetEntity=Serie::class, mappedBy="project", orphanRemoval=true)
      */
     private $series;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Vue", mappedBy="project", orphanRemoval=true)
+     * @ORM\OneToMany(targetEntity=Vue::class, mappedBy="project", orphanRemoval=true)
      */
     private $vues;
+
+    /**
+     * @ORM\OneToMany(targetEntity=Automation::class, mappedBy="project", orphanRemoval=true)
+     */
+    private $automations;
 
     public function __construct()
     {
@@ -76,6 +81,7 @@ class Project
         $this->visas = new ArrayCollection();
         $this->series = new ArrayCollection();
         $this->vues = new ArrayCollection();
+        $this->automations = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -333,6 +339,37 @@ class Project
         return $this;
     }
     
+    
+    /**
+     * @return Collection|Automation[]
+     */
+    public function getAutomations(): Collection
+    {
+    	return $this->automations;
+    }
+    
+    public function addAutomation(Automation $automation): self
+    {
+    	if (!$this->automations->contains($automation)) {
+    		$this->automations[] = $automation;
+    		$automation->setProject($this);
+    	}
+    	
+    	return $this;
+    }
+    
+    public function removeAutomation(Automation $automation): self
+    {
+    	if ($this->automations->contains($automation)) {
+    		$this->automations->removeElement($automation);
+    		// set the owning side to null (unless already changed)
+    		if ($automation->getProject() === $this) {
+    			$automation->setProject(null);
+    		}
+    	}
+    	
+    	return $this;
+    }
     
     public function __toString(): string
     {

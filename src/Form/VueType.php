@@ -12,11 +12,9 @@ class VueType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
-            ->add('Name')
-            ->add('Value')
-            ->add('Share')
-            ->add('Project')
-            ->add('User')
+            ->add('name')
+            ->add('isShared')
+            ->add('isDefault')
         ;
     }
 

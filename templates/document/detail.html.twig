@@ -2,7 +2,7 @@
 	<div id="menu" class="col-auto d-flex flex-column">
         <div id="version_tabs" class="nav nav-pills mb-auto" aria-orientation="vertical">
         	{% for version in versions %}
-                <a class="nav-link w-100 my-1{% if version == current_version %} active{% endif %}" data-url="{{ path('version_detail', {'id': version.id}) }}">
+                <a class="nav-link w-100 my-1{% if version == current_version %} active{% endif %}" data-toggle="ajax" data-url="{{ path('version_detail', {'id': version.id}) }}" data-target="#version_content">
                     {{ version.name }} 
                     {% if version.isRequired %}
                     	<span class="badge badge-info">{% trans %}to be produced{% endtrans %}</span>
@@ -24,6 +24,6 @@
             </div>
 		{% endif %}
 	</div>
-	<div id="version" class="col px-3" >
+	<div id="version_content" class="col px-3" >
 	</div>
 </div>

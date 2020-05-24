@@ -23,7 +23,7 @@ class MetadataItem
     private $value;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Metadata", inversedBy="metadataItems")
+     * @ORM\ManyToOne(targetEntity=Metadata::class, inversedBy="metadataItems")
      * @ORM\JoinColumn(nullable=false)
      */
     private $metadata;

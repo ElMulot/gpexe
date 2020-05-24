@@ -39,7 +39,7 @@ class Status
     private $type;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Project", inversedBy="statuses")
+     * @ORM\ManyToOne(targetEntity=Project::class, inversedBy="statuses")
      * @ORM\JoinColumn(nullable=false)
      */
     private $project;
@@ -126,25 +126,25 @@ class Status
     {
     	
     	switch ($label) {
-    		case 'status.name':
+    		case 'status[name]':
     			return $this->getName();
     			break;
-    		case 'status.value':
+    		case 'status[value]':
     			return $this->getValue();
     			break;
-    		case 'status.type':
+    		case 'status[type]':
     			return $this->getType();
     			break;
-    		case 'status.isInformation':
+    		case 'status[isInformation]':
     			return $this->getIsInformation();
     			break;
-    		case 'status.isReview':
+    		case 'status[isReview]':
     			return $this->getIsReview();
     			break;
-    		case 'status.isCancel':
+    		case 'status[isCancel]':
     			return $this->getIsCancel();
     			break;
-    		case 'status.isAsBuilt':
+    		case 'status[isAsBuilt]':
     			return $this->getIsAsBuilt();
     			break;
     	}

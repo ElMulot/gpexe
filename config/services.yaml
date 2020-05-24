@@ -4,6 +4,7 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices/configuration.html#application-related-configuration
 parameters:
+    uploads_directory: '/uploads'
 
 services:
     # default configuration for services in *this* file
@@ -25,3 +26,7 @@ services:
         
     App\EventSubscriber\LocaleSubscriber:
         arguments: ['%kernel.default_locale%'] 
+        
+    App\Service\AutomationService:
+        arguments:
+            $targetDirectory: '%kernel.project_dir%/public%uploads_directory%'

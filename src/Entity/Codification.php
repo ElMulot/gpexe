@@ -52,13 +52,13 @@ class Codification
     private $isMandatory;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Project", inversedBy="codifications")
+     * @ORM\ManyToOne(targetEntity=Project::class, inversedBy="codifications")
      * @ORM\JoinColumn(nullable=false)
      */
     private $project;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\CodificationItem", mappedBy="codification", orphanRemoval=true)
+     * @ORM\OneToMany(targetEntity=CodificationItem::class, mappedBy="codification", orphanRemoval=true)
      */
     private $codificationItems;
 
@@ -187,19 +187,19 @@ class Codification
     	return null;
     }
     
-    public function getFullId(): string
-    {
-    	return 'codification[' . $this->id . ']';
-    }
-    
-    public function getSnakeCaseFullId(): string
+    public function getFullDomId(): string
     {
     	return 'codification_' . $this->id;
     }
     
+    public function getFullDomName(): string
+    {
+    	return 'codification[' . $this->id . ']';
+    }
+    
     public function getFullCodename(): string
     {
-    	return 'codification[' . $this->codename . ']';
+    	return 'codification.' . $this->codename;
     }
     
     public function isFixed(): bool

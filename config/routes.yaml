@@ -18,6 +18,81 @@ requests:
     path: /requests
     controller: App\Controller\HomeController::requests
 
+profil:
+    path: /profil
+    controller: App\Controller\ProfilController::index
+
+profil_new:
+    path: /profil/new
+    controller: App\Controller\ProfilController::new
+
+profil_edit:
+    path: /profil/edit/{id}
+    requirements:
+        id: \d+
+    controller: App\Controller\ProfilController::edit
+
+profil_delete:
+    path: /profil/delete/{id}
+    methods: GET|DELETE
+    requirements:
+        id: \d+
+    controller: App\Controller\ProfilController::delete
+
+company:
+    path: /company
+    controller: App\Controller\CompanyController::index
+
+company_new:
+    path: /company/new
+    controller: App\Controller\CompanyController::new
+
+company_edit:
+    path: /company/edit/{id}
+    requirements:
+        id: \d+
+    controller: App\Controller\CompanyController::edit
+
+company_delete:
+    path: /company/delete/{id}
+    methods: GET|DELETE
+    requirements:
+        id: \d+
+    controller: App\Controller\CompanyController::delete
+    
+user:
+    path: /user
+    controller: App\Controller\UserController::index
+
+user_new:
+    path: /user/new
+    controller: App\Controller\UserController::new
+
+user_edit:
+    path: /user/edit/{id}
+    requirements:
+        id: \d+
+    controller: App\Controller\UserController::edit
+
+user_delete:
+    path: /user/delete/{id}
+    methods: GET|DELETE
+    requirements:
+        id: \d+
+    controller: App\Controller\UserController::delete
+    
+account:
+    path: /account
+    controller: App\Controller\AccountController::index
+    
+edit_account:
+    path: /account/edit/
+    controller: App\Controller\AccountController::edit
+    
+change_password:
+    path: /account/changePassword
+    controller: App\Controller\AccountController::changePassword
+
 project:
     path: /project
     controller: App\Controller\ProjectController::index
@@ -196,23 +271,23 @@ visa_delete:
     controller: App\Controller\VisaController::delete
 
 serie_route:  #redirigé directement vers document ou vers serie_new (si pas de serie créée)
-    path: /project/{project}/{company}
+    path: /project/{id}/{company}
     requirements:
-        project: \d+
+        id: \d+
         company: \d+
     controller: App\Controller\SerieController::route
 
 serie: #administration des séries
-    path: /project/{project}/{company}/serie
+    path: /project/{id}/{company}/serie
     requirements:
-        project: \d+
+        id: \d+
         company: \d+
     controller: App\Controller\SerieController::index
 
 serie_new:
-    path: /project/{project}/{company}/serie/new
+    path: /project/{id}/{company}/serie/new
     requirements:
-        project: \d+
+        id: \d+
         company: \d+
     controller: App\Controller\SerieController::new
 
@@ -229,13 +304,16 @@ serie_delete:
     controller: App\Controller\SerieController::delete
 
 document:   #vue principale
-    path: /project/serie/{serie}/{vue}
-    defaults:
-        vue: 0
+    path: /project/serie/{id}
     requirements:
-        serie: \d+
-        vue: \d+
+        id: \d+
     controller: App\Controller\DocumentController::index
+
+document_table:
+    path: /project/serie/{id}/table
+    requirements:
+        id: \d+
+    controller: App\Controller\DocumentController::table
 
 document_detail:
     path: /project/serie/document/{id}/detail
@@ -251,21 +329,24 @@ document_new:
 
 document_edit:
     path: /project/serie/document/edit/{id}
-    defaults: { id: 0 }
+    defaults:
+        id: 0
     requirements:
         id: \d+
     controller: App\Controller\DocumentController::edit
     
 document_move:
     path: /project/serie/document/move/{id}
-    defaults: { id: 0 }
+    defaults:
+        id: 0
     requirements:
         id: \d+
     controller: App\Controller\DocumentController::move
 
 document_delete:
     path: /project/serie/document/delete/{id}
-    defaults: { id: 0 }
+    defaults:
+        id: 0
     methods: GET|DELETE
     requirements:
         id: \d+
@@ -279,37 +360,40 @@ version_detail:
 
 version_new:
     path: /project/serie/document/{id}/version/new
-    defaults: { id: 0 }
+    defaults:
+        id: 0
     requirements:
         id: \d+
     controller: App\Controller\VersionController::new
 
 version_edit:
     path: /project/serie/document/version/edit/{id}
-    defaults: { id: 0 }
+    defaults:
+        id: 0
     requirements:
         id: \d+
     controller: App\Controller\VersionController::edit
 
 version_delete:
     path: /project/serie/document/version/delete/{id}
-    defaults: { id: 0 }
+    defaults:
+        id: 0
     methods: GET|DELETE
     requirements:
         id: \d+
     controller: App\Controller\VersionController::delete
 
 review:
-    path: /project/serie/document/version/{version}/{company}/review
+    path: /project/serie/document/version/{id}/{company}/review
     requirements:
-        version: \d+
+        id: \d+
         company: \d+
     controller: App\Controller\ReviewController::index
     
 review_new:
-    path: /project/serie/document/version/{version}/{company}/review/new
+    path: /project/serie/document/version/{id}/{company}/review/new
     requirements:
-        version: \d+
+        id: \d+
         company: \d+
     controller: App\Controller\ReviewController::new
 
@@ -326,97 +410,59 @@ review_delete:
     controller: App\Controller\ReviewController::delete
     
 vue_new:
-    path: /project/serie/{serie}/vue/new
+    path: /project/serie/{id}/vue/new
     requirements:
-        serie: \d+
+        id: \d+
     controller: App\Controller\VueController::new
 
 vue_edit:
-    path: /project/serie/{serie}/vue/edit/{vue}
+    path: /project/serie/{id}/vue/edit/{vue}
     requirements:
-        serie: \d+
+        id: \d+
         vue: \d+
     controller: App\Controller\VueController::edit
 
 vue_delete:
-    path: /project/serie/{serie}/vue/delete/{vue}
+    path: /project/serie/{id}/vue/delete/{vue}
     methods: GET|DELETE
     requirements:
-        serie: \d+
+        id: \d+
         vue: \d+
     controller: App\Controller\VueController::delete
-    
-account:
-    path: /account
-    controller: App\Controller\AccountController::index
-    
-edit_account:
-    path: /account/edit/
-    controller: App\Controller\AccountController::edit
-    
-change_password:
-    path: /account/changePassword
-    controller: App\Controller\AccountController::changePassword
-    
-profil:
-    path: /profil
-    controller: App\Controller\ProfilController::index
 
-profil_new:
-    path: /profil/new
-    controller: App\Controller\ProfilController::new
-
-profil_edit:
-    path: /profil/edit/{id}
+automation:
+    path: /project/{id}/automation
     requirements:
         id: \d+
-    controller: App\Controller\ProfilController::edit
+    controller: App\Controller\AutomationController::index
 
-profil_delete:
-    path: /profil/delete/{id}
+automation_console:
+    path: /project/automation/console/{id}
+    requirements:
+        id: \d+
+    controller: App\Controller\AutomationController::console
+
+automation_launch:
+    path: /project/automation/launch/{id}
+    requirements:
+        id: \d+
+    controller: App\Controller\AutomationController::launch
+    
+automation_new:
+    path: /project/{id}/automation/new
+    requirements:
+        id: \d+
+    controller: App\Controller\AutomationController::new
+
+automation_edit:
+    path: /project/automation/edit/{id}
+    requirements:
+        id: \d+
+    controller: App\Controller\AutomationController::edit
+
+automation_delete:
+    path: /project/automation/delete/{id}
     methods: GET|DELETE
     requirements:
         id: \d+
-    controller: App\Controller\ProfilController::delete
-
-company:
-    path: /company
-    controller: App\Controller\CompanyController::index
-
-company_new:
-    path: /company/new
-    controller: App\Controller\CompanyController::new
-
-company_edit:
-    path: /company/edit/{id}
-    requirements:
-        id: \d+
-    controller: App\Controller\CompanyController::edit
-
-company_delete:
-    path: /company/delete/{id}
-    methods: GET|DELETE
-    requirements:
-        id: \d+
-    controller: App\Controller\CompanyController::delete
-    
-user:
-    path: /user
-    controller: App\Controller\UserController::index
-
-user_new:
-    path: /user/new
-    controller: App\Controller\UserController::new
-
-user_edit:
-    path: /user/edit/{id}
-    requirements:
-        id: \d+
-    controller: App\Controller\UserController::edit
-
-user_delete:
-    path: /user/delete/{id}
-    methods: GET|DELETE
-    requirements:
-        id: \d+
-    controller: App\Controller\UserController::delete
+    controller: App\Controller\AutomationController::delete

@@ -10,9 +10,17 @@
                 {% endif %}
 			</div>
 			<div class="col-8">
-				{{ version.date|date('d-m-Y') }}
-				{% if version.date.diff(version.initialScheduledDate).days %}
-			    	<span> ({{ 'delay'|trans({'count': version.scheduledDate.diff(version.initialScheduledDate).days}) }})</span>
+			    {% if version.isRequired %}
+			    	{% if version.scheduledDate %}
+				    	{{ version.scheduledDate|date('d-m-Y') }}
+        				{% if version.scheduledDate.diff(version.initialScheduledDate).days %}
+        			    	<span> ({{ 'delay'|trans({'count': version.scheduledDate.diff(version.initialScheduledDate).days}) }})</span>
+        			    {% endif %}
+				    {% else %}
+				    	{{ version.initialScheduledDate|date('d-m-Y') }}
+				    {% endif %}
+				{% else %}
+			    	{{ version.deliveryDate|date('d-m-Y') }}
 			    {% endif %}
 			</div>
 			<div class="col-4">
@@ -53,12 +61,12 @@
 	<div class="col w-50 p-0 ml-2">
         <div id="review_tabs" class="nav nav-tabs border-dark">
         	{% for checker in checkers %}
-            	<a class="nav-item nav-link {% if checker == app.user.company %} active{% endif %}" data-url="{{ path('review', {'version': version.id, 'company': checker.id}) }}">
+            	<a class="nav-item nav-link {% if checker == app.user.company %} active{% endif %}" data-toggle="ajax" data-url="{{ path('review', {'id': version.id, 'company': checker.id}) }}" data-target="#review_content">
 					{{ checker.name }}
 				</a>
         	{% endfor %}
         </div>
-        <div id="review" class="tab-content border border-top-0 rounded-bottom border-dark p-3">
+        <div id="review_content" class="tab-content border border-top-0 rounded-bottom border-dark px-3 py-2">
         	
         </div>
 	</div>

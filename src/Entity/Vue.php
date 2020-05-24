@@ -22,28 +22,28 @@ class Vue
     private $name;
 
     /**
-     * @ORM\Column(type="string", length=2047)
+     * @ORM\Column(type="json")
      */
-    private $value;
+    private $value = [];
 
     /**
      * @ORM\Column(type="boolean")
      */
-    private $share;
+    private $isShared;
     
     /**
      * @ORM\Column(type="boolean")
      */
-    private $default;
+    private $isDefault;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Project", inversedBy="vues")
+     * @ORM\ManyToOne(targetEntity=Project::class, inversedBy="vues")
      * @ORM\JoinColumn(nullable=false)
      */
     private $project;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\User", inversedBy="vues")
+     * @ORM\ManyToOne(targetEntity=User::class, inversedBy="vues")
      * @ORM\JoinColumn(nullable=false)
      */
     private $user;
@@ -65,38 +65,38 @@ class Vue
         return $this;
     }
 
-    public function getValue(): ?string
+    public function getValue(): ?array
     {
-        return $this->value;
+    	return $this->value;
+    }
+    
+    public function setValue(array $value): self
+    {
+    	$this->value = $value;
+    	
+    	return $this;
     }
 
-    public function setValue(string $value): self
+    public function getIsShared(): ?bool
     {
-        $this->value = $value;
-
-        return $this;
+        return $this->isShared;
     }
 
-    public function getShare(): ?bool
+    public function setIsShared(bool $isShared): self
     {
-        return $this->share;
-    }
-
-    public function setShare(bool $share): self
-    {
-    	$this->share = $share;
+    	$this->isShared = $isShared;
 
         return $this;
     }
     
-    public function getDefault(): ?bool
+    public function getIsDefault(): ?bool
     {
-    	return $this->default;
+    	return $this->isDefault;
     }
     
-    public function setDefault(bool $default): self
+    public function setIsDefault(bool $isDefault): self
     {
-    	$this->default = $default;
+    	$this->isDefault = $isDefault;
     	
     	return $this;
     }
@@ -123,5 +123,10 @@ class Vue
     	$this->user = $user;
 
         return $this;
+    }
+    
+    public function __toString(): string
+    {
+    	return (string)$this->getName();
     }
 }

@@ -14,6 +14,7 @@ use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use App\Entity\Serie;
 use App\Entity\Metadata;
 use App\Entity\MetadataItem;
+use App\Entity\MetadataValue;
 use App\Repository\MetadataRepository;
 
 class SerieType extends AbstractType
@@ -41,7 +42,7 @@ class SerieType extends AbstractType
         		
         		case Metadata::BOOLEAN:
         			
-        			$builder->add('m_' . $metadata->getId(), ChoiceType::class, [
+        			$builder->add($metadata->getCodeName(), ChoiceType::class, [
         				'label' => $metadata->getName(),
         				'choices' => [
         					'Yes' => true,
@@ -60,7 +61,7 @@ class SerieType extends AbstractType
         				$data = new \DateTime('now');
         			}
         			
-        			$builder->add('m_' . $metadata->getId(), DateType::class, [
+        			$builder->add($metadata->getCodeName(), DateType::class, [
         				'label' => $metadata->getName(),
         				'mapped' => false,
         				'widget' => 'single_text',
@@ -74,7 +75,7 @@ class SerieType extends AbstractType
         			
         		case Metadata::TEXT:
         			
-        			$builder->add('m_' . $metadata->getId(), TextareaType::class, [
+        			$builder->add($metadata->getCodeName(), TextareaType::class, [
         			'label' => $metadata->getName(),
         			'mapped' => false,
         			'data' => $data,
@@ -84,7 +85,7 @@ class SerieType extends AbstractType
         			
         		case Metadata::LINK:
         			
-        			$builder->add('m_' . $metadata->getId(), TextType::class, [
+        			$builder->add($metadata->getCodeName(), TextType::class, [
         				'label' => $metadata->getName(),
         				'mapped' => false,
         				'data' => $data,
@@ -94,7 +95,7 @@ class SerieType extends AbstractType
         			
         		case Metadata::LIST:
         			
-        			$builder->add('m_' . $metadata->getId(), EntityType::class, [
+        			$builder->add($metadata->getCodeName(), EntityType::class, [
         				'class' => MetadataItem::class,
         				'choices' => $metadata->getMetadataItems(),
         				'label' => $metadata->getName(),

@@ -7,8 +7,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use App\Entity\Visa;
 use App\Form\VisaType;
-use App\Repository\VisaRepository;
 use App\Repository\CompanyRepository;
+use App\Repository\VisaRepository;
 use App\Entity\Project;
 
 class VisaController extends AbstractController
@@ -18,13 +18,16 @@ class VisaController extends AbstractController
 	
 	private $companyRepository;
 	
-	public function __construct(TranslatorInterface $translator, CompanyRepository $companyRepository)
+	private $visaRepository;
+	
+	public function __construct(TranslatorInterface $translator, CompanyRepository $companyRepository, VisaRepository $visaRepository)
 	{
 		$this->translator = $translator;
 		$this->companyRepository = $companyRepository;
+		$this->visaRepository = $visaRepository;
 	}
 	
-	public function index(VisaRepository $visaRepository, Project $project): Response
+	public function index(Project $project): Response
 	{
 		return $this->render('generic/list.html.twig', [
 			'header' => $this->translator->trans('Visas for') . ' : ' . $project->getName(),
@@ -32,7 +35,7 @@ class VisaController extends AbstractController
 				'id' => $project->getId(),
 			]),
 			'class' => Visa::class,
-			'entities' => $visaRepository->getVisas($project),
+			'entities' => $this->visaRepository->getVisas($project),
 		]);
 	}
 
@@ -68,7 +71,6 @@ class VisaController extends AbstractController
 
 	public function edit(Request $request, Visa $visa): Response
 	{
-		$form = $this->createForm(VisaType::class, $visa);
 		$checkerCompanies = $this->companyRepository->getCheckerCompanies($visa->getProject());
 		$form = $this->createForm(VisaType::class, $visa, [
 			'choices' => $checkerCompanies,

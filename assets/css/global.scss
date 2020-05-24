@@ -28,3 +28,12 @@ $enable-responsive-font-sizes: true;
 a {
 	cursor: pointer;
 }
+
+.custom-file-label-sm {
+	height: $input-height-sm;
+	
+	&::after {
+		height: $input-height-sm;
+		padding: $input-padding-y-sm $custom-file-padding-x;
+	}
+}

@@ -24,34 +24,34 @@ class Document
     private $name;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\CodificationItem", cascade={"persist"})
+     * @ORM\ManyToMany(targetEntity=CodificationItem::class, cascade={"persist"})
      */
     private $codificationItems;
     
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\CodificationValue", cascade={"persist", "remove"}, orphanRemoval=true)
+     * @ORM\ManyToMany(targetEntity=CodificationValue::class, cascade={"persist", "remove"}, orphanRemoval=true)
      */
     private $codificationValues;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\MetadataItem", cascade={"persist"})
+     * @ORM\ManyToMany(targetEntity=MetadataItem::class, cascade={"persist"})
      * @ORM\JoinTable(name="document_metadata_item")
      */
     private $metadataItems;
     
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\MetadataValue", cascade={"persist", "remove"}, orphanRemoval=true)
+     * @ORM\ManyToMany(targetEntity=MetadataValue::class, cascade={"persist", "remove"}, orphanRemoval=true)
      * @ORM\JoinTable(name="document_metadata_value")
      */
     private $metadataValues;
     
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Version", mappedBy="document", orphanRemoval=true)
+     * @ORM\OneToMany(targetEntity=Version::class, mappedBy="document", orphanRemoval=true)
      */
     private $versions;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Serie", inversedBy="documents")
+     * @ORM\ManyToOne(targetEntity=Serie::class, inversedBy="documents")
      * @ORM\JoinColumn(nullable=false)
      */
     private $serie;
@@ -428,14 +428,14 @@ class Document
     {
     	
     	switch ($codename) {
-    		case 'document[name]':
+    		case 'document.name':
     			return $this->getName();
     			break;
-    		case 'document[reference]':
+    		case 'document.reference':
     			return $this->getReference();
     			break;
     		default:
-    			if (preg_match('/document\[\w+\]/', $codename)) {
+    			if (preg_match('/document\.\w+/', $codename)) {
     				foreach ($this->getSerie()->getProject()->getMetadatas()->getValues() as $metadata) {
     					if ($metadata->getFullCodename() == $codename) {
     						return $this->getMetadataValue($metadata);
@@ -459,22 +459,19 @@ class Document
     			break;
     			
     		case 'object':
-    			switch (ClassUtils::getClass($value)) {
-    				case MetadataItem::class:
-    				case MetadataValue::class:
-    					switch (gettype($value->getValue())) {
-    						case 'boolean':
-    							return ($value->getValue())?'Yes':'No';
-    							break;
-    						case 'object':
-    							return $value->getValue()->format('d-m-Y');
-    							break;
-    						default:
-    							return $value->getValue();
-    					}
-    					break;
-    				default:
-    					return (string)$value;
+    			if ($value instanceof MetadataItem || $value instanceof MetadataValue) {
+    				switch (gettype($value->getValue())) {
+    					case 'boolean':
+    						return ($value->getValue())?'Yes':'No';
+    						break;
+    					case 'object':
+    						return $value->getValue()->format('d-m-Y');
+    						break;
+    					default:
+    						return $value->getValue();
+    				}
+    			} else {
+    				return (string)$value;
     			}
     			break;
     			

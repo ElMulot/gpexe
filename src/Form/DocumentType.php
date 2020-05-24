@@ -15,6 +15,7 @@ use App\Entity\Codification;
 use App\Entity\CodificationItem;
 use App\Entity\Metadata;
 use App\Entity\MetadataItem;
+use App\Entity\MetadataValue;
 use App\Repository\CodificationRepository;
 use App\Repository\MetadataRepository;
 
@@ -40,7 +41,7 @@ class DocumentType extends AbstractType
 			switch ($codification->getType()) {
 				
 				case Codification::FIXED:
-					$builder->add('c_'.$codification->getId(), TextType::class, [
+					$builder->add($codification->getCodeName(), TextType::class, [
 						'data' => $codification->getValue(),
 						'disabled' => true,
 						'label' => $codification->getName(),
@@ -54,7 +55,7 @@ class DocumentType extends AbstractType
 						$data = $document->getCodificationItemByCodification($codification);
 					}
 					
-					$builder->add('c_'.$codification->getId(), EntityType::class, [
+					$builder->add($codification->getCodeName(), EntityType::class, [
 						'class' => CodificationItem::class,
 						'choices' => $codification->getCodificationItems(),
 						'label' => $codification->getName(),
@@ -70,7 +71,7 @@ class DocumentType extends AbstractType
 						$data = $document->getCodificationValueByCodification($codification);
 					}
 					
-					$builder->add('c_'.$codification->getId(), TextType::class, [
+					$builder->add($codification->getCodeName(), TextType::class, [
 					'label' => $codification->getName(),
 					'mapped' => false,
 					'required' => $codification->getIsMandatory(),
@@ -92,7 +93,7 @@ class DocumentType extends AbstractType
 				
 				case Metadata::BOOLEAN:
 					
-					$builder->add('m_' . $metadata->getId(), ChoiceType::class, [
+					$builder->add($metadata->getCodeName(), ChoiceType::class, [
 					'label' => $metadata->getName(),
 					'choices' => [
 					'Yes' => true,
@@ -111,7 +112,7 @@ class DocumentType extends AbstractType
 						$data = new \DateTime('now');
 					}
 					
-					$builder->add('m_' . $metadata->getId(), DateType::class, [
+					$builder->add($metadata->getCodeName(), DateType::class, [
 						'label' => $metadata->getName(),
 						'mapped' => false,
 						'widget' => 'single_text',
@@ -125,7 +126,7 @@ class DocumentType extends AbstractType
 					
 				case Metadata::TEXT:
 					
-					$builder->add('m_' . $metadata->getId(), TextareaType::class, [
+					$builder->add($metadata->getCodeName(), TextareaType::class, [
 					'label' => $metadata->getName(),
 					'mapped' => false,
 					'data' => $data,
@@ -135,7 +136,7 @@ class DocumentType extends AbstractType
 					
 				case Metadata::LINK:
 					
-					$builder->add('m_' . $metadata->getId(), TextType::class, [
+					$builder->add($metadata->getCodeName(), TextType::class, [
 					'label' => $metadata->getName(),
 					'mapped' => false,
 					'data' => $data,
@@ -145,7 +146,7 @@ class DocumentType extends AbstractType
 					
 				case Metadata::LIST:
 					
-					$builder->add('m_' . $metadata->getId(), EntityType::class, [
+					$builder->add($metadata->getCodeName(), EntityType::class, [
 					'class' => MetadataItem::class,
 					'choices' => $metadata->getMetadataItems(),
 					'label' => $metadata->getName(),

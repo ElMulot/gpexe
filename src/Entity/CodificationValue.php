@@ -24,7 +24,7 @@ class CodificationValue
     private $value;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Codification")
+     * @ORM\ManyToOne(targetEntity=Codification::class)
      * @ORM\JoinColumn(nullable=false)
      */
     private $codification;

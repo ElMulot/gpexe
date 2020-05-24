@@ -33,7 +33,7 @@ class SerieController extends AbstractController
     	return $this->render('generic/list.html.twig', [
     		'header' => $this->translator->trans('Series for') . ' : ' . $project->getName(),
     		'route_back' =>  $this->generateUrl('serie_route', [
-    			'project' => $project->getId(),
+    			'id' => $project->getId(),
     			'company' => $company->getId(),
     		]),
     		'class' => Serie::class,
@@ -46,7 +46,7 @@ class SerieController extends AbstractController
     	$series = $this->serieRepository->getSeries($project, $company);
     	if (empty($series)) {
     		return $this->redirectToRoute('serie_new', [
-    			'project' => $project->getId(),
+    			'id' => $project->getId(),
     			'company' => $company->getId(),
     		]);
     	} else {
@@ -67,7 +67,7 @@ class SerieController extends AbstractController
     	if ($form->isSubmitted() && $form->isValid()) {
     		
     		foreach ($this->metadataRepository->getMetadatasForSerie($project) as $metadata) {
-    			$value = $form->get('m_' . $metadata->getId())->getData();
+    			$value = $form->get($metadata->getCodeName())->getData();
     			
     			if ($value === null && $metadata->getIsMandatory()) {
     				$this->addFlash('danger', 'The field  \'' . $metadata->getName() . '\' must not be empty');
@@ -89,14 +89,14 @@ class SerieController extends AbstractController
     		
     		$this->addFlash('success', 'New serie created');
     		return $this->redirectToRoute('serie', [
-    		    'project' => $project->getId(),
+    		    'id' => $project->getId(),
     		    'company' => $company->getId(),
     		]);
     	} else {
     		$view = $form->createView();
     		return $this->render('generic/form.html.twig', [
     			'route_back' =>  $this->generateUrl('serie', [
-    				'project' => $project->getId(),
+    				'id' => $project->getId(),
     				'company' => $company->getId(),
     			]),
     			'form' => $view,
@@ -115,7 +115,7 @@ class SerieController extends AbstractController
     	if ($form->isSubmitted() && $form->isValid()) {
     		
     		foreach ($this->metadataRepository->getMetadatasForSerie($project) as $metadata) {
-    			$value = $form->get('m_' . $metadata->getId())->getData();
+    			$value = $form->get($metadata->getCodeName())->getData();
     			
     			if ($value === null && $metadata->getIsMandatory()) {
     				$this->addFlash('danger', 'The field  \'' . $metadata->getName() . '\' must not be empty');
@@ -136,14 +136,14 @@ class SerieController extends AbstractController
     		$entityManager->flush();
     		$this->addFlash('success', 'Serie updated');
     		return $this->redirectToRoute('serie', [
-    			'project' => $serie->getProject()->getId(),
+    			'id' => $serie->getProject()->getId(),
     			'company' => $serie->getCompany()->getId(),
     		]);
     	} else {
     		$view = $form->createView();
     		return $this->render('generic/form.html.twig', [
     			'route_back' =>  $this->generateUrl('serie', [
-    				'project' => $serie->getProject()->getId(),
+    				'id' => $serie->getProject()->getId(),
     				'company' => $serie->getCompany()->getId(),
     			]),
     			'form' => $view,
@@ -160,13 +160,13 @@ class SerieController extends AbstractController
             
             $this->addFlash('success', 'Serie deleted');
             return $this->redirectToRoute('serie', [
-                'project' => $serie->getProject()->getId(),
+                'id' => $serie->getProject()->getId(),
                 'company' => $serie->getCompany()->getId(),
             ]);
         } else {
             return $this->render('generic/delete.html.twig', [
                 'route_back' =>  $this->generateUrl('serie', [
-                    'project' => $serie->getProject()->getId(),
+                    'id' => $serie->getProject()->getId(),
                     'company' => $serie->getCompany()->getId(),
                 ]),
                 'entities' => [$serie],

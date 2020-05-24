@@ -24,30 +24,30 @@ class Serie
     private $name;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\MetadataItem", cascade={"persist"})
+     * @ORM\ManyToMany(targetEntity=MetadataItem::class, cascade={"persist"})
      * @ORM\JoinTable(name="serie_metadata_item")
      */
     private $metadataItems;
     
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\MetadataValue", cascade={"persist", "remove"}, orphanRemoval=true)
+     * @ORM\ManyToMany(targetEntity=MetadataValue::class, cascade={"persist", "remove"}, orphanRemoval=true)
      */
     private $metadataValues;
     
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Company", inversedBy="series")
+     * @ORM\ManyToOne(targetEntity=Company::class, inversedBy="series")
      * @ORM\JoinColumn(nullable=false)
      */
     private $company;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Project", inversedBy="series")
+     * @ORM\ManyToOne(targetEntity=Project::class, inversedBy="series")
      * @ORM\JoinColumn(nullable=false)
      */
     private $project;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Document", mappedBy="serie", orphanRemoval=true)
+     * @ORM\OneToMany(targetEntity=Document::class, mappedBy="serie", orphanRemoval=true)
      */
     private $documents;
 
@@ -276,14 +276,14 @@ class Serie
     {
     	
     	switch ($codename) {
-    		case 'serie[name]':
+    		case 'serie.name':
     			return $this->getName();
     			break;
-    		case 'serie[company]':
+    		case 'serie.company':
     			return $this->getCompany()->getName();
     			break;
     		default:
-    			if (preg_match('/serie\[\w+\]/', $codename)) {
+    			if (preg_match('/serie\.\w+/', $codename)) {
     				foreach ($this->getProject()->getMetadatas()->getValues() as $metadata) {
     					if ($metadata->getFullCodename() == $codename) {
     						return $this->getMetadataValue($metadata);
@@ -305,22 +305,19 @@ class Serie
     			break;
     			
     		case 'object':
-    			switch (ClassUtils::getClass($value)) {
-    				case MetadataItem::class:
-    				case MetadataValue::class:
-    					switch (gettype($value->getValue())) {
-    						case 'boolean':
-    							return ($value->getValue())?'Yes':'No';
-    							break;
-    						case 'object':
-    							return $value->getValue()->format('d-m-Y');
-    							break;
-    						default:
-    							return $value->getValue();
-    					}
-    					break;
-    				default:
-    					return (string)$value;
+    			if ($value instanceof MetadataItem || $value instanceof MetadataValue) {
+    				switch (gettype($value->getValue())) {
+    					case 'boolean':
+    						return ($value->getValue())?'Yes':'No';
+    						break;
+    					case 'object':
+    						return $value->getValue()->format('d-m-Y');
+    						break;
+    					default:
+    						return $value->getValue();
+    				}
+    			} else {
+    				return (string)$value;
     			}
     			break;
     			

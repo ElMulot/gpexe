@@ -3,7 +3,7 @@
     "app": {
       "js": [
         "/build/runtime.js",
-        "/build/vendors~app~document~form~login.js",
+        "/build/vendors~app~automation~console~document~form~login.js",
         "/build/vendors~app~document.js",
         "/build/vendors~app.js",
         "/build/app.js"
@@ -15,7 +15,9 @@
     "form": {
       "js": [
         "/build/runtime.js",
-        "/build/vendors~app~document~form~login.js",
+        "/build/vendors~app~automation~console~document~form~login.js",
+        "/build/vendors~automation~console~document~form.js",
+        "/build/vendors~console~document~form.js",
         "/build/vendors~document~form.js",
         "/build/vendors~form.js",
         "/build/form.js"
@@ -28,7 +30,7 @@
     "login": {
       "js": [
         "/build/runtime.js",
-        "/build/vendors~app~document~form~login.js",
+        "/build/vendors~app~automation~console~document~form~login.js",
         "/build/login.js"
       ],
       "css": [
@@ -38,7 +40,9 @@
     "document": {
       "js": [
         "/build/runtime.js",
-        "/build/vendors~app~document~form~login.js",
+        "/build/vendors~app~automation~console~document~form~login.js",
+        "/build/vendors~automation~console~document~form.js",
+        "/build/vendors~console~document~form.js",
         "/build/vendors~app~document.js",
         "/build/vendors~document~form.js",
         "/build/vendors~document.js",
@@ -46,6 +50,28 @@
       ],
       "css": [
         "/build/document.css"
+      ]
+    },
+    "automation": {
+      "js": [
+        "/build/runtime.js",
+        "/build/vendors~app~automation~console~document~form~login.js",
+        "/build/vendors~automation~console~document~form.js",
+        "/build/vendors~automation.js",
+        "/build/automation.js"
+      ],
+      "css": [
+        "/build/vendors~automation.css",
+        "/build/automation.css"
+      ]
+    },
+    "console": {
+      "js": [
+        "/build/runtime.js",
+        "/build/vendors~app~automation~console~document~form~login.js",
+        "/build/vendors~automation~console~document~form.js",
+        "/build/vendors~console~document~form.js",
+        "/build/console.js"
       ]
     }
   }

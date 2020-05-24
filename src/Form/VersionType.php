@@ -44,17 +44,18 @@ class VersionType extends AbstractType
 		if ($options['versions']) {
 			$versions = $options['versions'];
 		} else {
-			$versions[0] = $this->buider->getData();
+			$versions[0] = $this->builder->getData();
 			$this->builder->add('name');
 		}
+		
 		$serie = $versions[0]->getDocument()->getSerie();
 		$project = $serie->getProject();
 		
-		$this->buildRow('date', 'date', 'version[date]', Metadata::DATE, true, $versions);
+		$this->buildRow('isRequired', 'isRequired', 'version.isRequired', Metadata::BOOLEAN, false, $versions);
 		
-		$this->buildRow('isRequired', 'isRequired', 'version[isRequired]', Metadata::BOOLEAN, false, $versions);
+		$this->buildRow('date', 'date', 'version.date', Metadata::DATE, true, $versions);
 		
-		$this->buildRow('status', 'status', 'status[value]', Metadata::LIST, true, $versions, $project->getStatuses());
+		$this->buildRow('status', 'status', 'status.value', Metadata::LIST, true, $versions, $project->getStatuses());
 		
 		foreach ($this->metadataRepository->getMetadatasForVersion($project) as $metadata) {
 			if ($metadata->getType() == Metadata::LIST) {		
@@ -64,12 +65,12 @@ class VersionType extends AbstractType
 			}
 		}
 		
-		$this->buildRow('writer', 'writer', 'version[writer]', Metadata::LIST, false, $versions, $serie->getCompany()->getUsers());
+		$this->buildRow('writer', 'writer', 'version.writer', Metadata::LIST, false, $versions, $serie->getCompany()->getUsers());
 		
 		$choices = $this->userRepository->getCheckers($project);
 		
-		$this->buildRow('checker', 'checker', 'version[checker]', Metadata::LIST, false, $versions, $choices);
-		$this->buildRow('approver', 'approver', 'version[approver]', Metadata::LIST, false, $versions, $choices);
+		$this->buildRow('checker', 'checker', 'version.checker', Metadata::LIST, false, $versions, $choices);
+		$this->buildRow('approver', 'approver', 'version.approver', Metadata::LIST, false, $versions, $choices);
 		
 	}
 	

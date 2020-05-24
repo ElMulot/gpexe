@@ -123,14 +123,18 @@
 {% endblock choice_widget_options %}
 
 {% block checkbox_widget %}
-	<div class="custom-control custom-checkbox">
+    {% set attr = attr|merge({class: (attr.class|default('') ~ ' custom-control custom-checkbox')|trim}) %}
+	<div class="{{ attr.class }}">
+		{% set attr = attr|filter((v, k) => k != 'class') %}
     	<input id="{{ id }}" type="checkbox" class="custom-control-input" {{ block('widget_attributes') }}{% if required  %} data-required="true"{% endif %}{% if checked %} checked="checked"{% endif %}{% if value is defined %} value="{{ value }}"{% endif %} />
     	<label class="custom-control-label" for="{{ id }}">{{ label }}</label>
 	</div>
 {% endblock checkbox_widget %}
 
 {% block radio_widget %}
+	{% set attr = attr|merge({class: (attr.class|default('') ~ ' custom-control custom-radio')|trim}) %}
 	<div class="custom-control custom-radio">
+    	{% set attr = attr|filter((v, k) => k != 'class') %}
     	<input id="{{ id }}" type="radio" class="custom-control-input" {{ block('widget_attributes') }}{% if required  %} data-required="true"{% endif %}{% if checked %} checked="checked"{% endif %}{% if value is defined %} value="{{ value }}"{% endif %}{% if checked %} checked="checked"{% endif %} />
     	<label class="custom-control-label" for="{{ id }}">{{ label }}</label>
 	</div>

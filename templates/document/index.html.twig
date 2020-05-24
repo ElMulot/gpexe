@@ -15,23 +15,23 @@
     		{% endif %}
 			{% if is_granted('ROLE_EDIT') %}
     			<li id="document_menu" class="nav-item dropdown" style="{{ block('nav_item') }};">
-    				<a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{% trans %}Documents{% endtrans %}</a>
+    				<a class="nav-link dropdown-toggle" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{% trans %}Documents{% endtrans %}</a>
     				<div class="dropdown-menu" style="{{ block('nav_item') }}">
-    					<a class="dropdown-item" href={{ path('document_new', app.request.attributes.get('_route_params')) }}>{% trans %}New{% endtrans %}</a>
-    					<a id="document_edit" class="dropdown-item" href="#" data-url="{{ path('document_edit') }}">{% trans %}Edit{% endtrans %}</a>
+    					<button class="dropdown-item" href={{ path('document_new', app.request.attributes.get('_route_params')) }}>{% trans %}New{% endtrans %}</button>
+    					<button id="document_edit" class="dropdown-item" data-url="{{ path('document_edit') }}">{% trans %}Edit{% endtrans %}</button>
     					{% if is_granted('ROLE_MOVE') %}
-    						<a id="document_move" class="dropdown-item" href="#" data-url="{{ path('document_move') }}">{% trans %}Move{% endtrans %}</a>
+    						<button id="document_move" class="dropdown-item" data-url="{{ path('document_move') }}">{% trans %}Move{% endtrans %}</button>
     					{% endif %}
-    					<a id="document_delete" class="dropdown-item" href="#" data-url="{{ path('document_delete') }}">{% trans %}Delete{% endtrans %}</a>
+    					<button id="document_delete" class="dropdown-item" data-url="{{ path('document_delete') }}">{% trans %}Delete{% endtrans %}</button>
     				</div>
     			</li>
     			
     			<li id="version_menu" class="nav-item dropdown" style="{{ block('nav_item') }};">
     				<a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{% trans %}Versions{% endtrans %}</a>
     				<div class="dropdown-menu" style="{{ block('nav_item') }}">
-    					<a id="version_new" class="dropdown-item" href="#" data-url="{{ path('version_new') }}">{% trans %}New{% endtrans %}</a>
-    					<a id="version_edit" class="dropdown-item" href="#" data-url="{{ path('version_edit') }}">{% trans %}Edit{% endtrans %}</a>
-    					<a id="version_delete" class="dropdown-item" href="#" data-url="{{ path('version_delete') }}">{% trans %}Delete{% endtrans %}</a>
+    					<button id="version_new" class="dropdown-item" data-url="{{ path('version_new') }}">{% trans %}New{% endtrans %}</button>
+    					<button id="version_edit" class="dropdown-item" data-url="{{ path('version_edit') }}">{% trans %}Edit{% endtrans %}</button>
+    					<button id="version_delete" class="dropdown-item" data-url="{{ path('version_delete') }}">{% trans %}Delete{% endtrans %}</button>
     				</div>
     			</li>
     		{% endif %}
@@ -48,7 +48,7 @@
 {% endblock %}
 
 {% block content %}
-	<div class="jumbotron w-100 py-1">
+	<div id="tabs" class="jumbotron">
         <ul class="nav nav-tabs" role="tablist">
             <li class="nav-item">
             	<a class="nav-link active" id="vues-tab" data-toggle="tab" href="#vues" role="tab" aria-controls="vues" aria-selected="true">{% trans %}Vues{% endtrans %}</a>
@@ -63,7 +63,7 @@
             	<a class="nav-link" id="display-tab" data-toggle="tab" href="#display" role="tab" aria-controls="display" aria-selected="false">{% trans %}Display{% endtrans %}</a>
             </li>
         </ul>
-		<div class="tab-content pt-1" id="myTabContent">
+		<div class="tab-content pt-1">
 			<div class="tab-pane fade show active" id="vues" role="tabpanel" aria-labelledby="vues-tab">
     			{{ block('vues') }}
         	</div>
@@ -79,7 +79,7 @@
 		</div>
 	</div>
 	
-    <div class="modal fade" id="detail" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal fade" id="modal" tabindex="-1" role="dialog" aria-hidden="true">
     	<div class="modal-dialog modal-xl modal-dialog-centered" role="document">
     		<div class="modal-content">
     			<div class="modal-header">
@@ -88,7 +88,7 @@
     					<span aria-hidden="true">&times;</span>
     				</button>
     			</div>
-    			<div class="modal-body">
+    			<div class="modal-body" data-toggle="ajax">
     				
     			</div>
     			<div class="modal-footer justify-content-center">
@@ -97,143 +97,92 @@
     		</div>
     	</div>
     </div>
-    <div class="w-100">
-    	<table class="table table-sm">
+    
+    <div id="table_container" class="table-responsive">
+        <table id="table" class="table table-sm" data-url="{{ path('document_table', {'id': app.request.attributes.get('id')}) }}" style="display: none;">
+            <colgroup>
+                <col style="width: 2em;">
+                {% for codename, field in fields %}
+    				{% if codename == 'document.reference' %}
+    			    	<col class="type-reference">
+    				{% elseif codename == 'version.name' %}
+    					<col class="type-version">
+    				{% elseif codename == 'document.name' %}
+    					<col class="type-name">
+    				{% elseif field.type is constant('App\\Entity\\Metadata::BOOLEAN') %}
+    			    	<col class="type-boolean">
+    				{% elseif field.type is constant('App\\Entity\\Metadata::DATE')  %}
+    					<col class="type-date">
+    				{% elseif field.type is constant('App\\Entity\\Metadata::LINK')  %}
+    					<col class="type-link">
+    		    	{% else %}
+    		    		<col class="type-standard">
+    		    	{% endif %}			
+                {% endfor %}
+                <col style="width: 6em;">
+            </colgroup>
             <thead>
                 <tr>
-    				<th class="px-0 border-0" style="max-width: 2em;">
+        			<th id="checkbox">
                 		<div class="btn-group custom-control custom-checkbox btn btn-sm btn-primary rounded-0">
                 			<input type="checkbox" id="check_all" class="custom-control-input" unchecked="unchecked">
                 			<label class="custom-control-label mx-1" for="check_all"></label>
                 		</div>
-    				</th>
-    				{% for column in columns %}
-    					{% if column.display %}
-    						<th id="{{ column.id }}" data-title="{{ column.title }}" data-sort="{% if column.sort %}true{% else %}false{% endif %}">
-        						{% if column.form is defined %}
-            						{% form_theme column.form with ['form/select.html.twig'] only %}	
-        					        {{ form(column.form) }}
-                                {% endif %}
-    						</th>
-    					{% endif %}
-    				{% endfor %}
-                    <th style="width:200px;"></th>
-    			</tr>
+        			</th>
+        			{% for codename, field in fields %}
+    					{% if codename == 'document.reference' %}
+    				    	{% set data_class = "type-reference" %}
+						{% elseif field.type is constant('App\\Entity\\Metadata::BOOLEAN') %}
+							{% set data_class = "type-boolean" %}
+						{% elseif field.type is constant('App\\Entity\\Metadata::DATE')  %}
+							{% set data_class = "type-date" %}
+						{% elseif field.type is constant('App\\Entity\\Metadata::LINK')  %}
+				    		{% set data_class = "type-link" %}
+				    	{% else %}
+				    		{% set data_class = null %}
+				    	{% endif %}
+        			
+    					<th id="{{ field.id }}" data-title="{{ field.title }}" data-sort="{% if field.sort %}true{% else %}false{% endif %}">
+    						{% if field.form is defined %}
+        						{% form_theme field.form with ['form/select.html.twig'] only %}	
+    					        {{ form(field.form) }}
+                            {% endif %}
+    					</th>
+        			{% endfor %}
+                    <th id="detail" style="width:200px;"></th>
+        		</tr>
             </thead>
-    		<tbody>
-                {% for version in versions %}
-                    <tr>
-                    	<td style="max-width: 2em;">
-                    		<div class="custom-control custom-checkbox">
-                    			<input type="checkbox" id="c{{ version.id }}" class="custom-control-input" unchecked="unchecked" value="{{ version.id }}">
-                    			<label class="custom-control-label" for="c{{ version.id }}"></label>
-                    		</div>
-                    	</td>
-                    	
-        				{% for codename, column in columns %}
-        					{% if column.display %}
-        				    	{% set value = version.getPropertyValueToString(codename) %}
-            					{% if codename == 'document[reference]' %}
-            				    	<td class="type-reference">{{ value }}</td>
-	    						{% elseif column.type is constant('App\\Entity\\Metadata::BOOLEAN') %}
-	    							<td class="type-boolean">{% if value == "1" %}{% trans %}Yes{% endtrans %}{% else %}{% trans %}No{% endtrans %}{% endif %}</td>
-								{% elseif column.type is constant('App\\Entity\\Metadata::DATE')  %}
-									<td class="type-date">{{ value|date("d-m-Y") }}</td>
-								{% elseif column.type is constant('App\\Entity\\Metadata::LINK')  %}
-        				    		<td class="type-link"><a href="{{ value }}">{% trans %}Link{% endtrans %}</a></td>
-        				    	{% else %}
-                                    {% if value matches '/^\\d+$/' %}
-                                    	<td class="type-integer">{{ value }}</td>
-                				    {% elseif value matches '/^[-+]?[0-9]*\\.?[0-9]+$/' %}
-                                    	<td class="type-float">{{ value }}</td>
-                                    {% else %}
-                                    	<td class="type-text">{{ value }}</td>
-                                    {% endif %}
-        				    	{% endif %}
-        				    {% endif %}
-        				 {% endfor %}
-                        <td>
-                            <a class="btn-success btn-sm btn w-100 text-nowrap" data-toggle="modal" data-target="#detail" data-url="{{ path('document_detail', {'id': version.id}) }}">{% trans %}Details{% endtrans %}</a>
-                        </td>
-                    </tr>
-                {% else %}
-            		<tr>
-            			<td class="border-0" style="max-width: 2em;"></td>
-            			<td class="border-0">{% trans %}Empty list{% endtrans %}</td>
-            		</tr>
-                {% endfor %}
-    		</tbody>
+            <tbody>
+            
+        	</tbody>
         </table>
-        <nav id="page">
-            {% if page_max > 1 %}
-                {% set page = app.request.get('page')|default(1) %}
-                {% set page_min = max(1, page-2) %}
-                <ul class="pagination justify-content-center">
-                    <li class="page-item{% if page == 1 %} disabled{% endif %}">
-                    	<a class="page-link" href="{{ path(app.request.attributes.get('_route'), app.request.query.all|merge({'id': current_serie.id, 'page': max(1, page-1)})) }}">
-                    		<span aria-hidden="true">&laquo;</span>
-                    	</a>
-                    </li>
-                    <li class="page-item{% if page==page_min %} active{% endif %}">
-                    	<a class="page-link" href="{{ path(app.request.attributes.get('_route'), app.request.query.all|merge({'id': current_serie.id, 'page': page_min})) }}">
-                    	    {{ page_min }}
-                    	</a>
-                    </li>
-                    <li class="page-item{% if page==page_min+1 %} active{% endif %}">
-                    	<a class="page-link" href="{{ path(app.request.attributes.get('_route'), app.request.query.all|merge({'id': current_serie.id, 'page': page_min+1})) }}">
-                    	    {{ page_min+1 }}
-                    	</a>
-                    </li>
-                    {% if page_max > 2 %}
-                    	<a class="page-link{% if page==page_min+2 %} active{% endif %}" href="{{ path(app.request.attributes.get('_route'), app.request.query.all|merge({'id': current_serie.id, 'page': page_min+2})) }}">
-                    	    {{ page_min+2 }}
-                    	</a>
-                    {% endif %}
-                    {% if page_max > 3 %}
-                    	<a class="page-link{% if page==page_min+3 %} active{% endif %}" href="{{ path(app.request.attributes.get('_route'), app.request.query.all|merge({'id': current_serie.id, 'page': page_min+3})) }}">
-                    	    {{ page_min+3 }}
-                    	</a>
-                    {% endif %}
-                    {% if page_max > 4 %}
-                    	<a class="page-link{% if page==page_min+4 %} active{% endif %}" href="{{ path(app.request.attributes.get('_route'), app.request.query.all|merge({'id': current_serie.id, 'page': page_min+4})) }}">
-                    	    {{ page_min+4 }}
-                    	</a>
-                    {% endif %}
-                    <li class="page-item{% if page == page_max %} disabled{% endif %}">
-                    	<a class="page-link" href="{{ path(app.request.attributes.get('_route'), app.request.query.all|merge({'id': current_serie.id, 'page': min(page+1, page_max)})) }}">
-                    		<span aria-hidden="true">&raquo;</span>
-                    	</a>
-                    </li>
-                </ul>
-    		{% endif %}
-		</nav>
     </div>
+    
+    <nav id="pagination">
+    
+    </nav>
 {% endblock %}
 
 {% block vues %}
-    <div class="row py-4">
+    <div class="row py-2">
     	<div class="col">
         	{% for vue in vues %}
-        		{% if (vue.id == current_vue.id) %}
-        			<a class="btn btn-lg btn-primary text-white" style="width: 200px;">{{ vue.name }}</a>
-        		{% else %}
-        			<a class="btn btn-lg btn-outline-primary text-white" href="{{ path('document', {'serie': serie.id}) }}" role="button" style="width: 200px;">{{ vue.name }}</a>
-        		{% endif %}
+        		<button type="button" class="btn btn-primary m-1" data-value="{{ vue.id }}">{{ vue.name }}</button>
         	{% endfor %}
     	</div>
     	<div class="col-auto">
-    		<a class="btn btn-primary" href="{{ path('vue_new', {'serie': current_serie.id }) }}" role="button">{% trans %}New vue{% endtrans %}</a>
+    		<button type="button" id="vue_new" class="btn btn-primary" data-url="{{ path('vue_new', app.request.query.all|merge({'id': app.request.attributes.get('id') })) }}" role="button">{% trans %}New vue{% endtrans %}</button>
     	</div>
     </div>
 {% endblock %}
 
 {% block search %}
 	<form method="POST" action="{{ path('document', app.request.attributes.get('_route_params')) }}">
-        <div class="row py-3">
+        <div class="row pt-2">
         	<label class="col-form-label col-form-label col-1" for="query">{% trans %}Query{% endtrans %}</label>
         	<div class="col-auto">
-        		<input class="form-control" type="text" id="query" name="query">
-        		<small class="form-text text-muted">{% trans %}Symbol{% endtrans %} {{ current_serie.project.splitter }} {% trans %}must be used as splitter{% endtrans %}</small>
+        		<input class="form-control form-control-sm" type="text" id="query" name="query">
+        		<small class="form-text text-muted">{% trans %}Symbol{% endtrans %} {{ project.splitter }} {% trans %}must be used as splitter{% endtrans %}</small>
         		<small class="form-text text-muted">{% trans %}The wild-card{% endtrans %} * {% trans %}can be used in place of one or several parameter{% endtrans %}</small>
         	</div>
     		<div class="col-1">
@@ -244,33 +193,20 @@
 {% endblock %}
 
 {% block series %}
-    <div class="row py-4">
+    <div class="row py-2">
     	<div class="col">
         	{% for serie in series %}
-        		{% if (serie.id == current_serie.id) %}
-        			<a class="btn btn-lg btn-primary text-white" style="width: 200px;">{{ serie.name }}</a>
-        		{% else %}
-        			<a class="btn btn-lg btn-outline-primary text-white" href="{{ path('document', {'serie': serie.id}) }}" role="button" style="width: 200px;">{{ serie.name }}</a>
-        		{% endif %}
+        		<a class="btn btn-outline-primary text-white m-1" href="{{ path('document', {'id': serie.id}) }}" role="button">{{ serie.name }}</a>
         	{% endfor %}
     	</div>
     	<div class="col-auto">
-    		<a class="btn btn-primary" href="{{ path('serie', {'project': current_serie.project.id, 'company': current_serie.company.id}) }}" role="button">{% trans %}Manage series{% endtrans %}</a>
+    		<a class="btn btn-primary" href="{{ path('serie', {'id': project.id, 'company': company.id}) }}" role="button">{% trans %}Manage series{% endtrans %}</a>
     	</div>
     </div>
 {% endblock %}
 
 {% block display %}
-	<div class="row">
-    	{% for column in columns %}
-    		<a class="btn btn-sm btn-primary text-nowrap col-2 w-100 mx-2 text-left">
-        		<div class="custom-control custom-checkbox">
-        			<input type="checkbox" id="d_{{ column.id }}" class="custom-control-input"{% if column.display %} checked="checked"{% endif %} data-value="{{ column.id }}">
-        			<label class="custom-control-label" for="d_{{ column.id }}">{{ column.title }}</label>
-        		</div>
-    		</a>
-        {% endfor %}
-    </div>
+
 {% endblock %}
 
 {% block javascripts %}

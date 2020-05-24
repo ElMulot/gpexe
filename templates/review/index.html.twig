@@ -11,8 +11,8 @@
 	</div>
 	{% if company == app.user.company %}
 		<div class="row justify-content-md-center">
-			<button class="btn btn-sm btn-success w-25 m-1" data-url="{{ path('review_edit', {'id': review.id}) }}">{% trans %}Edit{% endtrans %}</button>
-			<button class="btn btn-sm btn-danger w-25 m-1" data-url="{{ path('review_delete', {'id': review.id}) }}">{% trans %}Delete{% endtrans %}</button>
+			<button class="btn btn-sm btn-success w-25 m-1" data-toggle="ajax" data-url="{{ path('review_edit', {'id': review.id}) }}" data-target="#review_content">{% trans %}Edit{% endtrans %}</button>
+			<button class="btn btn-sm btn-danger w-25 m-1" data-toggle="ajax" data-url="{{ path('review_delete', {'id': review.id}) }}" data-target="#review_content">{% trans %}Delete{% endtrans %}</button>
 		</div>
 	{% endif %}
 {% else %}
@@ -23,7 +23,7 @@
 	</div>
 	{% if company == app.user.company %}
 		<div class="row justify-content-md-center">
-			<button class="btn btn-primary btn-sm w-25" data-url="{{ path('review_new', {'version': version.id, 'company': company.id}) }}">{% trans %}New{% endtrans %}</button>
+			<button class="btn btn-primary btn-sm w-25" data-url="{{ path('review_new', {'id': version.id, 'company': company.id}) }}">{% trans %}New{% endtrans %}</button>
 		</div>
 	{% endif %}
 {% endif %}

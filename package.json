@@ -1,10 +1,10 @@
 {
     "devDependencies": {
-        "@symfony/webpack-encore": "^0.28.2",
-        "bootstrap": "^4.4.1",
-        "core-js": "^3.0.0",
-        "jquery": "^3.5.0",
-        "node-sass": "^4.13.1",
+        "@symfony/webpack-encore": "^0.30.2",
+        "bootstrap": "^4.5.0",
+        "core-js": "^3.6.5",
+        "jquery": "^3.5.1",
+        "node-sass": "^4.14.1",
         "popper.js": "^1.16.1",
         "regenerator-runtime": "^0.13.2",
         "sass-loader": "7.0.1",
@@ -19,11 +19,12 @@
         "build": "encore production --progress"
     },
     "dependencies": {
-        "@popperjs/core": "^2.3.3",
+        "@popperjs/core": "^2.4.0",
         "@ungap/url-search-params": "^0.2.0",
         "@whsmith/infrastructure": "^3.5.8",
         "bootstrap-datepicker": "^1.9.0",
-        "bootswatch": "^4.4.1",
+        "bootswatch": "^4.5.0",
+        "codemirror": "^5.54.0",
         "sticky-table-headers": "^0.1.24"
     }
 }

@@ -30,20 +30,35 @@ class VueRepository extends ServiceEntityRepository
 		$query = $this->createQueryBuilder('v');
 		
 		return $query
-			->innerJoin('v.profil', 'p')
+			->innerJoin('v.user', 'u')
+			->innerJoin('u.profil', 'p')
 			->orWhere(
 				$query->expr()->andX(
 					$query->expr()->eq('p.isAdmin', ':isAdmin'),
-					$query->expr()->eq('v.share', ':share'),
+					$query->expr()->eq('v.isShared', ':isShared'),
 				),
 				$query->expr()->eq('v.user', ':user')
 			)
 			->setParameter('isAdmin', true)
-			->setParameter('share', true)
+			->setParameter('isShared', true)
 			->setParameter('user', $user)
 			->orderBy('v.name')
 			->getQuery()
 			->getResult()
+		;
+	}
+	
+	/**
+	 * @return Vue
+	 *
+	 */
+	public function getVueById(int $vueId)
+	{
+		return $this->createQueryBuilder('v')
+			->andWhere('v.id = :id')
+			->setParameter('id', $vueId)
+			->getQuery()
+			->getOneOrNullResult()
 		;
 	}
 	
@@ -56,20 +71,21 @@ class VueRepository extends ServiceEntityRepository
 		$query = $this->createQueryBuilder('v');
 		
 		return $query
-			->innerJoin('v.profil', 'p')
+			->innerJoin('v.user', 'u')
+			->innerJoin('u.profil', 'p')
 			->orWhere(
 				$query->expr()->andX(
 					$query->expr()->eq('p.isAdmin', ':isAdmin'),
-					$query->expr()->eq('v.share', ':share'),
+					$query->expr()->eq('v.isShared', ':isShared'),
 					),
 				$query->expr()->eq('v.user', ':user')
 				)
-			->andWhere('v.default = :default')
+			->andWhere('v.isDefault = :isDefault')
 			->setParameter('isAdmin', true)
-			->setParameter('share', true)
+			->setParameter('isShared', true)
 			->setParameter('user', $user)
-			->setParameter('default', true)
-			->orderBy('v.default')
+			->setParameter('isDefault', true)
+			->orderBy('v.isDefault')
 			->getQuery()
 			->getOneOrNullResult()
 		;

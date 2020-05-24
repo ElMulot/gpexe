@@ -17,7 +17,7 @@ class Review
     private $id;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\User")
+     * @ORM\ManyToOne(targetEntity=User::class)
      * @ORM\JoinColumn(nullable=false)
      */
     private $user;
@@ -28,13 +28,13 @@ class Review
     private $date;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Visa")
+     * @ORM\ManyToOne(targetEntity=Visa::class)
      * @ORM\JoinColumn(nullable=false)
      */
     private $visa;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Version", inversedBy="reviews")
+     * @ORM\ManyToOne(targetEntity=Version::class, inversedBy="reviews")
      * @ORM\JoinColumn(nullable=false)
      */
     private $version;

@@ -69,6 +69,7 @@ class ReviewController extends AbstractController
 		if ($this->getUser()->getCompany() == $company) {
 			$form = $this->createForm(ReviewType::class, $review);
 			$form->handleRequest($request);
+			
 			if ($form->isSubmitted() && $form->isValid()) {
 				$review->setUser($this->getUser());
 				$review->setDate(new \DateTime);

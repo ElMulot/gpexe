@@ -11,7 +11,7 @@
     		{% for label, messages in app.flashes %}
         		{% for message in messages %}
             		<div class="row justify-content-xl-center">
-            			<div class="alert alert-{{ label }} col-xl-5">{{ message|trans }}.</div>
+            			<div class="alert alert-{{ label }} w-100">{{ message|trans }}.</div>
             		</div>
         		{% endfor %}
     		{% endfor %}

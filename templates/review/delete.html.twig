@@ -7,7 +7,7 @@
 	<input type="hidden" name="_method" value="DELETE">
 	<input type="hidden" name="_token" value="{{ csrf_token('delete') }}">
     <div class="row justify-content-md-center">
-    	<button class="btn btn-sm btn-secondary w-25 m-1" data-url="{{ path('review', {'version': version.id, 'company': company.id}) }}">{% trans %}Cancel{% endtrans %}</button>
-    	<button class="btn btn-sm btn-danger w-25 m-1" data-url="{{ app.request.uri }}">{% trans %}Delete{% endtrans %}</button>
+    	<button class="btn btn-sm btn-secondary w-25 m-1" data-toggle="ajax" data-url="{{ path('review', {'id': version.id, 'company': company.id}) }}" data-target="#review_content">{% trans %}Cancel{% endtrans %}</button>
+    	<button class="btn btn-sm btn-danger w-25 m-1" data-toggle="ajax" data-url="{{ app.request.uri }}" data-target="#review_content">{% trans %}Delete{% endtrans %}</button>
     </div>
 </form>

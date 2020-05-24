@@ -87,9 +87,12 @@ class VersionController extends AbstractController
 		$form->handleRequest($request);
 		
 		if ($form->isSubmitted() && $form->isValid()) {
-			$version->setInitialDate($form->get('date')->getData());
-			$version->setDate($form->get('date')->getData());
 			$version->setIsRequired($form->get('isRequired')->getData());
+			if ($version->getIsRequired()) {
+				$version->setInitialScheduledDate($form->get('date')->getData());
+			} else {
+				$version->setDeliveryDate($form->get('date')->getData());
+			}
 			$version->setStatus($form->get('status')->getData());
 			$version->setWriter($form->get('writer')->getData());
 			$version->setChecker($form->get('checker')->getData());
@@ -134,6 +137,7 @@ class VersionController extends AbstractController
 	
 	public function edit(Request $request, Version $version=null): Response
 	{
+		
 		if (!$version) { //cas d'une édition depuis la vue principale
 			
 			$documents = $this->documentRepository->getDocumentsByRequest($request);
@@ -143,7 +147,7 @@ class VersionController extends AbstractController
 			
 			$document = $documents[0];
 			$serie = $document->getSerie();
-			$versions = $this->versionRepository->getVersions($serie, $request);
+			$versions = $this->versionRepository->getVersions($request);
 			
 		} else {
 			
@@ -151,7 +155,7 @@ class VersionController extends AbstractController
 			$serie = $document->getSerie();
 			$versions[] = $version;
 		}
-
+		
 		$project = $serie->getProject();	
 		
 		$form = $this->createForm(VersionType::class, null, [
@@ -168,12 +172,16 @@ class VersionController extends AbstractController
 			
 			foreach ($versions as $version) {
 				
-				if ($this->isMultiple($form, 'date') == false) {
-					$version->setDate($form->get('date')->getData());
-				}
-				
 				if ($this->isMultiple($form, 'isRequired') == false) {
 					$version->setIsRequired($form->get('isRequired')->getData());
+				}
+				
+				if ($this->isMultiple($form, 'date') == false) {
+					if ($version->getIsRequired()) {
+						$version->setScheduledDate($form->get('date')->getData());
+					} else {
+						$version->setDeliveryDate($form->get('date')->getData());
+					}
 				}
 				
 				if ($this->isMultiple($form, 'status') == false) {
@@ -246,7 +254,7 @@ class VersionController extends AbstractController
 	        
 	        $document = $documents[0];
 	        $serie = $document->getSerie();
-	        $versions = $this->versionRepository->getVersions($serie, $request);
+	        $versions = $this->versionRepository->getVersions($request);
 	        
 	    } else {
 	        

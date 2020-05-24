@@ -1,6 +1,9 @@
 {
   "build/app.css": "/build/app.css",
   "build/app.js": "/build/app.js",
+  "build/automation.css": "/build/automation.css",
+  "build/automation.js": "/build/automation.js",
+  "build/console.js": "/build/console.js",
   "build/document.css": "/build/document.css",
   "build/document.js": "/build/document.js",
   "build/form.css": "/build/form.css",
@@ -9,11 +12,16 @@
   "build/login.js": "/build/login.js",
   "build/runtime.js": "/build/runtime.js",
   "build/vendors~app.js": "/build/vendors~app.js",
+  "build/vendors~app~automation~console~document~form~login.js": "/build/vendors~app~automation~console~document~form~login.js",
   "build/vendors~app~document.js": "/build/vendors~app~document.js",
-  "build/vendors~app~document~form~login.js": "/build/vendors~app~document~form~login.js",
+  "build/vendors~automation.css": "/build/vendors~automation.css",
+  "build/vendors~automation.js": "/build/vendors~automation.js",
+  "build/vendors~automation~console~document~form.js": "/build/vendors~automation~console~document~form.js",
+  "build/vendors~console~document~form.js": "/build/vendors~console~document~form.js",
   "build/vendors~document.js": "/build/vendors~document.js",
   "build/vendors~document~form.js": "/build/vendors~document~form.js",
   "build/vendors~form.css": "/build/vendors~form.css",
   "build/vendors~form.js": "/build/vendors~form.js",
-  "build/vendors~app~form~login.js": "/build/vendors~app~form~login.js"
+  "build/vendors~app~automation~document~form~login.js": "/build/vendors~app~automation~document~form~login.js",
+  "build/vendors~automation~document~form.js": "/build/vendors~automation~document~form.js"
 }

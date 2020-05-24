@@ -57,13 +57,13 @@
             			<td class="col-xl-auto text-left">{{ value|truncate(30, false, "...") }}</td>
             			{% endif %}
         			{% endfor %}
-        			<td style="width: 200px;">
-        			    {% if attribute(entity, 'isList') is defined and attribute(entity, 'isList') == "True" %}
+	                {% if attribute(entity, 'isList') is defined and attribute(entity, 'isList') == "True" %}
+            			<td style="width: 200px;">
             			    <a class="btn-secondary btn w-100 text-nowrap" href="{{ path(entity_name ~ '_item', {'id': entity.id}) }}">
             			        {% trans %}List{% endtrans %}
             				</a>
-        			    {% endif %}
-        			</td>
+            			</td>
+        	        {% endif %}
         			<td style="width: 200px;">
         				<a class="btn-success btn w-100 text-nowrap" href="{{ path(entity_name ~ '_edit', {'id': entity.id}) }}">
         				    {% trans %}Edit{% endtrans %}

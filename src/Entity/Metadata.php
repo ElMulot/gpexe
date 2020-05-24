@@ -59,13 +59,13 @@ class Metadata
     private $parent;
     
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Project", inversedBy="metadatas")
+     * @ORM\ManyToOne(targetEntity=Project::class, inversedBy="metadatas")
      * @ORM\JoinColumn(nullable=false)
      */
     private $project;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\MetadataItem", mappedBy="metadata", orphanRemoval=true)
+     * @ORM\OneToMany(targetEntity=MetadataItem::class, mappedBy="metadata", orphanRemoval=true)
      */
     private $metadataItems;
 
@@ -195,24 +195,19 @@ class Metadata
     	}
     }
     
-    public function getFullId(): string
-    {
-    	return $this->getParentName() . '[' . $this->id . ']';
-    }
-    
-    public function getSnakeCaseFullId(): string
+    public function getFullDomId(): string
     {
     	return $this->getParentName() . '_' . $this->id;
     }
     
-    public function getFullCodename(): string
+    public function getFullDomName(): string
     {
-    	return $this->getParentName() . '[' . $this->codename . ']';
+    	return $this->getParentName() . '[' . $this->id . ']';
     }
     
-    public function getSnakeCodeName(): string
+    public function getFullCodename(): string
     {
-    	return $this->getParentName() . '_' . $this->codename;
+    	return $this->getParentName() . '.' . $this->codename;
     }
     
     public function getIsBoolean(): bool

@@ -7,13 +7,16 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use App\Entity\Vue;
 use App\Entity\Serie;
+use App\Form\VueType;
 
 class VueController extends AbstractController
 {
 	public function new(Request $request, Serie $serie): Response
 	{
 		$vue = new Vue();
-		$vue->setValue($request->query);
+		$request->query->remove('page');
+		$request->query->remove('vue');
+		$vue->setValue($request->query->all());
 		$vue->setProject($serie->getProject());
 		$vue->setUser($this->getUser());
 		$form = $this->createForm(VueType::class, $vue);
@@ -26,14 +29,14 @@ class VueController extends AbstractController
 			
 			$this->addFlash('success', 'New vue created');
 			return $this->redirectToRoute('document', [
-				'serie' => $serie->getId(),
-				'vue' => $vue,
+				'id' => $serie->getId(),
+				'vue' => $vue->getId(),
 			]);
 		} else {
 			$view = $form->createView();
 			return $this->render('generic/form.html.twig', [
 				'route_back' =>  $this->generateUrl('document', $request->query->all() + [
-					'serie' => $serie->getId(),
+					'id' => $serie->getId(),
 				]),
 				'form' => $view
 			]);

@@ -44,12 +44,12 @@ class Company
     private $priority;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\User", mappedBy="company", orphanRemoval=true)
+     * @ORM\OneToMany(targetEntity=User::class, mappedBy="company", orphanRemoval=true)
      */
     private $users;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Serie", mappedBy="company", orphanRemoval=true)
+     * @ORM\OneToMany(targetEntity=Serie::class, mappedBy="company", orphanRemoval=true)
      */
     private $series;
 

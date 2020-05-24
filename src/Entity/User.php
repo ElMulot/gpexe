@@ -56,13 +56,13 @@ class User implements UserInterface
     private $lastConnected;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Profil")
+     * @ORM\ManyToOne(targetEntity=Profil::class)
      * @ORM\JoinColumn(nullable=false)
      */
     private $profil;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Company", inversedBy="users")
+     * @ORM\ManyToOne(targetEntity=Company::class, inversedBy="users")
      * @ORM\JoinColumn(nullable=false)
      */
     private $company;
@@ -70,12 +70,12 @@ class User implements UserInterface
     private $roles = [];
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Project", mappedBy="users")
+     * @ORM\ManyToMany(targetEntity=Project::class, mappedBy="users")
      */
     private $projects;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Vue", mappedBy="user", orphanRemoval=true)
+     * @ORM\OneToMany(targetEntity=Vue::class, mappedBy="user", orphanRemoval=true)
      */
     private $vues;
     

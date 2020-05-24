@@ -5,20 +5,30 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
-use App\Entity\Project;
-use App\Form\ProjectType;
-use App\Repository\ProjectRepository;
-use App\Repository\CompanyRepository;
 use App\Entity\Company;
+use App\Entity\Project;
+use App\Repository\CompanyRepository;
+use App\Repository\ProjectRepository;
+use App\Repository\AutomationRepository;
+use App\Form\ProjectType;
 
 class ProjectController extends AbstractController
 {
 
 	private $session;
-
-	public function __construct(SessionInterface $session)
+	
+	private $companyRepository;
+	
+	private $projectRepository;
+	
+	private $automationRepository;
+	
+	public function __construct(SessionInterface $session, CompanyRepository $companyRepository, ProjectRepository $projectRepository, AutomationRepository $automationRepository)
 	{
 		$this->session = $session;
+		$this->companyRepository = $companyRepository;
+		$this->projectRepository = $projectRepository;
+		$this->automationRepository = $automationRepository;
 	}
 
 	public function index(ProjectRepository $projectRepository): Response
@@ -37,14 +47,15 @@ class ProjectController extends AbstractController
 	{
 		if ($this->getUser()->getCompany()->getType() == Company::SUPPLIER) {
 			return $this->redirectToRoute('project');
-		} else {
-			$mainContractors = $companyRepository->getMainContractors($project);
-			$subContractors= $companyRepository->getSubContractors($project);
 		}
-
+		$mainContractors = $companyRepository->getMainContractors($project);
+		$subContractors= $companyRepository->getSubContractors($project);
+		$automations = $this->automationRepository->getEnabledAutomations($project);
+	
 		return $this->render('project/view.html.twig', [
 			'main_contractors' => $mainContractors,
 			'sub_contractors' => $subContractors,
+			'automations' => $automations,
 			'route_back' => $this->generateUrl('project'),
 		]);
 	}
