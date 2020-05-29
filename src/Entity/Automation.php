@@ -8,6 +8,7 @@ use Symfony\Component\Yaml\Yaml;
 
 /**
  * @ORM\Entity(repositoryClass=AutomationRepository::class)
+ * @ORM\HasLifecycleCallbacks()
  */
 class Automation
 {
@@ -63,6 +64,33 @@ class Automation
 	private $parsedCode;
 	
 	private $parseError;
+	
+	/*
+	private $structure = [
+		'type' => '',
+		'first_line' => '',
+		'exclude' => [],
+		'get_serie' => [
+			'if' => '',
+		],
+		'get_document' => [
+			'if' => '',
+			'else' => ['create', 'skip']
+		],
+		'get_version' => [
+			'if' => '',
+			'else' => ['create', 'skip']
+		],
+		'write_to' => [
+			'condition' => '',
+			'to' => '',
+			'value' => '',
+		],
+	];
+	
+	(version[name] == "01" AND codification[zone] == "A") OR (version[name] == /\d+/ AND codification[zone] != /[0-9]/)
+	(\w+\.\w+)\s*(==|!=)\s*"(\S+)"|([\w\.]+)\s*(==|!=)\s*(\/\S+\/)
+	*/
 
 	public function getId(): ?int
 	{
@@ -129,6 +157,14 @@ class Automation
 		return $this;
 	}
 	
+	/**
+	 * @ORM\PrePersist
+	 */
+	public function setCreatedOnValue()
+	{
+		$this->createdOn = new \DateTime();
+	}
+	
 	public function getLastModifiedBy(): ?User
 	{
 		return $this->lastModifiedBy;
@@ -151,6 +187,14 @@ class Automation
 		$this->lastModifiedOn = $lastModifiedOn;
 		
 		return $this;
+	}
+	
+	/**
+	 * @ORM\PreUpdate
+	 */
+	public function setLastModifiedOnValue()
+	{
+		$this->lastModifiedOn = new \DateTime();
 	}
 	
 	public function getProject(): ?project
@@ -207,7 +251,6 @@ class Automation
 			if (!array_key_exists('fill', $this->parsedCode)) {
 				$this->parsedCode['fill'] = [];
 			}
-		}
 	}
 	
 	public function isValid(): bool

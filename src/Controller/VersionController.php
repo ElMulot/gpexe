@@ -77,7 +77,6 @@ class VersionController extends AbstractController
 		$project = $serie->getProject();
 		
 		$version->setDocument($document);
-		$version->setDate(new \DateTime('now'));
 		
 		
 		$form = $this->createForm(VersionType::class, $version, [

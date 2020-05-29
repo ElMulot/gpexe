@@ -109,15 +109,16 @@ class AutomationController extends AbstractController
 	public function new(Request $request, Project $project): Response
 	{
 		$automation = new Automation();
-		$automation->setProject($project);
-		$automation->setEnabled(true);
-		$automation->setCreatedBy($this->getUser());
-		$automation->setCreatedOn(new \Datetime('now'));
+		//$automation->setCreatedOn(new \Datetime('now'));
 		
 		$form = $this->createForm(AutomationType::class, $automation);
 		$form->handleRequest($request);
 		
 		if ($form->isSubmitted() && $form->isValid()) {
+			
+			$automation->setProject($project);
+			$automation->setEnabled(true);
+			$automation->setCreatedBy($this->getUser());
 			
 			$entityManager = $this->getDoctrine()->getManager();
 			$entityManager->persist($automation);
@@ -148,12 +149,14 @@ class AutomationController extends AbstractController
 	public function edit(Request $request, Automation $automation): Response
 	{
 		$form = $this->createForm(AutomationType::class, $automation);
-		$automation->setLastModifiedBy($this->getUser());
-		$automation->setLastModifiedOn(new \Datetime('now'));
+		//$automation->setLastModifiedOn(new \Datetime('now'));
 		
 		$form->handleRequest($request);
 		
 		if ($form->isSubmitted() && $form->isValid()) {
+			
+			$automation->setLastModifiedBy($this->getUser());
+			
 			$entityManager = $this->getDoctrine()->getManager();
 			$entityManager->flush();
 			$this->addFlash('success', 'Datas updated');
