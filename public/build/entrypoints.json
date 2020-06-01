@@ -5,11 +5,11 @@
         "/build/runtime.js",
         "/build/vendors~app~automation~console~document~form~login.js",
         "/build/vendors~app~document.js",
-        "/build/vendors~app.js",
+        "/build/app~document.js",
         "/build/app.js"
       ],
       "css": [
-        "/build/app.css"
+        "/build/app~document.css"
       ]
     },
     "form": {
@@ -46,9 +46,11 @@
         "/build/vendors~app~document.js",
         "/build/vendors~document~form.js",
         "/build/vendors~document.js",
+        "/build/app~document.js",
         "/build/document.js"
       ],
       "css": [
+        "/build/app~document.css",
         "/build/document.css"
       ]
     },

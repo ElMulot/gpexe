@@ -207,7 +207,6 @@ class Automation
 			if (!array_key_exists('fill', $this->parsedCode)) {
 				$this->parsedCode['fill'] = [];
 			}
-		}
 	}
 	
 	public function isValid(): bool
