@@ -22,6 +22,10 @@
   "build/vendors~document~form.js": "/build/vendors~document~form.js",
   "build/vendors~form.css": "/build/vendors~form.css",
   "build/vendors~form.js": "/build/vendors~form.js",
-  "build/vendors~app~automation~document~form~login.js": "/build/vendors~app~automation~document~form~login.js",
-  "build/vendors~automation~document~form.js": "/build/vendors~automation~document~form.js"
+  "build/vendors~app~automation~console~form~login.js": "/build/vendors~app~automation~console~form~login.js",
+  "build/vendors~automation~console~form.js": "/build/vendors~automation~console~form.js",
+  "build/vendors~console~form.js": "/build/vendors~console~form.js",
+  "build/app~document.css": "/build/app~document.css",
+  "build/app~document.js": "/build/app~document.js",
+  "build/vendors~automation~console~document~form~login.js": "/build/vendors~automation~console~document~form~login.js"
 }
