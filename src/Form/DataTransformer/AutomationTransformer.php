@@ -88,6 +88,7 @@ class AutomationTransformer implements DataTransformerInterface
 	
 	private function validate($value): string
 	{
+		
 		$parsedCode = Yaml::parse($value ?? '') ?? [];
 		
 		if (($parsedCode['type'] ?? '') == 'import') {
@@ -99,9 +100,7 @@ class AutomationTransformer implements DataTransformerInterface
 			return '';
 		}
 		
-		dump($parsedCode);
 		$parsedCode = $this->validateStructure($structure, $parsedCode);
-		dump($parsedCode);
 		return Yaml::dump($parsedCode);
 	}
 	
@@ -112,9 +111,7 @@ class AutomationTransformer implements DataTransformerInterface
 	
 	public function reverseTransform($value)
 	{
-		$a = $this->validate($value);
-		dump($value, $a);
-		return $a;
+		return $this->validate($value);
 	}
 }
 
