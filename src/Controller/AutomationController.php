@@ -151,8 +151,9 @@ class AutomationController extends AbstractController
 		$form = $this->createForm(AutomationType::class, $automation);
 		//$automation->setLastModifiedOn(new \Datetime('now'));
 		
+		dump($request);
 		$form->handleRequest($request);
-		
+		dump($form);
 		if ($form->isSubmitted() && $form->isValid()) {
 			
 			$automation->setLastModifiedBy($this->getUser());

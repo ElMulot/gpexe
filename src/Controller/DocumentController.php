@@ -19,6 +19,7 @@ use App\Entity\Vue;
 use App\Form\SelectType;
 use App\Form\DocumentType;
 use App\Form\ReviewType;
+use App\Service\FieldService;
 use App\Repository\CompanyRepository;
 use App\Repository\UserRepository;
 use App\Repository\CodificationRepository;
@@ -34,6 +35,8 @@ class DocumentController extends AbstractController
 	const MAX_RECORDS = 50;
 		
 	private $translator;
+	
+	private $fieldService;
 	
 	private $companyRepository;
 	
@@ -53,9 +56,10 @@ class DocumentController extends AbstractController
 	
 	private $vueRepository;
 	
-	public function __construct(TranslatorInterface $translator, CompanyRepository $companyRepository, UserRepository $userRepository, CodificationRepository $codificationRepository, MetadataRepository $metadataRepository, StatusRepository $statusRepository, SerieRepository $serieRepository, DocumentRepository $documentRepository, VersionRepository $versionRepository, VueRepository $vueRepository)
+	public function __construct(TranslatorInterface $translator, FieldService $fieldService, CompanyRepository $companyRepository, UserRepository $userRepository, CodificationRepository $codificationRepository, MetadataRepository $metadataRepository, StatusRepository $statusRepository, SerieRepository $serieRepository, DocumentRepository $documentRepository, VersionRepository $versionRepository, VueRepository $vueRepository)
 	{
 		$this->translator = $translator;
+		$this->fieldService = $fieldService;
 		$this->companyRepository = $companyRepository;
 		$this->userRepository = $userRepository;
 		$this->codificationRepository = $codificationRepository;
@@ -90,7 +94,7 @@ class DocumentController extends AbstractController
 			}
 		}
 		
-		$fields = $this->getFields($project);
+		$fields = $this->fieldService->getFields($project);
 		
 		$fields['document.reference']['form'] = $this->createForm(SelectType::class, null, [
 				'controls' => $codificationControls,
@@ -312,7 +316,7 @@ class DocumentController extends AbstractController
 		
 		$request->query->set('page', $page);
 		
-		$versions = $this->versionRepository->getVersionsArray($this->getFields($project), $serie, $request);
+		$versions = $this->versionRepository->getVersionsArray($this->fieldService->getFields($project), $serie, $request);
 		$page_max = ceil(count($versions)/self::MAX_RECORDS);
 		
 		return new JsonResponse([
@@ -523,125 +527,6 @@ class DocumentController extends AbstractController
 	        ]);
 	    }
 	    
-	}
-	
-	private function getFields($project): array
-	{
-		$fields = [
-			'document.reference' => [
-				'id' => 'document_reference',
-				'title' => $this->translator->trans('Reference'),
-				'type' => Metadata::LIST,
-				'sort' => false,
-			],
-			'version.name' => [
-				'id' => 'version_name',
-				'title' => $this->translator->trans('Version'),
-				'type' => Metadata::TEXT,
-				'sort' => true,
-			],
-			'document.name' => [
-				'id' => 'document_name',
-				'title' => $this->translator->trans('Name'),
-				'type' => Metadata::TEXT,
-				'sort' => true,
-			],
-			'version.initialScheduledDate' => [
-				'id' => 'version_initial_scheduled_date',
-				'title' => $this->translator->trans('Initial scheduled date'),
-				'type' => Metadata::DATE,
-				'sort' => true,
-			],
-			'version.scheduledDate' => [
-				'id' => 'version_scheduled_date',
-				'title' => $this->translator->trans('Scheduled Date'),
-				'type' => Metadata::DATE,
-				'sort' => true,
-			],
-			'version.deliveryDate' => [
-				'id' => 'version_delivery_date',
-				'title' => $this->translator->trans('Delivery Date'),
-				'type' => Metadata::DATE,
-				'sort' => true,
-			],
-			'version.isRequired' => [
-				'id' => 'version_is_required',
-				'title' => $this->translator->trans('Is required'),
-				'type' => Metadata::BOOLEAN,
-				'sort' => false,
-			],
-			'version.writer' => [
-				'id' => 'version_writer',
-				'title' => $this->translator->trans('Writer'),
-				'type' => Metadata::LIST,
-				'sort' => true,
-			],
-			'version.checker' => [
-				'id' => 'version_checker',
-				'title' => $this->translator->trans('Checker'),
-				'type' => Metadata::LIST,
-				'sort' => true,
-			],
-			'version.approver' => [
-				'id' => 'version_approver',
-				'title' => $this->translator->trans('Approver'),
-				'type' => Metadata::LIST,
-				'sort' => true,
-			],
-			'serie.name' => [
-				'id' => 'serie_name',
-				'title' => $this->translator->trans('Serie name'),
-				'type' => Metadata::LIST,
-				'sort' => true,
-			],
-			'serie.company' => [
-				'id' => 'serie_company',
-				'title' => $this->translator->trans('Company'),
-				'type' => Metadata::LIST,
-				'sort' => true,
-			],
-			'status.name' => [
-				'id' => 'status_name',
-				'title' => $this->translator->trans('Status name'),
-				'type' => Metadata::TEXT,
-				'sort' => true,
-			],
-			'status.value' => [
-				'id' => 'status_value',
-				'title' => $this->translator->trans('Status value'),
-				'type' => Metadata::LIST,
-				'sort' => true,
-			],
-			'status.type' => [
-				'id' => 'status_type',
-				'title' => $this->translator->trans('Status type'),
-				'type' => Metadata::LIST,
-				'sort' => true,
-			],
-		];
-		
-		foreach ($this->metadataRepository->getMetadatas($project) as $metadata) {
-			$fields[$metadata->getFullCodename()] = [
-				'id' => $metadata->getFullDomId(),
-				'title' => $metadata->getName(),
-				'type' =>$metadata->getType(),
-				'sort' => false,
-			];
-		}
-		
-		foreach ($this->companyRepository->getCheckerCompanies($project) as $company) {
-			if (!$project->getVisasByCompany($company)->isEmpty()) {
-				$fields['visa.' . $company->getId()] = [
-					'id' => 'visa_' . $company->getId(),
-					'field' => 'visa[' . $company->getId() . ']',
-					'title' => $this->translator->trans('Visa') . ' ' . $company->getName(),
-					'type' => Metadata::LIST,
-					'sort' => false,
-				];
-			}
-		}
-		
-		return $fields;
 	}
 	
 }

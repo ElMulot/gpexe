@@ -61,32 +61,14 @@ class Automation
 	 */
 	private $project;
 	
+	private $structure;
+	
 	private $parsedCode;
 	
 	private $parseError;
 	
 	/*
-	private $structure = [
-		'type' => '',
-		'first_line' => '',
-		'exclude' => [],
-		'get_serie' => [
-			'if' => '',
-		],
-		'get_document' => [
-			'if' => '',
-			'else' => ['create', 'skip']
-		],
-		'get_version' => [
-			'if' => '',
-			'else' => ['create', 'skip']
-		],
-		'write_to' => [
-			'condition' => '',
-			'to' => '',
-			'value' => '',
-		],
-	];
+
 	
 	(version[name] == "01" AND codification[zone] == "A") OR (version[name] == /\d+/ AND codification[zone] != /[0-9]/)
 	(\w+\.\w+)\s*(==|!=)\s*"(\S+)"|([\w\.]+)\s*(==|!=)\s*(\/\S+\/)
@@ -197,78 +179,34 @@ class Automation
 		$this->lastModifiedOn = new \DateTime();
 	}
 	
-	public function getProject(): ?project
+	public function getProject(): ?Project
 	{
 		return $this->project;
 	}
 	
-	public function setProject(?project $project): self
+	public function setProject(?Project $project): self
 	{
 		$this->project = $project;
 		
 		return $this;
 	}
 	
-	public function getParsedCode():? array
-	{
-		if (!$this->parsedCode && $this->parseError == false) {
-			$this->parsedCode = Yaml::parse($this->getCode() ?? '') ?? [];
-			
-			if (!array_key_exists('first_line', $this->parsedCode)) {
-				$this->parsedCode['first_line'] = '1';
-			}
-			if (!array_key_exists('type', $this->parsedCode)) {
-				$this->parsedCode['type'] = '';
-			}
-			
-			if (!array_key_exists('exclude', $this->parsedCode)) {
-				$this->parsedCode['exclude'] = [];
-			}
-			
-			if (!array_key_exists('fill', $this->parsedCode)) {
-				$this->parsedCode['fill'] = [];
-			}
-		}
-		return $this->parsedCode;
-	}
-	
-	public function validate(): bool
-	{
-		if (!$this->parsedCode && $this->parseError == false) {
-			$this->parsedCode = Yaml::parse($this->getCode() ?? '') ?? [];
-		}
-			if (!array_key_exists('first_line', $this->parsedCode)) {
-				$this->parsedCode['first_line'] = '1';
-			}
-			if (!array_key_exists('type', $this->parsedCode)) {
-				$this->parsedCode['type'] = '';
-			}
-			
-			if (!array_key_exists('exclude', $this->parsedCode)) {
-				$this->parsedCode['exclude'] = [];
-			}
-			
-			if (!array_key_exists('fill', $this->parsedCode)) {
-				$this->parsedCode['fill'] = [];
-			}
-	}
-	
 	public function isValid(): bool
 	{
-		return ($this->isTypeImport() || $this->isTypeExport());
+		return ($this->parsedCode != null && $this->parseError == false);
 	}
 	
 	public function isTypeImport(): bool
 	{
-		if ($parsedCode = $this->getParsedCode()) {
-			return $parsedCode['type'] == 'import';
+		if ($this->parsedCode != null) {
+			return ($this->parsedCode['type'] ?? '') == 'import';
 		}
 	}
 	
 	public function isTypeExport(): bool
 	{
-		if ($parsedCode = $this->getParsedCode()) {
-			return $parsedCode['type'] == 'export';
+		if ($this->parsedCode != null) {
+			return ($this->parsedCode['type'] ?? '') == 'export';
 		}
 	}
 	
