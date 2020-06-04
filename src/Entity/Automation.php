@@ -99,7 +99,6 @@ class Automation
 	public function setCode(string $code): self
 	{
 		$this->code = $code;
-
 		return $this;
 	}
 

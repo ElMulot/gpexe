@@ -16,20 +16,20 @@ class AutomationTransformer implements DataTransformerInterface
 		return [
 			'type' => 'import',
 			'first_line' => '\d+',
-			'exclude' => ['(\w+\.\w+)\s*(==|!=)\s*"(\S+)"|([\w\.]+)\s*(==|!=)\s*(\/\S+\/)'],
+			'exclude' => ['(\w+\.\w+)\s*(==|!=)\s*(\w+\.\w+|".+"|\d+)\s*(AND|OR)*\s*'],
 			'get_serie' => [
-				'if' => '(\w+\.\w+)\s*(==|!=)\s*"(\S+)"|([\w\.]+)\s*(==|!=)\s*(\/\S+\/)',
+				'if' => '(\w+\.\w+)\s*(==|!=)\s*(\w+\.\w+|".+"|\d+)\s*(AND|OR)*\s*',
 			],
 			'get_document' => [
-				'if' => '(\w+\.\w+)\s*(==|!=)\s*"(\S+)"|([\w\.]+)\s*(==|!=)\s*(\/\S+\/)',
+				'if' => '(\w+\.\w+)\s*(==|!=)\s*(\w+\.\w+|".+"|\d+)\s*(AND|OR)*\s*',
 				'else' => 'create|skip',
 			],
 			'get_version' => [
-				'if' => '(\w+\.\w+)\s*(==|!=)\s*"(\S+)"|([\w\.]+)\s*(==|!=)\s*(\/\S+\/)',
+				'if' => '(\w+\.\w+)\s*(==|!=)\s*(\w+\.\w+|".+"|\d+)\s*(AND|OR)*\s*',
 				'else' => 'create|skip',
 			],
 			'write' => [
-				'condition' => '(\w+\.\w+)\s*(==|!=)\s*"(\S+)"|([\w\.]+)\s*(==|!=)\s*(\/\S+\/)',
+				'condition' => '(\w+\.\w+)\s*(==|!=)\s*(\w+\.\w+|".+"|\d+)\s*(AND|OR)*\s*',
 				'to' => '\w+\.\w+',
 				'value' => '\S+',
 			],
@@ -41,9 +41,9 @@ class AutomationTransformer implements DataTransformerInterface
 		return [
 			'type' => 'export',
 			'first_line' => '\d+',
-			'exclude' => ['(\w+\.\w+)\s*(==|!=)\s*"(\S+)"|([\w\.]+)\s*(==|!=)\s*(\/\S+\/)'],
+			'exclude' => ['(\w+\.\w+)\s*(==|!=)\s*(\w+\.\w+|".+"|\d+)\s*(AND|OR)*\s*'],
 			'write' => [
-				'condition' => '(\w+\.\w+)\s*(==|!=)\s*"(\S+)"|([\w\.]+)\s*(==|!=)\s*(\/\S+\/)',
+				'condition' => '(\w+\.\w+)\s*(==|!=)\s*(\w+\.\w+|".+"|\d+)\s*(AND|OR)*\s*',
 				'to' => '\w+',
 				'value' => '\S+',
 			],
@@ -55,15 +55,15 @@ class AutomationTransformer implements DataTransformerInterface
 		foreach ($structure as $key => $value) {
 			
 			if ($key === 0) {
-				/*
-				 array_walk($parsedCode, function(&$item, $key, $value) {
-				 if (is_array($item)) {
-				 $item = '';
-				 } elseif (preg_match('/' . $value . '/', $item) == false) {
-				 $item = '';
-				 }
-				 }, $value);
-				 */
+				
+				array_walk($parsedCode, function(&$item, $key, $value) {
+					if (is_array($item)) {
+						$item = '';
+					} elseif (preg_match('/' . $value . '/', $item) == false) {
+						$item = '';
+					}
+				}, $value);
+				
 			} elseif (is_array($parsedCode) == false) {
 				$parsedCode = [$key => ''];
 			} elseif (array_key_exists($key, $parsedCode)) {
@@ -79,7 +79,6 @@ class AutomationTransformer implements DataTransformerInterface
 		
 		foreach ($parsedCode as $key => $value) {
 			if (array_key_exists($key, $structure) == false && $key !== 0) {
-				//dump($parsedCode[$key]);
 				unset($parsedCode[$key]);
 			}
 		}
@@ -87,26 +86,8 @@ class AutomationTransformer implements DataTransformerInterface
 		return $parsedCode;
 	}
 	
-	public function transform($value)
+	private function validate($value): string
 	{
-		
-		$parsedCode = Yaml::parse($value ?? '') ?? [];
-		dump('ok');
-		if (($parsedCode['type'] ?? '') == 'import') {
-			$structure = $this->getStructureImport();
-		} elseif (($parsedCode['type'] ?? '') == 'import') {
-			$structure = $this->getStructureExport();
-		} else {
-			return false;
-		}
-		
-		$parsedCode = $this->validateStructure($structure, $parsedCode);
-		
-		return Yaml::dump($parsedCode);
-	}
-	
-	public function reverseTransform($value) {
-		
 		$parsedCode = Yaml::parse($value ?? '') ?? [];
 		
 		if (($parsedCode['type'] ?? '') == 'import') {
@@ -115,13 +96,25 @@ class AutomationTransformer implements DataTransformerInterface
 			$structure = $this->getStructureExport();
 		} else {
 			dump('aie');
-			return false;
+			return '';
 		}
 		
 		dump($parsedCode);
 		$parsedCode = $this->validateStructure($structure, $parsedCode);
 		dump($parsedCode);
 		return Yaml::dump($parsedCode);
+	}
+	
+	public function transform($value)
+	{
+		return $this->validate($value);
+	}
+	
+	public function reverseTransform($value)
+	{
+		$a = $this->validate($value);
+		dump($value, $a);
+		return $a;
 	}
 }
 
