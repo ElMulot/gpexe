@@ -33,6 +33,7 @@ class AutomationType extends AbstractType
 	    		],
 	    	])
 	    	->add('enabled', CheckboxType::class, [
+	    		'required' => false,
 	    		'label_attr' => [
 	    			'class' => 'col-sm-2',
 	    		],
@@ -41,6 +42,7 @@ class AutomationType extends AbstractType
 	    		],
 	    	])
 	    	->add('code', TextareaType::class, [
+	    		'required' => false,
 	    		'attr' => [
 	    			'class' => 'mt-4',
 	    			'rows' => '',

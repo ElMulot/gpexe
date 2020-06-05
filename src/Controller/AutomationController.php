@@ -46,6 +46,7 @@ class AutomationController extends AbstractController
 	
 	public function console(Automation $automation): Response
 	{
+		
 		if ($automation->isValid()) {
 			return $this->render('automation/console.html.twig', [
 				'automation' => $automation,
@@ -65,9 +66,14 @@ class AutomationController extends AbstractController
 	{
 		
 		if ($automation->isTypeImport()) {
-			$form = $this->createForm(LauncherImportType::class);
+			$form = $this->createForm(LauncherImportType::class, $automation);
 		} elseif ($automation->isTypeExport()) {
-			$form = $this->createForm(LauncherExportType::class);
+			$form = $this->createForm(LauncherExportType::class, $automation);
+		} else {
+			$this->addFlash('danger', 'Invalid automation');
+			return $this->redirectToRoute('project_view', [
+				'id' => $automation->getProject()->getId(),
+			]);
 		}
 		
 		$form->handleRequest($request);
@@ -78,13 +84,13 @@ class AutomationController extends AbstractController
 				$file = $form->get('file')->getData();
 				
 				if (!$file) {
-					$this->addFlash('alert', 'Error while opening file');
+					$this->addFlash('danger', 'Error while opening file');
 					$view = $form->createView();
 					return $this->render('automation/launcher.html.twig', [
 						'form' => $view,
 					]);
 				}
-			} else {
+			} elseif ($automation->isTypeExport()) {
 				
 				$fileName = $this->automationService->export($automation);
 				return $this->render('automation/result.html.twig', [
@@ -93,6 +99,13 @@ class AutomationController extends AbstractController
 					]),
 					'file_name' => $fileName,
 					'upload_url' => $this->getParameter('uploads_directory') . '/' . $fileName,
+				]);
+				
+			} else {
+				$this->addFlash('danger', 'Invalid automation');
+				$view = $form->createView();
+				return $this->render('automation/launcher.html.twig', [
+					'form' => $view,
 				]);
 			}
 		} else {
@@ -109,7 +122,6 @@ class AutomationController extends AbstractController
 	public function new(Request $request, Project $project): Response
 	{
 		$automation = new Automation();
-		//$automation->setCreatedOn(new \Datetime('now'));
 		
 		$form = $this->createForm(AutomationType::class, $automation);
 		$form->handleRequest($request);
@@ -149,17 +161,16 @@ class AutomationController extends AbstractController
 	public function edit(Request $request, Automation $automation): Response
 	{
 		$form = $this->createForm(AutomationType::class, $automation);
-		//$automation->setLastModifiedOn(new \Datetime('now'));
 		
 		$form->handleRequest($request);
-		dump($form);
+		
 		if ($form->isSubmitted() && $form->isValid()) {
 			
 			$automation->setLastModifiedBy($this->getUser());
 			
 			$entityManager = $this->getDoctrine()->getManager();
 			
-			//$entityManager->flush();
+			$entityManager->flush();
 			$this->addFlash('success', 'Datas updated');
 			
 			if ($request->request->get('submit') == 'save') {
