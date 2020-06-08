@@ -93,7 +93,7 @@ class Automation
 	public function setCode(string $code): self
 	{
 		$this->code = $code;
-		$this->parseCode($code);
+		
 		return $this;
 	}
 
@@ -185,33 +185,29 @@ class Automation
 		return $this;
 	}
 	
-	/**
-	 * @ORM\PostLoad
-	 */
 	public function parseCode(): self
 	{
-		
 		try {
 			$this->parsedCode = Yaml::parse($this->code ?? '');
 		} catch (ParseException $exception) {
 			$this->parsedCode = [];
 			$this->parseError = true;
 			return $this;
-		} finally {
-			if (($this->parsedCode['type'] ?? '') == 'import') {
-				$this->structure = self::getStructureImport();
-			} elseif (($this->parsedCode['type'] ?? '') == 'export') {
-				$this->structure = self::getStructureExport();
-			} else {
-				$this->parsedCode = [];
-				$this->parseError = true;
-				return $this;
-			}
-			
-			$this->parsedCode = self::validateStructure($this->structure, $this->parsedCode);
-			
-			$this->parseError = false;
 		}
+		
+		if (($this->parsedCode['type'] ?? '') == 'import') {
+			$this->structure = self::getStructureImport();
+		} elseif (($this->parsedCode['type'] ?? '') == 'export') {
+			$this->structure = self::getStructureExport();
+		} else {
+			$this->parsedCode = [];
+			$this->parseError = true;
+			return $this;
+		}
+			
+		$this->parsedCode = self::validateStructure($this->structure, $this->parsedCode);
+		
+		$this->parseError = false;
 		
 		return $this;
 	}
@@ -223,9 +219,12 @@ class Automation
 	
 	public function getValidatedCode($code)
 	{
-		
-		$parsedCode = Yaml::parse($code ?? '') ?? [];
-		
+		dump($code);
+		try {
+			$parsedCode = Yaml::parse($code ?? '') ?? [];
+		} catch (ParseException $exception) {
+			return '';
+		}
 		if (($parsedCode['type'] ?? '') == 'import') {
 			$structure = self::getStructureImport();
 		} elseif (($parsedCode['type'] ?? '') == 'export') {
@@ -241,12 +240,15 @@ class Automation
 	
 	public function isValid(): bool
 	{
+		if ($this->parseError === null) {
+			$this->parseCode();
+		}
 		return $this->parseError === false;
 	}
 	
 	public function isTypeImport(): ?bool
 	{
-		if ($this->parseError === false) {
+		if ($this->isValid()) {
 			return ($this->parsedCode['type'] ?? '') == 'import';
 		} else {
 			return null;
@@ -255,7 +257,7 @@ class Automation
 	
 	public function isTypeExport(): ?bool
 	{
-		if ($this->parseError === false) {
+		if ($this->isValid()) {
 			return ($this->parsedCode['type'] ?? '') == 'export';
 		} else {
 			return null;
@@ -269,88 +271,101 @@ class Automation
 	
 	private function getStructureImport(): array
 	{
-		$regexCondition = '(\w+\.\w+)\s*(==|!=)\s*(\d+|".+"|\w+\.\w+|\/\S+\/)';
+		//$regexCondition = '(\w+\.\w+)\s*(==|!=)\s*(\d+|".+"|\w+\.\w+|\/\S+\/)';
 		return [
 			'type' => 'import',
 			'first_line' => '\d+',
-			'exclude' => [$regexCondition],
+			'exclude' => ['.+'],
 			'get_serie' => [
-				'if' => $regexCondition,
+				'if' => '.+',
 			],
 			'get_document' => [
-				'if' => $regexCondition,
-				'else' => '(create|skip)',
+				'if' => '.+',
+				'else' => 'create|skip',
 			],
 			'get_version' => [
-				'if' => $regexCondition,
-				'else' => '(create|skip)',
+				'if' => '.+',
+				'else' => 'create|skip',
 			],
 			'write' => [
-				'condition' => $regexCondition,
-				'to' => '(\w+\.\w+)',
-				'value' => '(\S+)',
+				'condition' => '.+',
+				'to' => '\w+\.\w+',
+				'value' => '\S+',
 			],
 			'option' => [
-				'move_from_mdr' => '(true|false|choose)',
-				'move_from_sdr' => '(true|false|choose)',
-				'only_update' => '(true|false|choose)',
+				'move_from_mdr' => 'true|false|choose',
+				'move_from_sdr' => 'true|false|choose',
+				'only_update' => 'true|false|choose',
 			],
 		];
 	}
 	
 	private function getStructureExport(): array
 	{
-		$regexCondition = '(\w+\.\w+)\s*(==|!=)\s*(\d+|".+"|\w+\.\w+|\/\S+\/)';
+		//$regexCondition = '(\w+\.\w+)\s*(==|!=)\s*(\d+|".+"|\w+\.\w+|\/\S+\/)';
 		return [
 			'type' => 'export',
 			'first_line' => '\d+',
-			'exclude' => [$regexCondition],
+			'exclude' => ['.+'],
 			'write' => [
-				'condition' => $regexCondition,
-				'to' => '(\w+)',
-				'value' => '(\S+)',
+				[
+					'condition' => '.+',
+					'to' => '[A-Z]{1,2}',
+					'value' => '.+',
+				],
 			],
 		];
 	}
 	
-	private function validateStructure($structure, $parsedCode):? array
+	private function validateStructure($structure, $parsedCode)
 	{
-		foreach ($structure as $key => $value) {
-			
-			if (is_array($parsedCode) == false) {
-				$parsedCode = [$key => ''];
-			} else {
-				if ($key === 0) {
-					
-					array_walk($parsedCode, function(&$item, $key, $value) {
-						if (is_array($item)) {
-							$item = '';
-						} elseif (preg_match('/' . $value . '/', $item) == false) {
-							$item = '';
-						}
-					}, $value);
-						
-				} elseif (array_key_exists($key, $parsedCode)) {
-					if (is_array($value)) {
-						$parsedCode[$key] = self::validateStructure($value, $parsedCode[$key]);
-					} elseif (preg_match('/' . $value . '/', $parsedCode[$key]) == false) {
-						$parsedCode[$key] = '';
-					}
+		
+		if (is_array($structure)) {
+		
+			foreach ($structure as $key => $value) {
+				
+				if (is_array($parsedCode) === false) {
+					$parsedCode = [$key => ''];
 				} else {
-					$parsedCode[$key] = '';
-					if (is_array($value)) {
+					
+					if ($key === 0) {
+						
+						array_walk($parsedCode, function(&$item, $key, $value) {
+							$item = self::validateStructure($value, $item);
+						}, $value);
+						
+					} elseif (array_key_exists($key, $parsedCode)) {
+					
 						$parsedCode[$key] = self::validateStructure($value, $parsedCode[$key]);
+						
+					} else {
+						
+						$parsedCode[$key] = '';
+						$parsedCode[$key] = self::validateStructure($value, $parsedCode[$key]);
+						
 					}
 				}
 			}
-		}
-		
-		foreach ($parsedCode as $key => $value) {
-			if (array_key_exists($key, $structure) == false && $key !== 0) {
-				unset($parsedCode[$key]);
+			
+			
+			foreach ($parsedCode as $key => $value) {
+				if (array_key_exists($key, $structure) == false && gettype($key) == 'string') {
+					unset($parsedCode[$key]);
+				}
+			}
+			
+		} else {
+			
+			if (is_array($parsedCode)) {
+				$parsedCode = '';
+			} else {
+				if (preg_match('/' . $structure . '/', $parsedCode, $matches)) {
+					$parsedCode = (is_numeric($matches[0]))?+$matches[0]:$matches[0];
+				} else {
+					$parsedCode = ($structure == '\d+')?1:'';
+				}
 			}
 		}
-		
 		return $parsedCode;
 	}
 	

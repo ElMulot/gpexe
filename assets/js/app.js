@@ -133,7 +133,105 @@ global.icon = {
 	
 };
 
+global.ajax = {
+		
+	fetch: function(container) {
+		
+		let that = this;
+		
+		$(container).find('a[data-toggle="ajax"], button[data-toggle="ajax"]').not('[type="submit"]').each(function() {
+			
+			$(this).on('click', function(e) {
+				
+				if ($(this).parent().has('.active')) {
+					$(this).parent().find('.active').removeClass('active');
+					$(this).addClass('active');
+				}
+				
+				let url = $(this).data('url');
+				let target = $(this).data('target') || this;
+				that.set(target, url);
+				
+			});
+			
+			if ($(this).hasClass('active')) {
+				$(this).trigger('click');
+			}
+			
+		});
+		
+		$(container).find('a[data-toggle="ajax"][type="submit"], button[data-toggle="ajax"][type="submit"]').each(function() {
+			
+			if ($form = $(this).parents('form').first()) {
+				$form.on('submit', function(e) {
+					return false;
+				});
+			}
+			
+			$(this).on('click', function(e) {
+				
+				let url = $(this).data('url');
+				let target = $(this).data('target') || this;
+				
+				if ($form.find('input[type="file"]').length) {
+					var method = 'POST';
+					var data = new FormData($form.get(0));
+				} else {
+					var method = $form.attr('method') || 'GET';
+					var data = $form.serializeArray();
+				}
+				
+				that.set(target, url, method, data);
+				return false;
+				
+			});
+			
+		});
+		
+		$(container).find('div[data-toggle="ajax"]').each(function(e) {
+			
+			let target = $(this).data('target') || this;
+			let url = $(this).data('url');
+			that.set(target, url);
+			
+		});
+		
+	},
+		
+	set: function (target, url, method='GET', data=[]) {
+		
+		if (target && url) {
+			$(target)
+				.empty()
+				.append(icon.loading);
+			
+			let that = this;
+			
+			$.ajax({
+				url : url,
+				type: method,
+				data: data,
+				contentType: (data.constructor === FormData)?false:'application/x-www-form-urlencoded; charset=UTF-8',
+				processData: (data.constructor !== FormData),
+				
+				success: function(result) {
+					$(target)
+						.empty()
+						.html(result);
+					
+					that.fetch(target);
+					
+				},
+			});
+		}
+		
+	}
+}
+
 
 $(document).ready(function() {
+	
     $('[data-toggle="popover"]').popover();
+	ajax.fetch('body');
+    
 });

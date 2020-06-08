@@ -436,17 +436,21 @@ automation:
         id: \d+
     controller: App\Controller\AutomationController::index
 
-automation_console:
-    path: /project/automation/console/{id}
+automation_dashboard:
+    path: /project/automation/dashboard/{id}
     requirements:
         id: \d+
-    controller: App\Controller\AutomationController::console
+    controller: App\Controller\AutomationController::dashboard
 
 automation_launch:
     path: /project/automation/launch/{id}
     requirements:
         id: \d+
     controller: App\Controller\AutomationController::launch
+    
+automation_console:
+    path: /project/automation/console
+    controller: App\Controller\AutomationController::console
     
 automation_new:
     path: /project/{id}/automation/new

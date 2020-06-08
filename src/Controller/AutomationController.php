@@ -44,11 +44,11 @@ class AutomationController extends AbstractController
 		]);
 	}
 	
-	public function console(Automation $automation): Response
+	public function dashboard(Automation $automation): Response
 	{
 		
 		if ($automation->isValid()) {
-			return $this->render('automation/console.html.twig', [
+			return $this->render('automation/dashboard.html.twig', [
 				'automation' => $automation,
 				'route_back' =>  $this->generateUrl('project_view', [
 					'id' => $automation->getProject()->getId(),
@@ -80,7 +80,10 @@ class AutomationController extends AbstractController
 		
 		if ($form->isSubmitted() && $form->isValid()) {
 			
+			$view = $form->createView();
+			
 			if ($automation->isTypeImport()) {
+				
 				$file = $form->get('file')->getData();
 				
 				if (!$file) {
@@ -90,25 +93,26 @@ class AutomationController extends AbstractController
 						'form' => $view,
 					]);
 				}
+				
 			} elseif ($automation->isTypeExport()) {
 				
 				$fileName = $this->automationService->export($automation);
 				return $this->render('automation/result.html.twig', [
-					'route_back' =>  $this->generateUrl('project_view', [
-						'id' => $automation->getProject()->getId(),
-					]),
+					'form' => $view,
 					'file_name' => $fileName,
 					'upload_url' => $this->getParameter('uploads_directory') . '/' . $fileName,
 				]);
 				
+				
+				
 			} else {
 				$this->addFlash('danger', 'Invalid automation');
-				$view = $form->createView();
 				return $this->render('automation/launcher.html.twig', [
 					'form' => $view,
 				]);
 			}
 		} else {
+			$this->addFlash('info', 'Ready to launch');
 			$view = $form->createView();
 			return $this->render('automation/launcher.html.twig', [
 				'route_back' =>  $this->generateUrl('project_view', [
@@ -117,6 +121,11 @@ class AutomationController extends AbstractController
 				'form' => $view,
 			]);
 		}
+	}
+	
+	public function console(): Response
+	{
+		return $this->render('automation/console.html.twig');
 	}
 	
 	public function new(Request $request, Project $project): Response

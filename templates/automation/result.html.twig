@@ -1,1 +1,21 @@
-<a href="{{ asset(upload_url) }}">{{ file_name }}</a>
+{% form_theme form 'form/layout_ajax.html.twig' %}
+
+{{ form_start(form) }}
+    {% for child in form|filter(child => not child.rendered) %}
+        {{ form_row(child) }}
+    {% endfor %}
+
+    <div class="row justify-content-md-center">
+		<button id="launch" type="submit" class="btn btn-primary w-25 m-1" data-toggle="ajax" data-url="{{ app.request.uri }}" data-target="#output">{% trans %}Launch{% endtrans %}</button>
+	</div>
+{{ form_end(form) }}
+
+<div class="card mt-5">
+    <div class="card-body">
+    	<h5 class="card-title">{% trans %}Operation completed !{% endtrans %}</h5>
+        <p class="card-text">{% trans %}Your export file is ready and can be downloaded by clicking on the link below.{% endtrans %}</p>
+        <p class="text-center">
+        	<a href="{{ asset(upload_url) }}" class="btn btn-primary">{% trans %}Download link{% endtrans %}</a>
+        </p>
+    </div>
+</div>

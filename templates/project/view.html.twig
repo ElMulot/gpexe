@@ -37,7 +37,7 @@
     				<a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{% trans %}Automations{% endtrans %}</a>
     				<div class="dropdown-menu" style="{{ block('nav_item') }}">
     					{% for automation in automations %}
-    						<a class="dropdown-item" href="{{ path('automation_console', {'id': automation.id}) }}">{{ automation.name }}</a>
+    						<a class="dropdown-item" href="{{ path('automation_dashboard', {'id': automation.id}) }}">{{ automation.name }}</a>
     					{% endfor %}
     				</div>
 			    {% endif %}

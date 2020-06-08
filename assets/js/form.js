@@ -55,7 +55,6 @@ $(document).ready(function() {
 						if ($(this).hasClass('js-datepicker')) {
 							$(this).datepicker('setDate', null);
 						} else if ($(this).attr('type') == 'radio') {
-							console.log(this);
 							$(this).prop('checked', false);
 						} else if ($(this).attr('type') == 'checkbox') {
 							$(this).prop('checked', false);

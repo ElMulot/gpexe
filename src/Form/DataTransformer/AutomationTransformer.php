@@ -12,11 +12,11 @@ class AutomationTransformer implements DataTransformerInterface
 	
 	public function transform($value)
 	{
+		
 		if ($value === null) {
 			return '';
 		}
-		
-		return Automation::getValidatedCode($value);
+		return $value;
 	}
 	
 	public function reverseTransform($value)
