@@ -8,6 +8,7 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 
 class CodificationType extends AbstractType
 {
@@ -24,10 +25,13 @@ class CodificationType extends AbstractType
             	'expanded' => true,
             	'disabled' => ($builder->getData()->getId() != null),
             ])
+            ->add('codename', TextType::class)
             ->add('value', TextType::class, [
             	'required' => false
             ])
-            ->add('isMandatory')
+            ->add('isMandatory', CheckboxType::class, [
+            	'required' => false
+            ])
         ;
     }
 

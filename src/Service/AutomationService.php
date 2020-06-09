@@ -8,6 +8,8 @@ use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
 use Symfony\Component\String\Slugger\SluggerInterface;
 use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 use Symfony\Component\ExpressionLanguage\SyntaxError;
+use Symfony\Component\Filesystem\Exception\IOExceptionInterface;
+use Symfony\Component\Filesystem\Filesystem;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\IOFactory;
@@ -31,6 +33,8 @@ class AutomationService
 	
 	private $flashBagInterface;
 	
+	private $filesystem;
+	
 	public function __construct(string $targetDirectory, FlashBagInterface $flashBagInterface, SluggerInterface $slugger, VersionRepository $versionRespository, FieldService $fieldService)
 	{
 		$this->targetDirectory = $targetDirectory;
@@ -39,11 +43,12 @@ class AutomationService
 		$this->versionRespository = $versionRespository;
 		$this->fieldService = $fieldService;
 		$this->expressionLanguage = new ExpressionLanguage();
+		$this->filesystem = $filesystem = new Filesystem();
 	}
 	
 	public function export($automation):? string
 	{
-		$this->flashBagInterface->add('info', 'Starting export...');
+		$this->flashBagInterface->add('info', 'Starting export..');
 		$project = $automation->getProject();
 		$parsedCode = $automation->getParsedCode();
 		$fields = $this->fieldService->getFields($project);
@@ -63,7 +68,11 @@ class AutomationService
 		
 		//headers
 		foreach ($parsedCode['write'] as $write) {
-			if (array_key_exists($write['value'], $fields)) {
+			if (array_key_exists($write['title'], $fields)) {
+				$sheet->setCellValue($write['to'] . $firstLine, $fields[$write['title']]['title']);
+			} elseif ($write['title'] != '') {
+				$sheet->setCellValue($write['to'] . $firstLine, $write['title']);
+			} elseif (array_key_exists($write['value'], $fields)) {
 				$sheet->setCellValue($write['to'] . $firstLine, $fields[$write['value']]['title']);
 			} else {
 				$sheet->setCellValue($write['to'] . $firstLine, $write['value']);
@@ -92,8 +101,59 @@ class AutomationService
 
 	}
 	
-	public function import($file): bool
+	public function import($automation)
 	{
+		
+		$this->flashBagInterface->add('info', 'Starting import..');
+		$project = $automation->getProject();
+		$parsedCode = $automation->getParsedCode();
+		$fields = $this->fieldService->getFields($project);
+		
+		$firstLine = $parsedCode['first_line'];
+		
+		$spreadsheet = new Spreadsheet();
+		
+		//set document properties
+		$spreadsheet->getProperties()
+		->setCreator('GPEXE')
+		->setTitle('GPEXE Export')
+		;
+		
+		$versions = $this->versionRespository->getVersionsByProject($project);
+		$sheet = $spreadsheet->getActiveSheet();
+		
+		//headers
+		foreach ($parsedCode['write'] as $write) {
+			if (array_key_exists($write['title'], $fields)) {
+				$sheet->setCellValue($write['to'] . $firstLine, $fields[$write['title']]['title']);
+			} elseif ($write['title'] != '') {
+				$sheet->setCellValue($write['to'] . $firstLine, $write['title']);
+			} elseif (array_key_exists($write['value'], $fields)) {
+				$sheet->setCellValue($write['to'] . $firstLine, $fields[$write['value']]['title']);
+			} else {
+				$sheet->setCellValue($write['to'] . $firstLine, $write['value']);
+			}
+		}
+		
+		//content
+		$row = $firstLine + 1;
+		foreach ($versions as $version) {
+			foreach ($parsedCode['exclude'] as $exclude) {
+				if ($this->evaluate($exclude, $version) && $exclude != '') continue 2;
+			}
+			
+			foreach ($parsedCode['write'] as $write) {
+				if ($this->evaluate($write['condition'], $version)) {
+					$sheet->setCellValue($write['to'] . $row, $this->evaluate($write['value'], $version));
+				}
+			}
+			$row++;
+		}
+		
+		$this->flashBagInterface->add('success', 'Export successful. ' . ($row - $firstLine - 1) . ' lines written');
+		
+		
+		
 		$spreadsheet = IOFactory::load($file);
 		$sheetData = $spreadsheet->getActiveSheet()->toArray(null, true, true, true);
 	}
@@ -129,9 +189,15 @@ class AutomationService
 	{
 		$safeFilename = $this->slugger->slug($spreadsheet->getProperties()->getTitle()) . '.xlsx'; 
 		
+		if ($this->filesystem->exists($this->targetDirectory) == false) {
+			try {
+				$this->filesystem->mkdir($this->targetDirectory);
+			} catch (IOExceptionInterface $e) {
+				$this->flashBagInterface->add('danger', $e->getMessage());
+			}
+		}
+		
 		$writer = new Xlsx($spreadsheet);
-		
-		
 		try {
 			$writer->save($this->targetDirectory . '/'. $safeFilename);
 		} catch (WriterException $e) {

@@ -24,7 +24,9 @@ class CodificationItemController extends AbstractController
 	{
 		return $this->render('generic/list.html.twig', [
 			'header' => $this->translator->trans('List for the code') . ' : ' . $codification->getName(),
-			'route_back' => 'codification',
+			'route_back' =>  $this->generateUrl('codification', [
+				'id' => $codification->getProject()->getId(),
+			]),
 			'parent_id' => $codification->getProject()->getId(),
 			'class' => CodificationItem::class,
 			'entities' => $codificationItemRepository->getCodificationItem($codification),

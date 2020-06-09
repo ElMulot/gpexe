@@ -29,7 +29,7 @@ class CodificationItemRepository extends ServiceEntityRepository
     	return $this->createQueryBuilder('c')
     	->andWhere('c.codification = :val')
     	->setParameter('val', $codification)
-    	->addOrderBy('c.name')
+    	->addOrderBy('c.id')
     	->getQuery()
     	->getResult()
     	;

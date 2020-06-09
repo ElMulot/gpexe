@@ -112,7 +112,11 @@ class AutomationController extends AbstractController
 				]);
 			}
 		} else {
-			$this->addFlash('info', 'Ready to launch');
+			if ($automation->isTypeImport()) {
+				$this->addFlash('info', 'Select a file');
+			} else {
+				$this->addFlash('info', 'Ready to launch');
+			}
 			$view = $form->createView();
 			return $this->render('automation/launcher.html.twig', [
 				'route_back' =>  $this->generateUrl('project_view', [

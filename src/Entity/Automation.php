@@ -219,7 +219,7 @@ class Automation
 	
 	public function getValidatedCode($code)
 	{
-		dump($code);
+		
 		try {
 			$parsedCode = Yaml::parse($code ?? '') ?? [];
 		} catch (ParseException $exception) {
@@ -277,14 +277,14 @@ class Automation
 			'first_line' => '\d+',
 			'exclude' => ['.+'],
 			'get_serie' => [
-				'if' => '.+',
+				'condition' => '.+',
 			],
 			'get_document' => [
-				'if' => '.+',
+				'condition' => '.+',
 				'else' => 'create|skip',
 			],
 			'get_version' => [
-				'if' => '.+',
+				'condition' => '.+',
 				'else' => 'create|skip',
 			],
 			'write' => [
@@ -312,6 +312,7 @@ class Automation
 					'condition' => '.+',
 					'to' => '[A-Z]{1,2}',
 					'value' => '.+',
+					'title' => '.+',
 				],
 			],
 		];
@@ -321,11 +322,16 @@ class Automation
 	{
 		
 		if (is_array($structure)) {
-		
+			
 			foreach ($structure as $key => $value) {
 				
 				if (is_array($parsedCode) === false) {
-					$parsedCode = [$key => ''];
+					
+					$parsedCode = [$key => $value];
+					array_walk_recursive($parsedCode, function(&$item) {
+						$item = ($item == '\d+')?1:'';
+					});
+					
 				} else {
 					
 					if ($key === 0) {
@@ -335,7 +341,7 @@ class Automation
 						}, $value);
 						
 					} elseif (array_key_exists($key, $parsedCode)) {
-					
+						
 						$parsedCode[$key] = self::validateStructure($value, $parsedCode[$key]);
 						
 					} else {
