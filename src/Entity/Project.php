@@ -38,12 +38,12 @@ class Project
     private $users;
 
     /**
-     * @ORM\OneToMany(targetEntity=Codification::class, mappedBy="project", orphanRemoval=true)
+     * @ORM\OneToMany(targetEntity=Codification::class, mappedBy="project", orphanRemoval=true, fetch="EAGER")
      */
     private $codifications;
 
     /**
-     * @ORM\OneToMany(targetEntity=Metadata::class, mappedBy="project", orphanRemoval=true)
+     * @ORM\OneToMany(targetEntity=Metadata::class, mappedBy="project", orphanRemoval=true, fetch="EAGER")
      */
     private $metadatas;
 

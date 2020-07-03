@@ -37,6 +37,7 @@ class VersionRepository extends ServiceEntityRepository
 	 */
 	public function getVersionsArray(array $fields, Serie $serie=null, $request=null)
 	{
+		
 		$codificationQuery = [];
 		$subQuery = [];
 		
@@ -316,7 +317,7 @@ class VersionRepository extends ServiceEntityRepository
 		;
 	}
 	
-	function addEq($field, $parameter)
+	private function addEq($field, $parameter)
 	{
 		$this->uid++;
 		$eqQuery = $this->query->expr()->eq($field, '?' . $this->uid);
@@ -324,7 +325,7 @@ class VersionRepository extends ServiceEntityRepository
 		return $eqQuery;
 	}
 	
-	function addNotEq($field, $parameter)
+	private function addNotEq($field, $parameter)
 	{
 		$this->uid++;
 		$notEqQuery = $this->query->expr()->neq($field, '?' . $this->uid);
@@ -332,7 +333,7 @@ class VersionRepository extends ServiceEntityRepository
 		return $notEqQuery;
 	}
 	
-	function addAnd($array)
+	private function addAnd($array)
 	{
 		$andQuery = $this->query->expr()->andX();
 		foreach ($array as $field => $parameter) {

@@ -79,7 +79,7 @@ class SerieController extends AbstractController
     					'form' => $view,
     				]);
     			}
-    			
+    			$serie->setMetadatas($this->serieRepository->getMetadatas($project));
     			$serie->setMetadataValue($metadata, $value);
     		}
     		

@@ -34,13 +34,13 @@ class DocumentRepository extends ServiceEntityRepository
     public function getDocuments(Project $project, Company $company)
     {
     	return $this->createQueryBuilder('s')
-    	->andWhere('s.project = :project')
-    	->setParameter('project', $project)
-    	->andWhere('s.company = :company')
-    	->setParameter('company', $company)
-    	->addOrderBy('c.name')
-    	->getQuery()
-    	->getResult()
+	    	->andWhere('s.project = :project')
+	    	->setParameter('project', $project)
+	    	->andWhere('s.company = :company')
+	    	->setParameter('company', $company)
+	    	->addOrderBy('c.name')
+	    	->getQuery()
+	    	->getResult()
     	;
     }
     

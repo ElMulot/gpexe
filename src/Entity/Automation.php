@@ -271,26 +271,32 @@ class Automation
 	
 	private function getStructureImport(): array
 	{
-		//$regexCondition = '(\w+\.\w+)\s*(==|!=)\s*(\d+|".+"|\w+\.\w+|\/\S+\/)';
 		return [
 			'type' => 'import',
-			'first_line' => '\d+',
+			'first_row' => '\d+',
+			'first_column' => '[A-Z]{1,2}',
+			'date_format' => '[djDlSzFMmnYyaAhgGHisvu\s#;:\/\.,\-\(\)]+',
 			'exclude' => ['.+'],
 			'get_serie' => [
 				'condition' => '.+',
 			],
 			'get_document' => [
 				'condition' => '.+',
-				'else' => 'create|skip',
+				'then' => ['\w+'],
+				'else' => ['\w+'],
 			],
 			'get_version' => [
 				'condition' => '.+',
-				'else' => 'create|skip',
+				'then' => ['\w+'],
+				'else' => ['\w+'],
 			],
 			'write' => [
-				'condition' => '.+',
-				'to' => '\w+\.\w+',
-				'value' => '\S+',
+				[
+					'name' => '\w+',
+					'condition' => '.+',
+					'to' => '\w+\.\w+',
+					'value' => '.+',
+				]
 			],
 			'option' => [
 				'move_from_mdr' => 'true|false|choose',
@@ -302,10 +308,9 @@ class Automation
 	
 	private function getStructureExport(): array
 	{
-		//$regexCondition = '(\w+\.\w+)\s*(==|!=)\s*(\d+|".+"|\w+\.\w+|\/\S+\/)';
 		return [
 			'type' => 'export',
-			'first_line' => '\d+',
+			'first_row' => '\d+',
 			'exclude' => ['.+'],
 			'write' => [
 				[
@@ -329,7 +334,7 @@ class Automation
 					
 					$parsedCode = [$key => $value];
 					array_walk_recursive($parsedCode, function(&$item) {
-						$item = ($item == '\d+')?1:'';
+						$item = self::setDefaultValue($item);
 					});
 					
 				} else {
@@ -368,11 +373,32 @@ class Automation
 				if (preg_match('/' . $structure . '/', $parsedCode, $matches)) {
 					$parsedCode = (is_numeric($matches[0]))?+$matches[0]:$matches[0];
 				} else {
-					$parsedCode = ($structure == '\d+')?1:'';
+					$parsedCode = self::setDefaultValue($structure);
 				}
 			}
 		}
 		return $parsedCode;
+	}
+	
+	private function setDefaultValue(string $structure)
+	{	
+		switch ($structure) {
+			case '\d+':
+				$value = 1;
+				break;
+			case '[A-Z]{1,2}':
+				$value = 'A';
+				break;
+			case '[djDlSzFMmnYyaAhgGHisvu\s#;:\/\.,\-\(\)]+':
+				$value = 'd/m/Y';
+				break;
+			case 'true|false|choose':
+				$value = 'choose';
+				break;
+			default:
+				$value = '';
+		}
+		return $value;
 	}
 	
 }

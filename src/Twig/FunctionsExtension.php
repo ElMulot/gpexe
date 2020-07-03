@@ -9,6 +9,7 @@ use Symfony\Component\PropertyAccess\PropertyAccess;
 
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
+use Doctrine\Common\Collections\ArrayCollection;
 
 class FunctionsExtension extends AbstractExtension
 {
@@ -55,14 +56,14 @@ class FunctionsExtension extends AbstractExtension
 		$propertiesName = [];
 
 		$properties = $this->propertyInfo->getProperties($class);
-
+		
 		foreach ($properties as $key => $property) {
 			if (($this->propertyInfo->isReadable($class, $property) && $this->propertyInfo->isWritable($class, $property)) || $property == 'id') {
 				$type = $this->propertyInfo->getTypes($class, $property);
-				if (!$type[0]->isCollection()) $propertiesName[] = $property;
+
+				if ($type[0]->isCollection() == false && $type[0]->getClassName() != ArrayCollection::class) $propertiesName[] = $property;
             }
         }
-        
         return $propertiesName;
     }
 }

@@ -1,0 +1,13 @@
+{% form_theme form 'form/layout_ajax.html.twig' %}
+
+{{ form_start(form) }}
+    {% for child in form|filter(child => not child.rendered) %}
+        {{ form_row(child) }}
+    {% endfor %}
+{{ form_end(form) }}
+
+<div class="card mt-5">
+    <div class="card-body">
+    	<h5 class="card-title">{% trans %}Operation completed !{% endtrans %}</h5>
+    </div>
+</div>

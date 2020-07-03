@@ -261,16 +261,16 @@ class DocumentController extends AbstractController
 			}
 		}
 		
-		foreach ($this->companyRepository->getCheckerCompanies($project) as $company) {
-			if (!$project->getVisasByCompany($company)->isEmpty()) {
-				$fields['visa.' . $company->getId()]['form'] = $this->createForm(SelectType::class, null, [
+		foreach ($this->companyRepository->getCheckerCompanies($project) as $checkerCompany) {
+			if (!$project->getVisasByCompany($checkerCompany)->isEmpty()) {
+				$fields['visa.' . $checkerCompany->getId()]['form'] = $this->createForm(SelectType::class, null, [
 						'controls' => [
 							[
-								'full_id' => 'visa[' . $company->getId() . ']',
-								'snake_case_full_id' => 'visa_' . $company->getId(),
-								'title' => $this->translator->trans('Visa') . ' ' . $company->getName(),
+								'full_id' => 'visa[' . $checkerCompany->getId() . ']',
+								'snake_case_full_id' => 'visa_' . $checkerCompany->getId(),
+								'title' => $this->translator->trans('Visa') . ' ' . $checkerCompany->getName(),
 								'multiple' => true,
-								'choices' => $project->getVisasByCompany($company),
+								'choices' => $project->getVisasByCompany($checkerCompany),
 								'choice_label' => 'name',
 							],
 						],
@@ -293,6 +293,7 @@ class DocumentController extends AbstractController
 	
 	public function table(Request $request, SerializerInterface $serializer, Serie $serie): Response
 	{
+		
 		$project = $serie->getProject();
 		
 		$page = $request->query->get('page') ?? 1;

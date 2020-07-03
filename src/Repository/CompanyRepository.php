@@ -39,13 +39,13 @@ class CompanyRepository extends ServiceEntityRepository
     public function getCompaniesByProject(Project $project)
     {
     	return $this->createQueryBuilder('c')
-    	->innerJoin('c.users', 'u')
-    	->innerJoin('u.projects', 'p')
-    	->andWhere('p.id = :id')
-    	->setParameter('id', $project->getId())
-    	->addOrderBy('c.name')
-    	->getQuery()
-    	->getResult()
+	    	->innerJoin('c.users', 'u')
+	    	->innerJoin('u.projects', 'p')
+	    	->andWhere('p.id = :id')
+	    	->setParameter('id', $project->getId())
+	    	->addOrderBy('c.name')
+	    	->getQuery()
+	    	->getResult()
     	;
     }
     
@@ -56,15 +56,15 @@ class CompanyRepository extends ServiceEntityRepository
     public function getMainContractors(Project $project)
     {
     	return $this->createQueryBuilder('c')
-    	->innerJoin('c.users', 'u')
-    	->innerJoin('u.projects', 'p')
-    	->andWhere('p.id = :id')
-    	->setParameter('id', $project->getId())
-    	->andWhere('c.type = :type')
-    	->setParameter('type', Company::MAIN_CONTRACTOR)
-    	->addOrderBy('c.name')
-    	->getQuery()
-    	->getResult()
+	    	->innerJoin('c.users', 'u')
+	    	->innerJoin('u.projects', 'p')
+	    	->andWhere('p.id = :id')
+	    	->setParameter('id', $project->getId())
+	    	->andWhere('c.type = :type')
+	    	->setParameter('type', Company::MAIN_CONTRACTOR)
+	    	->addOrderBy('c.name')
+	    	->getQuery()
+	    	->getResult()
     	;
     }
     
@@ -74,15 +74,15 @@ class CompanyRepository extends ServiceEntityRepository
     public function getSubContractors(Project $project)
     {
     	return $this->createQueryBuilder('c')
-    	->innerJoin('c.users', 'u')
-    	->innerJoin('u.projects', 'p')
-    	->andWhere('p.id = :id')
-    	->setParameter('id', $project->getId())
-    	->andWhere('c.type IN (:type)')
-    	->setParameter('type', [Company::SUB_CONTRACTOR, Company::SUPPLIER])
-    	->addOrderBy('c.name')
-    	->getQuery()
-    	->getResult()
+	    	->innerJoin('c.users', 'u')
+	    	->innerJoin('u.projects', 'p')
+	    	->andWhere('p.id = :id')
+	    	->setParameter('id', $project->getId())
+	    	->andWhere('c.type IN (:type)')
+	    	->setParameter('type', [Company::SUB_CONTRACTOR, Company::SUPPLIER])
+	    	->addOrderBy('c.name')
+	    	->getQuery()
+	    	->getResult()
     	;
     }
     
@@ -92,16 +92,16 @@ class CompanyRepository extends ServiceEntityRepository
     public function getCheckerCompanies(Project $project)
     {
     	return $this->createQueryBuilder('c')
-    	->innerJoin('c.users', 'u')
-    	->innerJoin('u.projects', 'p')
-    	->andWhere('p.id = :id')
-    	->setParameter('id', $project->getId())
-    	->andWhere('c.type IN (:type)')
-    	->setParameter('type', [Company::MAIN_CONTRACTOR, Company::CHECKER])
-    	->addOrderBy('c.priority', 'DESC')
-    	->addOrderBy('c.name')
-    	->getQuery()
-    	->getResult()
+	    	->innerJoin('c.users', 'u')
+	    	->innerJoin('u.projects', 'p')
+	    	->andWhere('p.id = :id')
+	    	->setParameter('id', $project->getId())
+	    	->andWhere('c.type IN (:type)')
+	    	->setParameter('type', [Company::MAIN_CONTRACTOR, Company::CHECKER])
+	    	->addOrderBy('c.priority', 'DESC')
+	    	->addOrderBy('c.name')
+	    	->getQuery()
+	    	->getResult()
     	;
     }
 }

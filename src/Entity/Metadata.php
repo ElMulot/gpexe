@@ -59,7 +59,7 @@ class Metadata
     private $parent;
     
     /**
-     * @ORM\ManyToOne(targetEntity=Project::class, inversedBy="metadatas")
+     * @ORM\ManyToOne(targetEntity=Project::class, inversedBy="metadatas", fetch="EAGER")
      * @ORM\JoinColumn(nullable=false)
      */
     private $project;

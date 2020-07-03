@@ -88,7 +88,7 @@ class VersionController extends AbstractController
 		if ($form->isSubmitted() && $form->isValid()) {
 			$version->setIsRequired($form->get('isRequired')->getData());
 			if ($version->getIsRequired()) {
-				$version->setInitialScheduledDate($form->get('date')->getData());
+				$version->setScheduledDate($form->get('date')->getData());
 			} else {
 				$version->setDeliveryDate($form->get('date')->getData());
 			}

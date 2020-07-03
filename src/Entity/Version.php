@@ -129,13 +129,6 @@ class Version
 	{
 		return $this->initialScheduledDate;
 	}
-	
-	public function setInitialScheduledDate(\DateTimeInterface $initialScheduledDate): self
-	{
-		$this->initialScheduledDate = $initialScheduledDate;
-
-		return $this;
-	}
 
 	public function getScheduledDate(): ?\DateTimeInterface
 	{
@@ -144,8 +137,12 @@ class Version
 
 	public function setScheduledDate(\DateTimeInterface $scheduledDate): self
 	{
-		$this->scheduledDate = $scheduledDate;
-
+		if ($this->initialScheduledDate()) {
+			$this->scheduledDate = $scheduledDate;
+		} else {
+			$this->initialScheduledDate = $scheduledDate;
+		}
+		
 		return $this;
 	}
 	
@@ -156,7 +153,7 @@ class Version
 	
 	public function setDeliveryDate(\DateTimeInterface $deliveryDate): self
 	{
-		$this->deliveryDate = $deliveryDate;
+		$this->deliveryDate = min($deliveryDate, new \DateTime('now'));
 		
 		return $this;
 	}
@@ -364,7 +361,7 @@ class Version
 				foreach ($this->getMetadataValues()->getValues() as $metadataValue) {
 					if ($metadataValue->getMetadata() == $metadata) {
 						if ($metadataValue->getValue() == $value) {
-							return false;
+							return true;
 						} else {
 							$this->metadataValues->removeElement($metadataValue);
 						}
@@ -378,15 +375,13 @@ class Version
 					$this->addMetadataValue($metadataValue);
 					return true;
 				}
-				
-				return false;
 				break;
 				
 			case Metadata::LIST:
 				foreach ($this->getMetadataItems()->getValues() as $metadataItem) {
 					if ($metadataItem->getMetadata() == $metadata) {
 						if ($metadataItem->getValue() == $value) {
-							return false;
+							return true;
 						} else {
 							$this->metadataItems->removeElement($metadataItem);
 						}
@@ -401,10 +396,10 @@ class Version
 					}
 					return true;
 				}
-				
-				return false;
 				break;
 		}
+		
+		return false;
 	}
 	
 	public function getPropertyValue(string $codename)
@@ -413,28 +408,48 @@ class Version
 		switch ($codename) {
 			case 'version.name':
 				return $this->getName();
-				break;
+				
 			case 'version.initialScheduledDate':
 				return $this->getInitialScheduledDate();
-				break;
+				
 			case 'version.scheduledDate':
 				return $this->getScheduledDate();
-				break;
+				
 			case 'version.deliveryDate':
 				return $this->getDeliveryDate();
-				break;
+				
 			case 'version.isRequired':
 				return $this->getIsRequired();
-				break;
+				
 			case 'version.writer':
 				return $this->getWriter();
-				break;
+				
 			case 'version.checker':
 				return $this->getChecker();
-				break;
+				
 			case 'version.approver':
 				return $this->getApprover();
-				break;
+				
+			case 'version.lastDelivered':
+				if ($this->getIsRequired()) return false;
+				$date = $this->getDeliveryDate();
+				foreach ($this->getDocument()->getVersions()->getValues() as $version) {
+					if ($version->getIsRequired() == false && $version->getDeliveryDate() > $date) {
+						return false;
+					}
+				}
+				return true;
+				
+			case 'version.lastScheduled':
+				if ($this->getIsRequired() == false) return false;
+				$date = $this->getScheduledDate();
+				foreach ($this->getDocument()->getVersions()->getValues() as $version) {
+					if ($version->getIsRequired() && $version->getScheduledDate() > $date) {
+						return false;
+					}
+				}
+				return true;
+				
 			default:
 				if (preg_match('/version\.\w+/', $codename)) {
 					foreach ($this->getDocument()->getSerie()->getProject()->getMetadatas()->getValues() as $metadata) {
@@ -452,6 +467,106 @@ class Version
 		return null;
 	}
 	
+	public function setPropertyValue(string $codename, $value): bool
+	{
+		
+		switch ($codename) {
+			case 'version.name':
+				$this->setName($value);
+				return true;
+			
+			case 'version.date':
+				if ($date = \DateTime::createFromFormat('d-m-Y', $value)) {
+					if ($date > new \DateTime('now')) {
+						$this->setIsRequired(true);
+						$this->setDeliveryDate($date);
+					} elseif ($this->getIsRequired()) {
+						$this->setScheduledDate($date);
+					} else {
+						$this->setDeliveryDate($date);
+					}
+				}
+				break;
+				
+			case 'version.isRequired':
+				if ($value == 'false') $value = false;
+				$this->setIsRequired($value);
+				return true;
+				
+			case 'version.writer':
+				foreach ($this->getDocument()->getSerie()->getCompany()->getUsers()->getValues() as $user) {
+					if (preg_match('/^[\w\-\.]+@[\w\-\.]+\.[a-zA-Z]{2,5}$/', $value) == 1) {
+						if ($user->getEmail() == $value) {
+							$this->setWriter($user);
+							return true;
+						}
+					} else {
+						if ($user->getName() == $value) {
+							$this->setWriter($user);
+							return true;
+						}
+					}
+				}
+				break;
+				
+			case 'version.checker':
+				foreach ($this->getDocument()->getSerie()->getProject()->getUsers()->getValues() as $user) {
+					if ($user->getCompany()->isMainContractor() || $user->getCompany()->isChecker()) {
+						if (preg_match('/^[\w\-\.]+@[\w\-\.]+\.[a-zA-Z]{2,5}$/', $value) == 1) {
+							if ($user->getEmail() == $value) {
+								$this->setChecker($user);
+								return true;
+							}
+						} else {
+							if ($user->getName() == $value) {
+								$this->setChecker($user);
+								return true;
+							}
+						}
+					}
+				}
+				break;
+				
+			case 'version.approver':
+				foreach ($this->getDocument()->getSerie()->getProject()->getUsers()->getValues() as $user) {
+					if ($user->getCompany()->isMainContractor() || $user->getCompany()->isChecker()) {
+						if (preg_match('/^[\w\-\.]+@[\w\-\.]+\.[a-zA-Z]{2,5}$/', $value) == 1) {
+							if ($user->getEmail() == $value) {
+								$this->setApprover($user);
+								return true;
+							}
+						} else {
+							if ($user->getName() == $value) {
+								$this->setApprover($user);
+								return true;
+							}
+						}
+					}
+				}
+				break;
+				
+			default:
+				if (preg_match('/version\.\w+/', $codename)) {
+					foreach ($this->getDocument()->getSerie()->getProject()->getMetadatas()->getValues() as $metadata) {
+						if ($metadata->getFullCodename() == $codename) {
+							return $this->setMetadataValue($metadata, $value);
+						}
+					}
+				} elseif (preg_match('/status\.value/', $codename)) {
+					foreach ($this->getDocument()->getSerie()->getProject()->getStatuses()->getValues() as $status) {
+						if ($status->getValue() == $value) {
+							$this->setStatus($status);
+							return true;
+						}
+					}
+				} else {
+					return $this->setDocument()->setPropertyValue($codename, $value);
+				}
+		}
+		
+		return false;
+	}
+	
 	public function getPropertyValueToString(string $codename): string
 	{
 		$value = $this->getPropertyValue($codename);
@@ -459,7 +574,6 @@ class Version
 		switch (gettype($value)) {
 			case 'boolean':
 				return ($value)?'Yes':'No';
-				break;
 				
 			case 'object':
 				if ($value instanceof \DateTime) {
@@ -470,17 +584,16 @@ class Version
 					switch (gettype($value->getValue())) {
 						case 'boolean':
 							return ($value->getValue())?'Yes':'No';
-							break;
+							
 						case 'object':
 							return $value->getValue()->format('d-m-Y');
-							break;
+							
 						default:
 							return $value->getValue();
 					}
 				} else {
 					return (string)$value;
 				}
-				break;
 				
 			default:
 				return (string)$value;

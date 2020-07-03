@@ -53,6 +53,8 @@ class Serie
 
     public function __construct()
     {
+    	$this->metadataItems = new ArrayCollection();
+    	$this->metadataValues = new ArrayCollection();
     	$this->documents = new ArrayCollection();
     }
 
@@ -63,7 +65,7 @@ class Serie
 
     public function getName(): ?string
     {
-        return $this->name;
+    	return $this->name;
     }
 
     public function setName(string $name): self
@@ -102,7 +104,6 @@ class Serie
     /**
      * @return Collection|MetadataValue[]
      */
-    
     public function getMetadataValues(): Collection
     {
     	return $this->metadataValues;
@@ -181,7 +182,8 @@ class Serie
         return $this;
     }
     
-    public function getMetadataValue(Metadata $metadata) {
+    public function getMetadataValue(Metadata $metadata)
+    {
     	
     	switch ($metadata->getType()) {
     		
@@ -229,7 +231,7 @@ class Serie
     			foreach ($this->getMetadataValues()->getValues() as $metadataValue) {
     				if ($metadataValue->getMetadata() == $metadata) {
     					if ($metadataValue->getValue() == $value) {
-    						return false;
+    						return true;
     					} else {
     						$this->removeMetadataValue($metadataValue);
     					}
@@ -244,14 +246,13 @@ class Serie
     				return true;
     			}
     			
-    			return false;
     			break;
     			
     		case Metadata::LIST:
     			foreach ($this->getMetadataItems()->getValues() as $metadataItem) {
     				if ($metadataItem->getMetadata() == $metadata) {
     					if ($metadataItem->getValue() == $value) {
-    						return false;
+    						return true;
     					} else {
     						$this->removeMetadataItem($metadataItem);
     					}
@@ -267,9 +268,10 @@ class Serie
     				return true;
     			}
     			
-    			return false;
     			break;
     	}
+    	
+    	return false;
     }
     
     public function getPropertyValue(string $codename)
@@ -278,10 +280,10 @@ class Serie
     	switch ($codename) {
     		case 'serie.name':
     			return $this->getName();
-    			break;
+    			
     		case 'serie.company':
     			return $this->getCompany()->getName();
-    			break;
+    			
     		default:
     			if (preg_match('/serie\.\w+/', $codename)) {
     				foreach ($this->getProject()->getMetadatas()->getValues() as $metadata) {
@@ -295,6 +297,27 @@ class Serie
     	return null;
     }
     
+    public function setPropertyValue(string $codename, $value)
+    {
+    	
+    	switch ($codename) {
+    		case 'serie.name':
+    			$this->setName($value);
+    			return true;
+    			
+    		default:
+    			if (preg_match('/serie\.\w+/', $codename)) {
+    				foreach ($this->getProject()->getMetadatas()->getValues() as $metadata) {
+    					if ($metadata->getFullCodename() == $codename) {
+    						return $this->setMetadataValue($metadata, $value);
+    					}
+    				}
+    			}
+    	}
+    	
+    	return false;
+    }
+    
     public function getPropertyValueToString(string $codename): string
     {
     	$value = $this->getPropertyValue($codename);
@@ -302,7 +325,6 @@ class Serie
     	switch (gettype($value)) {
     		case 'boolean':
     			return ($value)?'Yes':'No';
-    			break;
     			
     		case 'object':
     			if ($value instanceof MetadataItem || $value instanceof MetadataValue) {
@@ -319,7 +341,6 @@ class Serie
     			} else {
     				return (string)$value;
     			}
-    			break;
     			
     		default:
     			return (string)$value;

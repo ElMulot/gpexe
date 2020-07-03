@@ -674,7 +674,8 @@ function createTableHeader(that) {
 			}
 			
 			select.divList = select.divContent.append(create.div).children().last()
-				.addClass('px-2 ' + ((select.multiple)?'pt-3':'pt-1'))
+				.addClass('px-2 overflow-auto ' + ((select.multiple)?'pt-3':'pt-1'))
+				.css('max-height', '20em')
 			;
 			
 			if (select.multiple) {
@@ -1001,6 +1002,26 @@ $(document).ready(function() {
 		location.assign($(this).data('url') + urlSearch.toString());
 		return false;
 	});
+	
+	/*
+	$('#tabs a').on('click', function(e) {
+		if ($(this).hasClass('active')) {
+			$('#tabs').css('height', '3em');
+			
+			$(this).removeClass('active');
+			$(this).attr('aria-selected', false);
+			//console.log(this);
+			$('#' + $(this).attr('aria-controls')).removeAttr('class');
+			//console.log($('#' + $(this).attr('aria-controls'))[0]);
+		} else {
+			$('#tabs').css('height', '10em');
+			$(this).addClass('active');
+			$(this).attr('aria-selected', true);
+			$('#' + $(this).attr('aria-controls')).attr('class', 'tab-pane fade show active');
+		}
+		
+	});
+	*/
 	
 	$('#check_all').on('click', function() {
 		$('tbody').find('input[type="checkbox"]').each(function() {

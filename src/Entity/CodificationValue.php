@@ -41,9 +41,9 @@ class CodificationValue
 
     public function setValue(string $value): self
     {
-        $this->value = $value;
-
-        return $this;
+    	$this->value = $value;
+    	
+    	return $this;
     }
 
     public function getCodification(): ?Codification

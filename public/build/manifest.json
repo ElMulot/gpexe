@@ -4,6 +4,7 @@
   "build/app~document.js": "/build/app~document.js",
   "build/automation.css": "/build/automation.css",
   "build/automation.js": "/build/automation.js",
+  "build/dashboard.css": "/build/dashboard.css",
   "build/dashboard.js": "/build/dashboard.js",
   "build/document.css": "/build/document.css",
   "build/document.js": "/build/document.js",
@@ -22,7 +23,9 @@
   "build/vendors~document~form.js": "/build/vendors~document~form.js",
   "build/vendors~form.css": "/build/vendors~form.css",
   "build/vendors~form.js": "/build/vendors~form.js",
-  "build/vendors~app~automation~document~form.js": "/build/vendors~app~automation~document~form.js",
-  "build/vendors~app~automation~document~form~login.js": "/build/vendors~app~automation~document~form~login.js",
-  "build/dashboard.css": "/build/dashboard.css"
+  "build/app.css": "/build/app.css",
+  "build/vendors~app.js": "/build/vendors~app.js",
+  "build/vendors~app~automation~dashboard~form.js": "/build/vendors~app~automation~dashboard~form.js",
+  "build/vendors~app~automation~dashboard~form~login.js": "/build/vendors~app~automation~dashboard~form~login.js",
+  "build/vendors~app~form.js": "/build/vendors~app~form.js"
 }

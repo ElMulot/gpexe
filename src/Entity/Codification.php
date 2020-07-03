@@ -52,7 +52,7 @@ class Codification
     private $isMandatory;
 
     /**
-     * @ORM\ManyToOne(targetEntity=Project::class, inversedBy="codifications")
+     * @ORM\ManyToOne(targetEntity=Project::class, inversedBy="codifications", fetch="EAGER")
      * @ORM\JoinColumn(nullable=false)
      */
     private $project;

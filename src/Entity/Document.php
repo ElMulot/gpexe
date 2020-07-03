@@ -193,7 +193,7 @@ class Document
     {
         return $this->versions;
     }
-
+	
     public function addVersion(Version $version): self
     {
         if (!$this->versions->contains($version)) {
@@ -252,10 +252,9 @@ class Document
     public function getReference(): ?string
     {
     	$project = $this->getSerie()->getProject();
-    	$codifications = $project->getCodifications()->getValues();
     	$references = [];
     	
-    	foreach ($codifications as $codification) {
+    	foreach ($project->getCodifications()->getValues() as $codification) {
     		
     		if ($codification->isList()) {
     			
@@ -283,18 +282,38 @@ class Document
     	
     }
     
+    public function setReference($value): bool
+    {
+    	$project = $this->getSerie()->getProject();
+    	$references = explode($project->getSplitter(), $value);
+    	
+    	foreach ($project->getCodifications()->getValues() as $codification) {
+    		
+    		if ($reference === null) $reference = trim(array_shift($references));
+    		
+    		if ($reference === null) return false;
+    		
+    		if ($this->setCodificationValue($codification, $reference)) {
+    			$reference = null;
+    		} elseif ($codification->getIsMandatory()) {
+    			return false;
+    		}
+    	}
+    	
+    	return true;
+    }
+    
     public function setCodificationValue(Codification $codification, $value): bool
     {
     	
     	switch ($codification->getType()) {
     		case Codification::FIXED:
     			return true;
-    			break;
     			
     		case Codification::LIST:
     			if ($codificationItem = $this->getCodificationItemByCodification($codification)) {
     				if ($codificationItem == $value) {
-    					return false;
+    					return true;
     				} else {
     					$this->codificationItems->removeElement($codificationItem);
     				}
@@ -305,19 +324,18 @@ class Document
     				return true;
     			}
     			
-    			return false;
     			break;
     				
     		case Codification::REGEX:
     			if ($codificationValue = $this->getCodificationValueByCodification($codification)) {
     				if ($codificationValue->getValue() == $value) {
-    					return false;
+    					return true;
     				} else {
     					$this->codificationValues->removeElement($codificationValue);
     				}
     			}
     			
-    			if ($value != '') {
+    			if ($value != '' && preg_match($codification->getValue(), $value) === 1) {
     				$codificationValue = new CodificationValue();
     				$codificationValue->setValue($value);
     				$codificationValue->setDocument($this);
@@ -326,7 +344,6 @@ class Document
     				return true;
     			}
     			
-    			return false;
     			break;
     	}
     	
@@ -381,7 +398,7 @@ class Document
     			foreach ($this->getMetadataValues()->getValues() as $metadataValue) {
     				if ($metadataValue->getMetadata() == $metadata) {
     					if ($metadataValue->getValue() == $value) {
-    						return false;
+    						return true;
     					} else {
     						$this->metadataValues->removeElement($metadataValue);
     					}
@@ -396,14 +413,13 @@ class Document
     				return true;
     			}
     			
-    			return false;
     			break;
     			
     		case Metadata::LIST:
     			foreach ($this->getMetadataItems()->getValues() as $metadataItem) {
     				if ($metadataItem->getMetadata() == $metadata) {
     					if ($metadataItem->getValue() == $value) {
-    						return false;
+    						return true;
     					} else {
     						$this->metadataItems->removeElement($metadataItem);
     					}
@@ -419,9 +435,10 @@ class Document
     				return true;
     			}
     			
-    			return false;
     			break;
     	}
+    	
+    	return false;
     }
     
     public function getPropertyValue(string $codename)
@@ -449,6 +466,32 @@ class Document
     	return null;
     }
     
+    public function setPropertyValue(string $codename, $value): bool
+    {
+    	
+    	switch ($codename) {
+    		case 'document.name':
+    			$this->setName($value);
+    			return true;
+    			
+    		case 'document.reference':
+    			return $this->setReference($value);
+    			
+    		default:
+    			if (preg_match('/document\.\w+/', $codename)) {
+    				foreach ($this->getSerie()->getProject()->getMetadatas()->getValues() as $metadata) {
+    					if ($metadata->getFullCodename() == $codename) {
+    						return $this->setMetadataValue($metadata, $value);
+    					}
+    				}
+    			} else {
+    				return $this->getSerie()->setPropertyValue($codename, $value);
+    			}
+    	}
+    	
+    	return false;
+    }
+    
     public function getPropertyValueToString(string $codename): string
     {
     	$value = $this->getPropertyValue($codename);
@@ -456,24 +499,22 @@ class Document
     	switch (gettype($value)) {
     		case 'boolean':
     			return ($value)?'Yes':'No';
-    			break;
     			
     		case 'object':
     			if ($value instanceof MetadataItem || $value instanceof MetadataValue) {
     				switch (gettype($value->getValue())) {
     					case 'boolean':
     						return ($value->getValue())?'Yes':'No';
-    						break;
+    						
     					case 'object':
     						return $value->getValue()->format('d-m-Y');
-    						break;
+    						
     					default:
     						return $value->getValue();
     				}
     			} else {
     				return (string)$value;
     			}
-    			break;
     			
     		default:
     			return (string)$value;

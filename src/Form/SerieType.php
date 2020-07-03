@@ -15,6 +15,7 @@ use App\Entity\Serie;
 use App\Entity\Metadata;
 use App\Entity\MetadataItem;
 use App\Entity\MetadataValue;
+use App\Service\SerieService;
 use App\Repository\MetadataRepository;
 
 class SerieType extends AbstractType
@@ -31,7 +32,9 @@ class SerieType extends AbstractType
 	
 	public function buildForm(FormBuilderInterface $builder, array $options)
     {
-        $builder->add('name');
+    	
+    	
+    	$builder->add('name');
         
         $project = $builder->getData()->getProject();
         foreach ($this->metadataRepository->getMetadatasForSerie($project) as $metadata) {

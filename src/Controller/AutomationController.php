@@ -18,18 +18,17 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 
 class AutomationController extends AbstractController
 {
-	private $translator;
+	private TranslatorInterface $translator;
 	
-	private $automationRepository;
+	private AutomationRepository $automationRepository;
 	
-	private $automationService;
+	private AutomationService $automationService;
 	
 	public function __construct(TranslatorInterface $translator, AutomationRepository $automationRepository, AutomationService $automationService)
 	{
 		$this->translator = $translator;
 		$this->automationRepository = $automationRepository;
 		$this->automationService = $automationService;
-		
 	}
 	
 	public function index(Project $project): Response
@@ -66,7 +65,13 @@ class AutomationController extends AbstractController
 	{
 		
 		if ($automation->isTypeImport()) {
-			$form = $this->createForm(LauncherImportType::class, $automation);
+			if ($request->request->has('hidden_file')) {
+				$form = $this->createForm(LauncherImportType::class, $automation, [
+					'hidden_file' => $request->request->get('hidden_file'),
+				]);
+			} else {
+				$form = $this->createForm(LauncherImportType::class, $automation);
+			}
 		} elseif ($automation->isTypeExport()) {
 			$form = $this->createForm(LauncherExportType::class, $automation);
 		} else {
@@ -80,50 +85,75 @@ class AutomationController extends AbstractController
 		
 		if ($form->isSubmitted() && $form->isValid()) {
 			
-			$view = $form->createView();
-			
-			if ($automation->isTypeImport()) {
+			if ($automation->isTypeImport() && $form->has('file')) { //check import
 				
 				$file = $form->get('file')->getData();
+				
+				if ($file === null) {
+					$this->addFlash('danger', 'Error while opening file');
+					$view = $form->createView();
+					return $this->render('automation/launcher.html.twig', [
+						'form' => $form->createView(),
+					]);
+				}
+				
+				$form = $this->createForm(LauncherImportType::class, $automation, [
+					'hidden_file' => $file,
+				]);
+				
+				$fileName = $this->automationService->import($file, $automation, true);
+				return $this->render('automation/check.html.twig', [
+					'form' => $form->createView(),
+					'upload_url' => $this->getParameter('uploads_directory') . '/' . $fileName,
+				]);
+					
+			} elseif ($automation->isTypeImport() && $form->has('hidden_file')) { //launch import
+					
+				$file = $form->get('hidden_file')->getData();
 				
 				if (!$file) {
 					$this->addFlash('danger', 'Error while opening file');
 					$view = $form->createView();
 					return $this->render('automation/launcher.html.twig', [
-						'form' => $view,
+						'form' => $form->createView(),
 					]);
 				}
 				
-			} elseif ($automation->isTypeExport()) {
+				$this->automationService->import($file, $automation, false);
+				return $this->render('automation/import.html.twig', [
+					'form' => $form->createView(),
+				]);
+				
+			} elseif ($automation->isTypeExport()) { //export
 				
 				$fileName = $this->automationService->export($automation);
-				return $this->render('automation/result.html.twig', [
-					'form' => $view,
-					'file_name' => $fileName,
+				return $this->render('automation/export.html.twig', [
+					'form' => $form->createView(),
 					'upload_url' => $this->getParameter('uploads_directory') . '/' . $fileName,
 				]);
 				
+			} else { //error
 				
-				
-			} else {
 				$this->addFlash('danger', 'Invalid automation');
 				return $this->render('automation/launcher.html.twig', [
-					'form' => $view,
+					'form' => $form->createView(),
 				]);
+				
 			}
 		} else {
+			
 			if ($automation->isTypeImport()) {
 				$this->addFlash('info', 'Select a file');
 			} else {
 				$this->addFlash('info', 'Ready to launch');
 			}
-			$view = $form->createView();
 			return $this->render('automation/launcher.html.twig', [
 				'route_back' =>  $this->generateUrl('project_view', [
 					'id' => $automation->getProject()->getId(),
 				]),
-				'form' => $view,
+				'form' => $form->createView(),
 			]);
+			
 		}
 	}
 	

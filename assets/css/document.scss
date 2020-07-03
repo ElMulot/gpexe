@@ -22,9 +22,9 @@ main {
 
 #tabs {
 	position: absolute;
-	height:10em;
 	width:95%;
 	padding:0.25rem;
+	overflow: hidden;
 }
 
 #tab ul {

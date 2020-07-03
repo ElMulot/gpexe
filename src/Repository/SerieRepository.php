@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Company;
+use App\Entity\Metadata;
 use App\Entity\Project;
 use App\Entity\Serie;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -24,13 +25,25 @@ class SerieRepository extends ServiceEntityRepository
     public function getSeries(Project $project, Company $company)
     {
     	return $this->createQueryBuilder('s')
-    	->andWhere('s.project = :project')
-    	->setParameter('project', $project)
-    	->andWhere('s.company = :company')
-    	->setParameter('company', $company)
-    	->addOrderBy('s.name')
-    	->getQuery()
-    	->getResult()
+	    	->andWhere('s.project = :project')
+	    	->setParameter('project', $project)
+	    	->andWhere('s.company = :company')
+	    	->setParameter('company', $company)
+	    	->addOrderBy('s.name')
+	    	->getQuery()
+	    	->getResult()
+    	;
+    }
+    
+    public function getMetadatas(Project $project)
+    {
+    	return $this->getEntityManager()->createQueryBuilder()
+	    	->select('m')
+	    	->from(Metadata::class, 'm')
+	    	->andWhere('m.project = :project')
+	    	->setParameter('project', $project)
+	    	->getQuery()
+	    	->getResult()
     	;
     }
 }
