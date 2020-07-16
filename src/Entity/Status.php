@@ -37,12 +37,18 @@ class Status
      * @ORM\Column(type="smallint")
      */
     private $type;
-
+    
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $isDefault;
+    
     /**
      * @ORM\ManyToOne(targetEntity=Project::class, inversedBy="statuses")
      * @ORM\JoinColumn(nullable=false)
      */
     private $project;
+
     
     public function __construct()
     {
@@ -90,6 +96,18 @@ class Status
     	return $this;
     }
     
+    public function getIsDefault(): ?bool
+    {
+    	return $this->isDefault;
+    }
+    
+    public function setIsDefault(bool $isDefault): self
+    {
+    	$this->isDefault = $isDefault;
+    	
+    	return $this;
+    }
+    
     public function getIsInformation(): bool
     {
     	return ($this->getType() == self::INFORMATION);
@@ -130,7 +148,7 @@ class Status
     			return $this->getName();
     			break;
     		case 'status.value':
-    			return $this->getValue();
+    			return $this;
     			break;
     		case 'status.type':
     			return $this->getType();

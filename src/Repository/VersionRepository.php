@@ -57,9 +57,9 @@ class VersionRepository extends ServiceEntityRepository
 			foreach ($codifications as $codification => $ids) {
 				
 				$subQuery = $this->getEntityManager()->createQueryBuilder()
-				->select('d' . $codification)
-				->from(Document::class, 'd' . $codification)
-				->innerJoin('d' . $codification . '.codificationItems', 'i' . $codification);
+					->select('d' . $codification)
+					->from(Document::class, 'd' . $codification)
+					->innerJoin('d' . $codification . '.codificationItems', 'i' . $codification);
 				
 				foreach ($ids as $id) {
 					if ($id) {
@@ -175,11 +175,11 @@ class VersionRepository extends ServiceEntityRepository
 			
 			if ($visas = $request->query->get('visa')) {
 				$subQuery = $this->getEntityManager()->createQueryBuilder()
-				->select('r')
-				->from(Review::class, 'r')
-				->innerJoin('r.user', 'u')
-				->andWhere($this->query->expr()->in('r.visa', array_keys($visas)))
-				->andWhere($this->query->expr()->in('u.company', array_values($visas)));
+					->select('r')
+					->from(Review::class, 'r')
+					->innerJoin('r.user', 'u')
+					->andWhere($this->query->expr()->in('r.visa', array_keys($visas)))
+					->andWhere($this->query->expr()->in('u.company', array_values($visas)));
 				$this->query->andWhere($this->query->expr()->in('v.id', $subQuery->getDQL()));
 			}
 			

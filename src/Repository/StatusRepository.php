@@ -34,4 +34,35 @@ class StatusRepository extends ServiceEntityRepository
     	->getResult()
     	;
     }
+    
+    /**
+     * @return int
+     *
+     */
+    public function getStatusesCount(Project $project): int
+    {
+    	return (int)$this->createQueryBuilder('s')
+	    	->select('count(s.id)')
+	    	->andWhere('s.project = :val')
+	    	->setParameter('val', $project)
+	    	->getQuery()
+	    	->getSingleScalarResult()
+    	;
+    }
+    
+    /**
+     * @return Status[]
+     *
+     */
+    public function getDefaultStatus(Project $project)
+    {
+    	return $this->createQueryBuilder('s')
+	    	->andWhere('s.project = :project')
+	    	->setParameter('project', $project)
+	    	->andWhere('s.isDefault = :isDefault')
+	    	->setParameter('isDefault', true)
+	    	->getQuery()
+	    	->getSingleResult()
+    	;
+    }
 }

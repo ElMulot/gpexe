@@ -3,9 +3,10 @@
 namespace App\Repository;
 
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
-use Symfony\Component\Serializer\Encoder\JsonEncoder;
+use Doctrine\Common\Collections\Collection;
 use App\Entity\Company;
 use App\Entity\Document;
 use App\Entity\Project;
@@ -27,10 +28,7 @@ class DocumentRepository extends ServiceEntityRepository
         $this->encoder = new JsonEncoder();
     }
     
-    /**
-     * @return Document[]
-     *
-     */
+    /*
     public function getDocuments(Project $project, Company $company)
     {
     	return $this->createQueryBuilder('s')
@@ -43,6 +41,7 @@ class DocumentRepository extends ServiceEntityRepository
 	    	->getResult()
     	;
     }
+    */
     
     /**
      * @return Document[]
@@ -60,5 +59,50 @@ class DocumentRepository extends ServiceEntityRepository
     			->getResult();
     	}
     	return null;
+    }
+    
+    /**
+     * @return Document[]
+     *
+     */
+    public function getDocumentByReference(Project $project, $codificationItems, $codificationValues)
+    {
+    	$query = $this->createQueryBuilder('d')
+    		->innerJoin('d.serie', 's')
+	    	->andWhere('s.project = :project')
+	    	->setParameter('project', $project);
+		
+    	foreach ($codificationItems->getValues() as $codificationItem) {
+    		
+    		$id = $codificationItem->getCodification()->getId();
+    		
+    		$subQuery = $this->getEntityManager()->createQueryBuilder()
+    			->select('d' . $id)
+    			->from(Document::class, 'd' . $id)
+    			->innerJoin('d' . $id . '.codificationItems', 'i' . $id)
+    			->andWhere('i' . $id . '.value = ?' . $id)
+    		;
+			$query->setParameter($id, $codificationItem->getValue());
+    		$query->andWhere($query->expr()->in('d.id', $subQuery->getDQL()));
+    		
+    	}
+    	
+    	foreach ($codificationValues->getValues() as $id => $codificationValue) {
+    		
+    		$id = $codificationValue->getCodification()->getId();
+    		
+    		$subQuery = $this->getEntityManager()->createQueryBuilder()
+	    		->select('d' . $id)
+	    		->from(Document::class, 'd' . $id)
+	    		->innerJoin('d' . $id . '.codificationValues', 'v' . $id)
+	    		->andWhere('v' . $id . '.value = ?' . $id)
+	    	;
+    		
+	    	$query->setParameter($id, $codificationValue->getValue());
+	    	$query->andWhere($query->expr()->in('d.id', $subQuery->getDQL()));
+    		
+    	}
+    	
+    	return $query->setMaxResults(1)->getQuery()->getResult();
     }
 }

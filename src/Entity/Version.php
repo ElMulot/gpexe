@@ -29,19 +29,17 @@ class Version
 	private $isRequired;
 	
 	/**
-	 * @ORM\Column(type="date")
+	 * @ORM\Column(type="date", nullable=true))
 	 */
 	private $initialScheduledDate;
 	
 	/**
-	 * @ORM\Column(type="date")
-	 * @ORM\JoinColumn(nullable=false)
+	 * @ORM\Column(type="date", nullable=true)
 	 */
 	private $scheduledDate;
 	
 	/**
-	 * @ORM\Column(type="date")
-	 * @ORM\JoinColumn(nullable=false)
+	 * @ORM\Column(type="date", nullable=true)
 	 */
 	private $deliveryDate;
 	
@@ -91,6 +89,7 @@ class Version
 
 	public function __construct()
 	{
+		$this->isRequired = false;
 		$this->metadataItems = new ArrayCollection();
 		$this->metadataValues = new ArrayCollection();
 	 	$this->reviews = new ArrayCollection();
@@ -486,7 +485,7 @@ class Version
 						$this->setDeliveryDate($date);
 					}
 				}
-				break;
+				return true;
 				
 			case 'version.isRequired':
 				if ($value == 'false') $value = false;

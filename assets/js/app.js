@@ -1,6 +1,6 @@
 const $ = require('jquery');
-// this "modifies" the jquery module: adding behavior to it
-// the bootstrap module doesn't export/return anything
+const bsCustomFileInput = require('bs-custom-file-input');
+
 require('bootstrap');
 require('../css/global.scss');
 
@@ -172,6 +172,7 @@ global.ajax = {
 				
 				let url = $(this).data('url');
 				let target = $(this).data('target') || this;
+				let add = $(this).data('add');
 				
 				if ($form.find('input[type="file"]').length) {
 					var method = 'POST';
@@ -181,10 +182,14 @@ global.ajax = {
 					var data = $form.serializeArray();
 				}
 				
-				that.set(target, url, method, data);
+				that.set(target, url, method, data, add);
 				return false;
 				
 			});
+			
+			if ($(this).hasClass('active')) {
+				$(this).trigger('click');
+			}
 			
 		});
 		
@@ -198,7 +203,7 @@ global.ajax = {
 		
 	},
 		
-	set: function (target, url, method='GET', data=[]) {
+	set: function (target, url, method='GET', data=[], add=false) {
 		
 		if (target && url) {
 			$(target)
@@ -215,12 +220,13 @@ global.ajax = {
 				processData: (data.constructor !== FormData),
 				
 				success: function(result) {
-					$(target)
-						.empty()
-						.html(result);
-					
+					if (add) {
+						$(target).html($(target).html() + result);
+					} else {
+						$(target).html(result);
+					}
+					bsCustomFileInput.init();
 					that.fetch(target);
-					
 				},
 			});
 		}

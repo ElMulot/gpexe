@@ -71,7 +71,6 @@ class VersionType extends AbstractType
 		
 		$this->buildRow('checker', 'checker', 'version.checker', Metadata::LIST, false, $versions, $choices);
 		$this->buildRow('approver', 'approver', 'version.approver', Metadata::LIST, false, $versions, $choices);
-		
 	}
 	
 	public function configureOptions(OptionsResolver $resolver)
@@ -200,7 +199,6 @@ class VersionType extends AbstractType
 				break;
 				
 			case Metadata::LIST:
-				
 				$data = null;
 				if (!$multiple && $version) {
 					$data = $version->getPropertyValue($label);

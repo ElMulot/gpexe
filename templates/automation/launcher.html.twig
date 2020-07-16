@@ -1,11 +1,19 @@
-{% form_theme form 'form/layout_ajax.html.twig' %}
+{% if form is defined %}
 
-{{ form_start(form) }}
-    {% for child in form|filter(child => not child.rendered) %}
-        {{ form_row(child) }}
-    {% endfor %}
+	{% form_theme form 'form/layout_ajax.html.twig' %}
+	
+	{{ form_start(form) }}
+		{% for child in form|filter(child => not child.rendered) %}
+			{{ form_row(child) }}
+		{% endfor %}
+	
+		<div class="row justify-content-md-center">
+			<button type="submit" class="btn btn-primary w-25 m-1" data-toggle="ajax" data-url="{{ app.request.uri }}" data-target="#output">{% trans %}Launch{% endtrans %}</button>
+		</div>
+	{{ form_end(form) }}
 
-    <div class="row justify-content-md-center">
-		<button id="launch" type="submit" class="btn btn-primary w-25 m-1" data-toggle="ajax" data-url="{{ app.request.uri }}" data-target="#output">{% trans %}Launch{% endtrans %}</button>
-	</div>
-{{ form_end(form) }}
+{% else %}
+	
+	<a class="active" data-toggle="ajax" data-url="{{ path('automation_console', app.request.query.all|merge({'id': automation.id})) }}" data-target="#console"></a>
+	
+{% endif %}

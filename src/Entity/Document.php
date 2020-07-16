@@ -286,6 +286,7 @@ class Document
     {
     	$project = $this->getSerie()->getProject();
     	$references = explode($project->getSplitter(), $value);
+    	$reference = null;
     	
     	foreach ($project->getCodifications()->getValues() as $codification) {
     		
@@ -293,6 +294,13 @@ class Document
     		
     		if ($reference === null) return false;
     		
+    		//cas où la codification de type Fix contient le séparateur
+    		if ($codification->isFixed()) {
+    			$nb = substr_count($codification->getValue(), $project->getSplitter());
+    			for ($i=0; $i<$nb; $i++) {
+    				$reference .= $project->getSplitter() . trim(array_shift($references));
+    			}
+    		}
     		if ($this->setCodificationValue($codification, $reference)) {
     			$reference = null;
     		} elseif ($codification->getIsMandatory()) {
@@ -311,8 +319,10 @@ class Document
     			return true;
     			
     		case Codification::LIST:
+    			
     			if ($codificationItem = $this->getCodificationItemByCodification($codification)) {
-    				if ($codificationItem == $value) {
+    				
+    				if ($codificationItem->getValue() == $value) {
     					return true;
     				} else {
     					$this->codificationItems->removeElement($codificationItem);
@@ -320,8 +330,11 @@ class Document
     			}
     			
     			if ($value) {
-    				$this->addCodificationItem($value);
-    				return true;
+    				if ($codificationItem = $codification->getCodificationItemByValue($value)) {
+    					
+    					$this->addCodificationItem($codificationItem);
+    					return true;
+    				}
     			}
     			
     			break;
@@ -335,10 +348,9 @@ class Document
     				}
     			}
     			
-    			if ($value != '' && preg_match($codification->getValue(), $value) === 1) {
+    			if ($value != '' && preg_match('/' . $codification->getValue() . '/', $value) === 1) {
     				$codificationValue = new CodificationValue();
     				$codificationValue->setValue($value);
-    				$codificationValue->setDocument($this);
     				$codificationValue->setCodification($codification);
     				$this->addCodificationValue($codificationValue);
     				return true;

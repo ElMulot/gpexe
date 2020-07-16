@@ -449,8 +449,16 @@ automation_launch:
     controller: App\Controller\AutomationController::launch
     
 automation_console:
-    path: /project/automation/console
+    path: /project/automation/console/{id}
+    requirements:
+        id: \d+
     controller: App\Controller\AutomationController::console
+
+automation_completed:
+    path: /project/automation/completed/{id}
+    requirements:
+        id: \d+
+    controller: App\Controller\AutomationController::completed
     
 automation_new:
     path: /project/{id}/automation/new

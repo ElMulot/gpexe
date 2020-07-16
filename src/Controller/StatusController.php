@@ -43,7 +43,7 @@ class StatusController extends AbstractController
 			$entityManager = $this->getDoctrine()->getManager();
 			$entityManager->persist($status);
 			$entityManager->flush();
-
+			
 			$this->addFlash('success', 'New entry created');
 			return $this->redirectToRoute('status', [
 				'id' => $project->getId()
@@ -67,8 +67,10 @@ class StatusController extends AbstractController
 
 		if ($form->isSubmitted() && $form->isValid()) {
 			$entityManager = $this->getDoctrine()->getManager();
+			$entityManager->persist($status);
 			$entityManager->flush();
 			$this->addFlash('success', 'Datas updated');
+			
 			return $this->redirectToRoute('status', [
 				'id' => $status->getProject()->getId()
 			]);

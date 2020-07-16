@@ -1,14 +1,12 @@
 const $ = require('jquery');
 require('../css/dashboard.scss');
 
-var refreshConsole;
+//var refreshConsole;
 
 $(document).ready(function() {
 	
-	
-	
 });
-
+/*
 $(document).ajaxSend(function(e, jqxhr, settings) {
 	if (settings.url == $('#output').data('url')) {
 		$('#console').empty();
@@ -34,6 +32,8 @@ function updateConsole() {
 		
 		success: function(result) {
 			$('#console').html($('#console').html() + result);
+			bsCustomFileInput.init();
 		},
 	});
 }
+*/

@@ -180,7 +180,7 @@ class Codification
     public function getCodificationItemByValue(string $value): ?CodificationItem
     {
     	foreach ($this->getCodificationItems()->getValues() as $codificationItem) {
-    		if ($codificationItem->getValue() == $value) {
+    		if ($codificationItem->__toString() == $value) {
     			return $codificationItem;
     		}
     	}

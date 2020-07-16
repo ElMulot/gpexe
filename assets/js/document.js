@@ -1003,6 +1003,31 @@ $(document).ready(function() {
 		return false;
 	});
 	
+	$('#tabs').on('show.bs.tab', function() {
+		$('.collapse').collapse('show');
+		$('#table_container').css('margin-top', '10em');
+	});
+	
+	$('#tabs ul li a').on('click', function(e) {
+		if ($(this).hasClass('active')) {
+			e.preventDefault();
+			e.stopImmediatePropagation();
+			$(this).removeClass('active');
+			$(this).blur();
+			$(this).attr('aria-selected', false);
+			$('#' + $(this).attr('aria-controls')).parent().collapse('hide');
+		}
+	});
+    
+	$('#tabs').on('shown.bs.collapse', function() {
+		$('#table_container').css('margin-top', '10em');
+	});
+	
+	$('#tabs').on('hidden.bs.collapse', function(e) {
+		$('#table_container').css('margin-top', '4em');
+	});
+	
+	
 	/*
 	$('#tabs a').on('click', function(e) {
 		if ($(this).hasClass('active')) {

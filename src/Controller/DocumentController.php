@@ -19,6 +19,7 @@ use App\Entity\Vue;
 use App\Form\SelectType;
 use App\Form\DocumentType;
 use App\Form\ReviewType;
+use App\Service\DocumentService;
 use App\Service\FieldService;
 use App\Repository\CompanyRepository;
 use App\Repository\UserRepository;
@@ -35,6 +36,8 @@ class DocumentController extends AbstractController
 	const MAX_RECORDS = 50;
 		
 	private $translator;
+	
+	private $documentService;
 	
 	private $fieldService;
 	
@@ -56,9 +59,10 @@ class DocumentController extends AbstractController
 	
 	private $vueRepository;
 	
-	public function __construct(TranslatorInterface $translator, FieldService $fieldService, CompanyRepository $companyRepository, UserRepository $userRepository, CodificationRepository $codificationRepository, MetadataRepository $metadataRepository, StatusRepository $statusRepository, SerieRepository $serieRepository, DocumentRepository $documentRepository, VersionRepository $versionRepository, VueRepository $vueRepository)
+	public function __construct(TranslatorInterface $translator, DocumentService $documentService, FieldService $fieldService, CompanyRepository $companyRepository, UserRepository $userRepository, CodificationRepository $codificationRepository, MetadataRepository $metadataRepository, StatusRepository $statusRepository, SerieRepository $serieRepository, DocumentRepository $documentRepository, VersionRepository $versionRepository, VueRepository $vueRepository)
 	{
 		$this->translator = $translator;
+		$this->documentService = $documentService;
 		$this->fieldService = $fieldService;
 		$this->companyRepository = $companyRepository;
 		$this->userRepository = $userRepository;
@@ -318,6 +322,7 @@ class DocumentController extends AbstractController
 		$request->query->set('page', $page);
 		
 		$versions = $this->versionRepository->getVersionsArray($this->fieldService->getFields($project), $serie, $request);
+		
 		$page_max = ceil(count($versions)/self::MAX_RECORDS);
 		
 		return new JsonResponse([
@@ -348,11 +353,13 @@ class DocumentController extends AbstractController
 		$form = $this->createForm(DocumentType::class, $document, [
 			'project' => $project
 		]);
+		
 		$form->handleRequest($request);
-
+		
 		if ($form->isSubmitted() && $form->isValid()) {
 			
 			foreach ($this->codificationRepository->getCodifications($project) as $codification) {
+				
 				$value = $form->get($codification->getCodeName())->getData();
 				
 				if ($value === null && $metadata->getIsMandatory()) {
@@ -367,6 +374,17 @@ class DocumentController extends AbstractController
 				}
 				
 				$document->setCodificationValue($codification, $value);
+			}
+			
+			if ($this->documentService->validateReference($document) === false) {
+				$this->addFlash('danger', 'The reference  \'' . $document->getReference() . '\' already exist');
+				$view = $form->createView();
+				return $this->render('generic/form.html.twig', [
+					'route_back' =>  $this->generateUrl('document', [
+						'id' => $document->getSerie()->getId(),
+					]),
+					'form' => $view,
+				]);
 			}
 			
 			foreach ($this->metadataRepository->getMetadatasForDocument($project) as $metadata) {

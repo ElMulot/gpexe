@@ -1,10 +1,6 @@
-{% form_theme form 'form/layout_ajax.html.twig' %}
-
-{{ form_start(form) }}
-    {% for child in form|filter(child => not child.rendered) %}
-        {{ form_row(child) }}
-    {% endfor %}
-{{ form_end(form) }}
+<div class="row justify-content-md-center">
+	<button type="button" class="btn btn-primary w-25 m-1" data-toggle="ajax" data-url="{{ path('automation_launch', {'id': automation.id}) }}" data-target="#output">{% trans %}New import{% endtrans %}</button>
+</div>
 
 <div class="card mt-5">
     <div class="card-body">

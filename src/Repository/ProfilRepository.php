@@ -39,12 +39,12 @@ class ProfilRepository extends ServiceEntityRepository
     public function countAdminProfil(int $id): int
      {
 	     return (int)$this->createQueryBuilder('p')
-	     ->select('count(p.id)')
-	     ->andWhere('p.id <> :val')
-	     ->setParameter('val', $id)
-	     ->andWhere('p.isAdmin = true')
-	     ->getQuery()
-	     ->getScalarResult()
+		     ->select('count(p.id)')
+		     ->andWhere('p.id <> :val')
+		     ->setParameter('val', $id)
+		     ->andWhere('p.isAdmin = true')
+		     ->getQuery()
+		     ->getSingleScalarResult()
 	     ;
      }
 }

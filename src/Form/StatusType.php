@@ -7,6 +7,7 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 
 class StatusType extends AbstractType
 {
@@ -24,6 +25,9 @@ class StatusType extends AbstractType
             	],
             	'expanded' => true,
             	'disabled' => ($builder->getData()->getId() != null),
+            ])
+            ->add('isDefault', CheckboxType::class, [
+            	'required' => false
             ])
         ;
     }

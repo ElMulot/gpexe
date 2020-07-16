@@ -36,6 +36,7 @@ class CodificationController extends AbstractController
 	{
 		$codification = new Codification();
 		$codification->setProject($project);
+		
 		$form = $this->createForm(CodificationType::class, $codification);
 		$form->handleRequest($request);
 

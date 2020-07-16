@@ -9,33 +9,43 @@ use Symfony\Component\String\Slugger\SluggerInterface;
 use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 use Symfony\Component\ExpressionLanguage\SyntaxError;
 use Symfony\Component\Filesystem\Exception\IOExceptionInterface;
-use App\Service\FieldService;
 use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Cache\Adapter\FilesystemAdapter;
+use Doctrine\ORM\EntityManagerInterface;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx as Writer;
 use PhpOffice\PhpSpreadsheet\Writer\Exception as WriterException;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use PhpOffice\PhpSpreadsheet\Shared\Date;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
 use App\Entity\Automation;
 use App\Entity\Document;
 use App\Entity\Serie;
 use App\Entity\Version;
+use App\Service\FieldService;
+use App\Repository\StatusRepository;
 use App\Repository\VersionRepository;
 
 class AutomationService
 {
 	
-	const IGNORE_COLOR 		= 'C8C8C8';
-	const WARNING_COLOR 	= 'FFE591';
-	const ERROR_COLOR 		= 'FF9191';
-	const VALID_COLOR 		= 'CCFF91';
+	const MAX_LINES_PROCESSED 	= 10;
+	const IGNORE_COLOR 			= 'C8C8C8';
+	const WARNING_COLOR 		= 'FFE591';
+	const ERROR_COLOR 			= 'FF9191';
+	const VALID_COLOR 			= 'CCFF91';
 	
 	private $slugger;
 	
 	private $flashBagInterface;
 	
+	private EntityManagerInterface $entityManager;
+	
 	private $versionRespository;
-		
+	
+	private $statusRespository;
+	
 	private $fieldService;
 	
 	private $security;
@@ -43,60 +53,146 @@ class AutomationService
 	private $expressionLanguage;
 	
 	private $filesystem;
-		
+	
+	private FilesystemAdapter $cache;
+	
 	private $targetDirectory;
+	
+	private $comments;
 	
 	private $parsedCode;
 	
 	private $sheet;
-	
-	private $comments;
-	
-	public function __construct(FlashBagInterface $flashBagInterface, SluggerInterface $slugger, VersionRepository $versionRespository, FieldService $fieldService, Security $security, string $targetDirectory)
+
+	public function __construct(FlashBagInterface $flashBagInterface, SluggerInterface $slugger, EntityManagerInterface $entityManager, VersionRepository $versionRepository, StatusRepository $statusRespository, FieldService $fieldService, Security $security, string $targetDirectory)
 	{
 		$this->slugger = $slugger;
 		$this->flashBagInterface = $flashBagInterface;
-		$this->versionRespository = $versionRespository;
+		$this->entityManager = $entityManager;
+		$this->versionRepository = $versionRepository;
+		$this->statusRespository = $statusRespository;
 		$this->fieldService = $fieldService;
 		$this->security = $security;
 		$this->expressionLanguage = new ExpressionLanguage();
 		$this->filesystem = new Filesystem();
+		$this->cache = new FilesystemAdapter;
 		$this->targetDirectory = $targetDirectory;
 		$this->comments = [];
 	}
 	
-	public function export(Automation $automation):? string
+	public function setCache(Automation $automation)
 	{
-		$this->flashBagInterface->add('info', 'Starting export..');
+		dump($automation);
+		$this->parsedCode = $automation->getParsedCode();
+		$firstRow = $this->parsedCode['first_row'];
+		
+		$currentRowItem = $this->cache->getItem('automation.current_row');
+		$currentRowItem->set($firstRow);
+		$this->cache->save($currentRowItem);
+		
+		$countProcessedItem = $this->cache->getItem('automation.count_processed');
+		$countProcessedItem->set(0);
+		$this->cache->save($countProcessedItem);
+		
+		$newBatchItem = $this->cache->getItem('automation.new_batch');
+		$newBatchItem->set(false);
+		$this->cache->save($newBatchItem);
+	}
+	
+	public function load(Automation $automation, string $file)
+	{
+		
+		$this->flashBagInterface->add('info', 'Démarrage de l\'opération');
+		
+		$this->setCache($automation);
+		
+		$this->parsedCode = $automation->getParsedCode();
+		$firstRow = $this->parsedCode['first_row'];
+		
+		$reader = IOFactory::createReaderForFile($file);
+		//$reader->setReadDataOnly(true);
+		$spreadsheet = $reader->load($file);
+		
+		$this->sheet = $spreadsheet->getActiveSheet();
+			
+		if ($automation->isTypeExport()) {
+			
+			//set document properties
+			$spreadsheet->getProperties()
+				->setCreator('GPEXE')
+				->setTitle('GPEXE Export')
+			;
+			
+			//headers
+			$fields = [];
+			foreach ($this->parsedCode['write'] as $write) {
+				if (array_key_exists($write['title'], $fields)) {
+					$this->sheet->setCellValue($write['to'] . $firstRow, $fields[$write['title']]['title']);
+				} elseif ($write['title'] != '') {
+					$this->sheet->setCellValue($write['to'] . $firstRow, $write['title']);
+				} elseif (array_key_exists($write['value'], $fields)) {
+					$this->sheet->setCellValue($write['to'] . $firstRow, $fields[$write['value']]['title']);
+				} else {
+					$this->sheet->setCellValue($write['to'] . $firstRow, $write['value']);
+				}
+			}
+			
+			return $this->save($spreadsheet);
+
+		} elseif ($automation->isTypeImport()) {
+
+			//set document properties
+			$spreadsheet->getProperties()
+				->setCreator('GPEXE')
+				->setTitle('GPEXE Import')
+			;
+			
+			return $this->save($spreadsheet);
+			
+		} else {
+			
+			$this->flashBagInterface->add('error', 'Erreur : programme invalide');
+			return false;
+			
+		}
+	}
+	
+	public function export(Automation $automation, string $file):? string
+	{
 		$project = $automation->getProject();
 		$this->parsedCode = $automation->getParsedCode();
 		$fields = $this->fieldService->getFields($project);
 		
-		$firstRow = $this->parsedCode['first_row'];
+		//cache
+		$currentRowItem = $this->cache->getItem('automation.current_row');
+		if ($currentRowItem->isHit()) {
+			$row = $currentRowItem->get();
+		} else {
+			$this->flashBagInterface->add('error', 'Erreur interne.');
+			return false;
+		}
 		
-		$spreadsheet = new Spreadsheet();
+		$countProcessedItem = $this->cache->getItem('automation.count_processed');
+		if ($countProcessedItem->isHit()) {
+			$countProcessed = $countProcessedItem->get();
+		} else {
+			$this->flashBagInterface->add('error', 'Erreur interne.');
+			return false;
+		}
 		
-		//set document properties
-		$spreadsheet->getProperties()
-			->setCreator('GPEXE')
-			->setTitle('GPEXE Export')
-		;
+		$newBatchItem = $this->cache->getItem('automation.new_batch');
+		if ($newBatchItem->isHit() === false) {
+			$this->flashBagInterface->add('error', 'Erreur interne.');
+			return false;
+		}
 		
-		$versions = $this->versionRespository->getVersionsByProject($project);
+		$reader = IOFactory::createReaderForFile($file);
+		//$reader->setReadDataOnly(true);
+		$spreadsheet = $reader->load($file);
+		
 		$this->sheet = $spreadsheet->getActiveSheet();
 		
-		//headers
-		foreach ($this->parsedCode['write'] as $write) {
-			if (array_key_exists($write['title'], $fields)) {
-				$this->sheet->setCellValue($write['to'] . $firstRow, $fields[$write['title']]['title']);
-			} elseif ($write['title'] != '') {
-				$this->sheet->setCellValue($write['to'] . $firstRow, $write['title']);
-			} elseif (array_key_exists($write['value'], $fields)) {
-				$this->sheet->setCellValue($write['to'] . $firstRow, $fields[$write['value']]['title']);
-			} else {
-				$this->sheet->setCellValue($write['to'] . $firstRow, $write['value']);
-			}
-		}
+		$versions = $this->versionRespository->getVersionsByProject($project);
 		
 		//content
 		$row = $firstRow + 1;
@@ -120,35 +216,56 @@ class AutomationService
 
 	}
 	
-	public function import($file, Automation $automation, bool $checkOnly)
+	public function import(Automation $automation, string $file, bool $checkOnly)
 	{
 		
-		$this->flashBagInterface->add('info', 'Starting checking..');
+		$matches = null;
 		$project = $automation->getProject();
 		$this->parsedCode = $automation->getParsedCode();
 		$this->checkOnly = $checkOnly;
-		$nbImported = 0;
 		$fields = $this->fieldService->getFields($project);
-		
-		$firstRow = $this->parsedCode['first_row'];
 		$firstColumn = $this->parsedCode['first_column'];
+				
+		$defaultStatus = $this->statusRespository->getDefaultStatus($project);
+		if ($defaultStatus === null) {
+			$this->flashBagInterface->add('error', 'Pas de status par défaut.');
+			return false;
+		}
+		
+		//cache
+		$currentRowItem = $this->cache->getItem('automation.current_row');
+		if ($currentRowItem->isHit()) {
+			$row = $currentRowItem->get();
+		} else {
+			$this->flashBagInterface->add('error', 'Erreur interne.');
+			return false;
+		}
+		
+		$countProcessedItem = $this->cache->getItem('automation.count_processed');
+		if ($countProcessedItem->isHit()) {
+			$countProcessed = $countProcessedItem->get();
+		} else {
+			$this->flashBagInterface->add('error', 'Erreur interne.');
+			return false;
+		}
+		
+		$newBatchItem = $this->cache->getItem('automation.new_batch');
+		if ($newBatchItem->isHit() === false) {
+			$this->flashBagInterface->add('error', 'Erreur interne.');
+			return false;
+		}
 		
 		$reader = IOFactory::createReaderForFile($file);
-		$reader->setReadDataOnly(true);
+		//$reader->setReadDataOnly(true);
 		$spreadsheet = $reader->load($file);
-		
-		//set document properties
-		$spreadsheet->getProperties()->setTitle('GPEXE Import');
 		
 		$this->sheet = $spreadsheet->getActiveSheet();
 		
-		$row = $firstRow;
-		
-		while ($this->sheet->getCell($firstColumn . $row)) {
+		while ($this->sheet->getCell($firstColumn . $row)->getValue()) {
 			
 			//exclude
 			foreach ($this->parsedCode['exclude'] as $exclude) {
-				if ($this->evaluate($exclude, null, $this->sheet, $row) && $exclude != '') {
+				if ($this->evaluate($exclude, null, $row) && $exclude != '') {
 					$this->sheet->getStyle($row . ':' . $row)->getFill()->getStartColor()->setARGB(self::IGNORED_COLOR);
 					$this->addComment('ignore', "Ligne exclue via l'instruction 'Exclude'.");
 					$this->writeComments($row);
@@ -188,26 +305,36 @@ class AutomationService
 			
 			if ($currentDocument !== null) {
 				
-				foreach ($this->parsedCode['get_document']['then'] as $name) {
-					if ($write = $this->getWriteClauseByName($name)) {
-						if ($this->evaluate($write['condition'], $currentDocument, $row)) {
-							if ($currentDocument->setPropertyValue($write['to'], $this->evaluate($write['value'], $currentDocument, $row))) {
-								$this->addComment('valid', "Clause '{$name}' validée.");
-							} else {
-								$this->addComment('warning', "Erreur en écrivant le champ '{$write['to']}' de la clause '{$name}'.");
-							}
-						} else {
-							$this->addComment('warning', "Clause '{$name}' non validée.");
+				foreach ($this->parsedCode['get_document']['then'] as $then) {
+					
+					if (preg_match('/(\(.+\))?\s*\[(\w+.\w+)\]\s*\=\s*(.+)/', $then, $matches) === 1) {
+						
+						if ($matches[1] && $this->evaluate($matches[1], $currentDocument, $row) === false) {
+							$this->addComment('warning', "Condition '{$matches[1]}' non validée.");
+							continue;
 						}
-					} else {
-						$this->addComment('warning', "Clause '{$name}' non trouvée.");
+						
+						if ($currentDocument->setPropertyValue($matches[2], $this->evaluate($matches[3], $currentDocument, $row))) {
+							$this->addComment('valid', "Champ '{$matches[2]}' mis à jour.");
+						} else {
+							$this->addComment('warning', "Erreur en écrivant le champ '{$matches[2]}'.");
+						}
+						
 					}
+					
 				}
 				
 			} else {
 				
-				foreach ($this->parsedCode['get_document']['then'] as $name) {
-					if ($write = $this->getWriteClauseByName($name)) {
+				
+				foreach ($this->parsedCode['get_document']['else'] as $else) {
+					
+					if (preg_match('/(\(.+\))?\s*\[(\w+.\w+)\]\s*\=\s*(.+)/', $else, $matches) === 1) {
+						
+						if ($matches[1] && $this->evaluate($matches[1], null, $row) === false) {
+							$this->addComment('warning', "Condition '{$matches[1]}' non validée.");
+							continue;
+						}
 						
 						if ($currentDocument === null) {
 							$currentDocument = new Document();
@@ -215,18 +342,18 @@ class AutomationService
 							$this->addComment('valid', "Création d'un nouveau document.");
 						}
 						
-						if ($currentDocument->setPropertyValue($write['to'], $this->evaluate($write['value'], null, $row))) {
-							$this->addComment('valid', "Clause '{$name}' validée.");
-						} elseif ($write['to'] == 'document.name' || $write['to'] == 'document.reference') {
-							$this->addComment('warning', "Erreur en écrivant le champ '{$write['to']}' de la clause '{$name}'.");
+						if ($currentDocument->setPropertyValue($matches[2], $this->evaluate($matches[3], $currentDocument, $row))) {
+							$this->addComment('valid', "Champ '{$matches[2]}' mis à jour.");
+						} elseif ($matches[2] == 'document.name' || $matches[2] == 'document.reference') {
+							$this->addComment('warning', "Erreur en écrivant le champ '{$matches[2]}'.");
 							$currentDocument = null;
 							break;
 						} else {
-							$this->addComment('warning', "Erreur en écrivant le champ '{$write['to']}' de la clause '{$name}'.");
+							$this->addComment('warning', "Erreur en écrivant le champ '{$matches[2]}'.");
 						}
-					} else {
-						$this->addComment('warning', "Clause '{$name}' non trouvée.");
+						
 					}
+					
 				}
 				
 			}
@@ -236,10 +363,12 @@ class AutomationService
 				$this->writeComments($row);
 				$row++;
 				continue;
+			} elseif ($checkOnly === false) {
+				$this->entityManager->persist($currentDocument);
 			}
 			
 			//get version
-			foreach ($curentDocument->getVersions()->getValues() as $version) {
+			foreach ($currentDocument->getVersions()->getValues() as $version) {
 				if ($this->evaluate($this->parsedCode['get_version']['condition'], $version, $row)) {
 					$currentVersion = $version;
 					$this->addComment('valid', "Version trouvée.");
@@ -249,45 +378,56 @@ class AutomationService
 			
 			if ($currentVersion !== null) {
 				
-				foreach ($this->parsedCode['get_version']['then'] as $name) {
-					if ($write = $this->getWriteClauseByName($name)) {
-						if ($this->evaluate($write['condition'], $currentVersion, $row)) {
-							if ($currentVersion->setPropertyValue($write['to'], $this->evaluate($write['value'], $currentVersion, $row))) {
-								$this->addComment('valid', "Clause '{$name}' validée.");
-							} else {
-								$this->addComment('warning', "Erreur en écrivant le champ '{$write['to']}' de la clause '{$name}'.");
-							}
-						} else {
-							$this->addComment('warning', "Clause '{$name}' non validée.");
+				foreach ($this->parsedCode['get_version']['then'] as $then) {
+					
+					if (preg_match('/(\(.+\))?\s*\[(\w+.\w+)\]\s*\=\s*(.+)/', $then, $matches) === 1) {
+						
+						if ($this->evaluate($matches[1], $currentVersion, $row) === false) {
+							$this->addComment('warning', "Condition '{$matches[1]}' non validée.");
+							continue;
 						}
-					} else {
-						$this->addComment('warning', "Clause '{$name}' non trouvée.");
+						
+						if ($currentVersion->setPropertyValue($matches[2], $this->evaluate($matches[3], $currentVersion, $row))) {
+							$this->addComment('valid', "Champ '{$matches[2]}' mis à jour.");
+						} else {
+							$this->addComment('warning', "Erreur en écrivant le champ '{$matches[2]}'.");
+						}
+						
 					}
+					
 				}
 				
 			} else {
 				
-				foreach ($this->parsedCode['get_version']['then'] as $name) {
-					if ($write = $this->getWriteClauseByName($name)) {
+				
+				foreach ($this->parsedCode['get_version']['else'] as $else) {
+					
+					if (preg_match('/(\(.+\))?\s*\[(\w+.\w+)\]\s*\=\s*(.+)/', $else, $matches) === 1) {
+						
+						if ($this->evaluate($matches[1], null, $row) === false) {
+							$this->addComment('warning', "Condition '{$matches[1]}' non validée.");
+							continue;
+						}
 						
 						if ($currentVersion === null) {
 							$currentVersion = new Version();
 							$currentVersion->setDocument($currentDocument);
+							$currentVersion->setStatus($defaultStatus);
 							$this->addComment('valid', "Création d'une nouvelle version.");
 						}
 						
-						if ($currentVersion->setPropertyValue($write['to'], $this->evaluate($write['value'], null, $row))) {
-							$this->addComment('valid', "Clause '{$name}' validée.");
-						} elseif ($write['to'] == 'version.name' || $write['to'] == 'version.date') {
-							$this->addComment('warning', "Erreur en écrivant le champ '{$write['to']}' de la clause '{$name}'.");
-							$currentVersion = null;
+						if ($currentVersion->setPropertyValue($matches[2], $this->evaluate($matches[3], $currentVersion, $row))) {
+							$this->addComment('valid', "Champ '{$matches[2]}' mis à jour.");
+						} elseif ($matches[2] == 'version.name' || $matches[2] == 'version.date') {
+							$this->addComment('warning', "Erreur en écrivant le champ '{$matches[2]}'.");
+							$currentDocument = null;
 							break;
 						} else {
-							$this->addComment('warning', "Erreur en écrivant le champ '{$write['to']}' de la clause '{$name}'.");
+							$this->addComment('warning', "Erreur en écrivant le champ '{$matches[2]}'.");
 						}
-					} else {
-						$this->addComment('warning', "Clause '{$name}' non trouvée.");
+						
 					}
+					
 				}
 				
 			}
@@ -301,24 +441,47 @@ class AutomationService
 				$this->writeComments($row);
 				$row++;
 				continue;
+			} elseif ($checkOnly === false) {
+				$this->entityManager->persist($currentVersion);
 			}
 			
 			$this->writeComments($row);
-			$nbImported++;
+			$countProcessed++;
+			
+			if ($row - $currentRowItem->get() > self::MAX_LINES_PROCESSED) {
+				$newBatchItem->set(true);
+				break;
+			}
 			$row++;
 		}
 		
-		if ($checkOnly) {
-			$this->flashBagInterface->add('success', 'End of check. ' . $nbImported . '/' . ($row - $firstRow - 1) . ' lines can be imported.');
+		$currentRowItem->set($row);
+		$countProcessedItem->set($countProcessed);
 		
-			//save
+		$this->cache->save($currentRowItem);
+		$this->cache->save($countProcessedItem);
+		$this->cache->save($newBatchItem);
+				
+		if ($checkOnly) {
+			
+			if ($newBatchItem->get() === false) {
+				$this->flashBagInterface->add('info', 'Vérification terminée : ' . $countProcessed . '/' . ($row - $this->parsedCode['first_row']) . ' lignes peuvent être importées');
+			}
+			
 			return $this->save($spreadsheet);
 		} else {
-			$this->flashBagInterface->add('success', 'End of import. ' . $nbImported . '/' . ($row - $firstRow - 1) . ' lines imported.');
+			$this->entityManager->flush();
+			
+			if ($newBatchItem->get() === false) {
+				$this->flashBagInterface->add('info', 'Vérification terminée : ' . $countProcessed . '/' . ($row - $this->parsedCode['first_row']) . ' lignes ont été importées');
+			}
+			
+			return true;
 		}
+		
 	}
 	
-	private function evaluate(string $expression, $entity, int $row=0): bool
+	private function evaluate(string $expression, $entity, int $row=0)
 	{
 		if ($expression == '') {
 			return true;
@@ -335,19 +498,22 @@ class AutomationService
 			//replace by property value
 			if (($entity instanceof Serie || $entity instanceof Document || $entity instanceof Version) && $entity) { //field
 				
-				$expression = preg_replace_callback('/(\[\w+\.\w+\])/', function($matches) use ($object) {
-					return '"' . $object->getPropertyValueToString($matches[1]) . '"';
+				$expression = preg_replace_callback('/\[(\w+\.\w+)\]/', function($matches) use ($entity) {
+					return '"' . $entity->getPropertyValueToString($matches[1]) . '"';
 				}, $expression);
 				
 			}
 			
 			//replace by Excel values
+			
 			if ($this->sheet !== null && $row > 0) { //row
-				
-				$expression = preg_replace_callback('/(\[[A-Z]{1,2}\])/', function($matches) use ($object, $row) {
-					return '"' . $object->getCell($matches[1] . $row) . '"';
+				$expression = preg_replace_callback('/\[([A-Z]{1,2})\]/', function($matches) use ($row) {
+					if (Date::isDateTime($this->sheet->getCell($matches[1] . $row))) {
+						return '"' . Date::excelToDateTimeObject($this->sheet->getCell($matches[1] . $row)->getValue())->format('d-m-Y') . '"';
+					} else {
+						return '"' . $this->sheet->getCell($matches[1] . $row)->getValue() . '"';
+					}
 				}, $expression);
-				
 			}
 			
 			//replace username
@@ -355,27 +521,18 @@ class AutomationService
 			
 			//date
 			if (strtotime($expression)) {
-				$expression = \DateTime::createFromFormat($parsedCode['date_format'], $expression)->format('d-m-Y');
+				$expression = \DateTime::createFromFormat($this->parsedCode['date_format'], $expression)->format('d-m-Y');
 			}
+			dump('e avant evaluation : ' . $expression);
 			
 			try {
 				return $this->expressionLanguage->evaluate($expression);
 			} catch (SyntaxError $e) {
 				$this->flashBagInterface->add('danger', $e->getMessage());
-				return true;
+				return false;
 			}
 		}
 	}
-	
-	private function getWriteClauseByName(string $name): ?array
-	{
-		foreach ($this->parsedCode['write'] as $write) {
-			if ($write['name'] == $name) {
-				return $write;
-			}
-		}
-	}
-	
 	
 	private function addComment($type, $text)
 	{
@@ -392,40 +549,61 @@ class AutomationService
 		if ($this->checkOnly) {
 			$type = null;
 			foreach ($this->comments as $comment) {
-				if ($comment['type'] == 'valid' && $type === null) {
-					$type = 'valid';
-				} elseif ($comment['type'] == 'warning' && ($type != 'error' || $type != 'ignore')) {
-					$type = 'warning';
-				} elseif ($comment['type'] == 'error' && $type != 'ignore') {
-					$type = 'error';
-				} else {
+				if ($type === null) {
+					$type = $comment['type'];
+				} elseif ($type == 'valid' && $comment['type'] == 'ignore') {
 					$type = 'ignore';
+				} elseif (($type == 'valid' || $type == 'ignore') && $comment['type'] == 'warning') {
+					$type = 'warning';
+				} elseif ($comment['type'] == 'error') {
+					$type = 'error';
 				}
 			}
-					
+			
 			switch ($type) {
 				case 'valid':
-					$this->sheet->getStyle($row . ':' . $row)->getFill()->getStartColor()->setARGB(self::VALID_COLOR);
+					$this->sheet->getStyle('A' . $row . ':Z' . $row)
+						->getFill()
+						->setFillType(Fill::FILL_SOLID)
+						->getStartColor()
+						->setRGB(self::VALID_COLOR)
+					;
 					break;
 				case 'warning':
-					$this->sheet->getStyle($row . ':' . $row)->getFill()->getStartColor()->setARGB(self::WARNING_COLOR);
+					$this->sheet->getStyle('A' . $row . ':Z' . $row)
+						->getFill()
+						->setFillType(Fill::FILL_SOLID)
+						->getStartColor()
+						->setRGB(self::WARNING_COLOR)
+					;
 					break;
 				case 'error':
-					$this->sheet->getStyle($row . ':' . $row)->getFill()->getStartColor()->setARGB(self::ERROR_COLOR);
+					$this->sheet->getStyle('A' . $row . ':Z' . $row)
+						->getFill()
+						->setFillType(Fill::FILL_SOLID)
+						->getStartColor()
+						->setRGB(self::ERROR_COLOR)
+					;
 					break;
 				case 'ignore':
-					$this->sheet->getStyle($row . ':' . $row)->getFill()->getStartColor()->setARGB(self::IGNORE_COLOR);
+					$this->sheet->getStyle('A' . $row . ':Z' . $row)
+						->getFill()
+						->setFillType(Fill::FILL_SOLID)
+						->getStartColor()
+						->setRGB(self::IGNORE_COLOR)
+					;
 					break;
 				default:
 					return;
 			}
 			
 			$this->sheet
-				->getComment($this->parsedCode['firstColumn'] . $row)
+				->getComment($this->parsedCode['first_column'] . $row)
 				->setAuthor('GPExe')
 			;
 			
 			foreach ($this->comments as $comment) {
+				/*
 				switch ($comment['type']) {
 					case 'valid':
 						$color = self::VALID_COLOR;
@@ -440,12 +618,11 @@ class AutomationService
 						$color = self::IGNORE_COLOR;
 						break;
 				}
-				
+				*/
 				$this->sheet
-					->getComment($this->parsedCode['firstColumn'] . $row)
+					->getComment($this->parsedCode['first_column'] . $row)
 					->getText()
-					->createTextRun('\r\n' . $comment['text'])
-					->getFont()->getColor()->setARGB($color)
+					->createTextRun("\r\n" . $comment['text'])
 				;
 			}
 			
@@ -476,6 +653,30 @@ class AutomationService
 		
 		return $safeFilename;
 	}
+	
+	/*
+	private function darkens($hex) {
+		
+		$percent = -0.5;
+		
+		// validate hex string		
+		$hex = preg_replace('/[^0-9a-f]/i', '', $hex);
+		$new_hex = '#';
+		
+		if (strlen($hex) < 6) {
+			$hex = $hex[0] + $hex[0] + $hex[1] + $hex[1] + $hex[2] + $hex[2];
+		}
+		
+		// convert to decimal and change luminosity
+		for ($i = 0; $i < 3; $i++) {
+			$dec = hexdec(substr( $hex, $i*2, 2));
+			$dec = min(max(0, $dec + $dec * $percent), 255);
+			$new_hex .= str_pad(dechex($dec), 2, 0, STR_PAD_LEFT);
+		}
+		
+		return $new_hex;
+	}
+	*/
 	
 }
 

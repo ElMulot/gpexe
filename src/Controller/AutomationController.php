@@ -6,15 +6,17 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Contracts\Translation\TranslatorInterface;
+use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use App\Entity\Project;
 use App\Entity\Automation;
 use App\Entity\Serie;
 use App\Form\AutomationType;
 use App\Form\LauncherExportType;
+use App\Form\LauncherHiddenType;
 use App\Form\LauncherImportType;
 use App\Repository\AutomationRepository;
 use App\Service\AutomationService;
-use Symfony\Component\HttpFoundation\RedirectResponse;
+
 
 class AutomationController extends AbstractController
 {
@@ -24,11 +26,14 @@ class AutomationController extends AbstractController
 	
 	private AutomationService $automationService;
 	
+	private FilesystemAdapter $cache;
+	
 	public function __construct(TranslatorInterface $translator, AutomationRepository $automationRepository, AutomationService $automationService)
 	{
 		$this->translator = $translator;
 		$this->automationRepository = $automationRepository;
 		$this->automationService = $automationService;
+		$this->cache = new FilesystemAdapter();
 	}
 	
 	public function index(Project $project): Response
@@ -64,116 +69,228 @@ class AutomationController extends AbstractController
 	public function launch(Request $request, Automation $automation): Response
 	{
 		
-		if ($automation->isTypeImport()) {
-			if ($request->request->has('hidden_file')) {
-				$form = $this->createForm(LauncherImportType::class, $automation, [
-					'hidden_file' => $request->request->get('hidden_file'),
-				]);
-			} else {
-				$form = $this->createForm(LauncherImportType::class, $automation);
-			}
-		} elseif ($automation->isTypeExport()) {
+		if ($request->query->has('file_name')) {									//launch import
+			
+			$fileName = $request->query->get('file_name');
+			$request->query->set('check_only', false);
+			
+			$this->automationService->setCache($automation);
+			
+			$countProcessedItem = $this->cache->getItem('automation.count_processed');
+			
+			return $this->render('automation/launcher.html.twig', [
+				'automation' => $automation,
+			]);
+			
+		} elseif ($automation->isTypeImport()) {									//check import
+			$form = $this->createForm(LauncherImportType::class, $automation); 
+		} elseif ($automation->isTypeExport()) {									//launch export
 			$form = $this->createForm(LauncherExportType::class, $automation);
 		} else {
-			$this->addFlash('danger', 'Invalid automation');
+			$this->addFlash('danger', 'Programme invalide.');
 			return $this->redirectToRoute('project_view', [
 				'id' => $automation->getProject()->getId(),
 			]);
 		}
 		
+		//$firstRow = $request->query->get('first_row') ?? 0;
+		
 		$form->handleRequest($request);
 		
 		if ($form->isSubmitted() && $form->isValid()) {
 			
-			if ($automation->isTypeImport() && $form->has('file')) { //check import
+			if ($automation->isTypeImport()) { 										//check import
 				
 				$file = $form->get('file')->getData();
 				
 				if ($file === null) {
-					$this->addFlash('danger', 'Error while opening file');
+					$this->addFlash('danger', 'Aucun fichier sélectionné');
+					return $this->render('automation/launcher.html.twig', [
+						'automation' => $automation,
+					]);
+				}
+				
+				$fileName = $this->automationService->load($automation, $file);
+				
+				if ($fileName === false) {
+					$this->addFlash('danger', 'Erreur à l\'ouverture du fichier');
 					$view = $form->createView();
 					return $this->render('automation/launcher.html.twig', [
 						'form' => $form->createView(),
 					]);
 				}
 				
-				$form = $this->createForm(LauncherImportType::class, $automation, [
-					'hidden_file' => $file,
+				$request->query->set('check_only', true);
+				$request->query->set('file_name', $fileName);
+				
+				return $this->render('automation/launcher.html.twig', [
+					'automation' => $automation,
 				]);
 				
-				$fileName = $this->automationService->import($file, $automation, true);
-				return $this->render('automation/check.html.twig', [
-					'form' => $form->createView(),
-					'upload_url' => $this->getParameter('uploads_directory') . '/' . $fileName,
-				]);
-					
-			} elseif ($automation->isTypeImport() && $form->has('hidden_file')) { //launch import
-					
-				$file = $form->get('hidden_file')->getData();
+			} else {																//launch export
+			
+				$file = $form->get('file_name')->getData();
 				
-				if (!$file) {
-					$this->addFlash('danger', 'Error while opening file');
+				$fileName = $this->automationService->load($automation, $file);
+				
+				if ($fileName === false) {
+					$this->addFlash('danger', 'Erreur à l\'ouverture du fichier');
 					$view = $form->createView();
 					return $this->render('automation/launcher.html.twig', [
 						'form' => $form->createView(),
 					]);
 				}
 				
-				$this->automationService->import($file, $automation, false);
-				return $this->render('automation/import.html.twig', [
-					'form' => $form->createView(),
+				$request->query->set('file_name', $fileName);
+				
+				return $this->render('automation/launcher.html.twig', [
+					'automation' => $automation,
 				]);
+			}
+			
+			/*
+			if ($fileName) {
 				
-			} elseif ($automation->isTypeExport()) { //export
-				
-				$fileName = $this->automationService->export($automation);
-				return $this->render('automation/export.html.twig', [
-					'form' => $form->createView(),
-					'upload_url' => $this->getParameter('uploads_directory') . '/' . $fileName,
-				]);
-				
-			} else { //error
-				
-				$this->addFlash('danger', 'Invalid automation');
 				return $this->render('automation/launcher.html.twig', [
 					'form' => $form->createView(),
 				]);
 				
+			} else  {
+				
+				return $this->render('automation/launcher.html.twig', [
+					'automation' => $automation,
+				]);
+				
 			}
+			*/
 		} else {
 			
-			if ($automation->isTypeImport()) {
-				$this->addFlash('info', 'Select a file');
-			} else {
-				$this->addFlash('info', 'Ready to launch');
-			}
 			return $this->render('automation/launcher.html.twig', [
-				'route_back' =>  $this->generateUrl('project_view', [
-					'id' => $automation->getProject()->getId(),
-				]),
 				'form' => $form->createView(),
 			]);
 			
 		}
 	}
 	
-	public function console(): Response
+	public function completed(Request $request, Automation $automation): Response
 	{
-		return $this->render('automation/console.html.twig');
+		if ($request->query->has('file_name')) {
+			
+			$fileName = $request->query->get('file_name');
+			
+		} else {
+			
+			$this->addFlash('danger', 'Erreur interne.');
+			return $this->redirectToRoute('project_view', [
+				'id' => $automation->getProject()->getId(),
+			]);
+			
+		}
+		
+		if ($request->query->has('check_only')) {
+			
+			$checkOnly = $request->query->get('check_only');
+			
+		} else {
+			
+			$this->addFlash('danger', 'Erreur interne.');
+			return $this->redirectToRoute('project_view', [
+				'id' => $automation->getProject()->getId(),
+			]);
+			
+		}
+		
+		if ($automation->isTypeImport() && $checkOnly) {								//check import
+			
+			return $this->render('automation/check.html.twig', [
+				'automation' => $automation,
+				'upload_url' => $this->getParameter('uploads_directory') . '/' . $fileName,
+			]);
+			
+		} elseif ($automation->isTypeImport()) {										//launch import
+			
+			return $this->render('automation/import.html.twig', [
+				'automation' => $automation,
+			]);
+			
+		} elseif ($automation->isTypeExport()) {										//launch export
+			
+			//$this->addFlash('success', 'Fin de l\'export.');
+			return $this->render('automation/export.html.twig', [
+				'automation' => $automation,
+				'upload_url' => $this->getParameter('uploads_directory') . '/' . $fileName,
+			]);
+			
+		} else {
+			
+			$this->addFlash('danger', 'Programme invalide.');
+			return $this->redirectToRoute('project_view', [
+				'id' => $automation->getProject()->getId(),
+			]);
+			
+		}
+	}
+	
+	public function console(Request $request, Automation $automation): Response
+	{
+		
+		$fileName = false;
+		$redirect = '';
+		
+		if ($request->query->has('check_only')) {
+			
+			$checkOnly = $request->query->get('check_only');
+			
+		} else {
+			
+			$checkOnly = true;
+			
+		}
+		
+		if ($request->query->has('file_name')) {
+			
+			$file = $this->getParameter('kernel.project_dir') . '/public' . $this->getParameter('uploads_directory') . '/' . $request->query->get('file_name');
+			
+			if ($automation->isTypeImport()) {
+				$fileName = $this->automationService->import($automation, $file, $checkOnly);
+			} elseif ($automation->isTypeExport())  {
+				$fileName = $this->automationService->export($automation, $file);
+			}
+			
+			if ($fileName === false) {
+				$this->addFlash('danger', 'Erreur interne');
+				$redirect = 'launch';
+			} else {
+				$newBatchItem = $this->cache->getItem('automation.new_batch');
+				if ($newBatchItem->get() === false) {
+					$redirect = 'completed';
+				} else {
+					$redirect = 'console';
+				}
+			}
+			
+		} else {
+			$redirect = 'launch';
+		}
+		
+		return $this->render('automation/console.html.twig', [
+			'automation' => $automation,
+			'redirect' => $redirect,
+		]);
+		
 	}
 	
 	public function new(Request $request, Project $project): Response
 	{
 		$automation = new Automation();
+		$automation->setProject($project);
+		$automation->setEnabled(true);
+		$automation->setCreatedBy($this->getUser());
 		
 		$form = $this->createForm(AutomationType::class, $automation);
 		$form->handleRequest($request);
 		
 		if ($form->isSubmitted() && $form->isValid()) {
-			
-			$automation->setProject($project);
-			$automation->setEnabled(true);
-			$automation->setCreatedBy($this->getUser());
 			
 			$entityManager = $this->getDoctrine()->getManager();
 			$entityManager->persist($automation);

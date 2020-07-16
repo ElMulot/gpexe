@@ -185,46 +185,44 @@ class Automation
 		return $this;
 	}
 	
-	public function parseCode(): self
-	{
-		try {
-			$this->parsedCode = Yaml::parse($this->code ?? '');
-		} catch (ParseException $exception) {
-			$this->parsedCode = [];
-			$this->parseError = true;
-			return $this;
-		}
-		
-		if (($this->parsedCode['type'] ?? '') == 'import') {
-			$this->structure = self::getStructureImport();
-		} elseif (($this->parsedCode['type'] ?? '') == 'export') {
-			$this->structure = self::getStructureExport();
-		} else {
-			$this->parsedCode = [];
-			$this->parseError = true;
-			return $this;
-		}
-			
-		$this->parsedCode = self::validateStructure($this->structure, $this->parsedCode);
-		
-		$this->parseError = false;
-		
-		return $this;
-	}
-	
 	public function getParsedCode(): array
 	{
+		if ($this->parsedCode === null) {
+			dump('ok');
+			try {
+				$this->parsedCode = Yaml::parse($this->code ?? '');
+			} catch (ParseException $exception) {
+				$this->parsedCode = [];
+				$this->parseError = true;
+				return $this;
+			}
+			
+			if (($this->parsedCode['type'] ?? '') == 'import') {
+				$this->structure = self::getStructureImport();
+			} elseif (($this->parsedCode['type'] ?? '') == 'export') {
+				$this->structure = self::getStructureExport();
+			} else {
+				$this->parsedCode = [];
+				$this->parseError = true;
+				return $this;
+			}
+			
+			$this->parsedCode = self::validateStructure($this->structure, $this->parsedCode);
+			$this->parseError = false;
+		}
+		
 		return $this->parsedCode;
 	}
 	
-	public function getValidatedCode($code)
+	public function getValidatedCode($code): string
 	{
-		
+		$code = preg_replace('/\t/', '    ', $code);
 		try {
 			$parsedCode = Yaml::parse($code ?? '') ?? [];
 		} catch (ParseException $exception) {
 			return '';
 		}
+		
 		if (($parsedCode['type'] ?? '') == 'import') {
 			$structure = self::getStructureImport();
 		} elseif (($parsedCode['type'] ?? '') == 'export') {
@@ -235,13 +233,13 @@ class Automation
 		
 		$parsedCode = self::validateStructure($structure, $parsedCode);
 		
-		return Yaml::dump($parsedCode);
+		return Yaml::dump($parsedCode, 3);
 	}
 	
 	public function isValid(): bool
 	{
 		if ($this->parseError === null) {
-			$this->parseCode();
+			$this->getParsedCode();
 		}
 		return $this->parseError === false;
 	}
@@ -282,21 +280,13 @@ class Automation
 			],
 			'get_document' => [
 				'condition' => '.+',
-				'then' => ['\w+'],
-				'else' => ['\w+'],
+				'then' => ['(\(.+\))?\s*\[\w+.\w+\]\s*\=\s*.+'],
+				'else' => ['(\(.+\))?\s*\[\w+.\w+\]\s*\=\s*.+'],
 			],
 			'get_version' => [
 				'condition' => '.+',
-				'then' => ['\w+'],
-				'else' => ['\w+'],
-			],
-			'write' => [
-				[
-					'name' => '\w+',
-					'condition' => '.+',
-					'to' => '\w+\.\w+',
-					'value' => '.+',
-				]
+				'then' => ['(\(.+\))?\s*\[\w+.\w+\]\s*\=\s*.+'],
+				'else' => ['(\(.+\))?\s*\[\w+.\w+\]\s*\=\s*.+'],
 			],
 			'option' => [
 				'move_from_mdr' => 'true|false|choose',

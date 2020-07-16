@@ -1,3 +1,21 @@
+App\Entity\Automation:
+    constraints:
+        - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity:
+            fields: ['name', 'project']
+
+App\Entity\Codification:
+    constraints:
+        - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity:
+            fields: ['codename', 'project']
+    properties:
+        codename:
+          - Regex: '/\S/'
+
+App\Entity\CodificationItem:
+    constraints:
+        - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity:
+            fields: ['value', 'codification']
+
 App\Entity\Company:
     constraints:
         - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity: name
@@ -17,20 +35,17 @@ App\Entity\User:
         email: [Email: ~]
         name: [NotBlank: ~]
         
-App\Entity\Codification:
-    constraints:
-        - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity: codename
-    properties:
-        codename:
-          - Regex: '/\S/'
+
           
 App\Entity\Metadata:
     constraints:
-        - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity: codename
+        - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity:
+            fields: ['codename', 'project']
     properties:
         codename:
           - Regex: '/\S/'
           - NotEqualTo: 'name'
+          - NotEqualTo: 'reference'
           - NotEqualTo: 'initialScheduleDate'
           - NotEqualTo: 'scheduleDate'
           - NotEqualTo: 'deliveryDate'
@@ -40,10 +55,13 @@ App\Entity\Metadata:
           - NotEqualTo: 'approver'
           - NotEqualTo: 'reference'
           - NotEqualTo: 'company'
+          - NotEqualTo: 'value'
+          - NotEqualTo: 'type'
 
 App\Entity\MetadataItem:
-    properties:
-        value: [NotEqualTo: 'Various']
+    constraints:
+        - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity:
+            fields: ['value', 'metadata']
 
 App\Entity\MetadataValue:
     properties:

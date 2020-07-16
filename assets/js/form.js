@@ -2,6 +2,7 @@ const $ = require('jquery');
 
 require('../css/form.scss');
 require('bootstrap-datepicker');
+const bsCustomFileInput = require('bs-custom-file-input');
 require('bootstrap-datepicker/dist/locales/bootstrap-datepicker.fr.min.js');
 
 $(document).ready(function() {
@@ -84,6 +85,8 @@ $(document).ready(function() {
 		}
 		
 	})
+	
+	bsCustomFileInput.init();
 	
 	/*
 	$('#form').find('input').each(function() {

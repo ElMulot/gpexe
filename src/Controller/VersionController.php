@@ -15,6 +15,7 @@ use App\Repository\CompanyRepository;
 use App\Repository\DocumentRepository;
 use App\Repository\VersionRepository;
 use App\Repository\MetadataRepository;
+use App\Repository\StatusRepository;
 
 class VersionController extends AbstractController
 {
@@ -28,13 +29,16 @@ class VersionController extends AbstractController
 	
 	private $metadataRepository;
 	
-	public function __construct(TranslatorInterface $translator, CompanyRepository $companyRepository, DocumentRepository $documentRepository, VersionRepository $versionRepository, MetadataRepository $metadataRepository)
+	private $statusRepository;
+	
+	public function __construct(TranslatorInterface $translator, CompanyRepository $companyRepository, DocumentRepository $documentRepository, VersionRepository $versionRepository, MetadataRepository $metadataRepository, StatusRepository $statusRepository)
 	{
 		$this->translator = $translator;
 		$this->companyRepository = $companyRepository;
 		$this->documentRepository = $documentRepository;
 		$this->versionRepository = $versionRepository;
 		$this->metadataRepository = $metadataRepository;
+		$this->statusRepository = $statusRepository;
 	}
 	
 	public function detail(Version $version): Response
@@ -75,9 +79,10 @@ class VersionController extends AbstractController
 		
 		$serie = $document->getSerie();
 		$project = $serie->getProject();
+		$status = $this->statusRepository->getDefaultStatus($project);
 		
 		$version->setDocument($document);
-		
+		$version->setStatus($status);
 		
 		$form = $this->createForm(VersionType::class, $version, [
 			'serie' => $serie,

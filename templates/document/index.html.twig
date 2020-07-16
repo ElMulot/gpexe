@@ -17,7 +17,7 @@
     			<li id="document_menu" class="nav-item dropdown" style="{{ block('nav_item') }};">
     				<a class="nav-link dropdown-toggle" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{% trans %}Documents{% endtrans %}</a>
     				<div class="dropdown-menu" style="{{ block('nav_item') }}">
-    					<button class="dropdown-item" href={{ path('document_new', app.request.attributes.get('_route_params')) }}>{% trans %}New{% endtrans %}</button>
+    					<a class="dropdown-item" href={{ path('document_new', app.request.attributes.get('_route_params')) }}>{% trans %}New{% endtrans %}</a>
     					<button id="document_edit" class="dropdown-item" data-url="{{ path('document_edit') }}">{% trans %}Edit{% endtrans %}</button>
     					{% if is_granted('ROLE_MOVE') %}
     						<button id="document_move" class="dropdown-item" data-url="{{ path('document_move') }}">{% trans %}Move{% endtrans %}</button>
@@ -48,7 +48,7 @@
 {% endblock %}
 
 {% block content %}
-	<div id="tabs" class="jumbotron" style="height: 10em">
+	<div id="tabs" class="jumbotron">
         <ul class="nav nav-tabs" role="tablist">
             <li class="nav-item">
             	<a class="nav-link active" id="vues-tab" data-toggle="tab" href="#vues" role="tab" aria-controls="vues" aria-selected="true">{% trans %}Vues{% endtrans %}</a>
@@ -63,7 +63,7 @@
             	<a class="nav-link" id="display-tab" data-toggle="tab" href="#display" role="tab" aria-controls="display" aria-selected="false">{% trans %}Display{% endtrans %}</a>
             </li>
         </ul>
-		<div class="tab-content pt-1">
+		<div class="tab-content pt-1 collapse show">
 			<div class="tab-pane fade show active" id="vues" role="tabpanel" aria-labelledby="vues-tab">
     			{{ block('vues') }}
         	</div>
