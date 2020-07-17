@@ -40,14 +40,33 @@ security:
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
     access_control:
-        - { path: ^/login$,   roles: IS_AUTHENTICATED_ANONYMOUSLY }
-        - { path: ^/logout$,  roles: IS_AUTHENTICATED_ANONYMOUSLY }
-        - { path: ^/profil,   roles: ROLE_ADMIN }
-        - { path: ^/company,  roles: ROLE_ADMIN }
-        - { path: ^/user,     roles: ROLE_ADMIN }
-        - { path: ^/admin,    roles: ROLE_ADMIN }
-        - { path: .,          roles: ROLE_USER }
+        - { path: '^/login$',                                                               roles: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: '^/logout$',                                                              roles: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: '^/company',                                                              roles: ROLE_ADMIN }
+        - { path: '^/user',                                                                 roles: ROLE_ADMIN }
+        - { path: '^/profil',                                                               roles: ROLE_ADMIN }
+        - { path: '^/admin',                                                                roles: ROLE_ADMIN }
+
+        - { path: '^/project/edit',                                                         roles: ROLE_EDIT_CODIFICATIONS }
+        - { path: '^/project/(\d+/)?codifications',                                         roles: ROLE_EDIT_CODIFICATIONS }
+        - { path: '^/project/(\d+/)?metadatas',                                             roles: ROLE_EDIT_METADATAS }
+        - { path: '^/project/(\d+/)?status',                                                roles: ROLE_EDIT_METADATAS }
+        - { path: '^/project/(\d+/)?visa',                                                  roles: ROLE_EDIT_VISAS }
+        - { path: '^/project/automation/(\d+/)?automation',                                 roles: ROLE_EDIT_AUTOMATIONS }
+        - { path: '^/project/automation/[dashboard|launch|console|completed]',              roles: ROLE_LAUNCH_AUTOMATIONS }
+        - { path: '^/project/(\d+/)?progress',                                              roles: ROLE_EDIT_PROGRESS }
+        - { path: '^/project/serie/\d+(/table)?$',                                          roles: ROLE_USER }
+        - { path: '^/project/(\d+/\d+/)?serie',                                             roles: ROLE_EDIT_SERIES }
+        - { path: '^/project/serie/(\d+/)document/(\d+/)detail',                            roles: ROLE_USER }
+        - { path: '^/project/serie/document/move/\d+',                                      roles: ROLE_MOVE }
+        - { path: '^/project/serie/(\d+/)document',                                         roles: ROLE_EDIT }
+        - { path: '^/project/serie/document/(\d+/)version/(\d+/)detail',                    roles: ROLE_USER }
+        - { path: '^/project/serie/document/(\d+/)version',                                 roles: ROLE_EDIT }
+        - { path: '^/project/serie/document/version/\d+/\d+/review$',                       roles: ROLE_USER }  
+        - { path: '^/project/serie/document/version/\d+/\d+/review',                        roles: ROLE_REVIEW }
+        - { path: '.',                                                                      roles: ROLE_USER }
         
     role_hierarchy:
-        ROLE_ADMIN: [ROLE_USER, ROLE_PROGRESS_RULES, ROLE_CODIFICATIONS, ROLE_METADATAS, ROLE_VISAS, ROLE_EDIT, ROLE_MOVE]
+        ROLE_ADMIN: [ROLE_EDIT_CODIFICATIONS, ROLE_EDIT_METADATAS, ROLE_EDIT_VISAS, ROLE_EDIT_AUTOMATIONS, ROLE_LAUNCH_AUTOMATIONS, ROLE_EDIT_PROGRESS, ROLE_EDIT_SERIES, ROLE_MOVE, ROLE_EDIT, ROLE_REVIEW, ROLE_USER]
+        ROLE_EDIT_AUTOMATION: [ROLE_LAUNCH_AUTOMATION]
         ROLE_MOVE: [ROLE_EDIT]

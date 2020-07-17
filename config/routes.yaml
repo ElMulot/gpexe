@@ -322,7 +322,7 @@ document_detail:
     controller: App\Controller\DocumentController::detail
 
 document_new:
-    path: /project/serie/{id}/new
+    path: /project/serie/{id}/document/new
     requirements:
         id: \d+
     controller: App\Controller\DocumentController::new

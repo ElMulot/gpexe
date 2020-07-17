@@ -20,23 +20,6 @@ App\Entity\Company:
     constraints:
         - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity: name
 
-App\Entity\Profil:
-    constraints:
-        - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity: name
-
-App\Entity\Project:
-    constraints:
-        - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity: name
-
-App\Entity\User:
-    constraints:
-        - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity: email
-    properties:
-        email: [Email: ~]
-        name: [NotBlank: ~]
-        
-
-          
 App\Entity\Metadata:
     constraints:
         - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity:
@@ -55,14 +38,47 @@ App\Entity\Metadata:
           - NotEqualTo: 'approver'
           - NotEqualTo: 'reference'
           - NotEqualTo: 'company'
-          - NotEqualTo: 'value'
-          - NotEqualTo: 'type'
+          - NotEqualTo: 'date'
 
 App\Entity\MetadataItem:
     constraints:
         - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity:
             fields: ['value', 'metadata']
 
-App\Entity\MetadataValue:
+App\Entity\Profil:
+    constraints:
+        - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity: name
+
+App\Entity\Project:
+    constraints:
+        - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity: name
+
+App\Entity\Serie:
+    constraints:
+        - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity:
+            fields: ['name', 'project']
+
+App\Entity\Status:
+    constraints:
+        - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity:
+            fields: ['name', 'project']
+        - Callback: validate
+
+App\Entity\User:
+    constraints:
+        - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity: email
     properties:
-        value: [NotEqualTo: '--Various--']
+        email: [Email: ~]
+        name: [NotBlank: ~]
+
+App\Entity\Version:
+    constraints:
+        - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity:
+            fields: ['name', 'document']
+
+App\Entity\Visa:
+    constraints:
+        - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity:
+            fields: ['name', 'company', 'project']
+
+
