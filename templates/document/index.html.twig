@@ -63,7 +63,7 @@
             	<a class="nav-link" id="display-tab" data-toggle="tab" href="#display" role="tab" aria-controls="display" aria-selected="false">{% trans %}Display{% endtrans %}</a>
             </li>
         </ul>
-		<div class="tab-content pt-1 collapse show">
+		<div class="tab-content pt-1 collapse show" style="height:6em;">
 			<div class="tab-pane fade show active" id="vues" role="tabpanel" aria-labelledby="vues-tab">
     			{{ block('vues') }}
         	</div>
@@ -149,7 +149,7 @@
                             {% endif %}
     					</th>
         			{% endfor %}
-                    <th id="detail" style="width:200px;"></th>
+                    <th id="detail" style="width:10em;"></th>
         		</tr>
             </thead>
             <tbody>
@@ -164,10 +164,20 @@
 {% endblock %}
 
 {% block vues %}
-    <div class="row py-2">
-    	<div class="col">
+    <div class="row p-2">
+    	<div class="col px-2">
         	{% for vue in vues %}
-        		<button type="button" class="btn btn-primary m-1" data-value="{{ vue.id }}">{{ vue.name }}</button>
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-primary" data-value="{{ vue.id }}">{{ vue.name }}</button>
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></button>
+                        <div class="dropdown-menu">
+                            <a class="dropdown-item text-success" href="{{ path('vue_edit', app.request.query.all|merge({'id': vue.id})) }}">{% trans %}Edit{% endtrans %}</a>
+                            <a class="dropdown-item text-danger" href="{{ path('vue_delete', app.request.query.all|merge({'id': vue.id})) }}">{% trans %}Delete{% endtrans %}</a>
+                        </div>
+                    </div>
+                </div>
+
         	{% endfor %}
     	</div>
     	<div class="col-auto">
@@ -193,8 +203,8 @@
 {% endblock %}
 
 {% block series %}
-    <div class="row py-2">
-    	<div class="col">
+    <div class="row p-2">
+    	<div class="col px-2">
         	{% for serie in series %}
         		<a class="btn btn-outline-primary text-white m-1" href="{{ path('document', {'id': serie.id}) }}" role="button">{{ serie.name }}</a>
         	{% endfor %}

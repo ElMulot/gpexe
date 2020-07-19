@@ -22,6 +22,9 @@ class SerieRepository extends ServiceEntityRepository
         parent::__construct($registry, Serie::class);
     }
     
+    /**
+     * @return Serie[]
+     */
     public function getSeries(Project $project, Company $company)
     {
     	return $this->createQueryBuilder('s')
@@ -35,15 +38,30 @@ class SerieRepository extends ServiceEntityRepository
     	;
     }
     
-    public function getMetadatas(Project $project)
+    /**
+     * @return Serie[]
+     */
+    public function getSeriesByType(Project $project, string $type)
     {
-    	return $this->getEntityManager()->createQueryBuilder()
-	    	->select('m')
-	    	->from(Metadata::class, 'm')
-	    	->andWhere('m.project = :project')
-	    	->setParameter('project', $project)
-	    	->getQuery()
-	    	->getResult()
-    	;
+    	switch ($type) {
+    		case 'sdr':
+	    		return $this->createQueryBuilder('s')
+	    			->innerJoin('s.company', 'c')
+		    		->andWhere('c.type IN (:type)')
+		    		->setParameter('type', [Company::SUB_CONTRACTOR, Company::SUPPLIER])
+		    		->getQuery()
+		    		->getResult()
+	    		;
+    		case 'mdr':
+    			return $this->createQueryBuilder('s')
+	    			->innerJoin('s.company', 'c')
+	    			->andWhere('c.type = :type')
+	    			->setParameter('type', Company::MAIN_CONTRACTOR)
+	    			->getQuery()
+	    			->getResult()
+    			;
+    		default:
+    			return null;
+    	}
     }
 }

@@ -3,7 +3,7 @@
     "app": {
       "js": [
         "/build/runtime.js",
-        "/build/vendors~app~automation~dashboard~document~form~login.js",
+        "/build/vendors~app~automation~dashboard~document~form~login~project.js",
         "/build/vendors~app~document~form.js",
         "/build/vendors~app~document.js",
         "/build/app~document.js",
@@ -16,7 +16,7 @@
     "form": {
       "js": [
         "/build/runtime.js",
-        "/build/vendors~app~automation~dashboard~document~form~login.js",
+        "/build/vendors~app~automation~dashboard~document~form~login~project.js",
         "/build/vendors~app~document~form.js",
         "/build/vendors~document~form.js",
         "/build/vendors~form.js",
@@ -30,17 +30,27 @@
     "login": {
       "js": [
         "/build/runtime.js",
-        "/build/vendors~app~automation~dashboard~document~form~login.js",
+        "/build/vendors~app~automation~dashboard~document~form~login~project.js",
         "/build/login.js"
       ],
       "css": [
         "/build/login.css"
       ]
     },
+    "project": {
+      "js": [
+        "/build/runtime.js",
+        "/build/vendors~app~automation~dashboard~document~form~login~project.js",
+        "/build/project.js"
+      ],
+      "css": [
+        "/build/project.css"
+      ]
+    },
     "document": {
       "js": [
         "/build/runtime.js",
-        "/build/vendors~app~automation~dashboard~document~form~login.js",
+        "/build/vendors~app~automation~dashboard~document~form~login~project.js",
         "/build/vendors~app~document~form.js",
         "/build/vendors~app~document.js",
         "/build/vendors~document~form.js",
@@ -56,7 +66,7 @@
     "automation": {
       "js": [
         "/build/runtime.js",
-        "/build/vendors~app~automation~dashboard~document~form~login.js",
+        "/build/vendors~app~automation~dashboard~document~form~login~project.js",
         "/build/vendors~automation.js",
         "/build/automation.js"
       ],
@@ -68,7 +78,7 @@
     "dashboard": {
       "js": [
         "/build/runtime.js",
-        "/build/vendors~app~automation~dashboard~document~form~login.js",
+        "/build/vendors~app~automation~dashboard~document~form~login~project.js",
         "/build/dashboard.js"
       ],
       "css": [

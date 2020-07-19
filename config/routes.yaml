@@ -276,6 +276,13 @@ serie_route:  #redirigé directement vers document ou vers serie_new (si pas de 
         id: \d+
         company: \d+
     controller: App\Controller\SerieController::route
+    
+serie_route_by_type:  #redirigé directement vers document
+    path: /project/{id}/{type}
+    requirements:
+        id: \d+
+        type: sdr|mdr
+    controller: App\Controller\SerieController::routeByType
 
 serie: #administration des séries
     path: /project/{id}/{company}/serie
@@ -304,10 +311,18 @@ serie_delete:
     controller: App\Controller\SerieController::delete
 
 document:   #vue principale
-    path: /project/serie/{id}
+    path: /project/{id}/serie/{serie}
     requirements:
         id: \d+
+        serie: \d+
     controller: App\Controller\DocumentController::index
+
+document_by_type:   #vue principale
+    path: /project/{id}/serie/{type}
+    requirements:
+        id: \d+
+        type: sdr|mdr
+    controller: App\Controller\DocumentController::indexByType
 
 document_table:
     path: /project/serie/{id}/table
@@ -410,24 +425,22 @@ review_delete:
     controller: App\Controller\ReviewController::delete
     
 vue_new:
-    path: /project/serie/{id}/vue/new
+    path: /project/{id}/vue/new
     requirements:
         id: \d+
     controller: App\Controller\VueController::new
 
 vue_edit:
-    path: /project/serie/{id}/vue/edit/{vue}
+    path: /project/vue/edit/{id}
     requirements:
         id: \d+
-        vue: \d+
     controller: App\Controller\VueController::edit
 
 vue_delete:
-    path: /project/serie/{id}/vue/delete/{vue}
+    path: /project/vue/delete/{id}
     methods: GET|DELETE
     requirements:
         id: \d+
-        vue: \d+
     controller: App\Controller\VueController::delete
 
 automation:

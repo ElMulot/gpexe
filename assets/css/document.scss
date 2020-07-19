@@ -38,10 +38,9 @@ main {
 #tabs > div {
 	overflow-x:hidden;
 	overflow-y:auto;
-	max-height:6em;
 }
 
-#vues button, #series a {
+#vues > div > div > div, #vue_new, #series a {
 	width: 10rem;
 }
 
@@ -61,6 +60,7 @@ table {
 	font-size: 80%;
 	font-weight: 400;
 	table-layout: fixed;
+	width: auto !important;
 }
 
 th {

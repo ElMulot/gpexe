@@ -2,10 +2,10 @@ require('../js/app.js');
 const $ = require('jquery');
 const popper = require('popper.js');
 require('sticky-table-headers');
+//const tableDragger = require('table-dragger');
+//require('jquery-resizable-columns');
 require('../css/document.scss');
 const URLSearchParams = require('@ungap/url-search-params/cjs');
-
-
 
 var tableHeaders = [];
 
@@ -87,24 +87,26 @@ UrlSearch.prototype = {
 				//vue
 				$('#vues').find('button[data-value]').each(function() {
 					if ($(this).data('value') == that.get('vue')) {
-						$(this).attr('class', 'btn btn-outline-primary m-1')
+						$(this).attr('class', 'btn btn-outline-primary');
+						$(this).parent().find('div > button').attr('class', 'btn btn-outline-primary dropdown-toggle');
 					} else {
-						$(this).attr('class', 'btn btn-primary m-1')
+						$(this).attr('class', 'btn btn-primary');
+						$(this).parent().find('div > button').attr('class', 'btn btn-primary dropdown-toggle');
 					}
 				});
 				
 				for (let tableHeader of tableHeaders) {
 					
-					//hide
+					//display
 					
-					let hide = that.get('hide[]');
-					let index = hide.indexOf(tableHeader.id);
-					
-					tableHeader.aHide
-						.toggleClass('btn-primary', !(index == -1))
-						.toggleClass('btn-outline-primary', (index == -1))
+					let display = that.get('display[' + tableHeader.id + ']');
+					tableHeader.aDisplay
+						.toggleClass('btn-primary', !(display))
+						.toggleClass('btn-outline-primary', (display))
 					;
-					tableHeader.chxHide.prop('checked', (index == -1))
+					tableHeader.chxDisplay.prop('checked', (display))
+					
+					if (display) tableHeader.col.css('width', display + 'em');
 					
 					//headers
 					
@@ -329,11 +331,11 @@ var datas = {
 					let hide = paramsArray.getAll('hide[]');
 					let index = hide.indexOf(tableHeader.id);
 					
-					tableHeader.aHide
+					tableHeader.aDisplay
 						.toggleClass('btn-primary', !(index == -1))
 						.toggleClass('btn-outline-primary', (index == -1))
 					;
-					tableHeader.chxHide.prop('checked', (index == -1))
+					tableHeader.chxDisplay.prop('checked', (index == -1))
 					
 					//headers
 					
@@ -853,38 +855,32 @@ function fillDisplay() {
 	
 	for (let tableHeader of tableHeaders) {
 		
-		tableHeader.aHide = col.append(create.a).children().last()
+		tableHeader.aDisplay = col.append(create.a).children().last()
 			.addClass('btn-outline-primary col-2 m-1 text-left')
 			.on('click', function() {
 				
-				tableHeader.chxHide.prop('checked', !tableHeader.chxHide.is(':checked'));
+				tableHeader.chxDisplay.prop('checked', !tableHeader.chxDisplay.is(':checked'));
 				
-				let hide = urlSearch.get('hide[]');
-				let index = hide.indexOf(tableHeader.id);
+				let display = urlSearch.get('display[' + tableHeader.id + ']');
 				
-				if (tableHeader.chxHide.is(':checked')) {
-					if (index > -1) {
-						hide.splice(index, 1);
-					}
-				} else {
-					if (index == -1 && tableHeader.id) {
-						hide.push(tableHeader.id);
+				urlSearch.delete('display[' + tableHeader.id + ']');
+				
+				if (tableHeader.chxDisplay.is(':checked')) {
+					if (display == null) {
+						urlSearch.append('display[' + tableHeader.id + ']', 10);
 					}
 				}
 				
-				urlSearch.delete('hide[]');
-				hide.forEach(e => urlSearch.append('hide[]', e));
 				urlSearch.fetch();
-				
 				return false;
 			})
 		;
 		
-		let div = tableHeader.aHide.append(create.div).children().last()
+		let div = tableHeader.aDisplay.append(create.div).children().last()
 				.addClass('custom-control custom-checkbox')
 		;
 		
-		tableHeader.chxHide = div.append(create.checkbox).children().last()
+		tableHeader.chxDisplay = div.append(create.checkbox).children().last()
 			.attr('id', 'h_' + tableHeader.id)
 			.on('change click', function() {
 				return false;
@@ -951,10 +947,14 @@ var urlSearch = new UrlSearch();
 
 $(document).ready(function() {
 	
-	$('#form').on('submit', function(event) {
+	//---------------------
+	// Search form
+	//---------------------
+	
+	$('#form').on('submit', function(e) {
 		
-		event.preventDefault;
-		$(event.target).find('select').each(function() {
+		e.preventDefault;
+		$(e.target).find('select').each(function() {
 			if ($(this).val().toString()  == '') {
 				$(this).attr('disabled', 'disabled');
 			}
@@ -963,15 +963,22 @@ $(document).ready(function() {
 		return true;
 	});
 	
-	$('#document_edit').hide();
-	$('#document_move').hide();
-	$('#document_delete').hide();
-	$('#version_menu').hide();
+	//---------------------
+	// Modal
+	//---------------------
 	
 	$('#modal').on('show.bs.modal', function(e) {
 		ajax.set('.modal-body', $(e.relatedTarget).data('url'));
 	});
 
+	//---------------------
+	// Menu display
+	//---------------------
+
+	$('#document_edit').hide();
+	$('#document_move').hide();
+	$('#document_delete').hide();
+	$('#version_menu').hide();
 	
 	$('#document_edit').on('click', function() {
 		location.assign($(this).data('url') + urlSearch.toString());
@@ -1003,9 +1010,14 @@ $(document).ready(function() {
 		return false;
 	});
 	
+	//---------------------
+	// Tab collapse
+	//---------------------
+	
 	$('#tabs').on('show.bs.tab', function() {
 		$('.collapse').collapse('show');
 		$('#table_container').css('margin-top', '10em');
+		$('#tabs > div').css('height', '6em');
 	});
 	
 	$('#tabs ul li a').on('click', function(e) {
@@ -1021,32 +1033,17 @@ $(document).ready(function() {
     
 	$('#tabs').on('shown.bs.collapse', function() {
 		$('#table_container').css('margin-top', '10em');
+		$('#tabs > div').css('height', '6em');
 	});
 	
 	$('#tabs').on('hidden.bs.collapse', function(e) {
 		$('#table_container').css('margin-top', '4em');
+		$('#tabs > div').deleteAttr('style');
 	});
 	
-	
-	/*
-	$('#tabs a').on('click', function(e) {
-		if ($(this).hasClass('active')) {
-			$('#tabs').css('height', '3em');
-			
-			$(this).removeClass('active');
-			$(this).attr('aria-selected', false);
-			//console.log(this);
-			$('#' + $(this).attr('aria-controls')).removeAttr('class');
-			//console.log($('#' + $(this).attr('aria-controls'))[0]);
-		} else {
-			$('#tabs').css('height', '10em');
-			$(this).addClass('active');
-			$(this).attr('aria-selected', true);
-			$('#' + $(this).attr('aria-controls')).attr('class', 'tab-pane fade show active');
-		}
-		
-	});
-	*/
+	//---------------------
+	// Check all checkboxes
+	//---------------------
 	
 	$('#check_all').on('click', function() {
 		$('tbody').find('input[type="checkbox"]').each(function() {
@@ -1055,11 +1052,34 @@ $(document).ready(function() {
 		lineChecked();
 	});
 	
+	//---------------------
+	// Jquery Resizable Columns
+	//---------------------
+	
+	//$('table').resizableColumns();
+	
+	//---------------------
+	// Dragtable
+	//---------------------
+	
+	/*
+	var dragger = tableDragger.default($('table').get(0), {
+        mode: 'column',
+	});
+	*/
+	//---------------------
+	// Table headers
+	//---------------------
+	
 	$('table').find('th[id][data-title]').each(function() {
 		tableHeaders.push(createTableHeader(this));
 	});
 	
-	$('#vues').find('button').on('click', function() {
+	//---------------------
+	// Vues
+	//---------------------
+	
+	$('#vues').find('button[data-value]').on('click', function() {
 		if ($(this).attr('id') == 'vue_new') {
 			location.assign($(this).data('url') + urlSearch.toString());
 		} else {
@@ -1074,7 +1094,7 @@ $(document).ready(function() {
 	
 	
 	fillDisplay();
-	urlSearch.setFromUrl(window.location);
+	urlSearch.setFromUrl(window.location.search);
 	urlSearch.fetch();
 	
 });

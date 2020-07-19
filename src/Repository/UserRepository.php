@@ -44,9 +44,9 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     public function getUsers()
     {
     	return $this->createQueryBuilder('u')
-    	->addOrderBy('u.name')
-    	->getQuery()
-    	->getResult()
+	    	->addOrderBy('u.name')
+	    	->getQuery()
+	    	->getResult()
     	;
     }
     
@@ -65,7 +65,7 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
 	    	->addOrderBy('u.name')
 	    	->getQuery()
 	    	->getResult()
-	    	;
+	    ;
     }
     
     /**
@@ -74,11 +74,26 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     public function getUsersByCompany(Company $company)
     {
     	return $this->createQueryBuilder('u')
-    	->andWhere('u.company = :company')
-    	->setParameter('company', $company)
-    	->addOrderBy('u.name')
-    	->getQuery()
-    	->getResult()
+	    	->andWhere('u.company = :company')
+	    	->setParameter('company', $company)
+	    	->addOrderBy('u.name')
+	    	->getQuery()
+	    	->getResult()
+    	;
+    }
+    
+    /**
+     * @return User[]
+     */
+    public function getUsersBySeries(array $series)
+    {
+    	return $this->createQueryBuilder('u')
+	    	->innerJoin('u.projects', 'p')
+	    	->andWhere('p.series IN (:id)')
+	    	->setParameter('id', $series)
+	    	->addOrderBy('u.name')
+	    	->getQuery()
+	    	->getResult()
     	;
     }
     

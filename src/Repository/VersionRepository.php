@@ -243,7 +243,7 @@ class VersionRepository extends ServiceEntityRepository
 		
 		$versions = $this->query->getQuery()->getResult();
 		
-		$hide = $request->query->get('hide') ?? [];
+		$display = $request->query->get('display') ?? [];
 		$result = [];
 		$row = [];
 		
@@ -255,7 +255,7 @@ class VersionRepository extends ServiceEntityRepository
 			]);
 			
 			foreach ($fields as $fullCodeName => $field) {
-				if (!in_array($field['id'], $hide)) {
+				if (($display[$field['id']] ?? null) > 0) {
 					$row[$field['id']] = $version->getPropertyValueToString($fullCodeName);
 				}
 			}

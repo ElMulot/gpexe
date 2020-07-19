@@ -31,12 +31,12 @@ class ProjectController extends AbstractController
 		$this->automationRepository = $automationRepository;
 	}
 
-	public function index(ProjectRepository $projectRepository): Response
+	public function index(): Response
 	{
 		if ($this->isGranted('ROLE_ADMIN')) {
-			$projects = $projectRepository->getAllProjects();
+			$projects = $this->projectRepository->getAllProjects();
 		} else {
-			$projects = $projectRepository->getProjects($this->getUser());
+			$projects = $this->projectRepository->getProjects($this->getUser());
 		}
 		return $this->render('project/index.html.twig', [
 			'projects' => $projects
@@ -53,6 +53,7 @@ class ProjectController extends AbstractController
 		$automations = $this->automationRepository->getEnabledAutomations($project);
 	
 		return $this->render('project/view.html.twig', [
+			'project' => $project,
 			'main_contractors' => $mainContractors,
 			'sub_contractors' => $subContractors,
 			'automations' => $automations,
@@ -108,7 +109,7 @@ class ProjectController extends AbstractController
 		}
 	}
 
-	public function delete(Request $request, Project $project, ProjectRepository $projectRepository): Response
+	public function delete(Request $request, Project $project): Response
 	{
 		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
 			$entityManager = $this->getDoctrine()->getManager();
@@ -126,9 +127,7 @@ class ProjectController extends AbstractController
             	]),
                 'entities' => [$project],
             ]);
-        }
-        
-        
+        }  
     }
     
 }
