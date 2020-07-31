@@ -159,64 +159,62 @@ UrlSearch.prototype = {
           }
         });
 
-        var _iterator = _createForOfIteratorHelper(tableHeaders),
-            _step;
-
-        try {
-          for (_iterator.s(); !(_step = _iterator.n()).done;) {
-            var tableHeader = _step.value;
-            //display
-            var display = that.get('display[' + tableHeader.id + ']');
-            tableHeader.aDisplay.toggleClass('btn-primary', !display).toggleClass('btn-outline-primary', display);
-            tableHeader.chxDisplay.prop('checked', display);
-            if (display) tableHeader.col.css('width', display + 'em'); //headers
-
-            tableHeader.btnDropdown.empty();
-            tableHeader.isFiltered = false;
-            tableHeader.isSortedAsc = false;
-            tableHeader.isSortedDesc = false;
-
-            var _iterator3 = _createForOfIteratorHelper(tableHeader.selects),
-                _step3;
-
-            try {
-              for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
-                var select = _step3.value;
-
-                if (that.has(select.name)) {
-                  tableHeader.isFiltered = true;
-                }
-
-                if (that.get('sortAsc') == select.name) {
-                  tableHeader.isSortedAsc = true;
-                }
-
-                if (that.get('sortDesc') == select.name) {
-                  tableHeader.isSortedDesc = true;
-                }
-              }
-            } catch (err) {
-              _iterator3.e(err);
-            } finally {
-              _iterator3.f();
-            }
-
-            tableHeader.btnDropdown.append(tableHeader.isFiltered ? icon.funnelFill : icon.funnel);
-
-            if (tableHeader.isSortedAsc) {
-              tableHeader.btnDropdown.append(icon.arrowDown);
-            }
-
-            if (tableHeader.isSortedDesc) {
-              tableHeader.btnDropdown.append(icon.arrowUp);
-            }
-          } //tbody
-
-        } catch (err) {
-          _iterator.e(err);
-        } finally {
-          _iterator.f();
-        }
+        for (let tableHeader of tableHeaders) {
+			
+			//display
+			
+			if (display = that.get('display[' + tableHeader.id + ']')) {
+				tableHeader.aDisplay.addClass('btn-outline-primary');
+				tableHeader.aDisplay.removeClass('btn-primary');
+				tableHeader.chxDisplay.prop('checked', true);
+				tableHeader.col.css('width', display + 'em');
+				tableHeader.col.show();
+				tableHeader.th.show();
+				
+				//headers
+				
+				tableHeader.btnDropdown.empty();
+				
+				tableHeader.isFiltered = false;
+				tableHeader.isSortedAsc = false;
+				tableHeader.isSortedDesc = false;
+				
+				for (let select of tableHeader.selects) {
+					
+					if (that.has(select.name)) {
+						tableHeader.isFiltered = true;
+					}
+					
+					if (that.get('sortAsc') == select.name) {
+						tableHeader.isSortedAsc = true;
+					}
+					
+					if (that.get('sortDesc') == select.name) {
+						tableHeader.isSortedDesc = true;
+					}
+					
+				}
+				
+				tableHeader.btnDropdown.append((tableHeader.isFiltered)?icon.funnelFill:icon.funnel);					
+				
+				if (tableHeader.isSortedAsc) {
+					tableHeader.btnDropdown.append(icon.arrowDown);
+				}
+				
+				if (tableHeader.isSortedDesc) {
+					tableHeader.btnDropdown.append(icon.arrowUp);
+				}
+				
+			} else {
+				tableHeader.aDisplay.addClass('btn-primary');
+				tableHeader.aDisplay.removeClass('btn-outline-primary');
+				tableHeader.chxDisplay.prop('checked', false);
+				tableHeader.col.hide();
+				tableHeader.th.hide();
+			}
+			
+		}
+		
 
         var _iterator2 = _createForOfIteratorHelper(result.versions),
             _step2;
@@ -958,15 +956,28 @@ $(document).ready(function () {
   //---------------------
   // Search form
   //---------------------
-  $('#form').on('submit', function (e) {
-    e.preventDefault;
-    $(e.target).find('select').each(function () {
-      if ($(this).val().toString() == '') {
-        $(this).attr('disabled', 'disabled');
-      }
-    });
-    return true;
-  }); //---------------------
+	$('#search button').on('click', function() {
+		
+		urlSearch.set('search', $('#search input').val());
+		urlSearch.fetch();
+		
+		return true;
+		
+	});
+	
+	$('#search a').on('click', function() {
+		
+		$('#search input').val('');
+		
+		if (urlSearch.has('search')) {
+			urlSearch.delete('search');
+			urlSearch.fetch();
+		}
+		return true;
+		
+	});
+  
+  //---------------------
   // Modal
   //---------------------
 

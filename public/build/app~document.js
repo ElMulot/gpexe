@@ -172,6 +172,15 @@ global.ajax = {
 $(document).ready(function () {
   $('[data-toggle="popover"]').popover();
   ajax.fetch('body');
+ 
+	
+	$('[id]').on('hidden.bs.collapse', function() {
+		$('[data-toggle="collapse"][href="#' + $(this).attr('id') + '"]')
+			.removeClass('active')
+			.blur()
+		;
+	});
+  
 });
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../../node_modules/webpack/buildin/global.js */ "./node_modules/webpack/buildin/global.js")))
 

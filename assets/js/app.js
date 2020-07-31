@@ -238,6 +238,22 @@ global.ajax = {
 $(document).ready(function() {
 	
     $('[data-toggle="popover"]').popover();
-	ajax.fetch('body');
+	
+    ajax.fetch('body');
+	
+    /*
+	$('[id]').on('show.bs.collapse', function() {
+		$('[data-toggle="collapse"][href="#' + $(this).attr('id') + '"]')
+			.addClass('active')
+		;
+	});
+	*/
+    
+	$('[id]').on('hidden.bs.collapse', function() {
+		$('[data-toggle="collapse"][href="#' + $(this).attr('id') + '"]')
+			.removeClass('active')
+			.blur()
+		;
+	});
     
 });

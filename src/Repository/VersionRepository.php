@@ -8,8 +8,10 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use App\Entity\Project;
 use App\Entity\Serie;
 use App\Entity\Document;
+use App\Entity\User;
 use App\Entity\Version;
 use App\Entity\Review;
+use App\Service\FieldService;
 
 
 /**
@@ -25,18 +27,21 @@ class VersionRepository extends ServiceEntityRepository
 	
 	private $query;
 	
-	public function __construct(ManagerRegistry $registry, UrlGeneratorInterface $router)
+	public function __construct(ManagerRegistry $registry, UrlGeneratorInterface $router, FieldService $fieldService)
 	{
 		parent::__construct($registry, Version::class, Document::class);
 		$this->router = $router;
+		$this->fieldService = $fieldService;
 	}
 	
 	/**
 	 * @return Version[]
 	 *
 	 */
-	public function getVersionsArray(array $fields, Serie $serie=null, $request=null)
+	public function getVersionsArray(Project $project, array $series, $request=null)
 	{
+		
+		$fields = $this->fieldService->getFields($project);
 		
 		$codificationQuery = [];
 		$subQuery = [];
@@ -46,14 +51,12 @@ class VersionRepository extends ServiceEntityRepository
 			->innerJoin('v.document', 'd')
 			->innerJoin('d.serie', 's');
 		
-		if ($serie) {
-			$this->query->andWhere('d.serie = :id')->setParameter('id', $serie);
-		}
+		$this->query->andWhere('d.serie IN (:id)')->setParameter('id', $series);
 		
 		if ($request) {
 			
 			$codifications = $request->query->get('codification') ?? [];
-			
+						
 			foreach ($codifications as $codification => $ids) {
 				
 				$subQuery = $this->getEntityManager()->createQueryBuilder()
@@ -63,7 +66,6 @@ class VersionRepository extends ServiceEntityRepository
 				
 				foreach ($ids as $id) {
 					if ($id) {
-						
 						$andQuery = $this->query->expr()->andX(
 							$this->addEq('i' . $codification . '.id', $id),
 							$this->addEq('i' . $codification . '.codification', $codification));
@@ -74,7 +76,7 @@ class VersionRepository extends ServiceEntityRepository
 				$this->query->andWhere($this->query->expr()->in('d.id', $subQuery->getDQL()));
 				
 			}
-			
+						
 			$metadatas = [];
 			
 			foreach ($request->query->get('serie') ?? [] as $field => $value) {
@@ -243,6 +245,15 @@ class VersionRepository extends ServiceEntityRepository
 		
 		$versions = $this->query->getQuery()->getResult();
 		
+		if ($search = $request->query->get('search')) {
+			$search = preg_replace('/\*+/', '.*', $search);
+			foreach ($versions as $key => $version) {
+				if (preg_match('/' . $search . '/', $version->getDocument()->getReference()) === 0) {
+					unset($versions[$key]);
+				}
+			}
+		}
+		
 		$display = $request->query->get('display') ?? [];
 		$result = [];
 		$row = [];
@@ -316,6 +327,23 @@ class VersionRepository extends ServiceEntityRepository
 			->getResult()
 		;
 	}
+	
+	public function getAlerts(Project $project, User $user)
+	{
+		return $this->createQueryBuilder('v')
+			->select('s.id, s.name, v.isRequired, count(v.id) AS count, MAX(DATE_DIFF(CURRENT_DATE(), v.scheduledDate)) AS max')
+			->innerJoin('v.document', 'd')
+			->innerJoin('d.serie', 's')
+			->andWhere('s.project = :project')
+			->andWhere('(v.isRequired = true AND v.writer = :user) OR (v.isRequired = false AND v.checker = :user)')
+			->setParameter('project', $project)
+			->setParameter('user', $user)
+			->groupBy('s.id, v.isRequired')
+			->getQuery()
+			->getResult()
+		;
+	}
+	
 	
 	private function addEq($field, $parameter)
 	{

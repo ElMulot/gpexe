@@ -8,7 +8,6 @@ Contrôle d'accès :
     Vérifier le contrôle d'accès côté html
 
 Vue principale
-    Vue série type sdr ou mdr
     Vérifier le bon fonctionnement des vues
     Vérifier le fonctionnement des filtres
     
@@ -16,6 +15,5 @@ Avancement
     Ajouter pages avancement
     Ajouter propriété progress dans version
 
-Accueil
-    Afficher des informations sur l'écran d'accueil
-    
+Accueil et project view
+	Vérifier MAJ JS

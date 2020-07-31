@@ -23,14 +23,7 @@ var $ = __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js"
 __webpack_require__(/*! ../css/project.scss */ "./assets/css/project.scss");
 
 $(document).ready(function () {
-  $('#sub_contractors, #main_contractors').on('show.bs.collapse', function () {
-    console.log($(this));
-    $('#' + $(this).prop('id') + '_tab').addClass('active');
-  });
-  $('#sub_contractors, #main_contractors').on('hidden.bs.collapse', function () {
-    $('#' + $(this).prop('id') + '_tab').removeClass('active');
-    $('#' + $(this).prop('id') + '_tab').blur();
-  });
+
 });
 
 /***/ })

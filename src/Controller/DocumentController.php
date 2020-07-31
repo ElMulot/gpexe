@@ -89,7 +89,6 @@ class DocumentController extends AbstractController
 	
 	public function indexByType(Project $project, string $type): Response
 	{
-		$company = $serie->getCompany();
 		$series = $this->serieRepository->getSeriesByType($project, $type);
 		$vues = $this->vueRepository->getVues($project, $this->getUser());
 		$fields = $this->fieldService->getFieldsWithForms($project, $series);
@@ -106,12 +105,8 @@ class DocumentController extends AbstractController
 		]);
 	}
 	
-	public function table(Request $request, SerializerInterface $serializer, Serie $serie): Response
+	public function table(Request $request, Project $project, Serie $serie): Response
 	{
-		
-		$project = $serie->getProject();
-		
-		$page = $request->query->get('page') ?? 1;
 		
 		if ($vueId = $request->query->get('vue')) {
 			if ($vue = $this->vueRepository->getVueById($vueId)) {
@@ -122,37 +117,64 @@ class DocumentController extends AbstractController
 			}
 		}
 		
-		if (!$request->query->all()) {
+		if ($request->query->all() == false) {
  			if ($vue = $this->vueRepository->getDefaultVue($project, $this->getUser())) {
  				$vueId = $vue->getId();
  				$request->query->replace($vue->getValue());
  				$request->query->set('vue', $vueId);
  			} else {
-				$request->query->set('display', [
-					'document_reference' => '20',
-					'version_name' => '10',
-					'document_name' => '50',
-					'version_scheduled_date' => '10',
-					'version_delivery_date' => '10',
-					'version_is_required' => '10',
-					'status_value' => '10',
-				]);
+ 				$request->query->set('display', $this->getDefaultDisplay());
 			}
 		}
 		
-		$request->query->set('page', $page);
+		$request->query->set('page', $request->query->get('page') ?? 1);
 		
-		$versions = $this->versionRepository->getVersionsArray($this->fieldService->getFields($project), $serie, $request);
-		
-		$page_max = ceil(count($versions)/self::MAX_RECORDS);
+		$versions = $this->versionRepository->getVersionsArray($project, [$serie], $request);
 		
 		return new JsonResponse([
 			'versions' => $versions,
 			'query' => $request->query->all(),
-			'pageMax' => $page_max,
+			'pageMax' => ceil(count($versions)/self::MAX_RECORDS),
 		]);
 		
 	}
+	
+	public function tableByType(Request $request, Project $project, string $type): Response
+	{
+		
+		$series = $this->serieRepository->getSeriesByType($project, $type);
+		
+		if ($vueId = $request->query->get('vue')) {
+			if ($vue = $this->vueRepository->getVueById($vueId)) {
+				$request->query->replace($vue->getValue());
+				$request->query->set('vue', $vueId);
+			} else {
+				$request->query->remove('vue');
+			}
+		}
+		
+		if ($request->query->all() == false) {
+			if ($vue = $this->vueRepository->getDefaultVue($project, $this->getUser())) {
+				$vueId = $vue->getId();
+				$request->query->replace($vue->getValue());
+				$request->query->set('vue', $vueId);
+			} else {
+				$request->query->set('display', $this->getDefaultDisplay());
+			}
+		}
+		
+		$request->query->set('page', $request->query->get('page') ?? 1);
+		
+		$versions = $this->versionRepository->getVersionsArray($project, $series, $request);
+		
+		return new JsonResponse([
+			'versions' => $versions,
+			'query' => $request->query->all(),
+			'pageMax' => ceil(count($versions)/self::MAX_RECORDS),
+		]);
+		
+	}
+	
 	public function detail(Version $version): Response
 	{
 		$document = $version->getDocument();
@@ -367,6 +389,19 @@ class DocumentController extends AbstractController
 	        ]);
 	    }
 	    
+	}
+	
+	private function getDefaultDisplay() {
+		
+		return [
+			'document_reference' => '20',
+			'version_name' => '10',
+			'document_name' => '50',
+			'version_scheduled_date' => '10',
+			'version_delivery_date' => '10',
+			'version_is_required' => '10',
+			'status_value' => '10',
+		];
 	}
 	
 }

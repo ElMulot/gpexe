@@ -43,6 +43,12 @@ services:
                 event: 'postRemove'
                 entity: 'App\Entity\Status'
                 lazy: true
+                
+    App\EventListener\LogListener:
+        tags:
+            -
+                name: 'doctrine.event_listener'
+                event: 'onFlush'
 
     App\EventSubscriber\LocaleSubscriber:
         arguments: ['%kernel.default_locale%']

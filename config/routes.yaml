@@ -9,6 +9,12 @@ logout:
 home:
     path: /
     controller: App\Controller\HomeController::index
+    
+alert:
+    path: /project/{id}/alert
+    requirements:
+        id: \d+
+    controller: App\Controller\HomeController::alert
 
 about:
     path: /about
@@ -325,10 +331,18 @@ document_by_type:   #vue principale
     controller: App\Controller\DocumentController::indexByType
 
 document_table:
-    path: /project/serie/{id}/table
+    path: /project/{id}/serie/{serie}/table
     requirements:
         id: \d+
+        serie: \d+
     controller: App\Controller\DocumentController::table
+
+document_table_by_type:
+    path: /project/{id}/serie/{type}/table
+    requirements:
+        id: \d+
+        type: sdr|mdr
+    controller: App\Controller\DocumentController::tableByType
 
 document_detail:
     path: /project/serie/document/{id}/detail

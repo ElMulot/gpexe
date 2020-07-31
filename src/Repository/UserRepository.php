@@ -58,8 +58,8 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     	return $this->createQueryBuilder('u')
 	    	->innerJoin('u.company', 'c')
 	    	->innerJoin('u.projects', 'p')
-	    	->andWhere('p.id = :id')
-	    	->setParameter('id', $project->getId())
+	    	->andWhere('p.id = :project')
+	    	->setParameter('project', $project)
 	    	->andWhere('c.type IN (:type)')
 	    	->setParameter('type', [Company::MAIN_CONTRACTOR, Company::CHECKER])
 	    	->addOrderBy('u.name')
@@ -87,10 +87,13 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
      */
     public function getUsersBySeries(array $series)
     {
+    	if ($series == false) {
+    		return [];
+    	}
     	return $this->createQueryBuilder('u')
 	    	->innerJoin('u.projects', 'p')
-	    	->andWhere('p.series IN (:id)')
-	    	->setParameter('id', $series)
+	    	->innerJoin('p.series', 's')
+	    	->andWhere($this->createQueryBuilder('s')->expr()->in('s.id', $series))
 	    	->addOrderBy('u.name')
 	    	->getQuery()
 	    	->getResult()

@@ -27,9 +27,9 @@ class CompanyRepository extends ServiceEntityRepository
     public function getCompanies()
     {
     	return $this->createQueryBuilder('c')
-    	->addOrderBy('c.name')
-    	->getQuery()
-    	->getResult()
+	    	->addOrderBy('c.name')
+	    	->getQuery()
+	    	->getResult()
     	;
     }
     

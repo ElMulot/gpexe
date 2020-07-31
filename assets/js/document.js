@@ -99,47 +99,54 @@ UrlSearch.prototype = {
 					
 					//display
 					
-					let display = that.get('display[' + tableHeader.id + ']');
-					tableHeader.aDisplay
-						.toggleClass('btn-primary', !(display))
-						.toggleClass('btn-outline-primary', (display))
-					;
-					tableHeader.chxDisplay.prop('checked', (display))
-					
-					if (display) tableHeader.col.css('width', display + 'em');
-					
-					//headers
-					
-					tableHeader.btnDropdown.empty();
-					
-					tableHeader.isFiltered = false;
-					tableHeader.isSortedAsc = false;
-					tableHeader.isSortedDesc = false;
-					
-					for (let select of tableHeader.selects) {
+					if (display = that.get('display[' + tableHeader.id + ']')) {
+						tableHeader.aDisplay.addClass('btn-outline-primary');
+						tableHeader.aDisplay.removeClass('btn-primary');
+						tableHeader.chxDisplay.prop('checked', true);
+						tableHeader.col.css('width', display + 'em');
+						tableHeader.col.show();
+						tableHeader.th.show();
 						
-						if (that.has(select.name)) {
-							tableHeader.isFiltered = true;
+						//headers
+						
+						tableHeader.btnDropdown.empty();
+						
+						tableHeader.isFiltered = false;
+						tableHeader.isSortedAsc = false;
+						tableHeader.isSortedDesc = false;
+						
+						for (let select of tableHeader.selects) {
+							
+							if (that.has(select.name)) {
+								tableHeader.isFiltered = true;
+							}
+							
+							if (that.get('sortAsc') == select.name) {
+								tableHeader.isSortedAsc = true;
+							}
+							
+							if (that.get('sortDesc') == select.name) {
+								tableHeader.isSortedDesc = true;
+							}
+							
 						}
 						
-						if (that.get('sortAsc') == select.name) {
-							tableHeader.isSortedAsc = true;
+						tableHeader.btnDropdown.append((tableHeader.isFiltered)?icon.funnelFill:icon.funnel);					
+						
+						if (tableHeader.isSortedAsc) {
+							tableHeader.btnDropdown.append(icon.arrowDown);
 						}
 						
-						if (that.get('sortDesc') == select.name) {
-							tableHeader.isSortedDesc = true;
+						if (tableHeader.isSortedDesc) {
+							tableHeader.btnDropdown.append(icon.arrowUp);
 						}
 						
-					}
-					
-					tableHeader.btnDropdown.append((tableHeader.isFiltered)?icon.funnelFill:icon.funnel);					
-					
-					if (tableHeader.isSortedAsc) {
-						tableHeader.btnDropdown.append(icon.arrowDown);
-					}
-					
-					if (tableHeader.isSortedDesc) {
-						tableHeader.btnDropdown.append(icon.arrowUp);
+					} else {
+						tableHeader.aDisplay.addClass('btn-primary');
+						tableHeader.aDisplay.removeClass('btn-outline-primary');
+						tableHeader.chxDisplay.prop('checked', false);
+						tableHeader.col.hide();
+						tableHeader.th.hide();
 					}
 					
 				}
@@ -170,8 +177,6 @@ UrlSearch.prototype = {
 						data = version[tableHeader.id];
 						
 						if (data !== undefined) {
-							tableHeader.col.show();
-							tableHeader.th.show();
 							if (tableHeader.col.attr('class') == 'type-standard') {
 								if (/^[-+]?[0-9]+$/.test(data)) {
 									dataClass = 'type-integer';
@@ -951,16 +956,25 @@ $(document).ready(function() {
 	// Search form
 	//---------------------
 	
-	$('#form').on('submit', function(e) {
+	$('#search button').on('click', function() {
 		
-		e.preventDefault;
-		$(e.target).find('select').each(function() {
-			if ($(this).val().toString()  == '') {
-				$(this).attr('disabled', 'disabled');
-			}
-		});
+		urlSearch.set('search', $('#search input').val());
+		urlSearch.fetch();
 		
 		return true;
+		
+	});
+	
+	$('#search a').on('click', function() {
+		
+		$('#search input').val('');
+		
+		if (urlSearch.has('search')) {
+			urlSearch.delete('search');
+			urlSearch.fetch();
+		}
+		return true;
+		
 	});
 	
 	//---------------------

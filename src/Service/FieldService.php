@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use Symfony\Contracts\Translation\TranslatorInterface;
+use Symfony\Component\Form\FormFactoryInterface;
 use App\Entity\Metadata;
 use App\Entity\Project;
 use App\Entity\Status;
@@ -10,6 +11,7 @@ use App\Form\SelectType;
 use App\Repository\CompanyRepository;
 use App\Repository\CodificationRepository;
 use App\Repository\MetadataRepository;
+use App\Repository\StatusRepository;
 use App\Repository\UserRepository;
 
 class FieldService
@@ -17,20 +19,26 @@ class FieldService
 	
 	private $translator;
 	
+	private $formFactory;
+	
 	private $companyRepository;
 	
 	private $codificationRepository;
 	
 	private $metadataRepository;
 	
+	private $statusRepository;
+	
 	private $userRepository;
 	
-	public function __construct(TranslatorInterface $translator, CompanyRepository $companyRepository, CodificationRepository $codificationRepository, MetadataRepository $metadataRepository, UserRepository $userRepository)
+	public function __construct(TranslatorInterface $translator, FormFactoryInterface $formFactory, CompanyRepository $companyRepository, CodificationRepository $codificationRepository, MetadataRepository $metadataRepository, StatusRepository $statusRepository, UserRepository $userRepository)
 	{
 		$this->translator = $translator;
+		$this->formFactory = $formFactory;
 		$this->companyRepository = $companyRepository;
 		$this->codificationRepository = $codificationRepository;
 		$this->metadataRepository = $metadataRepository;
+		$this->statusRepository = $statusRepository;
 		$this->userRepository = $userRepository;
 	}
 
@@ -172,13 +180,14 @@ class FieldService
 			}
 		}
 		
-		$fields['document.reference']['form'] = $this->createForm(SelectType::class, null, [
+		$fields['document.reference']['form'] = $this->formFactory->createBuilder(SelectType::class, null, [
 			'controls' => $codificationControls,
 		])
+			->getForm()
 			->createView()
 		;
 		
-		$fields['version.isRequired']['form'] = $this->createForm(SelectType::class, null, [
+		$fields['version.isRequired']['form'] = $this->formFactory->createBuilder(SelectType::class, null, [
 			'controls' => [
 				[
 					'full_id' => 'version[isRequired]',
@@ -192,10 +201,11 @@ class FieldService
 				],
 			],
 		])
+			->getForm()
 			->createView()
 		;
 		
-		$fields['version.writer']['form'] = $this->createForm(SelectType::class, null, [
+		$fields['version.writer']['form'] = $this->formFactory->createBuilder(SelectType::class, null, [
 			'controls' => [
 				[
 					'full_id' => 'version[writer]',
@@ -207,10 +217,11 @@ class FieldService
 				],
 			],
 		])
+			->getForm()
 			->createView()
 		;
 		
-		$fields['version.checker']['form'] = $this->createForm(SelectType::class, null, [
+		$fields['version.checker']['form'] = $this->formFactory->createBuilder(SelectType::class, null, [
 			'controls' => [
 				[
 					'full_id' => 'version[checker]',
@@ -222,10 +233,11 @@ class FieldService
 				],
 			],
 		])
+			->getForm()
 			->createView()
 		;
 		
-		$fields['version.approver']['form'] = $this->createForm(SelectType::class, null, [
+		$fields['version.approver']['form'] = $this->formFactory->createBuilder(SelectType::class, null, [
 			'controls' => [
 				[
 					'full_id' => 'version[approver]',
@@ -237,10 +249,11 @@ class FieldService
 				],
 			],
 		])
+			->getForm()
 			->createView()
 		;
 		
-		$fields['serie.name']['form'] = $this->createForm(SelectType::class, null, [
+		$fields['serie.name']['form'] = $this->formFactory->createBuilder(SelectType::class, null, [
 			'controls' => [
 				[
 					'full_id' => 'serie[name]',
@@ -252,10 +265,11 @@ class FieldService
 				],
 			],
 		])
+			->getForm()
 			->createView()
 		;
 		
-		$fields['serie.company']['form'] = $this->createForm(SelectType::class, null, [
+		$fields['serie.company']['form'] = $this->formFactory->createBuilder(SelectType::class, null, [
 			'controls' => [
 				[
 					'full_id' => 'serie[company]',
@@ -267,10 +281,11 @@ class FieldService
 				],
 			],
 		])
+			->getForm()
 			->createView()
 		;
 		
-		$fields['status.value']['form'] = $this->createForm(SelectType::class, null, [
+		$fields['status.value']['form'] = $this->formFactory->createBuilder(SelectType::class, null, [
 			'controls' => [
 				[
 					'full_id' => 'status[value]',
@@ -282,10 +297,11 @@ class FieldService
 				],
 			],
 		])
+			->getForm()
 			->createView()
 		;
 		
-		$fields['status.type']['form'] = $this->createForm(SelectType::class, null, [
+		$fields['status.type']['form'] = $this->formFactory->createBuilder(SelectType::class, null, [
 			'controls' => [
 				[
 					'full_id' => 'status[type]',
@@ -301,6 +317,7 @@ class FieldService
 				],
 			],
 		])
+			->getForm()
 			->createView()
 		;
 		
@@ -309,26 +326,28 @@ class FieldService
 			switch ($metadata->getType()) {
 				
 				case Metadata::BOOLEAN:
-					$fields[$metadata->getFullCodename()]['form'] = $this->createForm(SelectType::class, null, [
-					'controls' => [
-					[
-					'full_id' => $metadata->getFullDomName(),
-					'snake_case_full_id' => $metadata->getFullDomId(),
-					'title' => $metadata->getName(),
-					'multiple' => false,
-					'choices' => [
-					'Yes' => '1',
-					'No' => '0',
-					],
-					],
-					],
+					$fields[$metadata->getFullCodename()]['form'] = $this->formFactory->createBuilder(SelectType::class, null, [
+						'controls' => [
+							[
+								'full_id' => $metadata->getFullDomName(),
+								'snake_case_full_id' => $metadata->getFullDomId(),
+								'title' => $metadata->getName(),
+								'multiple' => false,
+								'choices' => [
+									'Yes' => '1',
+									'No' => '0',
+								],
+							],
+						],
 					])
-					->createView();
+						->getForm()
+						->createView()
+					;
 					
 					break;
 					
 				case Metadata::LIST:
-					$fields[$metadata->getFullCodename()]['form'] = $this->createForm(SelectType::class, null, [
+					$fields[$metadata->getFullCodename()]['form'] = $this->formFactory->createBuilder(SelectType::class, null, [
 						'controls' => [
 							[
 								'full_id' => $metadata->getFullDomName(),
@@ -340,8 +359,9 @@ class FieldService
 								],
 							],
 						])
-						->createView()
-					;
+							->getForm()
+							->createView()
+						;
 					
 					break;
 			}
@@ -349,7 +369,7 @@ class FieldService
 		
 		foreach ($this->companyRepository->getCheckerCompanies($project) as $checkerCompany) {
 			if (!$project->getVisasByCompany($checkerCompany)->isEmpty()) {
-				$fields['visa.' . $checkerCompany->getId()]['form'] = $this->createForm(SelectType::class, null, [
+				$fields['visa.' . $checkerCompany->getId()]['form'] = $this->formFactory->createBuilder(SelectType::class, null, [
 					'controls' => [
 						[
 							'full_id' => 'visa[' . $checkerCompany->getId() . ']',
@@ -361,6 +381,7 @@ class FieldService
 						],
 					],
 				])
+					->getForm()
 					->createView()
 				;
 			}

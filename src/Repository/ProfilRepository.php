@@ -26,9 +26,9 @@ class ProfilRepository extends ServiceEntityRepository
     public function getProfils()
     {
     	return $this->createQueryBuilder('p')
-    	->addOrderBy('p.name')
-    	->getQuery()
-    	->getResult()
+	    	->addOrderBy('p.name')
+	    	->getQuery()
+	    	->getResult()
     	;
     }
     

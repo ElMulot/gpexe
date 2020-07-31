@@ -55,10 +55,10 @@
 {% endblock %}
 
 {% block content %}
-	<div class="jumbotron w-100">
+	<div class="jumbotron w-100 p-2">
 		<ul class="nav nav-tabs mb-3">
     		<li class="nav-item">
-    			<a id="sub_contractors_tab" class="nav-link active" data-toggle="collapse" href="#sub_contractors" role="button" aria-expanded="true">{% trans %}Companies{% endtrans %}</a>
+    			<a class="nav-link active" data-toggle="collapse" href="#sub_contractors" role="button" aria-expanded="true">{% trans %}Companies{% endtrans %}</a>
     		</li>
     	</ul>
 		<div id="sub_contractors" class="row collapse show mb-5">
@@ -77,10 +77,11 @@
         		<div class="col pt-5">{% trans %}Empty list{% endtrans %}</div>
             {% endfor %}
         </div>
-		
+	</div>
+	<div class="jumbotron w-100 p-2">
 	   <ul class="nav nav-tabs mb-3">
             <li class="nav-item">
-                <a id="main_contractors_tab" class="nav-link active" data-toggle="collapse" href="#main_contractors" role="button" aria-expanded="true">{% trans %}Main contractors{% endtrans %}</a>
+                <a class="nav-link active" data-toggle="collapse" href="#main_contractors" role="button" aria-expanded="true">{% trans %}Main contractors{% endtrans %}</a>
             </li>
         </ul>
         <div id="main_contractors" class="row collapse show"> 
@@ -106,5 +107,4 @@
 
 {% block javascripts %}
     {{ parent() }}
-    {{ encore_entry_script_tags('project') }}
 {% endblock %}
