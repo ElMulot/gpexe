@@ -33,6 +33,26 @@ class Project
     private $splitter;
 
     /**
+     * @ORM\Column(type="integer")
+     */
+    private $newVersionTime;
+    
+    /**
+     * @ORM\Column(type="integer")
+     */
+    private $prodWarningLimit;
+    
+    /**
+     * @ORM\Column(type="integer")
+     */
+    private $prodDangerLimit;
+    
+    /**
+     * @ORM\Column(type="integer")
+     */
+    private $checkWarningLimit;
+    
+    /**
      * @ORM\ManyToMany(targetEntity=User::class, inversedBy="projects")
      */
     private $users;
@@ -111,6 +131,54 @@ class Project
         $this->splitter = $splitter;
 
         return $this;
+    }
+    
+    public function getNewVersionTime(): ?int
+    {
+    	return $this->newVersionTime;
+    }
+    
+    public function setNewVersionTime(int $newVersionTime): self
+    {
+    	$this->newVersionTime = $newVersionTime;
+    	
+    	return $this;
+    }
+    
+    public function getProdWarningLimit(): ?int
+    {
+    	return $this->prodWarningLimit;
+    }
+    
+    public function setProdWarningLimit(int $prodWarningLimit): self
+    {
+    	$this->prodWarningLimit = $prodWarningLimit;
+    	
+    	return $this;
+    }
+    
+    public function getProdDangerLimit(): ?int
+    {
+    	return $this->prodDangerLimit;
+    }
+    
+    public function setProdDangerLimit(int $prodDangerLimit): self
+    {
+    	$this->prodDangerLimit = $prodDangerLimit;
+    	
+    	return $this;
+    }
+    
+    public function getCheckWarningLimit(): ?int
+    {
+    	return $this->checkWarningLimit;
+    }
+    
+    public function setCheckWarningLimit(int $checkWarningLimit): self
+    {
+    	$this->checkWarningLimit = $checkWarningLimit;
+    	
+    	return $this;
     }
 
     /**
@@ -375,5 +443,6 @@ class Project
     {
     	return (string)$this->getName();
     }
+    
 }
 ?>

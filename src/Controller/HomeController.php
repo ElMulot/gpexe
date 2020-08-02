@@ -41,7 +41,8 @@ class HomeController extends AbstractController
     {
     	return $this->render('home/alert.html.twig', [
     		'project' => $project,
-    		'alerts' => $this->versionRepository->getAlerts($project, $this->getUser()),
+    		'prod_alerts' => $this->versionRepository->getProdAlerts($project, $this->getUser()),
+    		'check_alerts' => $this->versionRepository->getCheckAlerts($project, $this->getUser()),
     	]);
     	
     }

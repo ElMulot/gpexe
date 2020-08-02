@@ -58,19 +58,12 @@ class VersionController extends AbstractController
 	{
 		$version = new Version();
 
-		if (!$document) { //cas d'une création depuis la vue principale
+		if ($document === null) { //cas d'une création depuis la vue principale
 			
 			$documents = $this->documentRepository->getDocumentsByRequest($request);
 			
-			if ($documents === null) {
+			if ($documents == false) {
 				return $this->redirectToRoute('project');
-			}
-			
-			if (count($documents) > 1) {
-				$this->addFlash('danger', 'You must select only document');
-				return $this->redirectToRoute('document', [
-					'id' => $document->getSerie()->getId()
-				]);
 			}
 			
 			$document = $documents[0];
@@ -79,6 +72,15 @@ class VersionController extends AbstractController
 		
 		$serie = $document->getSerie();
 		$project = $serie->getProject();
+		
+		if (count($documents) > 1) {
+			$this->addFlash('danger', 'You must select only document');
+			return $this->redirectToRoute('document', [
+				'id' => $project->getId(),
+				'serie' => $serie->getId(),
+			]);
+		}
+		
 		$status = $this->statusRepository->getDefaultStatus($project);
 		
 		$version->setDocument($document);
@@ -126,7 +128,8 @@ class VersionController extends AbstractController
 			
 			$this->addFlash('success', 'New entry created');
 			return $this->redirectToRoute('document', [
-				'id' => $document->getSerie()->getId()
+				'id' => $project->getId(),
+				'serie' => $serie->getId()
 			]);
 		} else {
 			$view = $form->createView();
@@ -142,10 +145,10 @@ class VersionController extends AbstractController
 	public function edit(Request $request, Version $version=null): Response
 	{
 		
-		if (!$version) { //cas d'une édition depuis la vue principale
+		if ($version === null) { //cas d'une édition depuis la vue principale
 			
 			$documents = $this->documentRepository->getDocumentsByRequest($request);
-			if (!$documents) {
+			if ($documents == false) {
 				return $this->redirectToRoute('project');
 			}
 			
@@ -232,13 +235,15 @@ class VersionController extends AbstractController
 			
 			$this->addFlash('success', (count($versions) == 1)?'Entry updated':'Entries updated');
 			return $this->redirectToRoute('document', [
-				'id' => $serie->getId()
+				'id' => $project->getId(),
+				'serie' => $serie->getId()
 			]);
 		} else {
 			$view = $form->createView();
 			return $this->render('generic/form.html.twig', [
 				'route_back' =>  $this->generateUrl('document', [
-					'id' => $serie->getId(),
+					'id' => $project->getId(),
+					'serie' => $serie->getId()
 				]),
 				'form' => $view,
 			]);
@@ -248,11 +253,11 @@ class VersionController extends AbstractController
 	public function delete(Request $request, Version $version=null): Response
 	{
 	    
-	    if (!$version) { //cas d'une édition depuis la vue principale
+	    if ($version === null) { //cas d'une édition depuis la vue principale
 	        
 	        $documents = $this->documentRepository->getDocumentsByRequest($request);
 	        
-	        if (!$documents) {
+	        if ($documents == false) {
 	            return $this->redirectToRoute('project');
 	        }
 	        
@@ -267,6 +272,8 @@ class VersionController extends AbstractController
 	        $versions[] = $version;
 	    }
 	    
+	    $project = $serie->getProject();
+	    
 	    if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
 	        $entityManager = $this->getDoctrine()->getManager();
 	        
@@ -278,12 +285,14 @@ class VersionController extends AbstractController
 	        $this->addFlash('success', 'deleted.version');
 	        $this->addFlash('_count', count($versions));
 	        return $this->redirectToRoute('document', [
-	            'id' => $serie->getId()
+	        	'id' => $project->getId(),
+	        	'serie' => $serie->getId()
 	        ]);
 	    } else {
 	        return $this->render('generic/delete.html.twig', [
 	            'route_back' =>  $this->generateUrl('document', [
-	                'id' => $serie->getId(),
+	            	'id' => $project->getId(),
+	            	'serie' => $serie->getId()
 	            ]),
 	            'entities' => $versions,
 	        ]);

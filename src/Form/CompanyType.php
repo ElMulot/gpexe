@@ -13,7 +13,8 @@ class CompanyType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
-            ->add('Name')
+            ->add('name')
+            ->add('codename')
             ->add('type', ChoiceType::class, ['choices' => [
                 'Main contractor' => Company::MAIN_CONTRACTOR, 
                 'Sub-contractor' => Company::SUB_CONTRACTOR,

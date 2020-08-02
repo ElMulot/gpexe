@@ -43,7 +43,6 @@ class CodificationItemController extends AbstractController
 		if ($form->isSubmitted() && $form->isValid()) {
 			$entityManager = $this->getDoctrine()->getManager();
 			$entityManager->persist($codificationItem);
-			dump($codificationItem);
 			$entityManager->flush();
 
 			$this->addFlash('success', 'New entry created');

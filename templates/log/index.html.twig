@@ -1,0 +1,86 @@
+{% extends 'layout.html.twig' %}
+
+{% block nav %}
+    <div class="navbar-collapse">
+        <ul class="navbar-nav mr-auto ">
+            <li class="nav-item" style="{{ block('nav_item') }}">
+                <a class="nav-link" href="{{ path('home') }}">{% trans %}Back{% endtrans %}</a>
+            </li>
+        </ul>
+    </div>
+    <div class="navbar-collapse">
+        {% trans %}Log{% endtrans %}
+    </div>
+    <div class="navbar-collapse">
+        <ul class="navbar-nav ml-auto">
+            <li class="nav-item" style="{{ block('nav_item') }}">
+                <a class="nav-link" href="{{ path('log_clear') }}">{% trans %}Clear{% endtrans %}</a>
+            </li>
+            <li class="nav-item" style="{{ block('nav_item') }}">
+                <a class="nav-link" href="{{ path('logout') }}">{% trans %}Logout{% endtrans %}</a>
+            </li>
+        </ul>
+    </div>
+{% endblock %}
+
+{% block content %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th></th>
+                <th>{% trans %}Type{% endtrans %}</th>
+                <th>{% trans %}Entity{% endtrans %}</th>
+                <th>{% trans %}Id{% endtrans %}</th>
+                <th>{% trans %}Name{% endtrans %}</th>
+                <th>{% trans %}Date{% endtrans %}</th>
+                <th>{% trans %}User{% endtrans %}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in log %}
+                <tr>
+                    {% if item.changeSets is empty %}
+                        <td><span class="badge badge-primary">0</span></td>
+                    {% else %}
+                        <td><a class="badge badge-primary" data-toggle="collapse" href="#c{{ item.id }}" role="button" aria-expanded="false">{{ item.changeSets|length }}</a></td>
+                    {% endif %}
+                    <td>{{ item.typeName }}</td>
+                    <td>{{ item.entity }}</td>
+                    <td>{{ item.entityId }}</td>
+                    <td>{{ item.entityName }}</td>
+                    <td>{{ item.date|date('d-m-Y h:m:s') }}</td>
+                    <td>{{ item.user.name }}</td>
+                </tr>
+                {% if item.changeSets is not empty %}
+                    <tr class="collapse" id="c{{ item.id }}">
+                        <td colspan="6">
+                            <table class="table table-secondary">
+                                <thead>
+                                    <tr>
+                                        <th>{% trans %}Field{% endtrans %}</th>
+                                        <th>{% trans %}Old value{% endtrans %}</th>
+                                        <th>{% trans %}New value{% endtrans %}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for changeSet in item.changeSets %}
+                                        <tr>
+                                            <td>{{ changeSet.field }}</td>
+                                            <td>{{ changeSet.oldValue }}</td>
+                                            <td>{{ changeSet.newValue }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                {% endif %}
+            {% else %}
+                <tr>
+                    <td class="border-0" style="max-width: 2em;"></td>
+                    <td class="border-0">{% trans %}Empty list{% endtrans %}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

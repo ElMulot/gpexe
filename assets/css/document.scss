@@ -54,6 +54,7 @@ main {
 	margin-left: 1rem;
 	margin-right: 1rem;
 	background-color: $body-bg;
+	text-align: right;
 }
 
 table {
@@ -84,32 +85,26 @@ td {
 }
 
 .type-reference {
-	text-align: center;
 	width: 12em;
 }
 
 .type-version {
-	text-align: center;
 	width: 6em;
 }
 
 .type-name {
-	text-align: left;
 	width: 20em;
 }
 
 .type-boolean {
-	text-align: center;
 	width: 6em;
 }
 
 .type-date {
-	text-align: center;
 	width:8em;
 }
 
 .type-link {
-	text-align: center;
 	width:5em;
 }
 
@@ -118,15 +113,15 @@ td {
 }
 
 .type-text {
-	text-align: left;
+	
 }
 
 .type-integer {
-	text-align: center;
+	
 }
 
 .text-float {
-	text-align: right;
+	
 }
 
 #page {

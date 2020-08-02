@@ -1,9 +1,11 @@
-{% set prod_danger = alerts|filter(v => v.max > 15 and v.isRequired == true) %}
-{% set prod_warning = alerts|filter(v => v.max <= 15 and v.max > 0 and v.isRequired == true) %}
-{% set prod_info = alerts|filter(v => v.max <= 0 and v.max > -15 and v.isRequired == true) %}
-{% set check_danger = alerts|filter(v => v.max > 30 and v.isRequired == false) %}
-{% set check_warning = alerts|filter(v => v.max <= 30 and v.max > 15 and v.isRequired == false) %}
-{% set check_info = alerts|filter(v => v.max <= 15 and v.max > 0 and v.isRequired == false) %}
+
+{% set prod_delayed  = prod_alerts|filter(v => v.min < 0) %}
+{% set prod_danger   = prod_alerts|filter(v => v.min < project.prodDangerLimit and v <=0) %}
+{% set prod_warning  = prod_alerts|filter(v => v.min >= project.prodDangerLimit and v.min < project.prodWarningLimit) %}
+{% set prod_info     = prod_alerts|filter(v => v.min >= project.prodWarningLimit) %}
+{% set check_danger  = check_alerts|filter(v => v.max > project.checkWarningLimit) %}
+{% set check_warning = check_alerts|filter(v => v.max <= project.checkWarningLimit and v.max > 0) %}
+{% set check_info    = check_alerts|filter(v => v.max <= 0) %}
 
 {% if prod_danger %}
 	<div class="alert alert-danger">

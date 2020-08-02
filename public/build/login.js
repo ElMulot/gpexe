@@ -24,5 +24,5 @@ __webpack_require__(/*! ../css/login.scss */ "./assets/css/login.scss");
 
 /***/ })
 
-},[["./assets/js/login.js","runtime","vendors~app~automation~dashboard~document~form~login~project"]]]);
+},[["./assets/js/login.js","runtime","vendors~app~automation~dashboard~document~form~login"]]]);
 //# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIndlYnBhY2s6Ly8vLi9hc3NldHMvY3NzL2xvZ2luLnNjc3MiLCJ3ZWJwYWNrOi8vLy4vYXNzZXRzL2pzL2xvZ2luLmpzIl0sIm5hbWVzIjpbIiQiLCJyZXF1aXJlIl0sIm1hcHBpbmdzIjoiOzs7Ozs7Ozs7QUFBQSx1Qzs7Ozs7Ozs7Ozs7QUNBQSxJQUFNQSxDQUFDLEdBQUdDLG1CQUFPLENBQUMsb0RBQUQsQ0FBakI7O0FBRUFBLG1CQUFPLENBQUMsa0RBQUQsQ0FBUCxDIiwiZmlsZSI6ImxvZ2luLmpzIiwic291cmNlc0NvbnRlbnQiOlsiLy8gZXh0cmFjdGVkIGJ5IG1pbmktY3NzLWV4dHJhY3QtcGx1Z2luIiwiY29uc3QgJCA9IHJlcXVpcmUoJ2pxdWVyeScpO1xyXG5cclxucmVxdWlyZSgnLi4vY3NzL2xvZ2luLnNjc3MnKTsiXSwic291cmNlUm9vdCI6IiJ9

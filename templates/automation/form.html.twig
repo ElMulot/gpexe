@@ -2,48 +2,55 @@
 
 {% block stylesheets %}
 	{{ parent() }}
-    {{ encore_entry_link_tags('automation') }}
+	{{ encore_entry_link_tags('automation') }}
 {% endblock %}
 
 {% block body %}
-    <div class="d-flex justify-content-center p-5">
-    	<div class="jumbotron col-xl-7">
-    		{% for label, messages in app.flashes %}
-        		{% for message in messages %}
-            		<div class="row justify-content-center">
-            			<div class="alert alert-{{ label }} w-100">{{ message|trans }}.</div>
-            		</div>
-        		{% endfor %}
-    		{% endfor %}
-            {{ form_start(form) }}
-            	<div class="form-group row">
-                	{{ form_label(form.name) }}
-                	{{ form_widget(form.name) }}
-                	{{ form_label(form.enabled) }}
-                	{{ form_widget(form.enabled) }}
-            	</div>
-            	<div class="row">
-            	{{ form_widget(form.code) }}
-            	</div>
-            {{ form_end(form) }}
-    		<div class="row mt-5">
-    				{% if route_back is defined %}
-        				<div class="col-4 text-right">
-        					<a class="btn-secondary btn w-75" href="{{ route_back }}">{% trans %}Cancel{% endtrans %}</a>
-        				</div>
-    				{% endif %}
-    			<div class="col-4 text-center">
-    				<button type="submit" name="submit" value="save" form="form" class="btn-primary btn w-75">{% trans %}Save{% endtrans %}</button>
-    			</div>
-    			<div class="col-4 text-left">
-    				<button type="submit" name="submit" value="save_close" form="form" class="btn-primary btn w-75">{% trans %}Save & Close{% endtrans %}</button>
-    			</div>
-    		</div>
-    	</div>
-    </div>
+	<div class="row justify-content-end w-100">
+		<div class="col-xl-8 p-5">
+			<div class="jumbotron">
+				{% for label, messages in app.flashes %}
+					{% for message in messages %}
+						<div class="row justify-content-center">
+							<div class="alert alert-{{ label }} w-100">{{ message|trans }}.</div>
+						</div>
+					{% endfor %}
+				{% endfor %}
+				{{ form_start(form) }}
+					<div class="form-group row">
+						{{ form_label(form.name) }}
+						{{ form_widget(form.name) }}
+						{{ form_label(form.enabled) }}
+						{{ form_widget(form.enabled) }}
+					</div>
+					<div class="row">
+					{{ form_widget(form.code) }}
+					</div>
+				{{ form_end(form) }}
+				<div class="row mt-5">
+						{% if route_back is defined %}
+							<div class="col-4 text-right">
+								<a class="btn-secondary btn w-75" href="{{ route_back }}">{% trans %}Cancel{% endtrans %}</a>
+							</div>
+						{% endif %}
+					<div class="col-4 text-center">
+						<button type="submit" name="submit" value="save" form="form" class="btn-primary btn w-75">{% trans %}Save{% endtrans %}</button>
+					</div>
+					<div class="col-4 text-left">
+						<button type="submit" name="submit" value="save_close" form="form" class="btn-primary btn w-75">{% trans %}Save & Close{% endtrans %}</button>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-xl-2 pt-5">
+            {% for field in fields|sort %}
+				<button type="button" class="btn btn-sm btn-primary w-100">{{ field }}</button>
+			{% endfor %}
+		</div>
+	</div>
 {% endblock %}
 
 {% block javascripts %}
-    {{ parent() }}
-    {{ encore_entry_script_tags('automation') }}
+	{{ parent() }}
+	{{ encore_entry_script_tags('automation') }}
 {% endblock %}

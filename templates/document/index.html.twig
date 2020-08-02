@@ -14,7 +14,7 @@
         		</li>
     		{% endif %}
 			{% if is_granted('ROLE_EDIT') %}
-    			<li id="document_menu" class="nav-item dropdown" style="{{ block('nav_item') }};">
+    			<li id="document_menu" class="nav-item dropdown" style="{{ block('nav_item') }}">
     				<a class="nav-link dropdown-toggle" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{% trans %}Documents{% endtrans %}</a>
     				<div class="dropdown-menu" style="{{ block('nav_item') }}">
     					<a class="dropdown-item" href={{ path('document_new', app.request.attributes.get('_route_params')) }}>{% trans %}New{% endtrans %}</a>
@@ -26,7 +26,7 @@
     				</div>
     			</li>
     			
-    			<li id="version_menu" class="nav-item dropdown" style="{{ block('nav_item') }};">
+    			<li id="version_menu" class="nav-item dropdown" style="{{ block('nav_item') }}">
     				<a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{% trans %}Versions{% endtrans %}</a>
     				<div class="dropdown-menu" style="{{ block('nav_item') }}">
     					<button id="version_new" class="dropdown-item" data-url="{{ path('version_new') }}">{% trans %}New{% endtrans %}</button>
@@ -40,7 +40,7 @@
 	<div class="navbar-collapse "></div>
 	<div class="navbar-collapse">
 		<ul class="navbar-nav ml-auto">
-			<li class="nav-item" style="width:150px">
+			<li class="nav-item" style="{{ block('nav_item') }}">
 				<a class="nav-link" href="{{ path('logout') }}">{% trans %}Logout{% endtrans %}</a>
 			</li>
 		</ul>
@@ -119,6 +119,8 @@
     					<col class="type-date">
     				{% elseif field.type is constant('App\\Entity\\Metadata::LINK')  %}
     					<col class="type-link">
+    				{% elseif codename == 'status.value' %}
+    					<col class="type-date">
     		    	{% else %}
     		    		<col class="type-standard">
     		    	{% endif %}			

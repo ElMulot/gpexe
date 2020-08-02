@@ -2,9 +2,10 @@
 
 namespace App\Repository;
 
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Doctrine\ORM\Query\Expr\Join;
 use App\Entity\Project;
 use App\Entity\Serie;
 use App\Entity\Document;
@@ -180,8 +181,9 @@ class VersionRepository extends ServiceEntityRepository
 					->select('r')
 					->from(Review::class, 'r')
 					->innerJoin('r.user', 'u')
+					->innerJoin('u.company', 'c')
 					->andWhere($this->query->expr()->in('r.visa', array_keys($visas)))
-					->andWhere($this->query->expr()->in('u.company', array_values($visas)));
+					->andWhere($this->query->expr()->in('c.codename', array_values($visas)));
 				$this->query->andWhere($this->query->expr()->in('v.id', $subQuery->getDQL()));
 			}
 			
@@ -328,17 +330,44 @@ class VersionRepository extends ServiceEntityRepository
 		;
 	}
 	
-	public function getAlerts(Project $project, User $user)
+	public function getProdAlerts(Project $project, User $user)
 	{
 		return $this->createQueryBuilder('v')
-			->select('s.id, s.name, v.isRequired, count(v.id) AS count, MAX(DATE_DIFF(CURRENT_DATE(), v.scheduledDate)) AS max')
+			->select('s.id, s.name, v.isRequired, count(v.id) AS count, MIN(DATE_DIFF(v.scheduledDate, CURRENT_DATE())) AS min')
 			->innerJoin('v.document', 'd')
 			->innerJoin('d.serie', 's')
 			->andWhere('s.project = :project')
-			->andWhere('(v.isRequired = true AND v.writer = :user) OR (v.isRequired = false AND v.checker = :user)')
+			->andWhere('v.isRequired = true')
+			->andWhere('v.writer = :user')
 			->setParameter('project', $project)
 			->setParameter('user', $user)
-			->groupBy('s.id, v.isRequired')
+			->groupBy('s.id')
+			->getQuery()
+			->getResult()
+		;
+	}
+	
+	public function getCheckAlerts(Project $project, User $user)
+	{
+		
+		$qb = $this->getEntityManager()->createQueryBuilder();
+		
+		$subQuery = $qb->select('r')
+			->from(Review::class, 'r')
+			->andWhere('r.user = :user')
+		;
+		
+		return $this->createQueryBuilder('v')
+			->select('s.id, s.name, v.isRequired, count(v.id) AS count, MAX(DATE_DIFF(CURRENT_DATE(), v.deliveryDate)) AS max')
+			->innerJoin('v.document', 'd')
+			->innerJoin('d.serie', 's')
+			->andWhere('s.project = :project')
+			->andWhere('v.isRequired = false')
+			->andWhere('v.checker = :user')
+			->andWhere($qb->expr()->notIn('v.id', $subQuery->getDQL()))
+			->setParameter('project', $project)
+			->setParameter('user', $user)
+			->groupBy('s.id')
 			->getQuery()
 			->getResult()
 		;

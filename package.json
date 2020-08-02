@@ -6,8 +6,8 @@
         "jquery": "^3.5.1",
         "node-sass": "^4.14.1",
         "popper.js": "^1.16.1",
-        "regenerator-runtime": "^0.13.2",
-        "sass-loader": "7.0.1",
+        "regenerator-runtime": "^0.13.7",
+        "sass-loader": "^8.0.0",
         "webpack-notifier": "^1.6.0"
     },
     "license": "UNLICENSED",
@@ -20,13 +20,13 @@
     },
     "dependencies": {
         "@eflexsystems/colresizable": "^1.6.0-1",
-        "@popperjs/core": "^2.4.0",
-        "@ungap/url-search-params": "^0.2.0",
+        "@popperjs/core": "^2.4.4",
+        "@ungap/url-search-params": "^0.2.2",
         "@whsmith/infrastructure": "^3.5.8",
         "bootstrap-datepicker": "^1.9.0",
         "bootswatch": "^4.5.0",
         "bs-custom-file-input": "^1.3.4",
-        "codemirror": "^5.54.0",
+        "codemirror": "^5.56.0",
         "jquery-resizable-columns": "^0.2.3",
         "sticky-table-headers": "^0.1.24",
         "table-dragger": "^1.0.3"

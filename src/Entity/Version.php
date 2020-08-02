@@ -488,9 +488,20 @@ class Version
 				return true;
 				
 			case 'version.isRequired':
-				if ($value == 'false') $value = false;
-				$this->setIsRequired($value);
-				return true;
+				switch ($value) {
+					case false:
+					case 'false':
+					case 'no':
+						$this->setIsRequired(false);
+						return true;
+					case true:
+					case 'true':
+					case 'yes':
+						$this->setIsRequired(true);
+						return true;
+					default:
+						return false;
+				}
 				
 			case 'version.writer':
 				foreach ($this->getDocument()->getSerie()->getCompany()->getUsers()->getValues() as $user) {

@@ -210,7 +210,8 @@ class DocumentController extends AbstractController
 					$view = $form->createView();
 					return $this->render('generic/form.html.twig', [
 						'route_back' =>  $this->generateUrl('document', [
-							'id' => $document->getSerie()->getId(),
+							'id' => $project->getId(),
+							'serie' => $serie->getId(),
 						]),
 						'form' => $view,
 					]);
@@ -224,7 +225,8 @@ class DocumentController extends AbstractController
 				$view = $form->createView();
 				return $this->render('generic/form.html.twig', [
 					'route_back' =>  $this->generateUrl('document', [
-						'id' => $document->getSerie()->getId(),
+						'id' => $project->getId(),
+						'serie' => $serie->getId(),
 					]),
 					'form' => $view,
 				]);
@@ -238,7 +240,8 @@ class DocumentController extends AbstractController
 					$view = $form->createView();
 					return $this->render('generic/form.html.twig', [
 						'route_back' =>  $this->generateUrl('document', [
-							'id' => $document->getSerie()->getId(),
+							'id' => $project->getId(),
+							'serie' => $serie->getId(),
 						]),
 						'form' => $view,
 					]);
@@ -258,7 +261,8 @@ class DocumentController extends AbstractController
 			$view = $form->createView();
 			return $this->render('generic/form.html.twig', [
 				'route_back' =>  $this->generateUrl('document', [
-					'id' => $serie->getId(),
+					'id' => $project->getId(),
+					'serie' => $serie->getId(),
 				]),
 				'form' => $view
 			]);
@@ -268,18 +272,11 @@ class DocumentController extends AbstractController
 	public function edit(Request $request, Document $document=null): Response
 	{
 		
-		if (!$document) { //cas d'une édition depuis la vue principale
+		if ($document === null) { //cas d'une édition depuis la vue principale
 			
 			$documents = $this->documentRepository->getDocumentsByRequest($request);
-			if (!$documents) {
+			if ($documents == false) {
 				return $this->redirectToRoute('project');
-			}
-			
-			if (count($documents) > 1) {
-				$this->addFlash('danger', 'Only one reference must be selected');
-				return $this->redirectToRoute('document', [
-					'id' => $documents[0]->getSerie()->getId()
-				]);
 			}
 			
 			$document = $documents[0];
@@ -288,6 +285,14 @@ class DocumentController extends AbstractController
 		
 		$serie = $document->getSerie();
 		$project = $serie->getProject();
+		
+		if (count($documents) > 1) {
+			$this->addFlash('danger', 'Only one reference must be selected');
+			return $this->redirectToRoute('document', [
+				'id' => $project->getId(),
+				'serie' => $serie->getId(),
+			]);
+		}
 		
 		$form = $this->createForm(DocumentType::class, $document, [
 			'project' => $project
@@ -304,7 +309,8 @@ class DocumentController extends AbstractController
 					$view = $form->createView();
 					return $this->render('generic/form.html.twig', [
 						'route_back' =>  $this->generateUrl('document', [
-							'id' => $serie->getId(),
+							'id' => $project->getId(),
+							'serie' => $serie->getId(),
 						]),
 						'form' => $view,
 					]);
@@ -321,7 +327,8 @@ class DocumentController extends AbstractController
 					$view = $form->createView();
 					return $this->render('generic/form.html.twig', [
 						'route_back' =>  $this->generateUrl('document', [
-							'id' => $serie->getId(),
+							'id' => $project->getId(),
+							'serie' => $serie->getId(),
 						]),
 						'form' => $view,
 					]);
@@ -336,14 +343,16 @@ class DocumentController extends AbstractController
 			
 			$request->query->remove('id');
 			return $this->redirectToRoute('document', $request->query->all() + [
-				'id' => $serie->getId(),
+				'id' => $project->getId(),
+				'serie' => $serie->getId(),
 			]);
 		} else {
 			$view = $form->createView();
 			$request->query->remove('id');
 			return $this->render('generic/form.html.twig', [
 				'route_back' =>  $this->generateUrl('document', $request->query->all() + [
-					'id' => $serie->getId(),
+					'id' => $project->getId(),
+					'serie' => $serie->getId(),
 				]),
 				'form' => $view
 			]);
@@ -353,11 +362,11 @@ class DocumentController extends AbstractController
 	public function delete(Request $request, Document $document=null): Response
 	{
 	    
-	    if (!$document) { //cas d'une suppression depuis la vue principale
+	    if ($document == null) { //cas d'une suppression depuis la vue principale
 	        
 	        $documents = $this->documentRepository->getDocumentsByRequest($request);
 	        
-	        if (!$documents) {
+	        if ($documents == false) {
 	            return $this->redirectToRoute('project');
 	        }
 	        
@@ -366,6 +375,7 @@ class DocumentController extends AbstractController
 	    }
 	    
 	    $serie = $document->getSerie();
+	    $project = $serie->getProject();
 	    
 	    if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
 	        $entityManager = $this->getDoctrine()->getManager();
@@ -378,12 +388,14 @@ class DocumentController extends AbstractController
 	        $this->addFlash('success', 'deleted.document');
 	        $this->addFlash('_count', count($documents));
 	        return $this->redirectToRoute('document', [
-	            'id' => $serie->getId()
+	        	'id' => $project->getId(),
+	        	'serie' => $serie->getId(),
 	        ]);
 	    } else {
 	        return $this->render('generic/delete.html.twig', [
 	            'route_back' =>  $this->generateUrl('document', [
-	                'id' => $serie->getId(),
+	            	'id' => $project->getId(),
+	            	'serie' => $serie->getId(),
 	            ]),
 	            'entities' => $documents,
 	        ]);

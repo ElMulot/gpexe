@@ -28,20 +28,21 @@ class DocumentRepository extends ServiceEntityRepository
         $this->encoder = new JsonEncoder();
     }
     
-    /*
-    public function getDocuments(Project $project, Company $company)
+    /**
+     * @return Document[]
+     *
+     */
+    public function getAllDocuments(Project $project)
     {
-    	return $this->createQueryBuilder('s')
+    	return $this->createQueryBuilder('d')
+	    	->innerJoin('d.serie', 's')
 	    	->andWhere('s.project = :project')
 	    	->setParameter('project', $project)
-	    	->andWhere('s.company = :company')
-	    	->setParameter('company', $company)
-	    	->addOrderBy('c.name')
 	    	->getQuery()
 	    	->getResult()
     	;
     }
-    */
+    
     
     /**
      * @return Document[]

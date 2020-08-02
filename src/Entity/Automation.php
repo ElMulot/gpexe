@@ -188,7 +188,6 @@ class Automation
 	public function getParsedCode(): array
 	{
 		if ($this->parsedCode === null) {
-			dump('ok');
 			try {
 				$this->parsedCode = Yaml::parse($this->code ?? '');
 			} catch (ParseException $exception) {
@@ -291,7 +290,7 @@ class Automation
 			'option' => [
 				'move_from_mdr' => 'true|false|choose',
 				'move_from_sdr' => 'true|false|choose',
-				'only_update' => 'true|false|choose',
+				'update_only' => 'true|false|choose',
 			],
 		];
 	}

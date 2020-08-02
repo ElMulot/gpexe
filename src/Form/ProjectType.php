@@ -6,9 +6,11 @@ use App\Entity\Project;
 
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 
 class ProjectType extends AbstractType
 {
@@ -16,7 +18,21 @@ class ProjectType extends AbstractType
     {
         $builder
             ->add('name')
-            ->add('splitter')
+            ->add('splitter', TextType::class, [
+            	'help' => 'Character used as separation between each item of the document codification.'
+            ])
+            ->add('newVersionTime', IntegerType::class, [
+            	'help' => 'Number of working days allowed to produce a new revision of a document.'
+            ])
+            ->add('prodWarningLimit', IntegerType::class, [
+            	'help' => 'Number of working days delay before showing the line in orange in the dashboard and the documents list for documents to be produced.'
+            ])
+            ->add('prodDangerLimit', IntegerType::class, [
+            	'help' => 'Number of working days delay before showing the line in red in the dashboard and the documents list for documents to be produced.'
+            ])
+            ->add('checkWarningLimit', IntegerType::class, [
+            	'help' => 'Number of working days delay before showing the line in red in the dashboard and the documents list for documents to be checked.'
+            ])
             ->add('users')
         ;
     }

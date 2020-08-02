@@ -177,16 +177,20 @@ UrlSearch.prototype = {
 						data = version[tableHeader.id];
 						
 						if (data !== undefined) {
-							if (tableHeader.col.attr('class') == 'type-standard') {
-								if (/^[-+]?[0-9]+$/.test(data)) {
-									dataClass = 'type-integer';
-								} else if (/^[-+]?[0-9]*\\.?[0-9]+$/.test(data)) {
-									dataClass = 'type-float';
-								} else {
-									dataClass = 'type-text';
-								}
-							} else {
-								dataClass = '';
+							switch (tableHeader.col.attr('class')) {
+								case 'type-boolean':
+									if (data == 0) data = 'No';
+									if (data == 1) data = 'Yes';
+								case 'type-version':
+								case 'type-date':
+									dataClass = 'text-center';
+									break;
+								case 'type-reference':
+								case 'type-name':
+									dataClass = 'text-left';
+									break;
+								default:
+									dataClass = '';
 							}
 							tr.append(create.td).children().last()
 								.addClass(dataClass)
@@ -266,238 +270,6 @@ UrlSearch.prototype = {
 		});	
 	},	
 }
-
-/*
-var datas = {
-	
-	get searchUrl() {
-		
-		let url = {};
-		
-		if (paramsArray.has('id[]')) {
-			url.id = paramsArray.getAll('id[]');	
-		}
-		
-		let _paramsArray = new URLSearchParams(this._searchUrl);
-		
-		if (_paramsArray.has('vue')) {
-			url.vue = _paramsArray.get('vue');
-			return $.param(url);
-		} else {
-			return paramsArray.toString();
-		}
-	},
-	
-	set searchUrl(value) {
-		
-		if (r = /\?(\S*)/g.exec(value)) { //enlève le ?
-			this._searchUrl = r[1];
-		} else if (r = /(\S+=\S+)+/g.exec(value)) {
-			this._searchUrl = r[1];
-		} else {
-			paramsArray.delete('vue');
-			this._searchUrl = paramsArray.toString();
-		}
-	},
-	
-	fetch: function() {
-	
-		$('#table > tbody').empty();
-		$(icon.loading).insertAfter('#table');
-		
-		let that = this;
-		
-		$.ajax({
-			url : $('#table').data('url') + '?' + this._searchUrl,
-			type: 'GET',
-			
-			success: function(result) {
-				
-				paramsArray = new URLSearchParams($.param(result.query));
-				
-				$('#table').next().remove();
-				$('#table').show();
-				
-				//vue
-				if (paramsArray.has('vue')) that.searchUrl = 'vue=' + paramsArray.get('vue');
-				
-				$('#vues').find('button[data-value]').each(function() {
-					if ($(this).data('value') == paramsArray.get('vue')) {
-						$(this).attr('class', 'btn btn-outline-primary m-1')
-					} else {
-						$(this).attr('class', 'btn btn-primary m-1')
-					}
-				});
-				
-				for (let tableHeader of tableHeaders) {
-					
-					//hide
-					
-					let hide = paramsArray.getAll('hide[]');
-					let index = hide.indexOf(tableHeader.id);
-					
-					tableHeader.aDisplay
-						.toggleClass('btn-primary', !(index == -1))
-						.toggleClass('btn-outline-primary', (index == -1))
-					;
-					tableHeader.chxDisplay.prop('checked', (index == -1))
-					
-					//headers
-					
-					tableHeader.btnDropdown.empty();
-					
-					tableHeader.isFiltered = false;
-					tableHeader.isSortedAsc = false;
-					tableHeader.isSortedDesc = false;
-					
-					for (let select of tableHeader.selects) {
-						
-						if (paramsArray.has(select.name)) {
-							tableHeader.isFiltered = true;
-						}
-						
-						if (paramsArray.get('sortAsc') == select.name) {
-							tableHeader.isSortedAsc = true;
-						}
-						
-						if (paramsArray.get('sortDesc') == select.name) {
-							tableHeader.isSortedDesc = true;
-						}
-						
-					}
-					
-					tableHeader.btnDropdown.append((tableHeader.isFiltered)?icon.funnelFill:icon.funnel);					
-					
-					if (tableHeader.isSortedAsc) {
-						tableHeader.btnDropdown.append(icon.arrowDown);
-					}
-					
-					if (tableHeader.isSortedDesc) {
-						tableHeader.btnDropdown.append(icon.arrowUp);
-					}
-					
-				}
-				
-				//tbody
-				
-				for (let version of result.versions) {
-					let tr = $('#table > tbody').append(create.tr).children().last();
-					
-					let div = tr.append(create.td).children().last()
-						.append(create.div).children().last()
-							.addClass('custom-control custom-checkbox')
-					;
-					
-					div.append(create.checkbox).children().last()
-						.attr('id', 'c_' + version.id)
-						.val(version.id)
-						.on('click', lineChecked)
-					;
-					
-					div.append(create.label).children().last()
-						.attr('for', 'c_' + version.id)
-					;
-					
-					
-					for (let tableHeader of tableHeaders) {
-						
-						data = version[tableHeader.id];
-						
-						if (data !== undefined) {
-							tableHeader.col.show();
-							tableHeader.th.show();
-							if (tableHeader.col.attr('class') == 'type-standard') {
-								if (/^[-+]?[0-9]+$/.test(data)) {
-									dataClass = 'type-integer';
-								} else if (/^[-+]?[0-9]*\\.?[0-9]+$/.test(data)) {
-									dataClass = 'type-float';
-								} else {
-									dataClass = 'type-text';
-								}
-							} else {
-								dataClass = '';
-							}
-							tr.append(create.td).children().last()
-								.addClass(dataClass)
-								.text(data);
-							
-						} else {
-							
-							tableHeader.col.hide();
-							tableHeader.th.hide();
-							
-						}
-					}
-					
-					tr.append(create.td).children().last()
-						.append(create.smallButton).children().last()
-							.addClass('btn-success w-100')
-							.attr('data-toggle', 'modal')
-							.attr('data-target', '#modal')
-							.attr('data-url', version.detailUrl)
-							.text(text.details)
-							
-					;
-					
-				}
-				
-				//pagination
-				
-				if (result.pageMax > 1) {
-					
-					$('#table_container').addClass('mb-4');
-					
-					let pageMax = result.pageMax;
-					let page = paramsArray.get('page') || 1;
-					let pageMin = Math.max(1, page - 2);
-					
-					ul = $('#pagination').append(create.ul).children().last()
-						.addClass('pagination justify-content-center')
-					;
-					
-					ul.append(create.li).children().last()
-						.addClass('page-item' + ((page == 1)?' disabled':''))
-						.append(create.a).children().last()
-							.addClass('page-link')
-							.attr('data-value', Math.max(1, page - 1))
-							.append(create.span).children().last()
-								.attr('aria-hidden', true)
-								.html('&laquo;')
-					;
-					
-					for (let i=0; i<5; i++) {
-						if (pageMax > i) {
-							ul.append(create.li).children().last()
-								.addClass('page-item' + ((page == pageMin + i)?' disabled':''))
-								.append(create.a).children().last()
-									.addClass('page-link')
-									.attr('data-value', pageMin)
-									.text(pageMin + i)
-							;
-						}
-					}
-					
-					ul.append(create.li).children().last()
-						.addClass('page-item' + ((page == pageMax)?' disabled':''))
-						.append(create.a).children().last()
-							.addClass('page-link')
-							.attr('data-value', Math.min(pageMax, page + 1))
-							.append(create.span).children().last()
-								.attr('aria-hidden', true)
-								.html('&raquo;')
-					;
-					
-				}
-				
-				//$('table').stickyTableHeaders();
-				
-			},
-		});	
-	}
-
-};
-*/
-
 
 //---------------
 // tableHeader

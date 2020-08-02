@@ -182,6 +182,17 @@ class Serie
         return $this;
     }
     
+    public function belongToMDR(): bool
+    {
+    	return ($this->getCompany()->getType() == Company::MAIN_CONTRACTOR);
+    }
+
+    public function belongToSDR(): bool
+    {
+    	return ($this->getCompany()->getType() == Company::SUB_CONTRACTOR || $this->getCompany()->getType() == Company::SUPPLIER);
+    }
+    
+    
     public function getMetadataValue(Metadata $metadata)
     {
     	

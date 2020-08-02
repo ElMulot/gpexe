@@ -16,23 +16,27 @@ use App\Form\LauncherHiddenType;
 use App\Form\LauncherImportType;
 use App\Repository\AutomationRepository;
 use App\Service\AutomationService;
+use App\Service\FieldService;
 
 
 class AutomationController extends AbstractController
 {
-	private TranslatorInterface $translator;
+	private $translator;
 	
-	private AutomationRepository $automationRepository;
+	private $automationRepository;
 	
-	private AutomationService $automationService;
+	private $automationService;
 	
-	private FilesystemAdapter $cache;
+	private $fieldService;
 	
-	public function __construct(TranslatorInterface $translator, AutomationRepository $automationRepository, AutomationService $automationService)
+	private $cache;
+	
+	public function __construct(TranslatorInterface $translator, AutomationRepository $automationRepository, AutomationService $automationService, FieldService $fieldService)
 	{
 		$this->translator = $translator;
 		$this->automationRepository = $automationRepository;
 		$this->automationService = $automationService;
+		$this->fieldService = $fieldService;
 		$this->cache = new FilesystemAdapter();
 	}
 	
@@ -110,7 +114,7 @@ class AutomationController extends AbstractController
 					]);
 				}
 				
-				$fileName = $this->automationService->load($automation, $file);
+				$fileName = $this->automationService->load($automation, $file, $request);
 				
 				if ($fileName === false) {
 					$this->addFlash('danger', 'Erreur à l\'ouverture du fichier');
@@ -131,7 +135,7 @@ class AutomationController extends AbstractController
 			
 				$file = $form->get('file_name')->getData();
 				
-				$fileName = $this->automationService->load($automation, $file);
+				$fileName = $this->automationService->load($automation, $file, $request);
 				
 				if ($fileName === false) {
 					$this->addFlash('danger', 'Erreur à l\'ouverture du fichier');
@@ -287,6 +291,7 @@ class AutomationController extends AbstractController
 		$automation->setEnabled(true);
 		$automation->setCreatedBy($this->getUser());
 		
+		$fields = $this->fieldService->getFieldsList($project);
 		$form = $this->createForm(AutomationType::class, $automation);
 		$form->handleRequest($request);
 		
@@ -313,13 +318,15 @@ class AutomationController extends AbstractController
 				'route_back' =>  $this->generateUrl('automation', [
 					'id' => $project->getId(),
 				]),
-				'form' => $view
+				'form' => $view,
+				'fields' => $fields,
 			]);
 		}
 	}
 	
 	public function edit(Request $request, Automation $automation): Response
 	{
+		$fields = $this->fieldService->getFieldsList($automation->getProject());
 		$form = $this->createForm(AutomationType::class, $automation);
 		
 		$form->handleRequest($request);
@@ -339,7 +346,8 @@ class AutomationController extends AbstractController
 					'route_back' =>  $this->generateUrl('automation', [
 						'id' => $automation->getProject()->getId(),
 					]),
-					'form' => $view
+					'form' => $view,
+					'fields' => $fields,
 				]);
 			} else {
 				return $this->redirectToRoute('automation', [
@@ -352,7 +360,8 @@ class AutomationController extends AbstractController
 				'route_back' =>  $this->generateUrl('automation', [
 					'id' => $automation->getProject()->getId(),
 				]),
-				'form' => $view
+				'form' => $view,
+				'fields' => $fields,
 			]);
 		}
 	}

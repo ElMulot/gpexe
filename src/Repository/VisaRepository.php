@@ -27,11 +27,11 @@ class VisaRepository extends ServiceEntityRepository
     public function getVisas(Project $project)
     {
     	return $this->createQueryBuilder('v')
-    	->andWhere('v.project = :val')
-    	->setParameter('val', $project)
-    	->addOrderBy('v.name')
-    	->getQuery()
-    	->getResult()
+	    	->andWhere('v.project = :val')
+	    	->setParameter('val', $project)
+	    	->addOrderBy('v.name')
+	    	->getQuery()
+	    	->getResult()
     	;
     }
 }

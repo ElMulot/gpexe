@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
 use Symfony\Component\Security\Core\Security;
@@ -24,8 +25,10 @@ use App\Entity\Document;
 use App\Entity\Serie;
 use App\Entity\Version;
 use App\Service\FieldService;
-use App\Repository\StatusRepository;
+use App\Repository\SerieRepository;
+use App\Repository\DocumentRepository;
 use App\Repository\VersionRepository;
+use App\Repository\StatusRepository;
 
 class AutomationService
 {
@@ -40,7 +43,11 @@ class AutomationService
 	
 	private $flashBagInterface;
 	
-	private EntityManagerInterface $entityManager;
+	private $entityManager;
+	
+	private $serieRepository;
+	
+	private $documentRepository;
 	
 	private $versionRespository;
 	
@@ -54,7 +61,7 @@ class AutomationService
 	
 	private $filesystem;
 	
-	private FilesystemAdapter $cache;
+	private $cache;
 	
 	private $targetDirectory;
 	
@@ -64,11 +71,13 @@ class AutomationService
 	
 	private $sheet;
 
-	public function __construct(FlashBagInterface $flashBagInterface, SluggerInterface $slugger, EntityManagerInterface $entityManager, VersionRepository $versionRepository, StatusRepository $statusRespository, FieldService $fieldService, Security $security, string $targetDirectory)
+	public function __construct(FlashBagInterface $flashBagInterface, SluggerInterface $slugger, EntityManagerInterface $entityManager, SerieRepository $serieRepository, DocumentRepository $documentRepository, VersionRepository $versionRepository, StatusRepository $statusRespository, FieldService $fieldService, Security $security, string $targetDirectory)
 	{
 		$this->slugger = $slugger;
 		$this->flashBagInterface = $flashBagInterface;
 		$this->entityManager = $entityManager;
+		$this->serieRepository = $serieRepository;
+		$this->documentRepository = $documentRepository;
 		$this->versionRepository = $versionRepository;
 		$this->statusRespository = $statusRespository;
 		$this->fieldService = $fieldService;
@@ -80,9 +89,9 @@ class AutomationService
 		$this->comments = [];
 	}
 	
-	public function setCache(Automation $automation)
+	public function setCache(Automation $automation, Request $request)
 	{
-		dump($automation);
+		//automation
 		$this->parsedCode = $automation->getParsedCode();
 		$firstRow = $this->parsedCode['first_row'];
 		
@@ -97,14 +106,29 @@ class AutomationService
 		$newBatchItem = $this->cache->getItem('automation.new_batch');
 		$newBatchItem->set(false);
 		$this->cache->save($newBatchItem);
+		
+		//options
+		$options = $this->parsedCode['option'] ?? [];
+		foreach ($options as $key => $option) {
+			if ($option == 'choose') {
+				if ($request->request->has($key)) {
+					$option = $request->request->get($key);
+				} else {
+					$option = false;
+				}
+			}
+			$optionItem = $this->cache->getItem('option.' . $key);
+			$optionItem->set($option);
+			$this->cache->save($optionItem);
+		}
 	}
 	
-	public function load(Automation $automation, string $file)
+	public function load(Automation $automation, string $file, Request $request)
 	{
 		
 		$this->flashBagInterface->add('info', 'Démarrage de l\'opération');
 		
-		$this->setCache($automation);
+		$this->setCache($automation, $request);
 		
 		$this->parsedCode = $automation->getParsedCode();
 		$firstRow = $this->parsedCode['first_row'];
@@ -114,7 +138,7 @@ class AutomationService
 		$spreadsheet = $reader->load($file);
 		
 		$this->sheet = $spreadsheet->getActiveSheet();
-			
+		
 		if ($automation->isTypeExport()) {
 			
 			//set document properties
@@ -140,7 +164,7 @@ class AutomationService
 			return $this->save($spreadsheet);
 
 		} elseif ($automation->isTypeImport()) {
-
+			
 			//set document properties
 			$spreadsheet->getProperties()
 				->setCreator('GPEXE')
@@ -255,6 +279,27 @@ class AutomationService
 			return false;
 		}
 		
+		$updateOnlyItem = $this->cache->getItem('option.update_only');
+		if ($updateOnlyItem->isHit() === false) {
+			$options['update_only'] = false;
+		} else {
+			$options['update_only'] = $updateOnlyItem->get();
+		}
+		
+		$moveFromMdrItem = $this->cache->getItem('option.move_from_mdr');
+		if ($moveFromMdrItem->isHit() === false) {
+			$options['move_from_mdr'] = false;
+		} else {
+			$options['move_from_mdr'] = $moveFromMdrItem->get();
+		}
+		
+		$moveFromSdrItem = $this->cache->getItem('option.move_from_sdr');
+		if ($moveFromSdrItem->isHit() === false) {
+			$options['move_from_sdr'] = false;
+		} else {
+			$options['move_from_sdr'] = $moveFromSdrItem->get();
+		}
+		
 		$reader = IOFactory::createReaderForFile($file);
 		//$reader->setReadDataOnly(true);
 		$spreadsheet = $reader->load($file);
@@ -303,6 +348,27 @@ class AutomationService
 				}
 			}
 			
+			if ($currentDocument === null && ($options['move_from_mdr'] || $options['move_from_sdr'])) {
+				
+				$documents = $this->documentRepository->getAllDocuments($project);
+				foreach ($documents as $document) {
+					if ($this->evaluate($this->parsedCode['get_document']['condition'], $document, $row)) {
+						if ($document->getSerie()->belongToMDR() && $options['move_from_mdr']) {
+							$currentDocument = $document;
+							$document->setSerie($currentSerie);
+							$this->addComment('valid', "Document trouvé dans le MDR et rappatrié dans la série en cours.");
+							break;
+						}
+						if ($document->getSerie()->belongToSDR() && $options['move_from_ddr']) {
+							$currentDocument = $document;
+							$document->setSerie($currentSerie);
+							$this->addComment('valid', "Document trouvé dans le SDR et rappatrié dans la série en cours.");
+							break;
+						}
+					}
+				}
+			}
+			
 			if ($currentDocument !== null) {
 				
 				foreach ($this->parsedCode['get_document']['then'] as $then) {
@@ -324,8 +390,7 @@ class AutomationService
 					
 				}
 				
-			} else {
-				
+			} elseif ($options['update_only'] === false) {
 				
 				foreach ($this->parsedCode['get_document']['else'] as $else) {
 					
@@ -355,6 +420,13 @@ class AutomationService
 					}
 					
 				}
+				
+			} else {
+				
+				$this->addComment('error', "Ligne exclue : document non trouvé.");
+				$this->writeComments($row);
+				$row++;
+				continue;
 				
 			}
 			
@@ -397,7 +469,7 @@ class AutomationService
 					
 				}
 				
-			} else {
+			} elseif ($options['update_only'] === false) {
 				
 				
 				foreach ($this->parsedCode['get_version']['else'] as $else) {
@@ -430,6 +502,11 @@ class AutomationService
 					
 				}
 				
+			} else {
+				$this->addComment('warning', "Version non trouvée.");
+				$this->writeComments($row);
+				$row++;
+				continue;
 			}
 			
 			if ($currentVersion === null) {
@@ -473,7 +550,7 @@ class AutomationService
 			$this->entityManager->flush();
 			
 			if ($newBatchItem->get() === false) {
-				$this->flashBagInterface->add('info', 'Vérification terminée : ' . $countProcessed . '/' . ($row - $this->parsedCode['first_row']) . ' lignes ont été importées');
+				$this->flashBagInterface->add('info', 'Import terminé : ' . $countProcessed . '/' . ($row - $this->parsedCode['first_row']) . ' lignes ont été importées');
 			}
 			
 			return true;
@@ -523,7 +600,7 @@ class AutomationService
 			if (strtotime($expression)) {
 				$expression = \DateTime::createFromFormat($this->parsedCode['date_format'], $expression)->format('d-m-Y');
 			}
-			dump('e avant evaluation : ' . $expression);
+//			dump('avant evaluation : ' . $expression);
 			
 			try {
 				return $this->expressionLanguage->evaluate($expression);

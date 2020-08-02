@@ -148,9 +148,9 @@ class FieldService
 		
 		foreach ($this->companyRepository->getCheckerCompanies($project) as $company) {
 			if (!$project->getVisasByCompany($company)->isEmpty()) {
-				$fields['visa.' . $company->getId()] = [
-					'id' => 'visa_' . $company->getId(),
-					'field' => 'visa[' . $company->getId() . ']',
+				$fields['visa.' . $company->getCodename()] = [
+					'id' => 'visa_' . $company->getCodename(),
+					'field' => 'visa[' . $company->getCodename() . ']',
 					'title' => $this->translator->trans('Visa') . ' ' . $company->getName(),
 					'type' => Metadata::LIST,
 					'sort' => false,
@@ -369,11 +369,11 @@ class FieldService
 		
 		foreach ($this->companyRepository->getCheckerCompanies($project) as $checkerCompany) {
 			if (!$project->getVisasByCompany($checkerCompany)->isEmpty()) {
-				$fields['visa.' . $checkerCompany->getId()]['form'] = $this->formFactory->createBuilder(SelectType::class, null, [
+				$fields['visa.' . $checkerCompany->getCodename()]['form'] = $this->formFactory->createBuilder(SelectType::class, null, [
 					'controls' => [
 						[
-							'full_id' => 'visa[' . $checkerCompany->getId() . ']',
-							'snake_case_full_id' => 'visa_' . $checkerCompany->getId(),
+							'full_id' => 'visa[' . $checkerCompany->getCodename() . ']',
+							'snake_case_full_id' => 'visa_' . $checkerCompany->getCodename(),
 							'title' => $this->translator->trans('Visa') . ' ' . $checkerCompany->getName(),
 							'multiple' => true,
 							'choices' => $project->getVisasByCompany($checkerCompany),

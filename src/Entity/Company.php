@@ -32,7 +32,12 @@ class Company
      * @ORM\Column(type="string", length=100, unique=true)
      */
     private $name;
-
+    
+    /**
+     * @ORM\Column(type="string", length=100)
+     */
+    private $codename;
+    
     /**
      * @ORM\Column(type="smallint")
      */
@@ -75,6 +80,19 @@ class Company
         $this->name = $name;
 
         return $this;
+    }
+    
+    
+    public function getCodename(): ?string
+    {
+    	return $this->codename;
+    }
+    
+    public function setCodename(string $codename): self
+    {
+    	$this->codename = $codename;
+    	
+    	return $this;
     }
 
     public function getType(): ?int

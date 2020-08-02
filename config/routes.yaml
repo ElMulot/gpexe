@@ -505,3 +505,11 @@ automation_delete:
     requirements:
         id: \d+
     controller: App\Controller\AutomationController::delete
+
+log:
+    path: /log
+    controller: App\Controller\LogController::index
+
+log_clear:
+    path: /log/clear
+    controller: App\Controller\LogController::clear

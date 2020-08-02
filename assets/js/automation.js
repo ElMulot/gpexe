@@ -13,5 +13,17 @@ $(document).ready(function() {
 	    matchBrackets: true,
 	    indentWithTabs: true,
 	    mode: 'yaml',
-	}).setSize('100%','100%');
+	});
+	cm.setSize('100%','100%');
+	
+	$('button[type="button"]').on('click', function() {
+		let text = '[' + $(this).text() + ']';
+		const doc = cm.getDoc();
+	    const fromCursor = cm.getCursor('from');
+	    const toCursor = cm.getCursor('to');
+	    doc.replaceRange(text, fromCursor, toCursor);
+	    cm.focus();
+	    fromCursor.ch += text.length;
+	    cm.setCursor(fromCursor);
+	});
 });

@@ -4,10 +4,6 @@ const bsCustomFileInput = require('bs-custom-file-input');
 require('bootstrap');
 require('../css/global.scss');
 
-// or you can include specific pieces
-//require('bootstrap/js/dist/tooltip');
-//require('bootstrap/js/dist/popover');
-
 global.create = {
 	div: function() {
 		return $(document.createElement('div'))
@@ -98,6 +94,8 @@ global.text = {
     filter: 'Filter',
     loading: 'Loading...',
     details: 'Details',
+    error: 'Ereur',
+    reload: 'Relancer',
 };
 
 global.icon = {
@@ -206,9 +204,12 @@ global.ajax = {
 	set: function (target, url, method='GET', data=[], add=false) {
 		
 		if (target && url) {
-			$(target)
-				.empty()
-				.append(icon.loading);
+			if (add === false) {
+				$(target)
+					.empty()
+					.append(icon.loading)
+				;
+			}
 			
 			let that = this;
 			
@@ -228,6 +229,22 @@ global.ajax = {
 					bsCustomFileInput.init();
 					that.fetch(target);
 				},
+				
+				error: function(xhr, thrownError) {
+					if (add === false) {
+						let result = '<div class="alert alert-danger">' +
+										'<h6 class="alert-heading font-weight-bold">' + text.error + ' ' + xhr.status + ' : ' + xhr.statusText + '</h6>';
+						
+						if ((m = /<title>(.+)<\/title>/.exec(xhr.responseText)) !== null) {
+							result += '<p>' + m[1] + '</p>';
+						}
+						
+						result += '<button type="button" class="btn btn-sm btn-primary" data-toggle="ajax" data-url="' + url + '" data-target="' + target + '">' + text.reload + '</button>' +
+									'</div>';
+						$(target).html(result);
+						that.fetch(target);
+					}
+				}
 			});
 		}
 		
