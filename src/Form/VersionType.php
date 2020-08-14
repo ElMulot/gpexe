@@ -41,11 +41,10 @@ class VersionType extends AbstractType
 	{
 		$this->builder = $builder;
 		
-		if ($options['versions']) {
-			$versions = $options['versions'];
-		} else {
-			$versions[0] = $this->builder->getData();
-			$this->builder->add('name');
+		$versions = $options['versions'];
+		
+		if (count($versions) === 1) {
+			$this->buildRow('name', 'name', 'version.name', Metadata::LINK, true, $versions);
 		}
 		
 		$serie = $versions[0]->getDocument()->getSerie();
@@ -78,7 +77,7 @@ class VersionType extends AbstractType
 		$resolver->setDefaults([
 			'data_class' => Version::class,
 			'serie' => null,
-			'versions' => null,
+			'versions' => [],
 		]);
 	}
 	

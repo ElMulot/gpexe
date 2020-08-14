@@ -78,7 +78,7 @@ class AutomationController extends AbstractController
 			$fileName = $request->query->get('file_name');
 			$request->query->set('check_only', false);
 			
-			$this->automationService->setCache($automation);
+			$this->automationService->setCache($automation, $request);
 			
 			$countProcessedItem = $this->cache->getItem('automation.count_processed');
 			

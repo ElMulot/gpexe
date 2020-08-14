@@ -33,7 +33,7 @@ use App\Repository\StatusRepository;
 class AutomationService
 {
 	
-	const MAX_LINES_PROCESSED 	= 10;
+	const MAX_LINES_PROCESSED 	= 100;
 	const IGNORE_COLOR 			= 'C8C8C8';
 	const WARNING_COLOR 		= 'FFE591';
 	const ERROR_COLOR 			= 'FF9191';
@@ -87,40 +87,6 @@ class AutomationService
 		$this->cache = new FilesystemAdapter;
 		$this->targetDirectory = $targetDirectory;
 		$this->comments = [];
-	}
-	
-	public function setCache(Automation $automation, Request $request)
-	{
-		//automation
-		$this->parsedCode = $automation->getParsedCode();
-		$firstRow = $this->parsedCode['first_row'];
-		
-		$currentRowItem = $this->cache->getItem('automation.current_row');
-		$currentRowItem->set($firstRow);
-		$this->cache->save($currentRowItem);
-		
-		$countProcessedItem = $this->cache->getItem('automation.count_processed');
-		$countProcessedItem->set(0);
-		$this->cache->save($countProcessedItem);
-		
-		$newBatchItem = $this->cache->getItem('automation.new_batch');
-		$newBatchItem->set(false);
-		$this->cache->save($newBatchItem);
-		
-		//options
-		$options = $this->parsedCode['option'] ?? [];
-		foreach ($options as $key => $option) {
-			if ($option == 'choose') {
-				if ($request->request->has($key)) {
-					$option = $request->request->get($key);
-				} else {
-					$option = false;
-				}
-			}
-			$optionItem = $this->cache->getItem('option.' . $key);
-			$optionItem->set($option);
-			$this->cache->save($optionItem);
-		}
 	}
 	
 	public function load(Automation $automation, string $file, Request $request)
@@ -277,6 +243,8 @@ class AutomationService
 		if ($newBatchItem->isHit() === false) {
 			$this->flashBagInterface->add('error', 'Erreur interne.');
 			return false;
+		} else {
+			$newBatchItem->set(false);
 		}
 		
 		$updateOnlyItem = $this->cache->getItem('option.update_only');
@@ -532,7 +500,7 @@ class AutomationService
 			$row++;
 		}
 		
-		$currentRowItem->set($row);
+		$currentRowItem->set($row + 1);
 		$countProcessedItem->set($countProcessed);
 		
 		$this->cache->save($currentRowItem);
@@ -556,6 +524,40 @@ class AutomationService
 			return true;
 		}
 		
+	}
+	
+	public function setCache(Automation $automation, Request $request)
+	{
+		//automation
+		$this->parsedCode = $automation->getParsedCode();
+		$firstRow = $this->parsedCode['first_row'];
+		
+		$currentRowItem = $this->cache->getItem('automation.current_row');
+		$currentRowItem->set($firstRow);
+		$this->cache->save($currentRowItem);
+		
+		$countProcessedItem = $this->cache->getItem('automation.count_processed');
+		$countProcessedItem->set(0);
+		$this->cache->save($countProcessedItem);
+		
+		$newBatchItem = $this->cache->getItem('automation.new_batch');
+		$newBatchItem->set(false);
+		$this->cache->save($newBatchItem);
+		
+		//options
+		$options = $this->parsedCode['option'] ?? [];
+		foreach ($options as $key => $option) {
+			if ($option == 'choose') {
+				if ($request->request->has($key)) {
+					$option = $request->request->get($key);
+				} else {
+					$option = false;
+				}
+			}
+			$optionItem = $this->cache->getItem('option.' . $key);
+			$optionItem->set($option);
+			$this->cache->save($optionItem);
+		}
 	}
 	
 	private function evaluate(string $expression, $entity, int $row=0)
@@ -699,7 +701,7 @@ class AutomationService
 				$this->sheet
 					->getComment($this->parsedCode['first_column'] . $row)
 					->getText()
-					->createTextRun("\r\n" . $comment['text'])
+					->createTextRun($comment['text'] . "\r\n")
 				;
 			}
 			

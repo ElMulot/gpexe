@@ -8,20 +8,14 @@
   "build/dashboard.js": "/build/dashboard.js",
   "build/document.css": "/build/document.css",
   "build/document.js": "/build/document.js",
-  "build/form.css": "/build/form.css",
-  "build/form.js": "/build/form.js",
   "build/login.css": "/build/login.css",
   "build/login.js": "/build/login.js",
   "build/project.css": "/build/project.css",
   "build/runtime.js": "/build/runtime.js",
-  "build/vendors~app~automation~dashboard~document~form~login.js": "/build/vendors~app~automation~dashboard~document~form~login.js",
+  "build/vendors~app~automation~dashboard~document~login.js": "/build/vendors~app~automation~dashboard~document~login.js",
+  "build/vendors~app~document.css": "/build/vendors~app~document.css",
   "build/vendors~app~document.js": "/build/vendors~app~document.js",
-  "build/vendors~app~document~form.js": "/build/vendors~app~document~form.js",
   "build/vendors~automation.css": "/build/vendors~automation.css",
   "build/vendors~automation.js": "/build/vendors~automation.js",
-  "build/vendors~document.js": "/build/vendors~document.js",
-  "build/vendors~document~form.js": "/build/vendors~document~form.js",
-  "build/vendors~form.css": "/build/vendors~form.css",
-  "build/vendors~form.js": "/build/vendors~form.js",
-  "build/vendors~automation~dashboard~document~form~login.js": "/build/vendors~automation~dashboard~document~form~login.js"
+  "build/vendors~document.js": "/build/vendors~document.js"
 }

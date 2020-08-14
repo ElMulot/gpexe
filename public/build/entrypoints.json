@@ -3,34 +3,20 @@
     "app": {
       "js": [
         "/build/runtime.js",
-        "/build/vendors~app~automation~dashboard~document~form~login.js",
-        "/build/vendors~app~document~form.js",
+        "/build/vendors~app~automation~dashboard~document~login.js",
         "/build/vendors~app~document.js",
         "/build/app~document.js",
         "/build/app.js"
       ],
       "css": [
+        "/build/vendors~app~document.css",
         "/build/app~document.css"
-      ]
-    },
-    "form": {
-      "js": [
-        "/build/runtime.js",
-        "/build/vendors~app~automation~dashboard~document~form~login.js",
-        "/build/vendors~app~document~form.js",
-        "/build/vendors~document~form.js",
-        "/build/vendors~form.js",
-        "/build/form.js"
-      ],
-      "css": [
-        "/build/vendors~form.css",
-        "/build/form.css"
       ]
     },
     "login": {
       "js": [
         "/build/runtime.js",
-        "/build/vendors~app~automation~dashboard~document~form~login.js",
+        "/build/vendors~app~automation~dashboard~document~login.js",
         "/build/login.js"
       ],
       "css": [
@@ -40,15 +26,14 @@
     "document": {
       "js": [
         "/build/runtime.js",
-        "/build/vendors~app~automation~dashboard~document~form~login.js",
-        "/build/vendors~app~document~form.js",
+        "/build/vendors~app~automation~dashboard~document~login.js",
         "/build/vendors~app~document.js",
-        "/build/vendors~document~form.js",
         "/build/vendors~document.js",
         "/build/app~document.js",
         "/build/document.js"
       ],
       "css": [
+        "/build/vendors~app~document.css",
         "/build/app~document.css",
         "/build/document.css"
       ]
@@ -56,7 +41,7 @@
     "automation": {
       "js": [
         "/build/runtime.js",
-        "/build/vendors~app~automation~dashboard~document~form~login.js",
+        "/build/vendors~app~automation~dashboard~document~login.js",
         "/build/vendors~automation.js",
         "/build/automation.js"
       ],
@@ -68,7 +53,7 @@
     "dashboard": {
       "js": [
         "/build/runtime.js",
-        "/build/vendors~app~automation~dashboard~document~form~login.js",
+        "/build/vendors~app~automation~dashboard~document~login.js",
         "/build/dashboard.js"
       ],
       "css": [

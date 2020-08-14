@@ -17,21 +17,23 @@
     			<li id="document_menu" class="nav-item dropdown" style="{{ block('nav_item') }}">
     				<a class="nav-link dropdown-toggle" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{% trans %}Documents{% endtrans %}</a>
     				<div class="dropdown-menu" style="{{ block('nav_item') }}">
-    					<a class="dropdown-item" href={{ path('document_new', app.request.attributes.get('_route_params')) }}>{% trans %}New{% endtrans %}</a>
-    					<button id="document_edit" class="dropdown-item" data-url="{{ path('document_edit') }}">{% trans %}Edit{% endtrans %}</button>
-    					{% if is_granted('ROLE_MOVE') %}
-    						<button id="document_move" class="dropdown-item" data-url="{{ path('document_move') }}">{% trans %}Move{% endtrans %}</button>
+    					{% if serie is not null %}
+    						<a class="dropdown-item" data-toggle="modal" data-target="#modal" data-url={{ path('document_new', {'serie': serie.id}) }}>{% trans %}New{% endtrans %}</a>
     					{% endif %}
-    					<button id="document_delete" class="dropdown-item" data-url="{{ path('document_delete') }}">{% trans %}Delete{% endtrans %}</button>
+    					<button id="document_edit" class="dropdown-item" data-toggle="modal" data-target="#modal" data-url="{{ path('document_edit') }}">{% trans %}Edit{% endtrans %}</button>
+    					{% if is_granted('ROLE_MOVE') %}
+    						<button id="document_move" class="dropdown-item" data-toggle="modal" data-target="#modal" data-url="{{ path('document_move') }}">{% trans %}Move{% endtrans %}</button>
+    					{% endif %}
+    					<button id="document_delete" class="dropdown-item" data-toggle="modal" data-target="#modal" data-url="{{ path('document_delete') }}">{% trans %}Delete{% endtrans %}</button>
     				</div>
     			</li>
     			
     			<li id="version_menu" class="nav-item dropdown" style="{{ block('nav_item') }}">
     				<a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{% trans %}Versions{% endtrans %}</a>
     				<div class="dropdown-menu" style="{{ block('nav_item') }}">
-    					<button id="version_new" class="dropdown-item" data-url="{{ path('version_new') }}">{% trans %}New{% endtrans %}</button>
-    					<button id="version_edit" class="dropdown-item" data-url="{{ path('version_edit') }}">{% trans %}Edit{% endtrans %}</button>
-    					<button id="version_delete" class="dropdown-item" data-url="{{ path('version_delete') }}">{% trans %}Delete{% endtrans %}</button>
+    					<button id="version_new" class="dropdown-item" data-toggle="modal" data-target="#modal" data-url="{{ path('version_new') }}">{% trans %}New{% endtrans %}</button>
+    					<button id="version_edit" class="dropdown-item" data-toggle="modal" data-target="#modal" data-url="{{ path('version_edit') }}">{% trans %}Edit{% endtrans %}</button>
+    					<button id="version_delete" class="dropdown-item" data-toggle="modal" data-target="#modal" data-url="{{ path('version_delete') }}">{% trans %}Delete{% endtrans %}</button>
     				</div>
     			</li>
     		{% endif %}
@@ -65,7 +67,7 @@
             	<a class="nav-link" id="display-tab" data-toggle="tab" href="#display" role="tab" aria-controls="display" aria-selected="false">{% trans %}Display{% endtrans %}</a>
             </li>
         </ul>
-		<div class="tab-content pt-1 collapse show" style="height:6em;">
+		<div class="tab-content pt-1 collapse show">
 			<div class="tab-pane fade show active" id="vues" role="tabpanel" aria-labelledby="vues-tab">
     			{{ block('vues') }}
         	</div>
@@ -82,8 +84,20 @@
         	</div>
 		</div>
 	</div>
-	
-    <div class="modal fade" id="modal" tabindex="-1" role="dialog" aria-hidden="true">
+    
+    <div id="toast" data-url="{{ path('toast') }}">
+    	
+    </div>
+
+    <div class="modal fade" id="modal" role="dialog" aria-hidden="true">
+    	<div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+    		<div class="modal-content">
+				
+    		</div>
+    	</div>
+    </div>
+    
+    <div class="modal fade" id="modal_detail" role="dialog" aria-hidden="true">
     	<div class="modal-dialog modal-xl modal-dialog-centered" role="document">
     		<div class="modal-content">
     			<div class="modal-header">
@@ -92,7 +106,7 @@
     					<span aria-hidden="true">&times;</span>
     				</button>
     			</div>
-    			<div class="modal-body" data-toggle="ajax">
+    			<div class="modal-body">
     				
     			</div>
     			<div class="modal-footer justify-content-center">
@@ -103,7 +117,8 @@
     </div>
     
     <div id="table_container" class="table-responsive">
-        <table id="table" class="table table-sm" data-url="{{ path((company is null)?'document_table_by_type':'document_table', app.request.attributes.get('_route_params')) }}" style="display: none;">
+    	
+        <table id="table" class="table table-sm" data-url="{{ path('document_table', app.request.attributes.get('_route_params')) }}" style="display: none;">
             <colgroup>
                 <col style="width: 2em;">
                 {% for codename, field in fields %}
@@ -162,11 +177,11 @@
             
         	</tbody>
         </table>
+        
+        <nav id="pagination">
+        
+        </nav>
     </div>
-    
-    <nav id="pagination">
-    
-    </nav>
 {% endblock %}
 
 {% block vues %}
@@ -187,7 +202,7 @@
         	{% endfor %}
     	</div>
     	<div class="col-auto">
-    		<button type="button" id="vue_new" class="btn btn-primary" data-url="{{ path('vue_new', app.request.query.all|merge({'id': app.request.attributes.get('id') })) }}" role="button">{% trans %}New vue{% endtrans %}</button>
+    		<button type="button" id="vue_new" class="btn btn-primary" data-url="{{ path('vue_new', app.request.query.all|merge({'id': project.id})) }}" role="button">{% trans %}New vue{% endtrans %}</button>
     	</div>
     </div>
 {% endblock %}
@@ -218,7 +233,7 @@
         <div class="row p-2">
         	<div class="col px-2">
             	{% for serie in series %}
-            		<a class="btn btn-outline-primary text-white m-1" href="{{ path('document', {'id': project.id, 'serie': serie.id}) }}" role="button">{{ serie.name }}</a>
+            		<a class="btn btn-outline-primary text-white m-1" href="{{ path('document', {'project': project.id, 'type': serie.type, 'serie': serie.id}) }}" role="button">{{ serie.name }}</a>
             	{% endfor %}
         	</div>
         	<div class="col-auto">

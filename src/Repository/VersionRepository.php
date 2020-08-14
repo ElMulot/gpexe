@@ -8,6 +8,7 @@ use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\ORM\Query\Expr\Join;
 use App\Entity\Project;
 use App\Entity\Serie;
+use App\Entity\Company;
 use App\Entity\Document;
 use App\Entity\User;
 use App\Entity\Version;
@@ -333,14 +334,17 @@ class VersionRepository extends ServiceEntityRepository
 	public function getProdAlerts(Project $project, User $user)
 	{
 		return $this->createQueryBuilder('v')
-			->select('s.id, s.name, v.isRequired, count(v.id) AS count, MIN(DATE_DIFF(v.scheduledDate, CURRENT_DATE())) AS min')
+			->select('s.id AS serieId, s.name AS serieName, c.type AS companyType, v.isRequired, count(v.id) AS count, MIN(DATE_DIFF(v.scheduledDate, CURRENT_DATE())) AS min')
 			->innerJoin('v.document', 'd')
 			->innerJoin('d.serie', 's')
+			->innerJoin('s.company', 'c')
 			->andWhere('s.project = :project')
 			->andWhere('v.isRequired = true')
 			->andWhere('v.writer = :user')
+			->andWhere('c.type IN (:type)')
 			->setParameter('project', $project)
 			->setParameter('user', $user)
+			->setParameter('type', [Company::MAIN_CONTRACTOR, Company::SUB_CONTRACTOR, Company::SUPPLIER])
 			->groupBy('s.id')
 			->getQuery()
 			->getResult()
@@ -358,15 +362,18 @@ class VersionRepository extends ServiceEntityRepository
 		;
 		
 		return $this->createQueryBuilder('v')
-			->select('s.id, s.name, v.isRequired, count(v.id) AS count, MAX(DATE_DIFF(CURRENT_DATE(), v.deliveryDate)) AS max')
+			->select('s.id AS serieId, s.name AS serieName, c.type AS companyType, v.isRequired, count(v.id) AS count, MAX(DATE_DIFF(CURRENT_DATE(), v.deliveryDate)) AS max')
 			->innerJoin('v.document', 'd')
 			->innerJoin('d.serie', 's')
+			->innerJoin('s.company', 'c')
 			->andWhere('s.project = :project')
 			->andWhere('v.isRequired = false')
 			->andWhere('v.checker = :user')
+			->andWhere('c.type IN (:type)')
 			->andWhere($qb->expr()->notIn('v.id', $subQuery->getDQL()))
 			->setParameter('project', $project)
 			->setParameter('user', $user)
+			->setParameter('type', [Company::MAIN_CONTRACTOR, Company::SUB_CONTRACTOR, Company::SUPPLIER])
 			->groupBy('s.id')
 			->getQuery()
 			->getResult()

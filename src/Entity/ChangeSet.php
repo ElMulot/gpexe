@@ -61,7 +61,7 @@ class ChangeSet
 
     public function setOldValue(?string $oldValue): self
     {
-        $this->oldValue = $oldValue;
+    	$this->oldValue = substr($oldValue, 0, 255);
 
         return $this;
     }
@@ -73,7 +73,7 @@ class ChangeSet
 
     public function setNewValue(string $newValue): self
     {
-        $this->newValue = $newValue;
+    	$this->newValue = substr($newValue, 0, 255);
 
         return $this;
     }

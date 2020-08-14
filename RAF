@@ -1,5 +1,9 @@
+Général
+	Placer language dans body et modifier le javascript
+	Callback fonction sur ajax
+
 Automation :
-    Vérifier les imports
+    Vérifier les imports															OK partiel
     Vérifier les exports
 
 Contrôle d'accès :
@@ -9,11 +13,20 @@ Contrôle d'accès :
 
 Vue principale
     Vérifier le bon fonctionnement des vues
-    Vérifier le fonctionnement des filtres
+    Vérifier le fonctionnement des filtres											OK partiel
+    Enregistrer le document
     
 Avancement
     Ajouter pages avancement
     Ajouter propriété progress dans version
 
 Accueil et project view
-	Vérifier MAJ JS
+	Vérifier MAJ JS																	OK
+
+Debug:
+	Affichage n° de page à corriger
+	Hauteur de la table à revoir en css. Eviter le codage javascript.				OK
+	Document::move à faire
+	Toast
+
+	

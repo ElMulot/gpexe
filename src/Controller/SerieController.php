@@ -51,7 +51,8 @@ class SerieController extends AbstractController
 			]);
 		} else {
 			return $this->redirectToRoute('document', [
-				'id' => $project->getId(),
+				'project' => $project->getId(),
+				'type' => $series[0]->getType(),
 				'serie' => $series[0]->getId(),
 			]);
 		}
@@ -59,8 +60,8 @@ class SerieController extends AbstractController
 	
 	public function routeByType(Project $project, string $type): Response
 	{
-		return $this->redirectToRoute('document_by_type', [
-			'id' => $project->getId(),
+		return $this->redirectToRoute('document', [
+			'project' => $project->getId(),
 			'type' => $type,
 		]);		
 	}

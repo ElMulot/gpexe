@@ -1,8 +1,142 @@
 const $ = require('jquery');
-const bsCustomFileInput = require('bs-custom-file-input');
 
 require('bootstrap');
+require('bootstrap-datepicker');
+require('bootstrap-datepicker/dist/locales/bootstrap-datepicker.fr.min.js');
+const bsCustomFileInput = require('bs-custom-file-input');
 require('../css/global.scss');
+
+init = function(target) {
+	
+	
+	//---------------------
+	// popover
+	//---------------------
+	
+	$(target).find('[data-toggle="popover"]').popover();
+	
+	//---------------------
+	// Ajax
+	//---------------------
+	
+    ajax.fetch(target);
+	
+	
+	//---------------------
+	// Modal & Collapse
+	//---------------------
+    
+	$(target).on('hidden.bs.collapse', function() {
+		$('[data-toggle="collapse"][href="#' + $(this).attr('id') + '"]')
+			.removeClass('active')
+			.blur()
+		;
+	});
+	
+	$(target).on('hidden.bs.modal', function() {
+		$('[data-toggle="modal"]').blur();
+	});
+	
+	$(target).find('button[data-dismiss]').on('click', function() {
+		$('#modal').modal('hide');
+	});
+	
+	
+	//---------------------
+	// Bootstrap datepicker
+	//---------------------
+	
+	$(target).find('.datepicker').each(function() {
+		$(this).datepicker({
+			format: "dd-mm-yyyy",
+	        weekStart: 1,
+	        maxViewMode: 3,
+	        language: $(this).data('locale'),
+	        multidate: false,
+	        daysOfWeekDisabled: "0,6",
+	        autoclose: true,
+	        calendarWeeks: true,
+	        clearBtn: true,
+	        todayBtn: true,
+	        todayHighlight: true,
+	    });
+	})
+
+	
+	//---------------------
+	// Form multiple
+	//---------------------
+	
+	$(target).find("[name$='_multiple']").each(function() {
+		
+		var id;
+		if (id = $(this).prop('name').match(/(\S+)_multiple$/y)) {
+			
+			$(this).on('click', function(event) {
+				
+				if ($(this).val() == 0) {
+					
+					$("[id^='" + id[1] + "']").not("[id*='multiple']").each(function() {
+						if ($(this).hasClass('datepicker')) {
+							$(this).datepicker('setDate', new Date());
+						} else if ($(this).attr('type') == 'radio') {
+							$(this).prop('checked', false);
+						} else if ($(this).attr('type') == 'checkbox') {
+							$(this).prop('checked', false);
+							$(this).prop('indeterminate', false);
+						} else if ($(this).attr('type') == 'text' || $(this).is('select')) {
+							$(this).val(null);
+						} else {
+							return;
+						}
+						$(this).attr("disabled", false);
+						$(this).attr("required", $(this).data('required'));
+					});
+					
+				} else {
+					
+					$("[id^='" + id[1] + "']").not("[id*='multiple']").each(function() {
+						if ($(this).hasClass('datepicker')) {
+							$(this).datepicker('setDate', null);
+						} else if ($(this).attr('type') == 'radio') {
+							$(this).prop('checked', false);
+						} else if ($(this).attr('type') == 'checkbox') {
+							$(this).prop('checked', false);
+							$(this).prop('indeterminate', true);
+						} else if ($(this).attr('type') == 'text' || $(this).is('select')) {
+							$(this).val(null);
+						} else {
+							return;
+						}
+						$(this).attr("disabled", true);
+						$(this).attr("required", false);
+					});
+										
+				}
+				
+				$('#' + id[1] + '_multiple').val($(this).val());
+			});
+		}
+	});
+	
+	$('form').find('div, input, select').each(function () {
+		
+		if ($(this).data('multiple')) {
+			$("[name='" + $(this).prop('id') + "_multiple']").filter('[value=1]').trigger('click');
+		} else {
+			$("[name='" + $(this).prop('id') + "_multiple']").filter('[value=0]').trigger('click');
+		}
+		
+	})
+	
+	
+	//---------------------
+	// BsCustomFileInput
+	//---------------------
+	
+	bsCustomFileInput.init();
+	
+}
 
 global.create = {
 	div: function() {
@@ -148,7 +282,9 @@ global.ajax = {
 				
 				let url = $(this).data('url');
 				let target = $(this).data('target') || this;
-				that.set(target, url);
+				let add = $(this).data('add');
+				
+				that.set(target, url, undefined, undefined, add);
 				
 			});
 			
@@ -160,11 +296,13 @@ global.ajax = {
 		
 		$(container).find('a[data-toggle="ajax"][type="submit"], button[data-toggle="ajax"][type="submit"]').each(function() {
 			
-			if ($form = $(this).parents('form').first()) {
-				$form.on('submit', function(e) {
-					return false;
-				});
+			if (($form = $('#' + $(this).attr('form'))) === false) {
+				return false;
 			}
+			
+			$form.on('submit', function(e) {
+				return false;
+			});
 			
 			$(this).on('click', function(e) {
 				
@@ -195,7 +333,9 @@ global.ajax = {
 			
 			let target = $(this).data('target') || this;
 			let url = $(this).data('url');
-			that.set(target, url);
+			let add = $(this).data('add');
+			
+			that.set(target, url, undefined, undefined, add);
 			
 		});
 		
@@ -212,7 +352,6 @@ global.ajax = {
 			}
 			
 			let that = this;
-			
 			$.ajax({
 				url : url,
 				type: method,
@@ -222,15 +361,16 @@ global.ajax = {
 				
 				success: function(result) {
 					if (add) {
+						$(target).find('[data-toggle="ajax"]').remove();
 						$(target).html($(target).html() + result);
 					} else {
 						$(target).html(result);
 					}
-					bsCustomFileInput.init();
-					that.fetch(target);
+					init(target);
 				},
 				
 				error: function(xhr, thrownError) {
+					
 					if (add === false) {
 						let result = '<div class="alert alert-danger">' +
 										'<h6 class="alert-heading font-weight-bold">' + text.error + ' ' + xhr.status + ' : ' + xhr.statusText + '</h6>';
@@ -251,26 +391,13 @@ global.ajax = {
 	}
 }
 
+global.rem = function() {
+	return parseInt($('html').css('font-size'));
+}
+
 
 $(document).ready(function() {
 	
-    $('[data-toggle="popover"]').popover();
-	
-    ajax.fetch('body');
-	
-    /*
-	$('[id]').on('show.bs.collapse', function() {
-		$('[data-toggle="collapse"][href="#' + $(this).attr('id') + '"]')
-			.addClass('active')
-		;
-	});
-	*/
-    
-	$('[id]').on('hidden.bs.collapse', function() {
-		$('[data-toggle="collapse"][href="#' + $(this).attr('id') + '"]')
-			.removeClass('active')
-			.blur()
-		;
-	});
+    init(document);
     
 });

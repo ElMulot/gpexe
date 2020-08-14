@@ -1,4 +1,6 @@
 @import "~bootswatch/dist/slate/variables";
+@import "~bootstrap/scss/bootstrap";
+@import "~bootswatch/dist/slate/bootswatch";
 
 html, body {
 	height:calc(100% - 36px);
@@ -40,6 +42,14 @@ main {
 	overflow-y:auto;
 }
 
+#tabs > div {
+	height: 0;
+}
+
+#tabs > div.show {
+	height: 6rem!important;
+}
+
 #vues > div > div > div, #vue_new, #series a {
 	width: 10rem;
 }
@@ -49,19 +59,50 @@ main {
 }
 
 #table_container {
-	max-height:100%;
-	margin-top: 10rem;
 	margin-left: 1rem;
 	margin-right: 1rem;
 	background-color: $body-bg;
 	text-align: right;
 }
 
+.tabs_hidden {
+	margin-top: 4rem;
+	height: 100%;
+	height: -webkit-calc(100% - 4rem);
+	height: -moz-calc(100% - 4rem);
+	height: calc(100% - 4rem);
+}
+
+.tabs_showed {
+	margin-top: 10rem;
+	height: 100%;
+	height: -webkit-calc(100% - 10rem);
+	height: -moz-calc(100% - 10rem);
+	height: calc(100% - 10rem);
+}
+
+#toast {
+	position: absolute;
+	top: 0;
+	z-index: $zindex-tooltip !important;
+}
+
+#modal {
+	z-index: #{$zindex-modal+3} !important;
+}
+
+.modal:nth-of-type(even) {
+	z-index: #{$zindex-modal+2} !important;
+}
+.modal-backdrop.show:nth-of-type(even) {
+	z-index: #{$zindex-modal+1} !important;
+}
+
 table {
 	font-size: 80%;
 	font-weight: 400;
 	table-layout: fixed;
-	width: auto !important;
+	width: 100% !important;
 }
 
 th {
@@ -70,6 +111,8 @@ th {
     padding-left: 0 !important;
     padding-right: 0 !important;
     border: 0 !important;
+    background-color: $body-bg;
+    z-index: $zindex-sticky;
 }
 
 th button {
@@ -149,19 +192,19 @@ td {
 	overflow: hidden;
 }
 
-.modal-body > div:first-child {
+/*
+.modal-body > .row {
 	height: inherit;
+	overflow-y: auto;
 }
+*/
 
 #menu {
 	width:200px;
-	height: inherit;
-	overflow-y: auto;
 }
 
-#version {
-	height: inherit;
-	overflow-y: auto;
+#version_tabs a {
+	height: fit-content;
 }
 
 #pagination {

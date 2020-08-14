@@ -19,10 +19,10 @@ alert:
 about:
     path: /about
     controller: App\Controller\HomeController::about
-    
-requests:
-    path: /requests
-    controller: App\Controller\HomeController::requests
+
+toast:
+    path: /toast
+    controller: App\Controller\HomeController::toast
 
 profil:
     path: /profil
@@ -317,32 +317,24 @@ serie_delete:
     controller: App\Controller\SerieController::delete
 
 document:   #vue principale
-    path: /project/{id}/serie/{serie}
+    path: /project/{project}/serie/{type}/{serie}
     requirements:
-        id: \d+
+        project: \d+
+        type: sdr|mdr
         serie: \d+
+    defaults:
+        serie: 0
     controller: App\Controller\DocumentController::index
 
-document_by_type:   #vue principale
-    path: /project/{id}/serie/{type}
-    requirements:
-        id: \d+
-        type: sdr|mdr
-    controller: App\Controller\DocumentController::indexByType
-
 document_table:
-    path: /project/{id}/serie/{serie}/table
+    path: /project/{project}/serie/{type}/{serie}/table
     requirements:
-        id: \d+
-        serie: \d+
-    controller: App\Controller\DocumentController::table
-
-document_table_by_type:
-    path: /project/{id}/serie/{type}/table
-    requirements:
-        id: \d+
+        project: \d+
         type: sdr|mdr
-    controller: App\Controller\DocumentController::tableByType
+        serie: \d+
+    defaults:
+        serie: 0
+    controller: App\Controller\DocumentController::table
 
 document_detail:
     path: /project/serie/document/{id}/detail
@@ -351,34 +343,36 @@ document_detail:
     controller: App\Controller\DocumentController::detail
 
 document_new:
-    path: /project/serie/{id}/document/new
+    path: /project/serie/{serie}/document/new
     requirements:
-        id: \d+
+        serie: \d+
+    defaults:
+        serie: 0
     controller: App\Controller\DocumentController::new
 
 document_edit:
-    path: /project/serie/document/edit/{id}
-    defaults:
-        id: 0
+    path: /project/serie/document/edit/{document}
     requirements:
-        id: \d+
+        document: \d+
+    defaults:
+        document: 0
     controller: App\Controller\DocumentController::edit
     
 document_move:
-    path: /project/serie/document/move/{id}
-    defaults:
-        id: 0
+    path: /project/serie/document/move/{document}
     requirements:
-        id: \d+
+        document: \d+
+    defaults:
+        document: 0
     controller: App\Controller\DocumentController::move
 
 document_delete:
-    path: /project/serie/document/delete/{id}
-    defaults:
-        id: 0
+    path: /project/serie/document/delete/{document}
     methods: GET|DELETE
     requirements:
-        id: \d+
+        document: \d+
+    defaults:
+        document: 0
     controller: App\Controller\DocumentController::delete
 
 version_detail:
@@ -388,28 +382,16 @@ version_detail:
     controller: App\Controller\VersionController::detail
 
 version_new:
-    path: /project/serie/document/{id}/version/new
-    defaults:
-        id: 0
-    requirements:
-        id: \d+
+    path: /project/serie/document/version/new
     controller: App\Controller\VersionController::new
 
 version_edit:
-    path: /project/serie/document/version/edit/{id}
-    defaults:
-        id: 0
-    requirements:
-        id: \d+
+    path: /project/serie/document/version/edit
     controller: App\Controller\VersionController::edit
 
 version_delete:
-    path: /project/serie/document/version/delete/{id}
-    defaults:
-        id: 0
+    path: /project/serie/document/version/delete
     methods: GET|DELETE
-    requirements:
-        id: \d+
     controller: App\Controller\VersionController::delete
 
 review:

@@ -1,6 +1,6 @@
 {% if form is defined %}
 
-	{% form_theme form 'form/layout_ajax.html.twig' %}
+	{% form_theme form 'ajax/layout.html.twig' %}
 	
 	{{ form_start(form) }}
 		{% for child in form|filter(child => not child.rendered) %}
@@ -13,7 +13,11 @@
 	{{ form_end(form) }}
 
 {% else %}
-	
-	<a class="active" data-toggle="ajax" data-url="{{ path('automation_console', app.request.query.all|merge({'id': automation.id})) }}" data-target="#console"></a>
+	<div class="d-flex justify-content-center">
+		<div class="spinner-border" role="status">
+			<span class="sr-only">{% trans %}Loading...{% endtrans %}</span>
+		</div>
+	</div>
+	<a class="active" data-toggle="ajax" data-url="{{ path('automation_console', app.request.query.all|merge({'id': automation.id})) }}" data-target="#console" data-add="true"></a>
 	
 {% endif %}

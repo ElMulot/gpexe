@@ -31,7 +31,7 @@
 
         </div>
         <div id="console" class="jumbotron py-3 col-6 overflow-auto h-100">
-        	<a class="active" data-toggle="ajax" data-url="{{ path('automation_console', app.request.query.all|merge({'id': automation.id})) }}" data-target="#console"></a>
+        	<a class="active" data-toggle="ajax" data-url="{{ path('automation_console', app.request.query.all|merge({'id': automation.id})) }}" data-target="#console" data-add="true"></a>
         </div>
     </div>
 {% endblock %}

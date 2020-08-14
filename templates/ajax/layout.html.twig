@@ -1,0 +1,30 @@
+{% use "form/layout.html.twig" %}
+
+{% block form_start %}
+    {% do form.setMethodRendered() %}
+    {% set method = method|upper %}
+    {% if method in ["GET", "POST"] %}
+        {% set form_method = method %}
+    {% else %}
+        {% set form_method = "POST" %}
+    {% endif %}
+    <form id="form_ajax"{% if name != '' %} name="{{ name }}"{% endif %} method="{{ form_method|lower }}"{% if action != '' %} action="{{ action }}"{% endif %}{{ block('attributes') }}{% if multipart %} enctype="multipart/form-data"{% endif %}>
+    {% if form_method != method %}
+        <input type="hidden" name="_method" value="{{ method }}" />
+    {% endif %}
+{% endblock  %}
+
+{% block form_widget_simple %}
+	{% set attr = attr|merge({class: (attr.class|default('') ~ ' form-control-sm')|trim}) %}
+	{{ parent() }}
+{% endblock %}
+
+{% block choice_widget_collapsed %}
+	{% set attr = attr|merge({class: (attr.class|default('') ~ ' form-control-sm')|trim}) %}
+	{{ parent() }}
+{% endblock %}
+
+{% block file_widget %}
+    {% set label_attr = label_attr|merge({ class: (label_attr.class|default('') ~ ' custom-file-label-sm')|trim }) %}
+	{{ parent() }}
+{% endblock %}

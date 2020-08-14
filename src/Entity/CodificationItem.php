@@ -76,7 +76,7 @@ class CodificationItem
     
     public function __toString(): string
     {
-    	return (string)$this->getValue() . ' - ' . $this->getName();
+    	return (string)$this->getValue();
     }
 }
 ?>

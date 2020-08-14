@@ -68,15 +68,24 @@ class DocumentController extends AbstractController
 		$this->vueRepository = $vueRepository;
 	}
 	
-	public function index(Project $project, Serie $serie): Response
+	public function index(Project $project, string $type, Serie $serie = null): Response
 	{
-		$company = $serie->getCompany();
-		$series = $this->serieRepository->getSeries($project, $company);
 		$vues = $this->vueRepository->getVues($project, $this->getUser());
-		$fields = $this->fieldService->getFieldsWithForms($project, $series);
+		
+		if ($serie === null) {
+			$company = null;
+			$series = $this->serieRepository->getSeriesByType($project, $type);
+			$fields = $this->fieldService->getFieldsWithForms($project, $series);
+		} else {
+			$company = $serie->getCompany();
+			$series = $this->serieRepository->getSeries($project, $company);
+			$fields = $this->fieldService->getFieldsWithForms($project, $series);
+		}
 		
 		return $this->render('document/index.html.twig', [
 			'project' => $project,
+			'serie' => $serie,
+			'type' => $type,
 			'company' => $company,
 			'series' => $series,
 			'vues' => $vues,
@@ -87,25 +96,7 @@ class DocumentController extends AbstractController
 		]);
 	}
 	
-	public function indexByType(Project $project, string $type): Response
-	{
-		$series = $this->serieRepository->getSeriesByType($project, $type);
-		$vues = $this->vueRepository->getVues($project, $this->getUser());
-		$fields = $this->fieldService->getFieldsWithForms($project, $series);
-		
-		return $this->render('document/index.html.twig', [
-			'project' => $project,
-			'company' => null,
-			'series' => $series,
-			'vues' => $vues,
-			'fields' => $fields,
-			'route_back' =>  $this->generateUrl('project_view', [
-				'id' => $project->getId(),
-			]),
-		]);
-	}
-	
-	public function table(Request $request, Project $project, Serie $serie): Response
+	public function table(Request $request, Project $project, string $type, Serie $serie = null): Response
 	{
 		
 		if ($vueId = $request->query->get('vue')) {
@@ -129,41 +120,11 @@ class DocumentController extends AbstractController
 		
 		$request->query->set('page', $request->query->get('page') ?? 1);
 		
-		$versions = $this->versionRepository->getVersionsArray($project, [$serie], $request);
-		
-		return new JsonResponse([
-			'versions' => $versions,
-			'query' => $request->query->all(),
-			'pageMax' => ceil(count($versions)/self::MAX_RECORDS),
-		]);
-		
-	}
-	
-	public function tableByType(Request $request, Project $project, string $type): Response
-	{
-		
-		$series = $this->serieRepository->getSeriesByType($project, $type);
-		
-		if ($vueId = $request->query->get('vue')) {
-			if ($vue = $this->vueRepository->getVueById($vueId)) {
-				$request->query->replace($vue->getValue());
-				$request->query->set('vue', $vueId);
-			} else {
-				$request->query->remove('vue');
-			}
+		if ($serie === null) {
+			$series = $this->serieRepository->getSeriesByType($project, $type);
+		} else {
+			$series = [$serie];
 		}
-		
-		if ($request->query->all() == false) {
-			if ($vue = $this->vueRepository->getDefaultVue($project, $this->getUser())) {
-				$vueId = $vue->getId();
-				$request->query->replace($vue->getValue());
-				$request->query->set('vue', $vueId);
-			} else {
-				$request->query->set('display', $this->getDefaultDisplay());
-			}
-		}
-		
-		$request->query->set('page', $request->query->get('page') ?? 1);
 		
 		$versions = $this->versionRepository->getVersionsArray($project, $series, $request);
 		
@@ -208,11 +169,7 @@ class DocumentController extends AbstractController
 				if ($value === null && $metadata->getIsMandatory()) {
 					$this->addFlash('danger', 'The field  \'' . $codification->getName() . '\' must not be empty');
 					$view = $form->createView();
-					return $this->render('generic/form.html.twig', [
-						'route_back' =>  $this->generateUrl('document', [
-							'id' => $project->getId(),
-							'serie' => $serie->getId(),
-						]),
+					return $this->render('ajax/form.html.twig', [
 						'form' => $view,
 					]);
 				}
@@ -223,11 +180,7 @@ class DocumentController extends AbstractController
 			if ($this->documentService->validateReference($document) === false) {
 				$this->addFlash('danger', 'The reference  \'' . $document->getReference() . '\' already exist');
 				$view = $form->createView();
-				return $this->render('generic/form.html.twig', [
-					'route_back' =>  $this->generateUrl('document', [
-						'id' => $project->getId(),
-						'serie' => $serie->getId(),
-					]),
+				return $this->render('ajax/form.html.twig', [
 					'form' => $view,
 				]);
 			}
@@ -238,11 +191,7 @@ class DocumentController extends AbstractController
 				if ($value === null && $metadata->getIsMandatory()) {
 					$this->addFlash('danger', 'The field  \'' . $metadata->getName() . '\' must not be empty');
 					$view = $form->createView();
-					return $this->render('generic/form.html.twig', [
-						'route_back' =>  $this->generateUrl('document', [
-							'id' => $project->getId(),
-							'serie' => $serie->getId(),
-						]),
+					return $this->render('ajax/form.html.twig', [
 						'form' => $view,
 					]);
 				}
@@ -259,12 +208,8 @@ class DocumentController extends AbstractController
 			]);
 		} else {
 			$view = $form->createView();
-			return $this->render('generic/form.html.twig', [
-				'route_back' =>  $this->generateUrl('document', [
-					'id' => $project->getId(),
-					'serie' => $serie->getId(),
-				]),
-				'form' => $view
+			return $this->render('ajax/form.html.twig', [
+				'form' => $view,
 			]);
 		}
 	}
@@ -283,16 +228,12 @@ class DocumentController extends AbstractController
 			
 		}
 		
-		$serie = $document->getSerie();
-		$project = $serie->getProject();
-		
 		if (count($documents) > 1) {
 			$this->addFlash('danger', 'Only one reference must be selected');
-			return $this->redirectToRoute('document', [
-				'id' => $project->getId(),
-				'serie' => $serie->getId(),
-			]);
+			return $this->render('ajax/error.html.twig');
 		}
+		
+		$project = $document->getSerie()->getProject();
 		
 		$form = $this->createForm(DocumentType::class, $document, [
 			'project' => $project
@@ -307,11 +248,7 @@ class DocumentController extends AbstractController
 				if ($value === null && $metadata->getIsMandatory()) {
 					$this->addFlash('danger', 'The field  \'' . $codification->getName() . '\' must not be empty');
 					$view = $form->createView();
-					return $this->render('generic/form.html.twig', [
-						'route_back' =>  $this->generateUrl('document', [
-							'id' => $project->getId(),
-							'serie' => $serie->getId(),
-						]),
+					return $this->render('ajax/form.html.twig', [
 						'form' => $view,
 					]);
 				}
@@ -325,11 +262,7 @@ class DocumentController extends AbstractController
 				if ($value === null && $metadata->getIsMandatory()) {
 					$this->addFlash('danger', 'The field  \'' . $metadata->getName() . '\' must not be empty');
 					$view = $form->createView();
-					return $this->render('generic/form.html.twig', [
-						'route_back' =>  $this->generateUrl('document', [
-							'id' => $project->getId(),
-							'serie' => $serie->getId(),
-						]),
+					return $this->render('ajax/form.html.twig', [
 						'form' => $view,
 					]);
 				}
@@ -342,18 +275,12 @@ class DocumentController extends AbstractController
 			$entityManager->flush();
 			
 			$request->query->remove('id');
-			return $this->redirectToRoute('document', $request->query->all() + [
-				'id' => $project->getId(),
-				'serie' => $serie->getId(),
-			]);
+			$this->addFlash('success', 'Document updated');
+			return new Response();
 		} else {
 			$view = $form->createView();
 			$request->query->remove('id');
-			return $this->render('generic/form.html.twig', [
-				'route_back' =>  $this->generateUrl('document', $request->query->all() + [
-					'id' => $project->getId(),
-					'serie' => $serie->getId(),
-				]),
+			return $this->render('ajax/form.html.twig', [
 				'form' => $view
 			]);
 		}
@@ -374,9 +301,6 @@ class DocumentController extends AbstractController
 	        
 	    }
 	    
-	    $serie = $document->getSerie();
-	    $project = $serie->getProject();
-	    
 	    if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
 	        $entityManager = $this->getDoctrine()->getManager();
 	        
@@ -387,15 +311,14 @@ class DocumentController extends AbstractController
 	        
 	        $this->addFlash('success', 'deleted.document');
 	        $this->addFlash('_count', count($documents));
-	        return $this->redirectToRoute('document', [
-	        	'id' => $project->getId(),
-	        	'serie' => $serie->getId(),
-	        ]);
+	        
+	        return new Response();
 	    } else {
 	        return $this->render('generic/delete.html.twig', [
 	            'route_back' =>  $this->generateUrl('document', [
-	            	'id' => $project->getId(),
-	            	'serie' => $serie->getId(),
+	            	'project' => $project->getId(),
+	            	'type' => $type,
+	            	'serie' => ($serie)?$serie->getId():0,
 	            ]),
 	            'entities' => $documents,
 	        ]);

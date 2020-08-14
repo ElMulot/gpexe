@@ -192,6 +192,17 @@ class Serie
     	return ($this->getCompany()->getType() == Company::SUB_CONTRACTOR || $this->getCompany()->getType() == Company::SUPPLIER);
     }
     
+    public function getType(): ?string
+    {
+    	switch ($this->getCompany()->getType()) {
+    		case Company::MAIN_CONTRACTOR:
+    			return 'mdr';
+    		case Company::SUB_CONTRACTOR:
+    		case Company::SUPPLIER:
+    			return 'sdr';
+    	}
+    }
+    
     
     public function getMetadataValue(Metadata $metadata)
     {

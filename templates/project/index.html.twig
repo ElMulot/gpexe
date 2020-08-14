@@ -34,10 +34,7 @@
 				<div class="dropdown-menu" style="{{ block('nav_item') }}">
 					<a class="dropdown-item" href="https://github.com/ElMulot/gpexe/wiki" target="_blank">{% trans %}Wiki{% endtrans %}</a>
 					<a class="dropdown-item" href="https://github.com/ElMulot/gpexe/issues" target="_blank">{% trans %}Report bug{% endtrans %}</a>
-					<a class="dropdown-item" href="{{ path('about') }}">{% trans %}About{% endtrans %}</a>
-					{% if is_granted('ROLE_ADMIN') %}
-						<a class="dropdown-item" href="{{ path('requests') }}">{% trans %}Last requests{% endtrans %}</a>
-					{% endif %}
+					<a class="dropdown-item" href="{{ path('about') }}">{% trans %}About{% endtrans %}</a> endif %}
 				</div
 			</li>
 			<li class="nav-item" style="{{ block('nav_item') }}">

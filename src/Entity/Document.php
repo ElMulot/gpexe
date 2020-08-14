@@ -231,7 +231,7 @@ class Document
     
     public function getCodificationItemByCodification($codification): ?CodificationItem
     {
-    	foreach ($this->getCodificationItems() as $codificationItem) {
+    	foreach ($this->getCodificationItems()->getValues() as $codificationItem) {		
     		if ($codificationItem->getCodification() == $codification) {
     			return $codificationItem;
     		}
@@ -294,13 +294,6 @@ class Document
     		
     		if ($reference === null) return false;
     		
-    		//cas où la codification de type Fix contient le séparateur
-    		if ($codification->isFixed()) {
-    			$nb = substr_count($codification->getValue(), $project->getSplitter());
-    			for ($i=0; $i<$nb; $i++) {
-    				$reference .= $project->getSplitter() . trim(array_shift($references));
-    			}
-    		}
     		if ($this->setCodificationValue($codification, $reference)) {
     			$reference = null;
     		} elseif ($codification->getIsMandatory()) {
@@ -319,7 +312,6 @@ class Document
     			return true;
     			
     		case Codification::LIST:
-    			
     			if ($codificationItem = $this->getCodificationItemByCodification($codification)) {
     				
     				if ($codificationItem->getValue() == $value) {
@@ -331,7 +323,6 @@ class Document
     			
     			if ($value) {
     				if ($codificationItem = $codification->getCodificationItemByValue($value)) {
-    					
     					$this->addCodificationItem($codificationItem);
     					return true;
     				}

@@ -32,6 +32,7 @@ class ReviewController extends AbstractController
 			$form->handleRequest($request);
 			
 			if ($form->isSubmitted() && $form->isValid()) {
+				
 				$review->setUser($this->getUser());
 				$review->setVersion($version);
 				$entityManager = $this->getDoctrine()->getManager();

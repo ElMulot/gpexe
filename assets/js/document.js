@@ -208,7 +208,7 @@ UrlSearch.prototype = {
 						.append(create.smallButton).children().last()
 							.addClass('btn-success w-100')
 							.attr('data-toggle', 'modal')
-							.attr('data-target', '#modal')
+							.attr('data-target', '#modal_detail')
 							.attr('data-url', version.detailUrl)
 							.text(text.details)
 							
@@ -216,8 +216,13 @@ UrlSearch.prototype = {
 					
 				}
 				
-				//pagination
+				$('button[data-toggle="modal"][data-target="#modal_detail"]').on('click', function() {
+					ajax.set('#modal_detail .modal-body', $(this).data('url'));
+				});
 				
+				//pagination
+				$('#pagination').empty();
+				/*
 				if (result.pageMax > 1) {
 					
 					$('#table_container').addClass('mb-4');
@@ -263,7 +268,7 @@ UrlSearch.prototype = {
 					;
 					
 				}
-				
+				*/
 				//$('table').stickyTableHeaders();
 				
 			},
@@ -710,13 +715,13 @@ function lineChecked() {
 		$('#document_edit').show();
 		$('#document_move').show();
 		$('#document_delete').show();
-		$('#version_menu').show();	
+		$('#version_menu').show();
 	} else if(unchecked) {
 		$('#version').val('');
 		$('#document_edit').hide();
 		$('#document_move').hide();
 		$('#document_delete').hide();
-		$('#version_menu').hide();	
+		$('#version_menu').hide();
 	}
 }
 
@@ -753,8 +758,27 @@ $(document).ready(function() {
 	// Modal
 	//---------------------
 	
+	/*
 	$('#modal').on('show.bs.modal', function(e) {
-		ajax.set('.modal-body', $(e.relatedTarget).data('url'));
+		ajax.set('#modal .modal-content', $(e.relatedTarget).data('url') + urlSearch.toString());
+	});
+	*/
+	
+	$('#document_new, #document_edit, #document_move, #document_delete, #version_new, #version_edit, #version_delete').on('click', function() {
+		ajax.set('#modal .modal-content', $(this).data('url') + urlSearch.toString());
+	})
+	
+	
+	//---------------------
+	// Modal_detail
+	//---------------------
+	
+	$(document).ajaxComplete(function(e, xhr) {
+		if (xhr.responseText === '') {
+			//urlSearch.fetch();
+			$('#modal').modal('hide');
+			ajax.set('#toast', $('#toast').data('url'));
+		}
 	});
 
 	//---------------------
@@ -766,44 +790,14 @@ $(document).ready(function() {
 	$('#document_delete').hide();
 	$('#version_menu').hide();
 	
-	$('#document_edit').on('click', function() {
-		location.assign($(this).data('url') + urlSearch.toString());
-		return false;
-	});
-	
-	$('#document_move').on('click', function() {
-		location.assign($(this).data('url') + urlSearch.toString());
-		return false;
-	});
-	
-	$('#document_delete').on('click', function() {
-		location.assign($(this).data('url') + urlSearch.toString());
-		return false;
-	});
-	
-	$('#version_new').on('click', function() {
-		location.assign($(this).data('url') + urlSearch.toString());
-		return false;
-	});
-	
-	$('#version_edit').on('click', function() {
-		location.assign($(this).data('url') + urlSearch.toString());
-		return false;
-	});
-	
-	$('#version_delete').on('click', function() {
-		location.assign($(this).data('url') + urlSearch.toString());
-		return false;
-	});
-	
 	//---------------------
 	// Tab collapse
 	//---------------------
 	
 	$('#tabs').on('show.bs.tab', function() {
 		$('.collapse').collapse('show');
-		$('#table_container').css('margin-top', '10em');
-		$('#tabs > div').css('height', '6em');
+		$('#table_container').removeClass('tabs_hidden');
+		$('#table_container').addClass('tabs_showed');
 	});
 	
 	$('#tabs ul li a').on('click', function(e) {
@@ -818,13 +812,13 @@ $(document).ready(function() {
 	});
     
 	$('#tabs').on('shown.bs.collapse', function() {
-		$('#table_container').css('margin-top', '10em');
-		$('#tabs > div').css('height', '6em');
+		$('#table_container').removeClass('tabs_hidden');
+		$('#table_container').addClass('tabs_showed');
 	});
 	
 	$('#tabs').on('hidden.bs.collapse', function(e) {
-		$('#table_container').css('margin-top', '4em');
-		$('#tabs > div').deleteAttr('style');
+		$('#table_container').removeClass('tabs_showed');
+		$('#table_container').addClass('tabs_hidden');
 	});
 	
 	//---------------------
@@ -857,6 +851,8 @@ $(document).ready(function() {
 	// Table headers
 	//---------------------
 	
+	$('#tabs').trigger('show.bs.tab');
+	
 	$('table').find('th[id][data-title]').each(function() {
 		tableHeaders.push(createTableHeader(this));
 	});
@@ -873,11 +869,6 @@ $(document).ready(function() {
 			urlSearch.fetch();
 		}
 	});
-	
-	
-	
-	
-	
 	
 	fillDisplay();
 	urlSearch.setFromUrl(window.location.search);

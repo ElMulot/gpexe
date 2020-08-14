@@ -149,7 +149,7 @@
         {% set valid = true %}
     {% endif %}
     {% if widget == 'single_text' %}
-    	{% set attr = attr|merge({class: 'js-datepicker'}) %}
+    	{% set attr = attr|merge({class: 'datepicker'}) %}
         {{- block('form_widget_simple') -}}
     {% else %}
         {% set attr = attr|merge({class: (attr.class|default('') ~ ' form-inline')|trim}) %}

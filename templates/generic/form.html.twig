@@ -1,10 +1,5 @@
 {% extends 'base.html.twig' %}
 
-{% block stylesheets %}
-	{{ parent() }}
-    {{ encore_entry_link_tags('form') }}
-{% endblock %}
-
 {% block body %}
     <div class="d-flex justify-content-center p-5">
     	<div class="jumbotron col-xl-7">
@@ -28,9 +23,4 @@
     		</div>
     	</div>
     </div>
-{% endblock %}
-
-{% block javascripts %}
-    {{ parent() }}
-    {{ encore_entry_script_tags('form') }}
 {% endblock %}

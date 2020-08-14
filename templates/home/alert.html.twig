@@ -12,9 +12,10 @@
 		<p class="m-0">
 			{% trans %}Some documents to be produced are very late:{% endtrans %} 
 			{% for alert in prod_danger %}
-				<button type="button" class="btn btn-sm btn-primary" href="{{ path('document', {'id': project.id, 'serie': alert.id}) }}">
-					{{ alert.name }} <span class="badge badge-light">{{ alert.count }}</span>
-				</button> 
+				{% set type = (alert.companyType is constant('App\\Entity\\Company::MAIN_CONTRACTOR'))?'mdr':'sdr' %}
+				<a class="btn btn-sm btn-primary text-decoration-none" href="{{ path('document', {'project': project.id, 'type': serie.type, 'serie': alert.serieId}) }}">
+					{{ alert.serieName }} <span class="badge badge-light">{{ alert.count }}</span>
+				</a>
 			{% endfor %}
 		</p>
 	</div>
@@ -24,8 +25,9 @@
 		<p class="m-0">
 			{% trans %}Some documents to be produced are late:{% endtrans %} 
 			{% for alert in prod_warning %}
-				<a role="button" class="btn btn-sm btn-primary" href="{{ path('document', {'id': project.id, 'serie': alert.id}) }}">
-					{{ alert.name }} <span class="badge badge-light">{{ alert.count }}</span>
+				{% set type = (alert.companyType is constant('App\\Entity\\Company::MAIN_CONTRACTOR'))?'mdr':'sdr' %}
+				<a class="btn btn-sm btn-primary text-decoration-none" href="{{ path('document', {'project': project.id, 'type': serie.type, 'serie': alert.serieId}) }}">
+					{{ alert.serieName }} <span class="badge badge-light">{{ alert.count }}</span>
 				</a> 
 			{% endfor %}
 		</p>
@@ -36,9 +38,10 @@
 		<p class="m-0">
 			{% trans %}Some documents must be produce in the next 15 days:{% endtrans %} 
 			{% for alert in prod_info %}
-				<button type="button" class="btn btn-sm btn-primary" href="{{ path('document', {'id': project.id, 'serie': alert.id}) }}">
-					{{ alert.name }} <span class="badge badge-light">{{ alert.count }}</span>
-				</button> 
+				{% set type = (alert.companyType is constant('App\\Entity\\Company::MAIN_CONTRACTOR'))?'mdr':'sdr' %}
+				<a class="btn btn-sm btn-primary text-decoration-none" href="{{ path('document', {'project': project.id, 'type': type, 'serie': alert.serieId}) }}">
+					{{ alert.serieName }} <span class="badge badge-light">{{ alert.count }}</span>
+				</a> 
 			{% endfor %}
 		</p>
 	</div>
@@ -48,9 +51,10 @@
 		<p class="m-0">
 			{% trans %}Some documents to be checked are very late:{% endtrans %} 
 			{% for alert in check_danger %}
-				<button type="button" class="btn btn-sm btn-primary" href="{{ path('document', {'id': project.id, 'serie': alert.id}) }}">
-					{{ alert.name }} <span class="badge badge-light">{{ alert.count }}</span>
-				</button> 
+				{% set type = (alert.companyType is constant('App\\Entity\\Company::MAIN_CONTRACTOR'))?'mdr':'sdr' %}
+				<a class="btn btn-sm btn-primary text-decoration-none" href="{{ path('document', {'project': project.id, 'type': type, 'serie': alert.serieId}) }}">
+					{{ alert.serieName }} <span class="badge badge-light">{{ alert.count }}</span>
+				</a>
 			{% endfor %}
 		</p>
 	</div>
@@ -60,8 +64,9 @@
 		<p class="m-0">
 			{% trans %}Some documents to be checked are late:{% endtrans %} 
 			{% for alert in check_warning %}
-				<a role="button" class="btn btn-sm btn-primary" href="{{ path('document', {'id': project.id, 'serie': alert.id}) }}">
-					{{ alert.name }} <span class="badge badge-light">{{ alert.count }}</span>
+				{% set type = (alert.companyType is constant('App\\Entity\\Company::MAIN_CONTRACTOR'))?'mdr':'sdr' %}
+				<a class="btn btn-sm btn-primary text-decoration-none" href="{{ path('document', {'project': project.id, 'type': type, 'serie': alert.serieId}) }}">
+					{{ alert.serieName }} <span class="badge badge-light">{{ alert.count }}</span>
 				</a> 
 			{% endfor %}
 		</p>
@@ -72,8 +77,9 @@
 		<p class="m-0">
 			{% trans %}Some documents must be checked in the next 15 days:{% endtrans %} 
 			{% for alert in check_info %}
-				<button type="button" class="btn btn-sm btn-primary" href="{{ path('document', {'id': project.id, 'serie': alert.id}) }}">
-					{{ alert.name }} <span class="badge badge-light">{{ alert.count }}</span>
+				{% set type = (alert.companyType is constant('App\\Entity\\Company::MAIN_CONTRACTOR'))?'mdr':'sdr' %}
+				<button type="button" class="btn btn-sm btn-primary" href="{{ path('document', {'project': project.id, 'type': type, 'serie': alert.serieId}) }}">
+					{{ alert.serieName }} <span class="badge badge-light">{{ alert.count }}</span>
 				</button> 
 			{% endfor %}
 		</p>

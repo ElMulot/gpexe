@@ -1,8 +1,8 @@
-<div class="row">
-	<div id="menu" class="col-auto d-flex flex-column">
-        <div id="version_tabs" class="nav nav-pills mb-auto" aria-orientation="vertical">
+<div class="row h-100">
+	<div id="menu" class="col-auto d-flex flex-column h-100">
+        <div id="version_tabs" class="nav nav-pills mb-auto overflow-auto h-100 justify-content-center" aria-orientation="vertical">
         	{% for version in versions %}
-                <a class="nav-link w-100 my-1{% if version == current_version %} active{% endif %}" data-toggle="ajax" data-url="{{ path('version_detail', {'id': version.id}) }}" data-target="#version_content">
+                <a class="nav-link w-75 my-1{% if version == current_version %} active{% endif %}" data-toggle="ajax" data-url="{{ path('version_detail', {'id': version.id}) }}" data-target="#version_content">
                     {{ version.name }} 
                     {% if version.isRequired %}
                     	<span class="badge badge-info">{% trans %}to be produced{% endtrans %}</span>
@@ -18,12 +18,12 @@
         </div>
         {% if is_granted('ROLE_EDIT') %}
             <div class="align-items-end">
-            	<a class="btn btn-primary w-100 text-nowrap my-1" href="{{ path('version_new', {'id': document.id }) }}">{% trans %}New{% endtrans %}</a>
-            	<a class="btn btn-primary w-100 text-nowrap my-1" href="{{ path('version_edit') }}">{% trans %}Edit{% endtrans %}</a>
-            	<a class="btn btn-primary w-100 text-nowrap my-1" href="{{ path('version_delete') }}">{% trans %}Delete{% endtrans %}</a>
+            	<button class="btn btn-primary w-100 text-nowrap my-1" data-toggle="modal" data-target="#modal" data-url="{{ path('version_new', {'id': document.id }) }}">{% trans %}New{% endtrans %}</button>
+            	<button class="btn btn-primary w-100 text-nowrap my-1" data-toggle="modal" data-target="#modal" data-url="{{ path('version_edit') }}">{% trans %}Edit{% endtrans %}</button>
+            	<button class="btn btn-primary w-100 text-nowrap my-1" data-toggle="modal" data-target="#modal" data-url="{{ path('version_delete') }}">{% trans %}Delete{% endtrans %}</button>
             </div>
 		{% endif %}
 	</div>
-	<div id="version_content" class="col px-3" >
+	<div id="version_content" class="col px-3 overflow-auto h-100" >
 	</div>
 </div>
