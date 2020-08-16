@@ -37,6 +37,7 @@ App\Entity\Metadata:
           - NotEqualTo: 'initialScheduleDate'
           - NotEqualTo: 'scheduleDate'
           - NotEqualTo: 'deliveryDate'
+          - NotEqualTo: 'date'
           - NotEqualTo: 'isRequired'
           - NotEqualTo: 'writer'
           - NotEqualTo: 'checker'

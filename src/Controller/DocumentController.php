@@ -26,7 +26,7 @@ use App\Repository\VueRepository;
 
 class DocumentController extends AbstractController
 {
-	const MAX_RECORDS = 50;
+	const MAX_RECORDS = 5;
 		
 	private $translator;
 	
@@ -126,12 +126,14 @@ class DocumentController extends AbstractController
 			$series = [$serie];
 		}
 		
+		$versionsCount = $this->versionRepository->getVersionsCount($series, $request);
 		$versions = $this->versionRepository->getVersionsArray($project, $series, $request);
 		
 		return new JsonResponse([
 			'versions' => $versions,
 			'query' => $request->query->all(),
-			'pageMax' => ceil(count($versions)/self::MAX_RECORDS),
+			'pageMax' => ceil($versionsCount/self::MAX_RECORDS),
+			'flash' =>$this->get('session')->getFlashBag()->all(),
 		]);
 		
 	}
@@ -214,19 +216,16 @@ class DocumentController extends AbstractController
 		}
 	}
 	
-	public function edit(Request $request, Document $document=null): Response
-	{
+	public function edit(Request $request): Response
+	{			
 		
-		if ($document === null) { //cas d'une édition depuis la vue principale
-			
-			$documents = $this->documentRepository->getDocumentsByRequest($request);
-			if ($documents == false) {
-				return $this->redirectToRoute('project');
-			}
-			
-			$document = $documents[0];
-			
+		$documents = $this->documentRepository->getDocumentsByRequest($request);
+		if ($documents == false) {
+			$this->addFlash('danger', 'None documents selected');
+			return $this->render('ajax/error.html.twig');
 		}
+		
+		$document = $documents[0];
 		
 		if (count($documents) > 1) {
 			$this->addFlash('danger', 'Only one reference must be selected');
@@ -288,19 +287,16 @@ class DocumentController extends AbstractController
 	
 	public function delete(Request $request, Document $document=null): Response
 	{
-	    
-	    if ($document == null) { //cas d'une suppression depuis la vue principale
-	        
-	        $documents = $this->documentRepository->getDocumentsByRequest($request);
-	        
-	        if ($documents == false) {
-	            return $this->redirectToRoute('project');
-	        }
-	        
-	        $document = $documents[0];
-	        
-	    }
-	    
+	    	        
+        $documents = $this->documentRepository->getDocumentsByRequest($request);
+        
+        if ($documents == false) {
+        	$this->addFlash('danger', 'None documents selected');
+        	return $this->render('ajax/error.html.twig');
+        }
+        
+        $document = $documents[0];
+        
 	    if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
 	        $entityManager = $this->getDoctrine()->getManager();
 	        
@@ -314,12 +310,7 @@ class DocumentController extends AbstractController
 	        
 	        return new Response();
 	    } else {
-	        return $this->render('generic/delete.html.twig', [
-	            'route_back' =>  $this->generateUrl('document', [
-	            	'project' => $project->getId(),
-	            	'type' => $type,
-	            	'serie' => ($serie)?$serie->getId():0,
-	            ]),
+	        return $this->render('ajax/delete.html.twig', [
 	            'entities' => $documents,
 	        ]);
 	    }

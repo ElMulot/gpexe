@@ -83,7 +83,8 @@ main {
 
 #toast {
 	position: absolute;
-	top: 0;
+	bottom: 1rem;
+	padding: 1rem;
 	z-index: $zindex-tooltip !important;
 }
 
@@ -203,11 +204,8 @@ td {
 	width:200px;
 }
 
-#version_tabs a {
-	height: fit-content;
-}
-
 #pagination {
 	position: absolute;
 	bottom: 1.5rem;
+	width: 100%;
 }

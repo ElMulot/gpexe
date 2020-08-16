@@ -228,10 +228,7 @@ class VersionController extends AbstractController
         }
         
         $document = $documents[0];
-        $serie = $document->getSerie();
         $versions = $this->versionRepository->getVersions($request);
-	    
-	    $project = $serie->getProject();
 	    
 	    if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
 	        $entityManager = $this->getDoctrine()->getManager();
@@ -243,16 +240,10 @@ class VersionController extends AbstractController
 	        
 	        $this->addFlash('success', 'deleted.version');
 	        $this->addFlash('_count', count($versions));
-	        return $this->redirectToRoute('document', [
-	        	'id' => $project->getId(),
-	        	'serie' => $serie->getId()
-	        ]);
+	        
+	        return new Response();
 	    } else {
-	        return $this->render('generic/delete.html.twig', [
-	            'route_back' =>  $this->generateUrl('document', [
-	            	'id' => $project->getId(),
-	            	'serie' => $serie->getId()
-	            ]),
+	        return $this->render('ajax/delete.html.twig', [
 	            'entities' => $versions,
 	        ]);
 	    }

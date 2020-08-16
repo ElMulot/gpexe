@@ -136,7 +136,7 @@ class Version
 
 	public function setScheduledDate(\DateTimeInterface $scheduledDate): self
 	{
-		if ($this->initialScheduledDate()) {
+		if ($this->initialScheduledDate) {
 			$this->scheduledDate = $scheduledDate;
 		} else {
 			$this->initialScheduledDate = $scheduledDate;
@@ -155,6 +155,11 @@ class Version
 		$this->deliveryDate = min($deliveryDate, new \DateTime('now'));
 		
 		return $this;
+	}
+	
+	public function getDate(): ?\DateTimeInterface
+	{
+		return ($this->isRequired)?$this->scheduledDate:$this->deliveryDate;
 	}
 	
 	public function getStatus(): ?Status
@@ -416,6 +421,9 @@ class Version
 				
 			case 'version.deliveryDate':
 				return $this->getDeliveryDate();
+			
+			case 'version.date':
+				return $this->getDate();
 				
 			case 'version.isRequired':
 				return $this->getIsRequired();

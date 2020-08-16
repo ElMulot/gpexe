@@ -54,10 +54,5 @@ class HomeController extends AbstractController
     	]);
     }
     
-    public function toast(): Response
-    {
-    	return $this->render('ajax/toast.html.twig');
-    }
-    
 }
 ?>

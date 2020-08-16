@@ -162,6 +162,7 @@ class VersionType extends AbstractType
 					if ($data = $version->getPropertyValue($label)) {
 						if ($data instanceof MetadataValue) $data = new \DateTime($data->getValue());
 					}
+					if ($data === null) $data = new \DateTime('now');
 				}
 				
 				$this->builder->add($id, DateType::class, [

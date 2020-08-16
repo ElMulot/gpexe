@@ -2,11 +2,11 @@
 
 namespace App\Entity;
 
-use App\Repository\ChangeSetsRepository;
+use App\Repository\ChangeSetRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Entity(repositoryClass=ChangeSetsRepository::class)
+ * @ORM\Entity(repositoryClass=ChangeSetRepository::class)
  */
 class ChangeSet
 {

@@ -20,10 +20,6 @@ about:
     path: /about
     controller: App\Controller\HomeController::about
 
-toast:
-    path: /toast
-    controller: App\Controller\HomeController::toast
-
 profil:
     path: /profil
     controller: App\Controller\ProfilController::index

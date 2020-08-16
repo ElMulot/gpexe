@@ -6,138 +6,6 @@ require('bootstrap-datepicker/dist/locales/bootstrap-datepicker.fr.min.js');
 const bsCustomFileInput = require('bs-custom-file-input');
 require('../css/global.scss');
 
-init = function(target) {
-	
-	
-	//---------------------
-	// popover
-	//---------------------
-	
-	$(target).find('[data-toggle="popover"]').popover();
-	
-	//---------------------
-	// Ajax
-	//---------------------
-	
-    ajax.fetch(target);
-	
-	
-	//---------------------
-	// Modal & Collapse
-	//---------------------
-    
-	$(target).on('hidden.bs.collapse', function() {
-		$('[data-toggle="collapse"][href="#' + $(this).attr('id') + '"]')
-			.removeClass('active')
-			.blur()
-		;
-	});
-	
-	$(target).on('hidden.bs.modal', function() {
-		$('[data-toggle="modal"]').blur();
-	});
-	
-	$(target).find('button[data-dismiss]').on('click', function() {
-		$('#modal').modal('hide');
-	});
-	
-	
-	//---------------------
-	// Bootstrap datepicker
-	//---------------------
-	
-	$(target).find('.datepicker').each(function() {
-		$(this).datepicker({
-			format: "dd-mm-yyyy",
-	        weekStart: 1,
-	        maxViewMode: 3,
-	        language: $(this).data('locale'),
-	        multidate: false,
-	        daysOfWeekDisabled: "0,6",
-	        autoclose: true,
-	        calendarWeeks: true,
-	        clearBtn: true,
-	        todayBtn: true,
-	        todayHighlight: true,
-	    });
-	})
-
-	
-	//---------------------
-	// Form multiple
-	//---------------------
-	
-	$(target).find("[name$='_multiple']").each(function() {
-		
-		var id;
-		if (id = $(this).prop('name').match(/(\S+)_multiple$/y)) {
-			
-			$(this).on('click', function(event) {
-				
-				if ($(this).val() == 0) {
-					
-					$("[id^='" + id[1] + "']").not("[id*='multiple']").each(function() {
-						if ($(this).hasClass('datepicker')) {
-							$(this).datepicker('setDate', new Date());
-						} else if ($(this).attr('type') == 'radio') {
-							$(this).prop('checked', false);
-						} else if ($(this).attr('type') == 'checkbox') {
-							$(this).prop('checked', false);
-							$(this).prop('indeterminate', false);
-						} else if ($(this).attr('type') == 'text' || $(this).is('select')) {
-							$(this).val(null);
-						} else {
-							return;
-						}
-						$(this).attr("disabled", false);
-						$(this).attr("required", $(this).data('required'));
-					});
-					
-				} else {
-					
-					$("[id^='" + id[1] + "']").not("[id*='multiple']").each(function() {
-						if ($(this).hasClass('datepicker')) {
-							$(this).datepicker('setDate', null);
-						} else if ($(this).attr('type') == 'radio') {
-							$(this).prop('checked', false);
-						} else if ($(this).attr('type') == 'checkbox') {
-							$(this).prop('checked', false);
-							$(this).prop('indeterminate', true);
-						} else if ($(this).attr('type') == 'text' || $(this).is('select')) {
-							$(this).val(null);
-						} else {
-							return;
-						}
-						$(this).attr("disabled", true);
-						$(this).attr("required", false);
-					});
-										
-				}
-				
-				$('#' + id[1] + '_multiple').val($(this).val());
-			});
-		}
-	});
-	
-	$('form').find('div, input, select').each(function () {
-		
-		if ($(this).data('multiple')) {
-			$("[name='" + $(this).prop('id') + "_multiple']").filter('[value=1]').trigger('click');
-		} else {
-			$("[name='" + $(this).prop('id') + "_multiple']").filter('[value=0]').trigger('click');
-		}
-		
-	})
-	
-	
-	//---------------------
-	// BsCustomFileInput
-	//---------------------
-	
-	bsCustomFileInput.init();
-	
-}
-
 global.create = {
 	div: function() {
 		return $(document.createElement('div'))
@@ -230,6 +98,7 @@ global.text = {
     details: 'Details',
     error: 'Ereur',
     reload: 'Relancer',
+    close: 'Close',
 };
 
 global.icon = {
@@ -256,18 +125,33 @@ global.icon = {
 				'<path fill-rule="evenodd" d="M1.5 1.5A.5.5 0 012 1h12a.5.5 0 01.5.5v2a.5.5 0 01-.128.334L10 8.692V13.5a.5.5 0 01-.342.474l-3 1A.5.5 0 016 14.5V8.692L1.628 3.834A.5.5 0 011.5 3.5v-2zm1 .5v1.308l4.372 4.858A.5.5 0 017 8.5v5.306l2-.666V8.5a.5.5 0 01.128-.334L13.5 3.308V2h-11z" clip-rule="evenodd"/>' +
 			'</svg>',
 	
+	information:
+			'<svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-chat-left-dots-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">' +
+				'<path fill-rule="evenodd" d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4.414a1 1 0 0 0-.707.293L.854 15.146A.5.5 0 0 1 0 14.793V2zm5 4a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm4 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 1a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/>' +
+			'</svg>',
+	
+	exclamation:
+			'<svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-exclamation-diamond-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">' +
+				'<path fill-rule="evenodd" d="M9.05.435c-.58-.58-1.52-.58-2.1 0L.436 6.95c-.58.58-.58 1.519 0 2.098l6.516 6.516c.58.58 1.519.58 2.098 0l6.516-6.516c.58-.58.58-1.519 0-2.098L9.05.435zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>' +
+			'</svg>',
+	
 	loading:
-		'<div class="d-flex justify-content-center">' +
+		'<div class="d-flex justify-content-center mt-5">' +
 			'<div class="spinner-border" role="status">' +
 				'<span class="sr-only">' + text.loading + '</span>' +
 			'</div>' +
 		'</div>',
 	
+	close:
+	    '<button type="button" class="ml-2 mb-1 close ml-auto" data-dismiss="toast" aria-label=' + text.close + '>' +
+	    	'<span aria-hidden="true">&times;</span>' +
+	    '</button>',
+	
 };
 
 global.ajax = {
 		
-	fetch: function(container) {
+	fetch: function(container, callBack = this.onSuccess.bind(this)) {
 		
 		let that = this;
 		
@@ -284,7 +168,7 @@ global.ajax = {
 				let target = $(this).data('target') || this;
 				let add = $(this).data('add');
 				
-				that.set(target, url, undefined, undefined, add);
+				that.set(target, url, undefined, undefined, add, callBack);
 				
 			});
 			
@@ -318,7 +202,7 @@ global.ajax = {
 					var data = $form.serializeArray();
 				}
 				
-				that.set(target, url, method, data, add);
+				that.set(target, url, method, data, add, callBack);
 				return false;
 				
 			});
@@ -335,19 +219,25 @@ global.ajax = {
 			let url = $(this).data('url');
 			let add = $(this).data('add');
 			
-			that.set(target, url, undefined, undefined, add);
+			that.set(target, url, undefined, undefined, add, callBack);
 			
 		});
 		
 	},
 		
-	set: function (target, url, method='GET', data=[], add=false) {
+	set: function (target, url, method = 'GET', data = [], add = false, callBack = this.onSuccess.bind(this)) {
 		
 		if (target && url) {
 			if (add === false) {
 				$(target)
+					.show()
 					.empty()
 					.append(icon.loading)
+				;
+			} else {
+				$(target)
+					.show()
+					.find('[data-toggle="ajax"]').remove()
 				;
 			}
 			
@@ -360,13 +250,7 @@ global.ajax = {
 				processData: (data.constructor !== FormData),
 				
 				success: function(result) {
-					if (add) {
-						$(target).find('[data-toggle="ajax"]').remove();
-						$(target).html($(target).html() + result);
-					} else {
-						$(target).html(result);
-					}
-					init(target);
+					callBack(target, result);
 				},
 				
 				error: function(xhr, thrownError) {
@@ -388,16 +272,147 @@ global.ajax = {
 			});
 		}
 		
-	}
-}
+	},
+	
+	onSuccess: function (target = document.body, result = '', callBack = this.onSuccess.bind(this)) {
+		
+		$(target).find('.spinner-border').parent().remove();
+		if (result) {
+			$(target).html($(target).html() + result);
+		}
+		
+		//---------------------
+		// popover
+		//---------------------
+		
+		$(target).find('[data-toggle="popover"]').popover();
+		
+		//---------------------
+		// Ajax
+		//---------------------
+		
+	    this.fetch(target, callBack);
+		
+		//---------------------
+		// Modal & Collapse
+		//---------------------
+	    
+		$(target).on('hidden.bs.collapse', function() {
+			$('[data-toggle="collapse"][href="#' + $(this).attr('id') + '"]')
+				.removeClass('active')
+				.blur()
+			;
+		});
+		
+		$(target).on('hidden.bs.modal', function() {
+			$('[data-toggle="modal"]').blur();
+		});
+		
+		$(target).find('button[data-dismiss]').on('click', function() {
+			$('#modal').modal('hide');
+		});
+		
+		
+		//---------------------
+		// Bootstrap datepicker
+		//---------------------
+		
+		$(target).find('.datepicker').each(function() {
+			$(this).datepicker({
+				format: "dd-mm-yyyy",
+		        weekStart: 1,
+		        maxViewMode: 3,
+		        language: $(this).data('locale'),
+		        multidate: false,
+		        daysOfWeekDisabled: "0,6",
+		        autoclose: true,
+		        calendarWeeks: true,
+		        clearBtn: true,
+		        todayBtn: true,
+		        todayHighlight: true,
+		    });
+		})
 
-global.rem = function() {
-	return parseInt($('html').css('font-size'));
+		
+		//---------------------
+		// Form multiple
+		//---------------------
+		
+		$(target).find("[name$='_multiple']").each(function() {
+			
+			var id;
+			if (id = $(this).prop('name').match(/(\S+)_multiple$/y)) {
+				
+				$(this).on('click', function(event) {
+					
+					if ($(this).val() == 0) {
+						
+						$("[id^='" + id[1] + "']").not("[id*='multiple']").each(function() {
+							if ($(this).hasClass('datepicker')) {
+								$(this).datepicker('setDate', new Date());
+							} else if ($(this).attr('type') == 'radio') {
+								$(this).prop('checked', false);
+							} else if ($(this).attr('type') == 'checkbox') {
+								$(this).prop('checked', false);
+								$(this).prop('indeterminate', false);
+							} else if ($(this).attr('type') == 'text' || $(this).is('select')) {
+								$(this).val(null);
+							} else {
+								return;
+							}
+							$(this).attr("disabled", false);
+							$(this).attr("required", $(this).data('required'));
+						});
+						
+					} else {
+						
+						$("[id^='" + id[1] + "']").not("[id*='multiple']").each(function() {
+							if ($(this).hasClass('datepicker')) {
+								$(this).datepicker('setDate', null);
+							} else if ($(this).attr('type') == 'radio') {
+								$(this).prop('checked', false);
+							} else if ($(this).attr('type') == 'checkbox') {
+								$(this).prop('checked', false);
+								$(this).prop('indeterminate', true);
+							} else if ($(this).attr('type') == 'text' || $(this).is('select')) {
+								$(this).val(null);
+							} else {
+								return;
+							}
+							$(this).attr("disabled", true);
+							$(this).attr("required", false);
+						});
+											
+					}
+					
+					$('#' + id[1] + '_multiple').val($(this).val());
+				});
+			}
+		});
+		
+		$(target).find('form').find('div, input, select').each(function () {
+			
+			if ($(this).data('multiple')) {
+				$("[name='" + $(this).prop('id') + "_multiple']").filter('[value=1]').trigger('click');
+			} else {
+				$("[name='" + $(this).prop('id') + "_multiple']").filter('[value=0]').trigger('click');
+			}
+			
+		})
+		
+		
+		//---------------------
+		// BsCustomFileInput
+		//---------------------
+		
+		bsCustomFileInput.init();
+		
+		
+	},
 }
-
 
 $(document).ready(function() {
 	
-    init(document);
+    ajax.onSuccess();
     
 });

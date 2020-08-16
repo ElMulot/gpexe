@@ -10,17 +10,11 @@
                 {% endif %}
 			</div>
 			<div class="col-8">
-			    {% if version.isRequired %}
-			    	{% if version.scheduledDate %}
-				    	{{ version.scheduledDate|date('d-m-Y') }}
-        				{% if version.scheduledDate.diff(version.initialScheduledDate).days %}
-        			    	<span> ({{ 'delay'|trans({'count': version.scheduledDate.diff(version.initialScheduledDate).days}) }})</span>
-        			    {% endif %}
-				    {% else %}
-				    	{{ version.initialScheduledDate|date('d-m-Y') }}
-				    {% endif %}
-				{% else %}
-			    	{{ version.deliveryDate|date('d-m-Y') }}
+			    {{ version.date|date('d-m-Y') }}
+                {% if version.isRequired and version.scheduledDate %}
+        			{% if version.scheduledDate.diff(version.initialScheduledDate).days %}
+        			    <span> ({{ 'delay'|trans({'count': version.scheduledDate.diff(version.initialScheduledDate).days}) }})</span>
+        			   {% endif %}
 			    {% endif %}
 			</div>
 			<div class="col-4">
