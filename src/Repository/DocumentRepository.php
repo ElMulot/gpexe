@@ -106,4 +106,18 @@ class DocumentRepository extends ServiceEntityRepository
     	
     	return $query->setMaxResults(1)->getQuery()->getResult();
     }
+    
+    /**
+     * @return Document[]
+     *
+     */
+    public function getOrphanedDocuments()
+    {
+    	return $this->createQueryBuilder('d')
+    		->leftJoin('d.versions', 'v')
+    		->andWhere($this->createQueryBuilder('')->expr()->isNull('v.id'))
+    		->getQuery()
+    		->getResult()
+    	;
+    }
 }

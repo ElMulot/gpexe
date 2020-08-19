@@ -7,7 +7,6 @@ use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\Tools\Pagination\Paginator;
-use App\Controller\DocumentController;
 use App\Entity\Project;
 use App\Entity\Serie;
 use App\Entity\Company;
@@ -111,15 +110,16 @@ class VersionRepository extends ServiceEntityRepository
 				}
 				
 			}
-			
 		}
 		
 		//page
 		$page = $request->query->get('page') ?? 1;
 		
-		$this->query
-			->setFirstResult(($page -1) * DocumentController::MAX_RECORDS + 1)
-			->setMaxResults(DocumentController::MAX_RECORDS);
+		if ($request->query->get('results_per_page') > 0) {
+			$this->query
+				->setFirstResult(($page -1) * $request->query->get('results_per_page') + 1)
+				->setMaxResults($request->query->get('results_per_page'));
+		}
 		
 		$versions = $this->query->getQuery()->getResult();
 		

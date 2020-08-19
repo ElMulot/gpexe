@@ -38,6 +38,12 @@ global.create = {
 		;
 	},
 	
+	select: function() {
+		return $(document.createElement('select'))
+			.addClass('form-control form-control-sm')
+		;
+	},
+	
 	option: function() {
 		return $(document.createElement('option'))
 			.attr('value', '')
@@ -99,6 +105,7 @@ global.text = {
     error: 'Ereur',
     reload: 'Relancer',
     close: 'Close',
+    all: 'All'
 };
 
 global.icon = {
@@ -228,6 +235,7 @@ global.ajax = {
 	set: function (target, url, method = 'GET', data = [], add = false, callBack = this.onSuccess.bind(this)) {
 		
 		if (target && url) {
+			//$(target).closest('.modal').modal('show');
 			if (add === false) {
 				$(target)
 					.show()
@@ -311,7 +319,6 @@ global.ajax = {
 		$(target).find('button[data-dismiss]').on('click', function() {
 			$('#modal').modal('hide');
 		});
-		
 		
 		//---------------------
 		// Bootstrap datepicker

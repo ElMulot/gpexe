@@ -23,7 +23,12 @@ App\Entity\Company:
         - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity: codename
     properties:
         codename:
-          - Regex: '/^\S+$/'
+            - Regex: '/^\S+$/'
+
+App\Entity\Document:
+    properties:
+        name:
+            - NotBlank: ~
 
 App\Entity\Metadata:
     constraints:
@@ -75,7 +80,8 @@ App\Entity\User:
         - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity: email
     properties:
         email: [Email: ~]
-        name: [NotBlank: ~]
+        name:
+            - NotBlank: ~
 
 App\Entity\Version:
     constraints:

@@ -26,8 +26,7 @@ use App\Repository\VueRepository;
 
 class DocumentController extends AbstractController
 {
-	const MAX_RECORDS = 5;
-		
+	
 	private $translator;
 	
 	private $documentService;
@@ -117,9 +116,7 @@ class DocumentController extends AbstractController
  				$request->query->set('display', $this->getDefaultDisplay());
 			}
 		}
-		
-		$request->query->set('page', $request->query->get('page') ?? 1);
-		
+
 		if ($serie === null) {
 			$series = $this->serieRepository->getSeriesByType($project, $type);
 		} else {
@@ -127,12 +124,23 @@ class DocumentController extends AbstractController
 		}
 		
 		$versionsCount = $this->versionRepository->getVersionsCount($series, $request);
+		
+		$resultsPerPage = $request->query->get('results_per_page') ?? 50;
+		
+		if ($resultsPerPage == 0) {
+			$pageMax = 1;
+		} else {
+			$pageMax = floor($versionsCount / $resultsPerPage);
+		}
+		$request->query->set('results_per_page', $resultsPerPage);
+		$request->query->set('page', min($request->query->get('page') ?? 1, $pageMax));
+		
 		$versions = $this->versionRepository->getVersionsArray($project, $series, $request);
 		
 		return new JsonResponse([
 			'versions' => $versions,
 			'query' => $request->query->all(),
-			'pageMax' => ceil($versionsCount/self::MAX_RECORDS),
+			'pageMax' => $pageMax,
 			'flash' =>$this->get('session')->getFlashBag()->all(),
 		]);
 		
@@ -168,7 +176,7 @@ class DocumentController extends AbstractController
 				
 				$value = $form->get($codification->getCodeName())->getData();
 				
-				if ($value === null && $metadata->getIsMandatory()) {
+				if ($value === null && $codification->getIsMandatory()) {
 					$this->addFlash('danger', 'The field  \'' . $codification->getName() . '\' must not be empty');
 					$view = $form->createView();
 					return $this->render('ajax/form.html.twig', [
@@ -206,7 +214,7 @@ class DocumentController extends AbstractController
 			$entityManager->flush();
 
 			return $this->redirectToRoute('version_new', [
-				'id' => $document->getId()
+				'document' => $document->getId()
 			]);
 		} else {
 			$view = $form->createView();

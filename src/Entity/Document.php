@@ -251,6 +251,10 @@ class Document
     
     public function getReference(): ?string
     {
+    	if ($this->getCodificationItems()->count() == 0 && $this->getCodificationValues()->count() == 0) {
+    		return null;
+    	}
+    	
     	$project = $this->getSerie()->getProject();
     	$references = [];
     	

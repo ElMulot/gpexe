@@ -1,8 +1,23 @@
-{% extends 'layout.html.twig' %}
+{% extends 'base.html.twig' %}
 
 {% block stylesheets %}
     {{ parent() }}
     {{ encore_entry_link_tags('document') }}
+{% endblock %}
+
+{% block body %}
+    <nav class="navbar fixed-top navbar-expand text-center navbar-dark bg-primary">
+        {{ block('nav') }}
+    </nav>
+    <main class="mt-3">
+        <div id="content" class="d-flex flex-column align-items-center">
+            {{ block('content') }}
+    	</div>
+	</main>
+{% endblock %}
+
+{% block nav_item %}
+	width: 200px;
 {% endblock %}
 
 {% block nav %}
@@ -18,7 +33,7 @@
     				<a class="nav-link dropdown-toggle" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{% trans %}Documents{% endtrans %}</a>
     				<div class="dropdown-menu" style="{{ block('nav_item') }}">
     					{% if serie is not null %}
-    						<a class="dropdown-item" data-url={{ path('document_new', {'serie': serie.id}) }}>{% trans %}New{% endtrans %}</a>
+    						<button id="document_new" class="dropdown-item" data-url={{ path('document_new', {'serie': serie.id}) }}>{% trans %}New{% endtrans %}</button>
     					{% endif %}
     					<button id="document_edit" class="dropdown-item" data-url="{{ path('document_edit') }}">{% trans %}Edit{% endtrans %}</button>
     					{% if is_granted('ROLE_MOVE') %}
@@ -190,12 +205,12 @@
     	<div class="col px-2">
         	{% for vue in vues %}
                 <div class="btn-group" role="group">
-                    <button type="button" class="btn btn-primary" data-value="{{ vue.id }}">{{ vue.name }}</button>
+                    <button type="button" class="btn btn-primary" data-id="{{ vue.id }}">{{ vue.name }}</button>
                     <div class="btn-group" role="group">
                         <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></button>
                         <div class="dropdown-menu">
-                            <a class="dropdown-item text-success" href="{{ path('vue_edit', app.request.query.all|merge({'id': vue.id})) }}">{% trans %}Edit{% endtrans %}</a>
-                            <a class="dropdown-item text-danger" href="{{ path('vue_delete', app.request.query.all|merge({'id': vue.id})) }}">{% trans %}Delete{% endtrans %}</a>
+                            <a class="dropdown-item text-success" data-url="{{ path('vue_edit', {'id': vue.id}) }}">{% trans %}Edit{% endtrans %}</a>
+                            <a class="dropdown-item text-danger" data-url="{{ path('vue_delete', {'id': vue.id}) }}">{% trans %}Delete{% endtrans %}</a>
                         </div>
                     </div>
                 </div>

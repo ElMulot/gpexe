@@ -1,5 +1,5 @@
 <div class="row h-100">
-	<div id="menu" class="col-auto d-flex flex-column h-100">
+	<div id="menu" class="col-auto d-flex flex-column h-100" data-url="{{ app.request.uri }}">
         <div id="version_tabs" class="d-flex nav-pills flex-column align-items-center overflow-auto h-100" aria-orientation="vertical">
         	{% for version in versions %}
                 <a class="nav-link w-75 my-1{% if version == current_version %} active{% endif %}" data-url="{{ path('version_detail', {'id': version.id}) }}" data-id="{{ version.id }}">

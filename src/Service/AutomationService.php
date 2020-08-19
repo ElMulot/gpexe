@@ -24,6 +24,7 @@ use App\Entity\Automation;
 use App\Entity\Document;
 use App\Entity\Serie;
 use App\Entity\Version;
+use App\Service\DocumentService;
 use App\Service\FieldService;
 use App\Repository\SerieRepository;
 use App\Repository\DocumentRepository;
@@ -53,6 +54,8 @@ class AutomationService
 	
 	private $statusRespository;
 	
+	private $documentService;
+	
 	private $fieldService;
 	
 	private $security;
@@ -71,7 +74,7 @@ class AutomationService
 	
 	private $sheet;
 
-	public function __construct(FlashBagInterface $flashBagInterface, SluggerInterface $slugger, EntityManagerInterface $entityManager, SerieRepository $serieRepository, DocumentRepository $documentRepository, VersionRepository $versionRepository, StatusRepository $statusRespository, FieldService $fieldService, Security $security, string $targetDirectory)
+	public function __construct(FlashBagInterface $flashBagInterface, SluggerInterface $slugger, EntityManagerInterface $entityManager, SerieRepository $serieRepository, DocumentRepository $documentRepository, VersionRepository $versionRepository, StatusRepository $statusRespository, DocumentService $documentService, FieldService $fieldService, Security $security, string $targetDirectory)
 	{
 		$this->slugger = $slugger;
 		$this->flashBagInterface = $flashBagInterface;
@@ -80,6 +83,7 @@ class AutomationService
 		$this->documentRepository = $documentRepository;
 		$this->versionRepository = $versionRepository;
 		$this->statusRespository = $statusRespository;
+		$this->documentService = $documentService;
 		$this->fieldService = $fieldService;
 		$this->security = $security;
 		$this->expressionLanguage = new ExpressionLanguage();
@@ -130,6 +134,8 @@ class AutomationService
 			return $this->save($spreadsheet);
 
 		} elseif ($automation->isTypeImport()) {
+			
+			$this->documentService->removeOrphans();
 			
 			//set document properties
 			$spreadsheet->getProperties()

@@ -28,14 +28,10 @@ class VueController extends AbstractController
 			$entityManager->flush();
 			
 			$this->addFlash('success', 'New vue created');
-			return $this->redirectToRoute('document', [
-				'id' => $request->query->get('serie'),
-				'vue' => $vue->getId(),
-			]);
+			return new Response();
 		} else {
 			$view = $form->createView();
-			return $this->render('generic/form.html.twig', [
-				'route_back' =>  $this->generateUrl('document', $request->query->all()),
+			return $this->render('ajax/form.html.twig', [
 				'form' => $view
 			]);
 		}
@@ -51,14 +47,10 @@ class VueController extends AbstractController
 			$entityManager->flush();
 			
 			$this->addFlash('success', 'Vue updated');
-			return $this->redirectToRoute('document', [
-				'id' => $request->query->get('serie'),
-				'vue' => $vue->getId(),
-			]);
+			return new Response();
 		} else {
 			$view = $form->createView();
-			return $this->render('generic/form.html.twig', [
-				'route_back' =>  $this->generateUrl('document', $request->query->all()),
+			return $this->render('ajax/form.html.twig', [
 				'form' => $view
 			]);
 		}
@@ -72,13 +64,9 @@ class VueController extends AbstractController
 			$entityManager->flush();
 			
 			$this->addFlash('success', 'Vue deleted');
-			return $this->redirectToRoute('document', [
-				'id' => $request->query->get('serie'),
-				'vue' => $vue->getId(),
-			]);
+			return new Response();
 		} else {
-			return $this->render('generic/delete.html.twig', [
-				'route_back' =>  $this->generateUrl('document', $request->query->all()),
+			return $this->render('ajax/delete.html.twig', [
 				'entities' => [$vue],
 			]);
 		}

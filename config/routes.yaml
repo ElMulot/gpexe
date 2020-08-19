@@ -378,7 +378,11 @@ version_detail:
     controller: App\Controller\VersionController::detail
 
 version_new:
-    path: /project/serie/document/version/new
+    path: /project/serie/document/{document}/version/new
+    requirements:
+        document: \d+
+    defaults:
+        document: 0
     controller: App\Controller\VersionController::new
 
 version_edit:

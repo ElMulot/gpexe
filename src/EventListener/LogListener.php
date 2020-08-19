@@ -108,10 +108,11 @@ class LogListener
 	
 	private function getStringValue($value): ?string
 	{
-		
-		if (is_object($value) === false) {
+		if (is_array($value)) {
+			return '[array]';
+		} elseif (is_object($value) === false) {
 			return (string)$value;
-		}elseif ($value instanceof \DateTime) {
+		} elseif ($value instanceof \DateTime) {
 			return $value->format('d-m-Y');
 		} else {
 			return '[' . $value->__toString() . ']';

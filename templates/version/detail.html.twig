@@ -52,18 +52,27 @@
 			</div>
 		</div>
 	</div>
-	<div class="col w-50 p-0 ml-2">
-        <div id="review_tabs" class="nav nav-tabs border-dark">
-        	{% for checker in checkers %}
-            	<a class="nav-item nav-link {% if checker == app.user.company %} active{% endif %}" data-toggle="ajax" data-url="{{ path('review', {'id': version.id, 'company': checker.id}) }}" data-target="#review_content">
-					{{ checker.name }}
-				</a>
-        	{% endfor %}
-        </div>
-        <div id="review_content" class="tab-content border border-top-0 rounded-bottom border-dark px-3 py-2">
-        	
-        </div>
-	</div>
+	{% if version.isRequired %}
+        <div class="card col w-50 border rounded border-dark p-0 ml-2">
+        	<div class="card-header font-weight-bold text-white">{% trans %}Document recieved{% endtrans %}</div>
+        	<div class="card-body">
+        		<button id="save" class="btn btn-primary w-100 m-1" data-url="{{ path('version_edit', {'id[]': version.id, 'save': true}) }}">{% trans %}Save document{% endtrans %}</button>
+        	</div>
+		</div>
+    {% else %}
+        <div class="col w-50 p-0 ml-2">
+            <div id="review_tabs" class="nav nav-tabs border-dark">
+            	{% for checker in checkers %}
+                	<a class="nav-item nav-link {% if checker == app.user.company %} active{% endif %}" data-toggle="ajax" data-url="{{ path('review', {'id': version.id, 'company': checker.id}) }}" data-target="#review_content">
+    					{{ checker.name }}
+    				</a>
+            	{% endfor %}
+            </div>
+            <div id="review_content" class="tab-content border border-top-0 rounded-bottom border-dark px-3 py-2">
+            	
+            </div>
+		</div>
+    {% endif %}
 </div>
 <div class="card border rounded border-dark">
 	<div class="card-header font-weight-bold text-white">{% trans %}Metadatas{% endtrans %}</div>

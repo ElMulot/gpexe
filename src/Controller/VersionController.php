@@ -54,27 +54,28 @@ class VersionController extends AbstractController
 		]);
 	}
 	
-	public function new(Request $request): Response
+	public function new(Request $request, Document $document = null): Response
 	{
 		$version = new Version();
-
+		
+		if ($document === null) {
+			$documents = $this->documentRepository->getDocumentsByRequest($request);
+		
+			if ($documents == false) {
+				$this->addFlash('danger', 'None documents selected');
+				return $this->render('ajax/error.html.twig');
+			}
+		
+			$document = $documents[0];
 			
-		$documents = $this->documentRepository->getDocumentsByRequest($request);
-		
-		if ($documents == false) {
-			$this->addFlash('danger', 'None documents selected');
-			return $this->render('ajax/error.html.twig');
+			if (count($documents) > 1) {
+				$this->addFlash('danger', 'You must select only document');
+				return $this->render('ajax/error.html.twig');
+			}
 		}
-		
-		$document = $documents[0];
 		
 		$serie = $document->getSerie();
 		$project = $serie->getProject();
-		
-		if (count($documents) > 1) {
-			$this->addFlash('danger', 'You must select only document');
-			return $this->render('ajax/error.html.twig');
-		}
 		
 		$status = $this->statusRepository->getDefaultStatus($project);
 		
@@ -140,6 +141,12 @@ class VersionController extends AbstractController
 		$document = $documents[0];
 		$serie = $document->getSerie();
 		$versions = $this->versionRepository->getVersions($request);
+		
+		if ($request->query->has('save')) {
+			foreach ($versions as $version) {
+				$version->setIsRequired(false);
+			}
+		}
 		
 		$project = $serie->getProject();	
 		

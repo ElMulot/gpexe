@@ -60,14 +60,23 @@ UrlSearch.prototype = {
 		}
 	},
 	
-	toString: function() {
-		let urlSearch = this._paramsArray.toString();
-		return (urlSearch)?'?' + urlSearch:'';
+	toUrl: function(key = '') {
+		let url = '';
+		if (key == '') {
+			url = this._paramsArray.toString();
+		} else {
+			values = this.get(key);
+			for (i in values) {
+				values[i] = key + '=' + values[i];
+			}
+			url = values.join('&');
+		}
+		return (url)?'?' + url:'';
 	},
 	
 	fetch: function() {
 		
-		let url = $('#table').data('url') + this.toString();
+		let url = $('#table').data('url') + this.toUrl();
 		$('#table').hide();
 		ajax.set('#spinner', url, 'GET', undefined, false, this.fillTable.bind(this));
 		
@@ -87,8 +96,8 @@ UrlSearch.prototype = {
 		let that = this;
 		
 		//vue
-		$('#vues').find('button[data-value]').each(function() {
-			if ($(this).data('value') == that.get('vue')) {
+		$('#vues').find('button[data-id]').each(function() {
+			if ($(this).data('id') == that.get('vue')) {
 				$(this).attr('class', 'btn btn-outline-primary');
 				$(this).parent().find('div > button').attr('class', 'btn btn-outline-primary dropdown-toggle');
 			} else {
@@ -152,7 +161,7 @@ UrlSearch.prototype = {
 			}
 			
 		}
-		console.log(result.versions.length);
+		
 		//tbody
 		for (let version of result.versions) {
 			
@@ -211,8 +220,6 @@ UrlSearch.prototype = {
 			tr.append(create.td).children().last()
 				.append(create.smallButton).children().last()
 					.addClass('btn-success w-100')
-					.attr('data-toggle', 'modal')
-					.attr('data-target', '#modal_detail')
 					.attr('data-url', version.detailUrl)
 					.text(text.details)
 					
@@ -220,30 +227,40 @@ UrlSearch.prototype = {
 			
 		}
 		
-		$('button[data-toggle="modal"][data-target="#modal_detail"]').on('click', function() {
+		$('#table tbody button[data-url]').on('click', function() {
+			$('#modal_detail').modal('show');
 			ajax.set('#modal_detail .modal-body', $(this).data('url'), 'GET', undefined, false, that.showDetail.bind(that));
 		});
 		
 		//pagination
 		$('#pagination').empty();
+			
+		$('#table_container').addClass('mb-4');
+		
+		let pageMax = result.pageMax;
+		let page = parseInt(this.get('page')) || 1;
+		page = Math.max(Math.min(page, pageMax), 1);
+		
+		div = $('#pagination').append(create.div).children().last()
+			.addClass('row')
+		;
+		
+		div.append(create.div).children().last()
+			.addClass('col')
+		;
+		
+		ul = div.append(create.ul).children().last()
+			.addClass('pagination col justify-content-center')
+		;
 		
 		if (result.pageMax > 1) {
-			
-			$('#table_container').addClass('mb-4');
-			
-			let pageMax = result.pageMax;
-			let page = parseInt(this.get('page')) || 1;
-			let pageMin = Math.max(1, page - 2);
-			
-			ul = $('#pagination').append(create.ul).children().last()
-				.addClass('pagination justify-content-center')
-			;
-			
 			ul.append(create.li).children().last()
 				.addClass('page-item' + ((page == 1)?' disabled':''))
 				.on('click', function() {
-					that.set('page', page - 1);
-					that.fetch();
+					if (page > 1) {
+						that.set('page', page - 1);
+						that.fetch();
+					}
 				})
 				.append(create.a).children().last()
 					.addClass('page-link')
@@ -253,27 +270,30 @@ UrlSearch.prototype = {
 						.html('&laquo;')
 			;
 			
-			for (let i=0; i<5; i++) {
-				if (pageMax > pageMin + i) {
-					ul.append(create.li).children().last()
-						.addClass('page-item' + ((page == pageMin + i)?' active':''))
-						.on('click', function() {
-							that.set('page', pageMin + i);
-							that.fetch();
-						})
-						.append(create.a).children().last()
-							.addClass('page-link')
-							.attr('data-value', pageMin)
-							.text(pageMin + i)
-					;
-				}
+			let pageStart = Math.min(Math.max(1, page - 2), Math.max(1, result.pageMax - 4));
+			let pageEnd = Math.min(pageStart + 5, pageMax);
+			
+			for (let i = pageStart; i <= pageEnd; i++) {
+				ul.append(create.li).children().last()
+					.addClass('page-item' + ((page == i)?' active':''))
+					.on('click', function() {
+						that.set('page', i);
+						that.fetch();
+					})
+					.append(create.a).children().last()
+						.addClass('page-link')
+						.attr('data-value', i)
+						.text(i)
+				;
 			}
 			
 			ul.append(create.li).children().last()
 				.addClass('page-item' + ((page == pageMax)?' disabled':''))
 				.on('click', function() {
-					that.set('page', page + 1);
-					that.fetch();
+					if (page < pageMax) {
+						that.set('page', page + 1);
+						that.fetch();
+					}
 				})
 				.append(create.a).children().last()
 					.addClass('page-link')
@@ -282,7 +302,26 @@ UrlSearch.prototype = {
 						.attr('aria-hidden', true)
 						.html('&raquo;')
 			;
-			
+		}
+		
+		select = div.append(create.div).children().last()
+			.addClass('col d-flex justify-content-end mt-1 mr-5')
+			.append(create.select).children().last()
+			.addClass('form-control form-control-sm bg-dark border-secondary text-white')
+			.css('width', '150')
+			.on('change', function() {
+				urlSearch.set('results_per_page', $(this).val())
+				urlSearch.fetch();
+			})
+		;
+		
+		let resultsPerPage = new Map([['10', 10], ['50', 50], ['100', 100], [text.all, '0']]);
+		for (let [text, value] of resultsPerPage) {
+			select.append(create.option).children().last()
+				.attr('value', value)
+				.attr('selected', urlSearch.get('results_per_page') == value)
+				.text(text)
+			;
 		}
 		
 		
@@ -401,7 +440,7 @@ UrlSearch.prototype = {
 					$(this).addClass('active');
 				}
 				
-				ajax.set('#version_content', $(this).data('url'));
+				ajax.set('#version_content', $(this).data('url'), 'GET', undefined, false, that.showContent.bind(that));
 			});
 			
 			if ($(this).hasClass('active')) {
@@ -413,6 +452,7 @@ UrlSearch.prototype = {
 			$('#modal').modal('show');
 			ajax.set('#modal .modal-content', $(this).data('url') + '?id[]=' + $('#version_tabs>a.active').data('id'), 'GET', undefined, false, that.onDataEdited.bind(that));
 	    });
+
 		
 		//---------------------
 		// Modal & Collapse
@@ -455,17 +495,40 @@ UrlSearch.prototype = {
 		})
 	},
 	
+	showContent: function(target, result = '') {
+		
+		ajax.onSuccess(target, result);
+
+		let that = this;
+		
+		$('#save').on('click', function() {
+			$('#modal').modal('show');
+			ajax.set('#modal .modal-content', $(this).data('url'), 'GET', undefined, false, that.onDataEdited.bind(that));
+	    });
+	},
+	
 	onDataEdited: function(target, result = '') {
 		
 		if (result) {
 			ajax.onSuccess(target, result, this.onDataEdited.bind(this));
 		} else {
+			let that = this;
 			urlSearch.fetch();
-			if ($('#modal').hasClass('show')) {
-				ajax.set('#version_content', $('#version_tabs').find('a.active').data('url'));
+			if ($('#modal_detail').hasClass('show')) {
+				ajax.set('#modal_detail .modal-body', $('#menu').data('url'), 'GET', undefined, false, that.showDetail.bind(that));
 			}
 			$('#modal .modal-content').empty();
 			$('#modal').modal('hide');
+		}
+		
+	},
+	
+	onVueEdited: function(target, result = '') {
+		
+		if (result) {
+			ajax.onSuccess(target, result, this.onVueEdited.bind(this));
+		} else {
+			location.assign(location.origin + location.pathname + urlSearch.toUrl());
 		}
 		
 	},
@@ -910,13 +973,13 @@ $(document).ready(function() {
 	
 	/*
 	$('#modal').on('show.bs.modal', function(e) {
-		ajax.set('#modal .modal-content', $(e.relatedTarget).data('url') + urlSearch.toString());
+		ajax.set('#modal .modal-content', $(e.relatedTarget).data('url') + urlSearch.toUrl());
 	});
 	*/
 	
 	$('#document_new, #document_edit, #document_move, #document_delete, #version_new, #version_edit, #version_delete').on('click', function() {
 		$('#modal').modal('show');
-		ajax.set('#modal .modal-content', $(this).data('url') + urlSearch.toString(), 'GET', undefined, false, urlSearch.onDataEdited.bind(urlSearch));
+		ajax.set('#modal .modal-content', $(this).data('url') + urlSearch.toUrl('id[]'), 'GET', undefined, false, urlSearch.onDataEdited.bind(urlSearch));
 	})
 	
 	
@@ -1014,13 +1077,19 @@ $(document).ready(function() {
 	// Vues
 	//---------------------
 	
-	$('#vues').find('button[data-value]').on('click', function() {
-		if ($(this).attr('id') == 'vue_new') {
-			location.assign($(this).data('url') + urlSearch.toString());
-		} else {
-			urlSearch.set('vue', $(this).data('value'));
-			urlSearch.fetch();
-		}
+	$('#vues').find('button[data-id]').on('click', function() {
+		urlSearch.set('vue', $(this).data('id'));
+		urlSearch.fetch();
+	});
+	
+	$('#vues').find('a[data-url]').on('click', function() {
+		$('#modal').modal('show');
+		ajax.set('#modal .modal-content', $(this).data('url') + urlSearch.toUrl(), 'GET', undefined, false, urlSearch.onVueEdited.bind(urlSearch));
+	});
+	
+	$('#vue_new').on('click', function() {
+		$('#modal').modal('show');
+		ajax.set('#modal .modal-content', $(this).data('url') + urlSearch.toUrl(), 'GET', undefined, false, urlSearch.onVueEdited.bind(urlSearch));
 	});
 	
 	fillDisplay();

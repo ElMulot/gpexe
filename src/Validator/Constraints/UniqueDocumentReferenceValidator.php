@@ -28,6 +28,12 @@ class UniqueDocumentReferenceValidator extends ConstraintValidator
 			return;
 		}
 		
+		if ($document->getReference() === null) {
+			return;
+		}
+		
+		dd($document, $constraint);
+		
 		if ($this->documentRepository->getDocumentByReference($document->getSerie()->getProject(), $document->getCodificationItems(), $document->getCodificationValues())) {
 			$this->context->buildViolation($constraint->message)
 				->setParameter('{{ reference }}', $document->getReference())

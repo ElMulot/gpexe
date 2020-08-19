@@ -43,11 +43,16 @@ class VersionType extends AbstractType
 		
 		$versions = $options['versions'];
 		
-		if (count($versions) === 1) {
-			$this->buildRow('name', 'name', 'version.name', Metadata::LINK, true, $versions);
+		if ($versions) {
+			$serie = $versions[0]->getDocument()->getSerie();
+		} else {
+			$serie = $options['serie'];
 		}
 		
-		$serie = $versions[0]->getDocument()->getSerie();
+		if (count($versions) <= 1) {
+			$this->builder->add('name', TextType::class);
+		}
+		
 		$project = $serie->getProject();
 		
 		$this->buildRow('isRequired', 'isRequired', 'version.isRequired', Metadata::BOOLEAN, false, $versions);
@@ -106,10 +111,9 @@ class VersionType extends AbstractType
 		
 		if (count($versions) > 1) {
 			$multiple = $this->checkMultiple($versions, $name);
-			$version = $versions[0];
-		} else {
-			$version = $versions[0];
 		}
+		
+		$version = $versions[0] ?? null;
 		
 		switch ($type) {
 			

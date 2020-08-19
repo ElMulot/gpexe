@@ -120,6 +120,9 @@ class Version
 	public function setIsRequired(bool $isRequired): self
 	{
 		$this->isRequired = $isRequired;
+		if ($isRequired === true) {
+			$this->deliveryDate = null;
+		}
 		
 		return $this;
 	}
@@ -134,7 +137,7 @@ class Version
 		return $this->scheduledDate;
 	}
 
-	public function setScheduledDate(\DateTimeInterface $scheduledDate): self
+	public function setScheduledDate(?\DateTimeInterface $scheduledDate): self
 	{
 		if ($this->initialScheduledDate) {
 			$this->scheduledDate = $scheduledDate;
@@ -150,9 +153,13 @@ class Version
 		return $this->deliveryDate;
 	}
 	
-	public function setDeliveryDate(\DateTimeInterface $deliveryDate): self
+	public function setDeliveryDate(?\DateTimeInterface $deliveryDate): self
 	{
-		$this->deliveryDate = min($deliveryDate, new \DateTime('now'));
+		if ($deliveryDate === null) {
+			$this->deliveryDate = new \DateTime('now');
+		} else {
+			$this->deliveryDate = min($deliveryDate, new \DateTime('now'));
+		}
 		
 		return $this;
 	}
