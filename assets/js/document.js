@@ -547,6 +547,7 @@ function createTableHeader(that) {
 		id: $(that).attr('id'),
 		title: $(that).data('title'),
 		sort: $(that).data('sort'),
+		type: $(that).attr('class'),
 		isFiltered: false,
 		isSortedAsc: false,
 		isSortedDesc: false,
@@ -628,8 +629,60 @@ function createTableHeader(that) {
 				.addClass('d-flex flex-row')
 		;
 		
-		tableHeader.divDropdownGroup.on('show.bs.dropdown', createMenu);
+		tableHeader.divDropdownGroup.on('show.bs.dropdown', createSelectMenu);
 	
+	} else if (tableHeader.type == 'type-date') {
+		
+		tableHeader.divDropdownGroup = tableHeader.th.append(create.div).children().last()
+			.addClass('btn-group w-100')
+			.attr('role', 'group')
+			.on('hide.bs.dropdown', function (e) {
+				
+				if(e.clickEvent && $.contains(e.relatedTarget.parentNode, e.clickEvent.target)) {
+					e.preventDefault()
+				} else {
+					tableHeader.divDropdownMenu.empty();
+				}
+			})
+		;
+		
+		tableHeader.divDropdownGroup.append(create.menuButton).children().last()
+			.addClass('w-100')
+			.attr('type', 'button')
+			.text(tableHeader.title)
+			.on('click', function() {
+				if (tableHeader.selects && tableHeader.sort) {
+					if (urlSearch.get('sortAsc') == tableHeader.selects[0].name) {
+						urlSearch.delete('sortAsc');
+						urlSearch.set('sortDesc', tableHeader.selects[0].name);
+					} else {
+						urlSearch.delete('sortDesc');
+						urlSearch.set('sortAsc', tableHeader.selects[0].name);
+					}
+					urlSearch.fetch();
+				}
+			})
+		;
+	
+		tableHeader.btnDropdown = tableHeader.divDropdownGroup.append(create.menuButton).children().last()
+			.addClass('px-0')
+			.css('width', '3em')
+			.attr('type', 'button')
+			.attr('id', 'b_' + tableHeader.id)
+			.attr('data-toggle', 'dropdown')
+			.attr('aria-haspopup', true)
+			.attr('aria-expanded', false)
+		;
+	
+		tableHeader.divDropdownMenu = tableHeader.divDropdownGroup.append(create.div).children().last()
+			.addClass('dropdown-menu')
+			.attr('aria-labelledby', 'b_' + tableHeader.id)
+			.append(create.div).children().last()
+				.addClass('d-flex flex-row')
+		;
+		
+		tableHeader.divDropdownGroup.on('show.bs.dropdown', createDateMenu);
+		
 	} else {
 		
 		tableHeader.btnDropdown = tableHeader.th.append(create.menuButton).children().last()
@@ -640,7 +693,7 @@ function createTableHeader(that) {
 		
 	}
 
-	function createMenu() {
+	function createSelectMenu() {
 		
 		tableHeader.divDropdownMenu.empty();
 		
@@ -877,7 +930,175 @@ function createTableHeader(that) {
 				filter();
 			}
 		}
+	}
+	
+	function createDateMenu() {
 		
+		console.log(tableHeader.divDropdownMenu.children().length);
+		if (tableHeader.divDropdownMenu.children().length) return;
+		
+		tableHeader.divDropdownMenu.empty();
+		
+		tableHeader.divContent = tableHeader.divDropdownMenu.append(create.div).children().last()
+			.addClass('mx-1')
+			.css('min-width', '15em')
+		;
+		
+		tableHeader.divFilter = tableHeader.divContent.append(create.div).children().last()
+			.addClass('text-center p-1')
+		;
+		
+		tableHeader.btnSortDesc = tableHeader.divFilter.append(create.smallButton).children().last()
+			.append(icon.arrowUp)
+			.addClass((urlSearch.get('sortDesc') == tableHeader.id)?'px-2 btn-outline-primary bg-dark text-white':'px-2 btn-primary')
+			.on('click', sortDesc)
+		;
+		
+		tableHeader.divFilter.append(create.smallButton).children().last()
+			.text(text.filter)
+			.addClass('px-3 btn-primary')
+			.on('click', filter)
+		;
+		
+		tableHeader.btnSortAsc = tableHeader.divFilter.append(create.smallButton).children().last()
+			.append(icon.arrowDown)
+			.addClass((urlSearch.get('sortAsc') == tableHeader.id)?'px-2 btn-outline-primary bg-dark text-white':'px-2 btn-primary')
+			.on('click', sortAsc)
+		;
+		
+		tableHeader.divList = tableHeader.divContent.append(create.div).children().last()
+			.addClass('px-2 overflow-auto ' + ((tableHeader.multiple)?'pt-3':'pt-1'))
+		;
+		
+//		tableHeader.divInf = tableHeader.divList.append(create.div).children().last()
+//			.addClass('custom-control custom-checkbox mt-2')
+//		;
+		
+		if ((result = /^>(\d{2}\/\d{2}\/\d{4})/.exec(urlSearch.get(tableHeader.id).toString())) !== null) {
+			var valueInf = result[0];
+		} else {
+			var valueInf = '';
+		}
+		
+//		tableHeader.chxInf = tableHeader.divInf.append(create.checkbox).children().last()
+//			.attr('id', tableHeader.id + '_inf')
+//			.attr('checked', valueInf != '')
+//			.on('change', function() {
+//				console.log("ok");
+//				let checked = $(this).is(':checked');
+//				if (checked) {
+//					urlSearch.set(tableHeader.id, '>' + tableHeader.inputInf.val());
+//				} else {
+//					urlSearch.delete(tableHeader.id);
+//				}
+//				tableHeader.fieldsetInf.attr('disabled', checked === false);
+//			})
+//		;
+//		
+//		tableHeader.fieldsetInf = tableHeader.divInf.append(create.label).children().last()
+//			.attr('for', tableHeader.id + '_inf')
+//			.on('click', function() {
+//				console.log(this);
+//				tableHeader.chxInf.attr('checked', true);
+//				tableHeader.chxInf.trigger('change');
+//			})
+//			.append(create.fieldset).children().last()
+//				.attr('disabled', valueInf == '')
+//				.on('click', function() {
+//					console.log(this);
+//					tableHeader.chxInf.attr('checked', true);
+//					tableHeader.chxInf.trigger('change');
+//				})
+//		;
+		
+		tableHeader.inputInf = tableHeader.divList.append(create.input).children().last()
+			.addClass('form-control datepicker')
+			.attr('value', "04-08-2020")
+			.datepicker({
+				format: "dd-mm-yyyy",
+		        weekStart: 1,
+		        maxViewMode: 3,
+		        language: $(this).data('locale'),
+		        multidate: false,
+		        daysOfWeekDisabled: "0,6",
+		        autoclose: true,
+		        calendarWeeks: true,
+		        clearBtn: true,
+		        todayBtn: true,
+		        todayHighlight: true,
+		    })
+		;
+		/*
+		tableHeader.divSup = tableHeader.divList.append(create.div).children().last()
+			.addClass('custom-control custom-checkbox mt-2')
+		;
+		
+		if ((result = /^<(\d{2}\/\d{2}\/\d{4})/.exec(urlSearch.get(tableHeader.id).toString())) !== null) {
+			var valueSup = result[0];
+		} else {
+			var valueSup = '';
+		}
+		
+		tableHeader.chxSup = tableHeader.divSup.append(create.checkbox).children().last()
+			.attr('id', tableHeader.id + '_sup')
+			.attr('checked', valueSup != '')
+			.on('change', function() {
+				
+				let checked = $(this).is(':checked');
+				if (checked) {
+					urlSearch.set(tableHeader.id, '>' + tableHeader.inputSup.val());
+				} else {
+					urlSearch.delete(tableHeader.id);
+				}
+				tableHeader.fieldsetSup.attr('disabled', checked === false);
+			})
+		;
+		
+		tableHeader.fieldsetSup = tableHeader.divSup.append(create.label).children().last()
+			.attr('for', tableHeader.id + '_sup')
+			.append(create.fieldset).children().last()
+				.attr('disabled', valueSup == '')
+		;
+		
+		tableHeader.inputSup = tableHeader.fieldsetSup.append(create.input).children().last()
+			.addClass('datepicker')
+			.val(valueSup)
+		;
+		*/
+		function sortAsc() {
+			urlSearch.delete('sortDesc');
+			if (urlSearch.get('sortAsc') == tableHeader.id) {
+				urlSearch.delete('sortAsc');
+			} else {
+				urlSearch.set('sortAsc', tableHeader.id);
+			}
+			filter();
+		}
+		
+		function filter() {
+			
+			urlSearch.delete(tableHeader.id);
+			if (!tableHeader.chxSelectAll.is(':checked')) {
+				
+				for (let option of tableHeader.options) {
+					if (option.chx.is(':checked')) {
+						urlSearch.append(tableHeader.id, option.value);
+					}
+				}
+			}
+			tableHeader.btnDropdown.dropdown('hide');
+			urlSearch.fetch();
+		}
+			
+		function sortDesc() {
+			urlSearch.delete('sortAsc');
+			if (urlSearch.get('sortDesc') == tableHeader.id) {
+				urlSearch.delete('sortDesc');
+			} else {
+				urlSearch.set('sortDesc', tableHeader.id);
+			}	
+			filter();
+		}
 	}
 	
 	return tableHeader;

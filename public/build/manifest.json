@@ -17,5 +17,9 @@
   "build/vendors~app~document.js": "/build/vendors~app~document.js",
   "build/vendors~automation.css": "/build/vendors~automation.css",
   "build/vendors~automation.js": "/build/vendors~automation.js",
-  "build/vendors~document.js": "/build/vendors~document.js"
+  "build/vendors~document.js": "/build/vendors~document.js",
+  "build/app.css": "/build/app.css",
+  "build/vendors~app.css": "/build/vendors~app.css",
+  "build/vendors~app.js": "/build/vendors~app.js",
+  "build/vendors~app~automation~dashboard~login.js": "/build/vendors~app~automation~dashboard~login.js"
 }

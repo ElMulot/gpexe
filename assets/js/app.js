@@ -20,7 +20,11 @@ global.create = {
 	
 	span: function() {
 		return $(document.createElement('span'))
-		
+		;
+	},
+	
+	fieldset: function() {
+		return $(document.createElement('fieldset'))
 		;
 	},
 	

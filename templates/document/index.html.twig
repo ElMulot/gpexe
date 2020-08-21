@@ -135,29 +135,6 @@
     	<div id="spinner">
     	</div>
         <table id="table" class="table table-sm" data-url="{{ path('document_table', app.request.attributes.get('_route_params')) }}" style="display: none;">
-            <colgroup>
-                <col style="width: 2em;">
-                {% for codename, field in fields %}
-    				{% if codename == 'document.reference' %}
-    			    	<col class="type-reference">
-    				{% elseif codename == 'version.name' %}
-    					<col class="type-version">
-    				{% elseif codename == 'document.name' %}
-    					<col class="type-name">
-    				{% elseif field.type is constant('App\\Entity\\Metadata::BOOLEAN') %}
-    			    	<col class="type-boolean">
-    				{% elseif field.type is constant('App\\Entity\\Metadata::DATE')  %}
-    					<col class="type-date">
-    				{% elseif field.type is constant('App\\Entity\\Metadata::LINK')  %}
-    					<col class="type-link">
-    				{% elseif codename == 'status.value' %}
-    					<col class="type-date">
-    		    	{% else %}
-    		    		<col class="type-standard">
-    		    	{% endif %}			
-                {% endfor %}
-                <col style="width: 6em;">
-            </colgroup>
             <thead>
                 <tr>
         			<th id="checkbox">
@@ -168,25 +145,29 @@
         			</th>
         			{% for codename, field in fields %}
     					{% if codename == 'document.reference' %}
-    				    	{% set data_class = "type-reference" %}
+    				    	{% set class = "type-reference" %}
+        				{% elseif codename == 'version.name' %}
+        					{% set class = "type-name" %}
+        				{% elseif codename == 'document.name' %}
+        					{% set class = "type-name" %}
 						{% elseif field.type is constant('App\\Entity\\Metadata::BOOLEAN') %}
-							{% set data_class = "type-boolean" %}
+							{% set class = "type-boolean" %}
 						{% elseif field.type is constant('App\\Entity\\Metadata::DATE')  %}
-							{% set data_class = "type-date" %}
+							{% set class = "type-date" %}
 						{% elseif field.type is constant('App\\Entity\\Metadata::LINK')  %}
-				    		{% set data_class = "type-link" %}
-				    	{% else %}
-				    		{% set data_class = null %}
+				    		{% set class = "type-link" %}
+        		    	{% else %}
+                            {% set class = "type-standard" %}
 				    	{% endif %}
-        			
-    					<th id="{{ field.id }}" data-title="{{ field.title }}" data-sort="{% if field.sort %}true{% else %}false{% endif %}">
+        				
+    					<th id="{{ field.id }}" class="{{ class }}" data-title="{{ field.title }}" data-sort="{% if field.sort %}true{% else %}false{% endif %}">
     						{% if field.form is defined %}
         						{% form_theme field.form with ['form/select.html.twig'] only %}	
     					        {{ form(field.form) }}
                             {% endif %}
     					</th>
         			{% endfor %}
-                    <th id="detail" style="width:10em;"></th>
+                    <th id="detail"></th>
         		</tr>
             </thead>
             <tbody>
