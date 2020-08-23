@@ -22,7 +22,8 @@ class LogRepository extends ServiceEntityRepository
     public function getLog()
     {
     	return $this->createQueryBuilder('l')
-	    	->addOrderBy('l.date')
+	    	->addOrderBy('l.date', 'DESC')
+	    	->setMaxResults(1000)
 	    	->getQuery()
 	    	->getResult()
     	;

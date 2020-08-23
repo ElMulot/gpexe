@@ -12,6 +12,7 @@ use App\Entity\Serie;
 use App\Entity\Document;
 use App\Entity\Version;
 use App\Form\DocumentType;
+use App\Form\SerieChangeType;
 use App\Service\DocumentService;
 use App\Service\FieldService;
 use App\Repository\CompanyRepository;
@@ -116,26 +117,26 @@ class DocumentController extends AbstractController
  				$request->query->set('display', $this->getDefaultDisplay());
 			}
 		}
-
+		
 		if ($serie === null) {
 			$series = $this->serieRepository->getSeriesByType($project, $type);
 		} else {
 			$series = [$serie];
 		}
 		
-		$versionsCount = $this->versionRepository->getVersionsCount($series, $request);
+		$fields = $this->fieldService->getFields($project);
+		$versionsCount = $this->versionRepository->getVersionsCount($fields, $series, $request);
 		
 		$resultsPerPage = $request->query->get('results_per_page') ?? 50;
-		
-		if ($resultsPerPage == 0) {
+		if ($resultsPerPage == 0) { //display all
 			$pageMax = 1;
 		} else {
-			$pageMax = floor($versionsCount / $resultsPerPage);
+			$pageMax = max(floor($versionsCount / $resultsPerPage), 1);
 		}
 		$request->query->set('results_per_page', $resultsPerPage);
 		$request->query->set('page', min($request->query->get('page') ?? 1, $pageMax));
 		
-		$versions = $this->versionRepository->getVersionsArray($project, $series, $request);
+		$versions = $this->versionRepository->getVersionsArray($fields, $series, $request);
 		
 		return new JsonResponse([
 			'versions' => $versions,
@@ -293,7 +294,53 @@ class DocumentController extends AbstractController
 		}
 	}
 	
-	public function delete(Request $request, Document $document=null): Response
+	public function move(Request $request): Response
+	{
+		
+		$documents = $this->documentRepository->getDocumentsByRequest($request);
+		
+		if ($documents == false) {
+			$this->addFlash('danger', 'None documents selected');
+			return $this->render('ajax/error.html.twig');
+		}
+		
+		$document = $documents[0];
+		$currentSerie = $document->getSerie();
+		$series = $currentSerie->getProject()->getSeries();
+		
+		$form = $this->createForm(SerieChangeType::class, null, [
+			'current_serie' => $currentSerie,
+			'series' => $series,
+		]);
+		
+		$form->handleRequest($request);
+		
+		if ($form->isSubmitted() && $form->isValid()) {
+			$entityManager = $this->getDoctrine()->getManager();
+			
+			dump($documents);
+			dump($form->get('serie')->getData());
+			
+			foreach ($documents as $document) {
+				$document->setSerie($form->get('serie')->getData());
+				$entityManager->persist($document);
+			}
+			dump($documents);
+			
+			$entityManager->flush();
+			$this->addFlash('success', 'The document has been successfully moved.');
+			return new Response();
+		} else {
+			$view = $form->createView();
+			$request->query->remove('id');
+			return $this->render('ajax/form.html.twig', [
+				'form' => $view
+			]);
+		}
+		
+	}
+	
+	public function delete(Request $request): Response
 	{
 	    	        
         $documents = $this->documentRepository->getDocumentsByRequest($request);

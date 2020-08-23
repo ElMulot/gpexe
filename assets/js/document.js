@@ -1,4 +1,3 @@
-require('../js/app.js');
 const $ = require('jquery');
 const popper = require('popper.js');
 require('sticky-table-headers');
@@ -27,7 +26,7 @@ UrlSearch.prototype = {
 		if (/\S+\[\]/g.exec(key)) {
 			return this._paramsArray.getAll(key) || [];
 		} else {
-			return this._paramsArray.get(key) || [];
+			return this._paramsArray.get(key) || '';
 		}
 	},
 	
@@ -89,6 +88,8 @@ UrlSearch.prototype = {
 		$('#table').show();
 		if (result == false) return;
 		
+		console.log(result.query);
+		
 		let searchUrl = $.param(result.query);
 		this._paramsArray = new URLSearchParams(searchUrl);
 		this.delete('id[]');
@@ -111,6 +112,7 @@ UrlSearch.prototype = {
 			//display
 			
 			if (display = this.get('display[' + tableHeader.id + ']')) {
+
 				tableHeader.aDisplay.addClass('btn-outline-primary');
 				tableHeader.aDisplay.removeClass('btn-primary');
 				tableHeader.chxDisplay.prop('checked', true);
@@ -131,15 +133,14 @@ UrlSearch.prototype = {
 					if (this.has(select.name)) {
 						tableHeader.isFiltered = true;
 					}
-					
-					if (this.get('sortAsc') == select.name) {
-						tableHeader.isSortedAsc = true;
-					}
-					
-					if (this.get('sortDesc') == select.name) {
-						tableHeader.isSortedDesc = true;
-					}
-					
+				}
+				
+				if (this.get('sortAsc') == tableHeader.id) {
+					tableHeader.isSortedAsc = true;
+				}
+				
+				if (this.get('sortDesc') == tableHeader.id) {
+					tableHeader.isSortedDesc = true;
 				}
 				
 				tableHeader.btnDropdown.append((tableHeader.isFiltered)?icon.funnelFill:icon.funnel);					
@@ -209,6 +210,22 @@ UrlSearch.prototype = {
 						.text(data)
 					;
 					
+					//highlight
+					
+					if (urlSearch.get('highlight') == tableHeader.id) {
+						if (data.toDate() !== null) {
+							if (data.toDate() < new Date()) {
+								tr.addClass('highlight-late');
+							} else if (data.toDate().addDays(-15) < new Date()) {
+								tr.addClass('highlight-15');
+							} else if (data.toDate().addDays(-30) < new Date()) {
+								tr.addClass('highlight-30');
+							} else {
+								tr.addClass('highlight-ok');
+							}
+						}
+					}
+					
 				} else {
 					
 					tableHeader.col.hide();
@@ -242,7 +259,7 @@ UrlSearch.prototype = {
 		page = Math.max(Math.min(page, pageMax), 1);
 		
 		div = $('#pagination').append(create.div).children().last()
-			.addClass('row')
+			.addClass('row m-0')
 		;
 		
 		div.append(create.div).children().last()
@@ -259,6 +276,7 @@ UrlSearch.prototype = {
 				.on('click', function() {
 					if (page > 1) {
 						that.set('page', page - 1);
+						that.delete('vue');
 						that.fetch();
 					}
 				})
@@ -278,6 +296,7 @@ UrlSearch.prototype = {
 					.addClass('page-item' + ((page == i)?' active':''))
 					.on('click', function() {
 						that.set('page', i);
+						that.delete('vue');
 						that.fetch();
 					})
 					.append(create.a).children().last()
@@ -292,6 +311,7 @@ UrlSearch.prototype = {
 				.on('click', function() {
 					if (page < pageMax) {
 						that.set('page', page + 1);
+						that.delete('vue');
 						that.fetch();
 					}
 				})
@@ -311,6 +331,7 @@ UrlSearch.prototype = {
 			.css('width', '150')
 			.on('change', function() {
 				urlSearch.set('results_per_page', $(this).val())
+				that.delete('vue');
 				urlSearch.fetch();
 			})
 		;
@@ -479,19 +500,7 @@ UrlSearch.prototype = {
 		//---------------------
 		
 		$(target).find('.datepicker').each(function() {
-			$(this).datepicker({
-				format: "dd-mm-yyyy",
-		        weekStart: 1,
-		        maxViewMode: 3,
-		        language: $(this).data('locale'),
-		        multidate: false,
-		        daysOfWeekDisabled: "0,6",
-		        autoclose: true,
-		        calendarWeeks: true,
-		        clearBtn: true,
-		        todayBtn: true,
-		        todayHighlight: true,
-		    });
+			$(this).datepicker();
 		})
 	},
 	
@@ -545,6 +554,7 @@ function createTableHeader(that) {
 		col: $(that).closest('table').find('col').eq($(that).index()),
 		th: $(that),
 		id: $(that).attr('id'),
+		name: $(that).attr('name'),
 		title: $(that).data('title'),
 		sort: $(that).data('sort'),
 		type: $(that).attr('class'),
@@ -579,7 +589,7 @@ function createTableHeader(that) {
 		
 	});
 	
-	if (tableHeader.selects.length) {
+	if (tableHeader.selects.length || tableHeader.type == 'type-date') {
 	
 		tableHeader.divDropdownGroup = tableHeader.th.append(create.div).children().last()
 			.addClass('btn-group w-100')
@@ -607,6 +617,7 @@ function createTableHeader(that) {
 						urlSearch.delete('sortDesc');
 						urlSearch.set('sortAsc', tableHeader.selects[0].name);
 					}
+					urlSearch.delete('vue');
 					urlSearch.fetch();
 				}
 			})
@@ -629,59 +640,7 @@ function createTableHeader(that) {
 				.addClass('d-flex flex-row')
 		;
 		
-		tableHeader.divDropdownGroup.on('show.bs.dropdown', createSelectMenu);
-	
-	} else if (tableHeader.type == 'type-date') {
-		
-		tableHeader.divDropdownGroup = tableHeader.th.append(create.div).children().last()
-			.addClass('btn-group w-100')
-			.attr('role', 'group')
-			.on('hide.bs.dropdown', function (e) {
-				
-				if(e.clickEvent && $.contains(e.relatedTarget.parentNode, e.clickEvent.target)) {
-					e.preventDefault()
-				} else {
-					tableHeader.divDropdownMenu.empty();
-				}
-			})
-		;
-		
-		tableHeader.divDropdownGroup.append(create.menuButton).children().last()
-			.addClass('w-100')
-			.attr('type', 'button')
-			.text(tableHeader.title)
-			.on('click', function() {
-				if (tableHeader.selects && tableHeader.sort) {
-					if (urlSearch.get('sortAsc') == tableHeader.selects[0].name) {
-						urlSearch.delete('sortAsc');
-						urlSearch.set('sortDesc', tableHeader.selects[0].name);
-					} else {
-						urlSearch.delete('sortDesc');
-						urlSearch.set('sortAsc', tableHeader.selects[0].name);
-					}
-					urlSearch.fetch();
-				}
-			})
-		;
-	
-		tableHeader.btnDropdown = tableHeader.divDropdownGroup.append(create.menuButton).children().last()
-			.addClass('px-0')
-			.css('width', '3em')
-			.attr('type', 'button')
-			.attr('id', 'b_' + tableHeader.id)
-			.attr('data-toggle', 'dropdown')
-			.attr('aria-haspopup', true)
-			.attr('aria-expanded', false)
-		;
-	
-		tableHeader.divDropdownMenu = tableHeader.divDropdownGroup.append(create.div).children().last()
-			.addClass('dropdown-menu')
-			.attr('aria-labelledby', 'b_' + tableHeader.id)
-			.append(create.div).children().last()
-				.addClass('d-flex flex-row')
-		;
-		
-		tableHeader.divDropdownGroup.on('show.bs.dropdown', createDateMenu);
+		tableHeader.divDropdownGroup.on('show.bs.dropdown', createMenu);
 		
 	} else {
 		
@@ -693,412 +652,419 @@ function createTableHeader(that) {
 		
 	}
 
-	function createSelectMenu() {
+	function createMenu() {
 		
-		tableHeader.divDropdownMenu.empty();
+		if (tableHeader.selects.length) {
 		
-		for (let select of tableHeader.selects) {
+			tableHeader.divDropdownMenu.empty();
 			
-			select.divContent = tableHeader.divDropdownMenu.append(create.div).children().last()
-				.addClass('mx-1')
-				.css('min-width', '15em')
-			;
-			
-			if (select.multiple) {
+			for (let select of tableHeader.selects) {
 				
-				if (tableHeader.selects.length > 1) {
-					select.divContent.append(create.div).children().last()
-						.addClass('text-center border-bottom border-dark pb-2 px-1')
-						.append(select.title);
-					;
-				}
-				
-				select.divFilter = select.divContent.append(create.div).children().last()
-					.addClass('text-center p-1')
+				select.divContent = tableHeader.divDropdownMenu.append(create.div).children().last()
+					.addClass('mx-1')
+					.css('min-width', '15em')
 				;
 				
-				if (tableHeader.selects.length == 1) {
-					select.btnSortDesc = select.divFilter.append(create.smallButton).children().last()
-						.append(icon.arrowUp)
-						.addClass((urlSearch.get('sortDesc') == select.name)?'px-2 btn-outline-primary bg-dark text-white':'px-2 btn-primary')
-						.on('click', sortDesc)
+				if (select.multiple) {
+					
+					if (tableHeader.selects.length > 1) {
+						select.divContent.append(create.div).children().last()
+							.addClass('text-center border-bottom border-dark pb-2 px-1')
+							.append(select.title);
+						;
+					}
+					
+					select.divFilter = select.divContent.append(create.div).children().last()
+						.addClass('text-center p-1')
 					;
-				}
-				
-				select.divFilter.append(create.smallButton).children().last()
-					.text(text.filter)
-					.addClass('px-3 btn-primary')
-					.on('click', filter)
-				;
-				
-				if (tableHeader.selects.length == 1) {
-					select.btnSortAsc = select.divFilter.append(create.smallButton).children().last()
-						.append(icon.arrowDown)
-						.addClass((urlSearch.get('sortAsc') == select.name)?'px-2 btn-outline-primary bg-dark text-white':'px-2 btn-primary')
-						.on('click', sortAsc)
-					;
-				}
-				
-				select.divSearch = select.divContent.append(create.div).children().last()
-					.addClass('text-center border-bottom border-dark p-2')
-				;
-				
-				select.divSearch.append(create.input).children().last()
-					.on('input', function() {
-						var searchValue = $(this).val().toLowerCase()
-						
-						if (searchValue == '') {
-							select.divSelectAll.show();
-							for (let option of select.options) {
-								option.div.show();
-								option.chx.prop('checked', false);
-							}
-						} else {
-							select.divSelectAll.hide();
-							for (let option of select.options) {
-								if (option.text.toLowerCase().indexOf(searchValue) == -1) {
-									option.div.hide();
-									option.chx.prop('checked', false);
+					
+					if (tableHeader.selects.length == 1) {
+						select.btnSortDesc = select.divFilter.append(create.smallButton).children().last()
+							.append(icon.arrowUp)
+							.addClass((urlSearch.get('sortDesc') == tableHeader.id)?'px-2 btn-outline-primary bg-dark text-white':'px-2 btn-primary')
+							.on('click', function() {
+								urlSearch.delete('sortAsc');
+								if (urlSearch.get('sortDesc') == tableHeader.id) {
+									urlSearch.delete('sortDesc');
 								} else {
-									option.div.show();
-									option.chx.prop('checked', true);
+									urlSearch.set('sortDesc', tableHeader.id);
 								}	
-							}
-						}
-					})
-				;
-			}
-			
-			select.divList = select.divContent.append(create.div).children().last()
-				.addClass('px-2 overflow-auto ' + ((select.multiple)?'pt-3':'pt-1'))
-				.css('max-height', '20em')
-			;
-			
-			if (select.multiple) {
-				select.divSelectAll = select.divList.append(create.div).children().last()
-					.addClass('custom-control custom-checkbox')
-				;
-				
-				select.chxSelectAll = select.divSelectAll.append(create.checkbox).children().last()
-					.attr('id', select.name + '_selectAll')
-					.on('change', function() {
-						
-						var checked = $(this).is(':checked');
-						for (let option of select.options) {	
-							option.chx.prop('checked', checked);
-						}
-						
-					})
-				;
-				
-				select.divSelectAll.append(create.label).children().last()
-					.attr('for', select.name + '_selectAll')
-					.text(text.selectAll)
-				;
-				
-				for (let option of select.options) {
+								select.btnFilter.trigger('click');
+							})
+						;
+					}
 					
-					option.div = select.divList.append(create.div).children().last()
-						.addClass('custom-control custom-checkbox')
-					;
-
-					option.chx = option.div.append(create.checkbox).children().last()
-						.attr('id', select.name + '_' + option.value)
-						.attr('checked', urlSearch.get(select.name).includes(option.value))
+					select.btnFilter = select.divFilter.append(create.smallButton).children().last()
+						.text(text.filter)
+						.addClass('px-3 btn-primary')
 						.on('click', function() {
-							
-							let checked = false;
-							let unchecked = false;
-							
-							for (let option of select.options) {
-								if ($(option.chx).is(':checked')) {
-									checked = true;
-								} else {
-									unchecked = true;
-								}
-							}
-							
-							if (checked && unchecked) {
-								select.chxSelectAll.prop('indeterminate', true);
-							} else {
-								select.chxSelectAll.prop('indeterminate', false);
-								select.chxSelectAll.prop('checked', checked);
-							}
-							
-						})
-					;
-					
-					option.lbl = option.div.append(create.label).children().last()
-						.attr('for', select.name + '_' + option.value)
-						.text(option.text)
-					;
-				}
-				
-			} else {
-				
-				select.divUnknown = select.divList.append(create.div).children().last()
-					.addClass('custom-control custom-checkbox')
-				;
-				
-				select.chxUnknown = select.divUnknown.append(create.checkbox).children().last()
-					.attr('id', select.name + '_notApplicable')
-					.attr('checked', !urlSearch.has(select.name))
-					.on('change', function() {
-						
-						var checked = $(this).is(':checked');
-						for (let option of select.options) {	
-							option.chx.prop('checked', false);
-						}
-						urlSearch.delete(select.name);
-						
-						tableHeader.btnDropdown.dropdown('hide');
-						urlSearch.fetch();
-					})
-				;
-			
-				select.divUnknown.append(create.label).children().last()
-					.attr('for', select.name + '_notApplicable')
-					.text(text.notApplicable)
-				;
-				
-				for (let option of select.options) {
-					
-					option.div = select.divList.append(create.div).children().last()
-						.addClass('custom-control custom-checkbox')
-					;
-					
-					option.chx = option.div.append(create.checkbox).children().last()
-						.attr('id', select.name + '_' + option.value)
-						.attr('checked', urlSearch.get(select.name).includes(option.value))
-						.on('click', function() {
-							
-							select.divList.find('input').not(this).prop('checked', false);
-							urlSearch.delete(select.name);
-							
-							if (!select.chxUnknown.is(':checked')) {
-								for (let option of select.options) {
-									if (option.chx.is(':checked')) {
-										urlSearch.append(select.name, option.value);
+							for (let select of tableHeader.selects) {
+								urlSearch.delete(select.name);
+								if (!select.chxSelectAll.is(':checked')) {
+									for (let option of select.options) {
+										if (option.chx.is(':checked')) {
+											urlSearch.append(select.name, option.value);
+										}
 									}
 								}
 							}
-							
 							tableHeader.btnDropdown.dropdown('hide');
+							urlSearch.delete('vue');
 							urlSearch.fetch();
 						})
 					;
 					
-					option.lbl = option.div.append(create.label).children().last()
-						.attr('for', select.name + '_' + option.value)
-						.text(option.text)
+					if (tableHeader.selects.length == 1) {
+						select.btnSortAsc = select.divFilter.append(create.smallButton).children().last()
+							.append(icon.arrowDown)
+							.addClass((urlSearch.get('sortAsc') == tableHeader.id)?'px-2 btn-outline-primary bg-dark text-white':'px-2 btn-primary')
+							.on('click', function() {
+								urlSearch.delete('sortDesc');
+								if (urlSearch.get('sortAsc') == tableHeader.id) {
+									urlSearch.delete('sortAsc');
+								} else {
+									urlSearch.set('sortAsc', tableHeader.id);
+								}
+								select.btnFilter.trigger('click');
+							})
+						;
+					}
+					
+					select.divSearch = select.divContent.append(create.div).children().last()
+						.addClass('text-center border-bottom border-dark p-2')
+					;
+					
+					select.divSearch.append(create.input).children().last()
+						.on('input', function() {
+							var searchValue = $(this).val().toLowerCase()
+							
+							if (searchValue == '') {
+								select.divSelectAll.show();
+								for (let option of select.options) {
+									option.div.show();
+									option.chx.prop('checked', false);
+								}
+							} else {
+								select.divSelectAll.hide();
+								for (let option of select.options) {
+									if (option.text.toLowerCase().indexOf(searchValue) == -1) {
+										option.div.hide();
+										option.chx.prop('checked', false);
+									} else {
+										option.div.show();
+										option.chx.prop('checked', true);
+									}	
+								}
+							}
+						})
 					;
 				}
-			}
-		
-			function sortAsc() {
-				urlSearch.delete('sortDesc');
-				if (urlSearch.get('sortAsc') == select.name) {
-					urlSearch.delete('sortAsc');
-				} else {
-					urlSearch.set('sortAsc', select.name);
-				}
-				filter();
-			}
 				
-			function filter() {
+				select.divList = select.divContent.append(create.div).children().last()
+					.addClass('px-2 overflow-auto ' + ((select.multiple)?'pt-3':'pt-1'))
+					.css('max-height', '20em')
+				;
 				
-				urlSearch.delete(select.name);
-				if (!select.chxSelectAll.is(':checked')) {
+				if (select.multiple) {
+					select.divSelectAll = select.divList.append(create.div).children().last()
+						.addClass('custom-control custom-checkbox')
+					;
+					
+					select.chxSelectAll = select.divSelectAll.append(create.checkbox).children().last()
+						.attr('id', select.name + '_selectAll')
+						.on('change', function() {
+							
+							var checked = $(this).is(':checked');
+							for (let option of select.options) {	
+								option.chx.prop('checked', checked);
+							}
+							
+						})
+					;
+					
+					select.divSelectAll.append(create.label).children().last()
+						.attr('for', select.name + '_selectAll')
+						.text(text.selectAll)
+					;
 					
 					for (let option of select.options) {
-						if (option.chx.is(':checked')) {
-							urlSearch.append(select.name, option.value);
-						}
-					}
-				}
-				tableHeader.btnDropdown.dropdown('hide');
-				urlSearch.fetch();
-			}
-				
-			function sortDesc() {
-				urlSearch.delete('sortAsc');
-				if (urlSearch.get('sortDesc') == select.name) {
-					urlSearch.delete('sortDesc');
-				} else {
-					urlSearch.set('sortDesc', select.name);
-				}	
-				filter();
-			}
-		}
-	}
+						
+						option.div = select.divList.append(create.div).children().last()
+							.addClass('custom-control custom-checkbox')
+						;
 	
-	function createDateMenu() {
-		
-		console.log(tableHeader.divDropdownMenu.children().length);
-		if (tableHeader.divDropdownMenu.children().length) return;
-		
-		tableHeader.divDropdownMenu.empty();
-		
-		tableHeader.divContent = tableHeader.divDropdownMenu.append(create.div).children().last()
-			.addClass('mx-1')
-			.css('min-width', '15em')
-		;
-		
-		tableHeader.divFilter = tableHeader.divContent.append(create.div).children().last()
-			.addClass('text-center p-1')
-		;
-		
-		tableHeader.btnSortDesc = tableHeader.divFilter.append(create.smallButton).children().last()
-			.append(icon.arrowUp)
-			.addClass((urlSearch.get('sortDesc') == tableHeader.id)?'px-2 btn-outline-primary bg-dark text-white':'px-2 btn-primary')
-			.on('click', sortDesc)
-		;
-		
-		tableHeader.divFilter.append(create.smallButton).children().last()
-			.text(text.filter)
-			.addClass('px-3 btn-primary')
-			.on('click', filter)
-		;
-		
-		tableHeader.btnSortAsc = tableHeader.divFilter.append(create.smallButton).children().last()
-			.append(icon.arrowDown)
-			.addClass((urlSearch.get('sortAsc') == tableHeader.id)?'px-2 btn-outline-primary bg-dark text-white':'px-2 btn-primary')
-			.on('click', sortAsc)
-		;
-		
-		tableHeader.divList = tableHeader.divContent.append(create.div).children().last()
-			.addClass('px-2 overflow-auto ' + ((tableHeader.multiple)?'pt-3':'pt-1'))
-		;
-		
-//		tableHeader.divInf = tableHeader.divList.append(create.div).children().last()
-//			.addClass('custom-control custom-checkbox mt-2')
-//		;
-		
-		if ((result = /^>(\d{2}\/\d{2}\/\d{4})/.exec(urlSearch.get(tableHeader.id).toString())) !== null) {
-			var valueInf = result[0];
-		} else {
-			var valueInf = '';
-		}
-		
-//		tableHeader.chxInf = tableHeader.divInf.append(create.checkbox).children().last()
-//			.attr('id', tableHeader.id + '_inf')
-//			.attr('checked', valueInf != '')
-//			.on('change', function() {
-//				console.log("ok");
-//				let checked = $(this).is(':checked');
-//				if (checked) {
-//					urlSearch.set(tableHeader.id, '>' + tableHeader.inputInf.val());
-//				} else {
-//					urlSearch.delete(tableHeader.id);
-//				}
-//				tableHeader.fieldsetInf.attr('disabled', checked === false);
-//			})
-//		;
-//		
-//		tableHeader.fieldsetInf = tableHeader.divInf.append(create.label).children().last()
-//			.attr('for', tableHeader.id + '_inf')
-//			.on('click', function() {
-//				console.log(this);
-//				tableHeader.chxInf.attr('checked', true);
-//				tableHeader.chxInf.trigger('change');
-//			})
-//			.append(create.fieldset).children().last()
-//				.attr('disabled', valueInf == '')
-//				.on('click', function() {
-//					console.log(this);
-//					tableHeader.chxInf.attr('checked', true);
-//					tableHeader.chxInf.trigger('change');
-//				})
-//		;
-		
-		tableHeader.inputInf = tableHeader.divList.append(create.input).children().last()
-			.addClass('form-control datepicker')
-			.attr('value', "04-08-2020")
-			.datepicker({
-				format: "dd-mm-yyyy",
-		        weekStart: 1,
-		        maxViewMode: 3,
-		        language: $(this).data('locale'),
-		        multidate: false,
-		        daysOfWeekDisabled: "0,6",
-		        autoclose: true,
-		        calendarWeeks: true,
-		        clearBtn: true,
-		        todayBtn: true,
-		        todayHighlight: true,
-		    })
-		;
-		/*
-		tableHeader.divSup = tableHeader.divList.append(create.div).children().last()
-			.addClass('custom-control custom-checkbox mt-2')
-		;
-		
-		if ((result = /^<(\d{2}\/\d{2}\/\d{4})/.exec(urlSearch.get(tableHeader.id).toString())) !== null) {
-			var valueSup = result[0];
-		} else {
-			var valueSup = '';
-		}
-		
-		tableHeader.chxSup = tableHeader.divSup.append(create.checkbox).children().last()
-			.attr('id', tableHeader.id + '_sup')
-			.attr('checked', valueSup != '')
-			.on('change', function() {
-				
-				let checked = $(this).is(':checked');
-				if (checked) {
-					urlSearch.set(tableHeader.id, '>' + tableHeader.inputSup.val());
+						option.chx = option.div.append(create.checkbox).children().last()
+							.attr('id', select.name + '_' + option.value)
+							.attr('checked', urlSearch.get(select.name).includes(option.value))
+							.on('click', function() {
+								
+								let checked = false;
+								let unchecked = false;
+								
+								for (let option of select.options) {
+									if ($(option.chx).is(':checked')) {
+										checked = true;
+									} else {
+										unchecked = true;
+									}
+								}
+								
+								if (checked && unchecked) {
+									select.chxSelectAll.prop('indeterminate', true);
+								} else {
+									select.chxSelectAll.prop('indeterminate', false);
+									select.chxSelectAll.prop('checked', checked);
+								}
+								
+							})
+						;
+						
+						option.lbl = option.div.append(create.label).children().last()
+							.attr('for', select.name + '_' + option.value)
+							.text(option.text)
+						;
+					}
+					
 				} else {
-					urlSearch.delete(tableHeader.id);
-				}
-				tableHeader.fieldsetSup.attr('disabled', checked === false);
-			})
-		;
-		
-		tableHeader.fieldsetSup = tableHeader.divSup.append(create.label).children().last()
-			.attr('for', tableHeader.id + '_sup')
-			.append(create.fieldset).children().last()
-				.attr('disabled', valueSup == '')
-		;
-		
-		tableHeader.inputSup = tableHeader.fieldsetSup.append(create.input).children().last()
-			.addClass('datepicker')
-			.val(valueSup)
-		;
-		*/
-		function sortAsc() {
-			urlSearch.delete('sortDesc');
-			if (urlSearch.get('sortAsc') == tableHeader.id) {
-				urlSearch.delete('sortAsc');
-			} else {
-				urlSearch.set('sortAsc', tableHeader.id);
-			}
-			filter();
-		}
-		
-		function filter() {
-			
-			urlSearch.delete(tableHeader.id);
-			if (!tableHeader.chxSelectAll.is(':checked')) {
+					
+					select.divUnknown = select.divList.append(create.div).children().last()
+						.addClass('custom-control custom-checkbox')
+					;
+					
+					select.chxUnknown = select.divUnknown.append(create.checkbox).children().last()
+						.attr('id', select.name + '_notApplicable')
+						.attr('checked', !urlSearch.has(select.name))
+						.on('click', function() {
+							
+							var checked = $(this).is(':checked');
+							for (let option of select.options) {	
+								option.chx.prop('checked', false);
+							}
+							urlSearch.delete(select.name);
+							
+							tableHeader.btnDropdown.dropdown('hide');
+							urlSearch.delete('vue');
+							urlSearch.fetch();
+						})
+					;
 				
-				for (let option of tableHeader.options) {
-					if (option.chx.is(':checked')) {
-						urlSearch.append(tableHeader.id, option.value);
+					select.divUnknown.append(create.label).children().last()
+						.attr('for', select.name + '_notApplicable')
+						.text(text.notApplicable)
+					;
+					
+					for (let option of select.options) {
+						
+						option.div = select.divList.append(create.div).children().last()
+							.addClass('custom-control custom-checkbox')
+						;
+						
+						option.chx = option.div.append(create.checkbox).children().last()
+							.attr('id', select.name + '_' + option.value)
+							.attr('checked', urlSearch.get(select.name).includes(option.value))
+							.on('click', function() {
+								
+								select.divList.find('input').not(this).prop('checked', false);
+								urlSearch.delete(select.name);
+								
+								if (!select.chxUnknown.is(':checked')) {
+									for (let option of select.options) {
+										if (option.chx.is(':checked')) {
+											urlSearch.append(select.name, option.value);
+										}
+									}
+								}
+								
+								tableHeader.btnDropdown.dropdown('hide');
+								urlSearch.delete('vue');
+								urlSearch.fetch();
+							})
+						;
+						
+						option.lbl = option.div.append(create.label).children().last()
+							.attr('for', select.name + '_' + option.value)
+							.text(option.text)
+						;
 					}
 				}
 			}
-			tableHeader.btnDropdown.dropdown('hide');
-			urlSearch.fetch();
-		}
 			
-		function sortDesc() {
-			urlSearch.delete('sortAsc');
-			if (urlSearch.get('sortDesc') == tableHeader.id) {
-				urlSearch.delete('sortDesc');
+		} else if (tableHeader.type == 'type-date') {
+			
+			if ((result = />(\d{2}-\d{2}-\d{4})/.exec(urlSearch.get(tableHeader.name + '[]').toString())) !== null) {
+				var valueInf = result[1];
 			} else {
-				urlSearch.set('sortDesc', tableHeader.id);
-			}	
-			filter();
+				var valueInf = '';
+			}
+			
+			if ((result = /<(\d{2}-\d{2}-\d{4})/.exec(urlSearch.get(tableHeader.name + '[]').toString())) !== null) {
+				var valueSup = result[1];
+			} else {
+				var valueSup = '';
+			}
+			
+			var highlight = (urlSearch.get('highlight').toString() == tableHeader.id);
+			
+			tableHeader.divContent = tableHeader.divDropdownMenu.append(create.div).children().last()
+				.addClass('mx-1')
+				.css('min-width', '15em')
+			;
+			
+			tableHeader.divFilter = tableHeader.divContent.append(create.div).children().last()
+				.addClass('text-center p-1')
+			;
+			
+			tableHeader.btnSortDesc = tableHeader.divFilter.append(create.smallButton).children().last()
+				.append(icon.arrowUp)
+				.addClass((urlSearch.get('sortDesc') == tableHeader.id)?'px-2 btn-outline-primary bg-dark text-white':'px-2 btn-primary')
+				.on('click', function() {
+					urlSearch.delete('sortAsc');
+					if (urlSearch.get('sortDesc') == tableHeader.id) {
+						urlSearch.delete('sortDesc');
+					} else {
+						urlSearch.set('sortDesc', tableHeader.id);
+					}	
+					tableHeader.btnFilter.trigger('click');
+				})
+			;
+			
+			tableHeader.btnFilter = tableHeader.divFilter.append(create.smallButton).children().last()
+				.text(text.filter)
+				.addClass('px-3 btn-primary')
+				.on('click', function() {
+					urlSearch.delete(tableHeader.name + '[]');
+					if (tableHeader.chxInf.is(':checked') && (result = /^≥\s(\d{2}-\d{2}-\d{4})/.exec(tableHeader.inputInf.val()))) {
+						urlSearch.append(tableHeader.name + '[]', '>' + result[1]);
+					}
+					
+					if (tableHeader.chxSup.is(':checked') && (result = /^≤\s(\d{2}-\d{2}-\d{4})/.exec(tableHeader.inputSup.val()))) {
+						urlSearch.append(tableHeader.name + '[]', '<' + result[1]);
+					}
+					
+					if (tableHeader.chxHighlight.is(':checked')) {
+						urlSearch.set('highlight', tableHeader.id);
+					} else if (urlSearch.get('highlight').toString() == tableHeader.id) {
+						urlSearch.delete('highlight');
+					}
+					
+					tableHeader.btnDropdown.dropdown('hide');
+					urlSearch.delete('vue');
+					urlSearch.fetch();
+				})
+			;
+			
+			tableHeader.btnSortAsc = tableHeader.divFilter.append(create.smallButton).children().last()
+				.append(icon.arrowDown)
+				.addClass((urlSearch.get('sortAsc') == tableHeader.id)?'px-2 btn-outline-primary bg-dark text-white':'px-2 btn-primary')
+				.on('click', function() {
+					urlSearch.delete('sortDesc');
+					if (urlSearch.get('sortAsc') == tableHeader.id) {
+						urlSearch.delete('sortAsc');
+					} else {
+						urlSearch.set('sortAsc', tableHeader.id);
+					}
+					tableHeader.btnFilter.trigger('click');
+				})
+			;
+			
+			tableHeader.divList = tableHeader.divContent.append(create.div).children().last()
+				.addClass('px-2 overflow-auto ' + ((tableHeader.multiple)?'pt-3':'pt-1'))
+			;
+			
+			tableHeader.divInf = tableHeader.divList.append(create.div).children().last()
+				.addClass('custom-control custom-checkbox mt-2')
+			;
+			
+			tableHeader.chxInf = tableHeader.divInf.append(create.checkbox).children().last()
+				.attr('id', tableHeader.id + '_inf')
+				.attr('checked', valueInf != '')
+				.on('change', function() {
+					let checked = $(this).is(':checked');
+					if (checked) {
+						if (/^≥\s\d{2}-\d{2}-\d{4}/.test(tableHeader.inputInf.val()) === false) {
+							tableHeader.inputInf.val('');
+						}
+					} else {
+						tableHeader.inputInf.val(text.fromDate);
+					}
+					tableHeader.inputInf.attr('readonly', checked === false);
+				})
+			;
+			
+			tableHeader.labelInf = tableHeader.divInf.append(create.label).children().last()
+				.attr('for', tableHeader.id + '_inf')
+			;
+			
+			tableHeader.inputInf = tableHeader.labelInf.append(create.input).children().last()
+				.addClass('form-control datepicker')
+				.val((valueInf)?('≥ ' + valueInf):text.fromDate)
+				.attr('readonly', valueInf == '')
+				.datepicker({'format': '≥ dd-mm-yyyy'})
+				.on('click', function() {
+					tableHeader.chxInf.prop('checked', true);
+					tableHeader.chxInf.trigger('change');
+				})
+			    .on('show.bs.dropdown hide.bs.dropdown', function(e) {
+			    	e.stopPropagation();
+			    })
+			;
+			
+			tableHeader.divSup = tableHeader.divList.append(create.div).children().last()
+				.addClass('custom-control custom-checkbox mt-2')
+			;
+			
+			tableHeader.chxSup = tableHeader.divSup.append(create.checkbox).children().last()
+				.attr('id', tableHeader.id + '_sup')
+				.attr('checked', valueSup != '')
+				.on('change', function() {
+					let checked = $(this).is(':checked');
+					if (checked) {
+						if (/^≤\s\d{2}-\d{2}-\d{4}/.test(tableHeader.inputSup.val()) === false) {
+							tableHeader.inputSup.val('');
+						}
+					} else {
+						tableHeader.inputSup.val(text.toDate);
+					}
+					tableHeader.inputSup.attr('readonly', checked === false);
+				})
+			;
+			
+			tableHeader.labelSup = tableHeader.divSup.append(create.label).children().last()
+				.attr('for', tableHeader.id + '_sup')
+			;
+			
+			tableHeader.inputSup = tableHeader.labelSup.append(create.input).children().last()
+				.addClass('form-control datepicker')
+				.val((valueSup)?'≤ ' + valueSup:text.toDate)
+				.attr('readonly', valueSup == '')
+				.datepicker({'format': "≤ dd-mm-yyyy"})
+				.on('click', function() {
+					tableHeader.chxSup.prop('checked', true);
+					tableHeader.chxSup.trigger('change');
+				})
+			    .on('show.bs.dropdown hide.bs.dropdown', function(e) {
+			    	e.stopPropagation();
+			    })
+			;
+			
+			tableHeader.divHighlight = tableHeader.divList.append(create.div).children().last()
+				.addClass('custom-control custom-checkbox mt-2')
+			;
+			
+			tableHeader.chxHighlight = tableHeader.divHighlight.append(create.checkbox).children().last()
+				.attr('id', tableHeader.id + '_highlight')
+				.attr('name', 'highlight')
+				.val(tableHeader.id)
+				.attr('checked', highlight)
+			;
+			
+			tableHeader.labelHighlight = tableHeader.divHighlight.append(create.label).children().last()
+				.attr('for', tableHeader.id + '_highlight')
+				.text(text.highlight)
+			;
+			
 		}
+		
 	}
 	
 	return tableHeader;
@@ -1128,11 +1094,11 @@ function fillDisplay() {
 				urlSearch.delete('display[' + tableHeader.id + ']');
 				
 				if (tableHeader.chxDisplay.is(':checked')) {
-					if (display == null) {
+					if (display == false) {
 						urlSearch.append('display[' + tableHeader.id + ']', 10);
 					}
 				}
-				
+				urlSearch.delete('vue');
 				urlSearch.fetch();
 				return false;
 			})

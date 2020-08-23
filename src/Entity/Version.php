@@ -139,11 +139,10 @@ class Version
 
 	public function setScheduledDate(?\DateTimeInterface $scheduledDate): self
 	{
-		if ($this->initialScheduledDate) {
-			$this->scheduledDate = $scheduledDate;
-		} else {
+		if ($this->initialScheduledDate === null) {
 			$this->initialScheduledDate = $scheduledDate;
 		}
+		$this->scheduledDate = $scheduledDate;
 		
 		return $this;
 	}

@@ -41,11 +41,8 @@ class LogController extends AbstractController
     	}
     	
     	$entityManager->flush();
+    	$this->addFlash('success', 'Log cleared');
     	
-    	$log = $this->logRepository->getLog();
-    	
-    	return $this->render('log/index.html.twig', [
-    		'log' => $log,
-    	]);
+    	return $this->redirectToRoute('log');
     }
 }

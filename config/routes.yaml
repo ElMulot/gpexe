@@ -355,20 +355,12 @@ document_edit:
     controller: App\Controller\DocumentController::edit
     
 document_move:
-    path: /project/serie/document/move/{document}
-    requirements:
-        document: \d+
-    defaults:
-        document: 0
+    path: /project/serie/document/move
     controller: App\Controller\DocumentController::move
 
 document_delete:
-    path: /project/serie/document/delete/{document}
+    path: /project/serie/document/delete
     methods: GET|DELETE
-    requirements:
-        document: \d+
-    defaults:
-        document: 0
     controller: App\Controller\DocumentController::delete
 
 version_detail:

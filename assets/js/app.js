@@ -6,6 +6,18 @@ require('bootstrap-datepicker/dist/locales/bootstrap-datepicker.fr.min.js');
 const bsCustomFileInput = require('bs-custom-file-input');
 require('../css/global.scss');
 
+String.prototype.toDate = function () {
+	const [day, month, year] = this.split("-");
+	d = new Date(year, month - 1, day);
+	return (d instanceof Date && isNaN(d) === false)?d:null;
+};
+
+Date.prototype.addDays = function(days) {
+    var date = new Date(this.valueOf());
+    date.setDate(date.getDate() + days);
+    return date;
+}
+
 global.create = {
 	div: function() {
 		return $(document.createElement('div'))
@@ -109,7 +121,10 @@ global.text = {
     error: 'Ereur',
     reload: 'Relancer',
     close: 'Close',
-    all: 'All'
+    all: 'All',
+    fromDate: 'From date',
+    toDate: 'To date',
+    highlight: 'Highlight',
 };
 
 global.icon = {
@@ -329,19 +344,7 @@ global.ajax = {
 		//---------------------
 		
 		$(target).find('.datepicker').each(function() {
-			$(this).datepicker({
-				format: "dd-mm-yyyy",
-		        weekStart: 1,
-		        maxViewMode: 3,
-		        language: $(this).data('locale'),
-		        multidate: false,
-		        daysOfWeekDisabled: "0,6",
-		        autoclose: true,
-		        calendarWeeks: true,
-		        clearBtn: true,
-		        todayBtn: true,
-		        todayHighlight: true,
-		    });
+			$(this).datepicker({'format': $.fn.datepicker.defaults.format});
 		})
 
 		
@@ -423,6 +426,22 @@ global.ajax = {
 }
 
 $(document).ready(function() {
+	
+	//---------------------
+	// Defaults parameters for datepicker
+	//---------------------
+	
+	$.fn.datepicker.defaults.format = "dd-mm-yyyy";
+	$.fn.datepicker.defaults.weekStart = 1;
+	$.fn.datepicker.defaults.maxViewMode = 3;
+	$.fn.datepicker.defaults.language = $(document.body).data('locale').replace(/_/, '-');
+	$.fn.datepicker.defaults.multidate = false;
+	$.fn.datepicker.defaults.daysOfWeekDisabled = "0,6";
+	$.fn.datepicker.defaults.autoclose = true;
+	$.fn.datepicker.defaults.calendarWeeks = true;
+	$.fn.datepicker.defaults.clearBtn = true;
+	$.fn.datepicker.defaults.todayBtn = true;
+	$.fn.datepicker.defaults.todayHighlight = true;
 	
     ajax.onSuccess();
     

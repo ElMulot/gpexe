@@ -172,6 +172,22 @@ td {
 	
 }
 
+.highlight-late {
+	background-color: rgba(255, 145, 145, 0.5);
+}
+
+.highlight-15 {
+	background-color: rgba(255, 229, 145, 0.5);
+}
+
+.highlight-30 {
+	background-color: rgba(255, 255, 145, 0.5);
+}
+
+.highlight-ok {
+	background-color: rgba(203, 255, 145, 0.5);
+}
+
 #detail {
 	width: 6em;
 }
@@ -215,5 +231,7 @@ td {
 #pagination {
 	position: absolute;
 	bottom: 1.5rem;
-	width: 100%;
+	width: -webkit-calc(100% - 30px);
+	width: -moz-calc(100% - 30px);
+	width: calc(100% - 30px);
 }

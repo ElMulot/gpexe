@@ -141,9 +141,11 @@
 {% endblock radio_widget %}
 
 {% block date_widget %}
+	{#
     {% if app.request.locale is defined %}
     	{% set attr = attr|merge({'data-locale':app.request.locale}) %}
     {% endif %}
+    #}
     {% if widget != 'single_text' and not valid %}
         {% set attr = attr|merge({class: (attr.class|default('') ~ ' form-control is-invalid')|trim}) %}
         {% set valid = true %}

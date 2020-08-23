@@ -49,7 +49,11 @@ class VersionType extends AbstractType
 			$serie = $options['serie'];
 		}
 		
-		if (count($versions) <= 1) {
+		if (count($versions) == 1) {
+			$this->builder->add('name', TextType::class, [
+				'data' => $versions[0]->getName(),
+			]);
+		} elseif ($versions == false) {
 			$this->builder->add('name', TextType::class);
 		}
 		

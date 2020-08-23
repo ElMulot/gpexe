@@ -5,12 +5,12 @@
         "/build/runtime.js",
         "/build/vendors~app~automation~dashboard~document~login.js",
         "/build/vendors~app~document.js",
-        "/build/app~document.js",
+        "/build/vendors~app.js",
         "/build/app.js"
       ],
       "css": [
-        "/build/vendors~app~document.css",
-        "/build/app~document.css"
+        "/build/vendors~app.css",
+        "/build/app.css"
       ]
     },
     "login": {
@@ -29,12 +29,9 @@
         "/build/vendors~app~automation~dashboard~document~login.js",
         "/build/vendors~app~document.js",
         "/build/vendors~document.js",
-        "/build/app~document.js",
         "/build/document.js"
       ],
       "css": [
-        "/build/vendors~app~document.css",
-        "/build/app~document.css",
         "/build/document.css"
       ]
     },

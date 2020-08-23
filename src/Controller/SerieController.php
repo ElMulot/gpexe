@@ -30,15 +30,22 @@ class SerieController extends AbstractController
 	
 	public function index(Project $project, Company $company): Response
 	{
-		return $this->render('generic/list.html.twig', [
-			'header' => $this->translator->trans('Series for') . ' : ' . $project->getName(),
-			'route_back' => $this->generateUrl('serie_route', [
+		$series = $this->serieRepository->getSeries($project, $company);
+		if (empty($series)) {
+			return $this->redirectToRoute('project_view', [
 				'id' => $project->getId(),
-				'company' => $company->getId()
-			]),
-			'class' => Serie::class,
-			'entities' => $this->serieRepository->getSeries($project, $company)
-		]);
+			]);
+		} else {
+			return $this->render('generic/list.html.twig', [
+				'header' => $this->translator->trans('Series for') . ' : ' . $project->getName(),
+				'route_back' => $this->generateUrl('serie_route', [
+					'id' => $project->getId(),
+					'company' => $company->getId()
+				]),
+				'class' => Serie::class,
+				'entities' => $series,
+			]);
+		}
 	}
 
 	public function route(Project $project, Company $company): Response
@@ -89,7 +96,7 @@ class SerieController extends AbstractController
 						'form' => $view,
 					]);
 				}
-				$serie->setMetadatas($this->metadataRepository->getMetadatas($project));
+				
 				$serie->setMetadataValue($metadata, $value);
 			}
 			

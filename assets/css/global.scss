@@ -51,3 +51,9 @@ a {
 .toast-body {
 	white-space: pre-line;
 }
+
+.datepicker th {
+	border-radius: unset;
+	-moz-border-radius: 0;
+	-webkit-border-radius: 0;
+}
