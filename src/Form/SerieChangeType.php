@@ -11,12 +11,14 @@ use App\Entity\Serie;
 class SerieChangeType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options)
-    {
-    	$options['series']->removeElement($options['current_serie']);
-		
+    {		
+    	$currentSerie = $options['current_serie'];
+    	
     	$builder->add('serie', EntityType::class, [
         	'class' => Serie::class,
-        	'choices' => $options['series'],
+    		'choices' => $options['series']->filter(function($value) use ($currentSerie) {
+    			return ($value !== $currentSerie);
+    		}),
     		'choice_label' => function(Serie $serie) {
         		return $serie->getCompany()->getName() . ' - ' . $serie->getName();
         	},

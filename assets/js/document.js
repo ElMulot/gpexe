@@ -353,22 +353,24 @@ UrlSearch.prototype = {
 		for (const label in result.flash) {
 			
 			let div = $('#toast').append(create.div).children().last()
-				.addClass('toast px-3')
+				.addClass('alert alert-' + label + ' d-flex px-3')
 				.attr('role', 'alert')
 				.data('delay', 5000)
 				.attr('aria-live', 'assertive')
 				.attr('aria-atomic', true)
 			;
 			
-			let header = div.append(create.div).children().last()
-				.addClass('toast-header')
-				.append((['danger', 'warning'].includes(label))?icon.exclamation:icon.information)
-				.append(icon.close);
-			;
+			div.append(create.div).children().last()
+				.addClass('align-self-center')
+				.append(icon[label]);
 			
 			let body = div.append(create.ul).children().last()
-				.addClass('toast-body')
+				.addClass('justify-content-center flex-fill')
 			;
+			
+			div.append(create.div).children().last()
+				.addClass('justify-content-end')
+				.append(icon.close);
 			
 			if (result.flash[label].length > 1) {
 				for (let message of result.flash[label]) {

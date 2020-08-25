@@ -224,11 +224,11 @@ class Document
 
     public function setSerie(?Serie $serie): self
     {
-        $this->serie = $serie;
+    	$this->serie = $serie;
 
         return $this;
     }
-    
+       
     public function getCodificationItemByCodification($codification): ?CodificationItem
     {
     	foreach ($this->getCodificationItems()->getValues() as $codificationItem) {		

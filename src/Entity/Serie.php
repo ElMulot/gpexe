@@ -165,7 +165,7 @@ class Serie
     		$this->documents[] = $document;
     		$document->setSerie($this);
         }
-
+        
         return $this;
     }
 

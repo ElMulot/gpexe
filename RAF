@@ -1,5 +1,5 @@
 Général
-	Placer language dans body et modifier le javascript
+	Placer language dans body et modifier le javascript								OK
 	Callback fonction sur ajax
 
 Automation :
@@ -12,9 +12,11 @@ Contrôle d'accès :
     Vérifier le contrôle d'accès côté html
 
 Vue principale
-    Vérifier le bon fonctionnement des vues
+    Vérifier le bon fonctionnement des vues											OK
     Vérifier le fonctionnement des filtres											OK partiel
-    Enregistrer le document
+    Enregistrer le document															Ok
+    Coloration																		OK
+    Tri dates																		OK
     
 Avancement
     Ajouter pages avancement
@@ -26,7 +28,7 @@ Accueil et project view
 Debug:
 	Affichage n° de page à corriger
 	Hauteur de la table à revoir en css. Eviter le codage javascript.				OK
-	Document::move à faire
-	Toast
+	Document::move																	OK
+	Toast																			OK
 
 	

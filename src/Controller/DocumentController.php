@@ -318,16 +318,14 @@ class DocumentController extends AbstractController
 		if ($form->isSubmitted() && $form->isValid()) {
 			$entityManager = $this->getDoctrine()->getManager();
 			
-			dump($documents);
-			dump($form->get('serie')->getData());
-			
+			$newSerie = $form->get('serie')->getData();
 			foreach ($documents as $document) {
-				$document->setSerie($form->get('serie')->getData());
+				$document->setSerie($newSerie);
 				$entityManager->persist($document);
 			}
-			dump($documents);
 			
 			$entityManager->flush();
+			
 			$this->addFlash('success', 'The document has been successfully moved.');
 			return new Response();
 		} else {
