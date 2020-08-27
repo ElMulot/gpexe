@@ -5,12 +5,40 @@ namespace App\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Contracts\Translation\TranslatorInterface;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Entity\Vue;
 use App\Entity\Project;
 use App\Form\VueType;
+use App\Repository\VueRepository;
 
 class VueController extends AbstractController
 {
+	
+	private $vueRepository;
+	
+	public function __construct(TranslatorInterface $translator, VueRepository $vueRepository)
+	{
+		$this->translator = $translator;
+		$this->vueRepository = $vueRepository;
+	}
+	
+	public function index(Project $project): Response
+	{
+		$vues = $this->vueRepository->getVues($project, $this->getUser());
+		
+		foreach ($vues as &$vue) {
+			$vue['edit_url'] = $this->generateUrl('vue_edit', [
+				'id' => $vue['id'],
+			]);
+			$vue['delete_url'] = $this->generateUrl('vue_delete', [
+				'id' => $vue['id'],
+			]);
+		}
+		
+		return new JsonResponse($vues);
+	}
+	
 	public function new(Request $request, Project $project): Response
 	{
 		$vue = new Vue();

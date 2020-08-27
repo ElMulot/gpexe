@@ -50,7 +50,7 @@ main {
 	height: 6rem!important;
 }
 
-#vues > div > div > div, #vue_new, #series a {
+#vues > div, #vue_new, #series_panel a {
 	width: 10rem;
 }
 
@@ -93,7 +93,7 @@ main {
 	margin-bottom: 0;
 }
 
-#modal {
+#modal_container {
 	z-index: #{$zindex-modal+3} !important;
 }
 

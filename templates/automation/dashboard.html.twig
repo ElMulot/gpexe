@@ -1,8 +1,8 @@
 {% extends 'layout.html.twig' %}
 
 {% block stylesheets %}
-    {{ parent() }}
     {{ encore_entry_link_tags('dashboard') }}
+    {{ parent() }}
 {% endblock %}
 
 {% block nav %}
@@ -20,7 +20,6 @@
     	<div class="navbar-collapse" style="{{ block('nav_item') }}"></div>
     {% endif %}
     <div class="navbar-collapse navbar-brand justify-content-center">
-        
     </div>
     <div class="navbar-collapse" style="{{ block('nav_item') }}"></div>
 {% endblock %}
@@ -31,12 +30,12 @@
 
         </div>
         <div id="console" class="jumbotron py-3 col-6 overflow-auto h-100">
-        	<a class="active" data-toggle="ajax" data-url="{{ path('automation_console', app.request.query.all|merge({'id': automation.id})) }}" data-target="#console" data-add="true"></a>
+        	<a class="active" data-toggle="ajax" data-target="#console" data-url="{{ path('automation_console', app.request.query.all|merge({'id': automation.id})) }}"></a>
         </div>
     </div>
 {% endblock %}
 
 {% block javascripts %}
-    {{ parent() }}
     {{ encore_entry_script_tags('dashboard') }}
+    {{ parent() }}
 {% endblock %}

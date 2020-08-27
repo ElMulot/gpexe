@@ -1,0 +1,14 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+	{% dump(versions) %}
+    {% for version in versions %}
+        {{ version.getPropertyValueToString('version.list_o') }}
+        {{ version.getPropertyValueToString('version.date_o') }}
+        {{ version.getPropertyValueToString('version.text_o') }}
+{#         {% if version.status %}#}
+{#             {{ version.status.value }}#}
+{# 		{% endif %}#}
+		
+	{% endfor %}
+{% endblock %}

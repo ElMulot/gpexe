@@ -2,11 +2,11 @@
 
 namespace App\Repository;
 
+use Doctrine\Persistence\ManagerRegistry;
 use App\Entity\Vue;
 use App\Entity\Project;
 use App\Entity\User;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\Persistence\ManagerRegistry;
+use App\Service\RepositoryService;
 
 /**
  * @method Vue|null find($id, $lockMode = null, $lockVersion = null)
@@ -14,8 +14,9 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method Vue[]	findAll()
  * @method Vue[]	findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class VueRepository extends ServiceEntityRepository
+class VueRepository extends RepositoryService
 {
+	
 	public function __construct(ManagerRegistry $registry)
 	{
 		parent::__construct($registry, Vue::class);
@@ -27,24 +28,23 @@ class VueRepository extends ServiceEntityRepository
 	 */
 	public function getVues(Project $project, User $user)
 	{
-		$query = $this->createQueryBuilder('v');
-		
-		return $query
+		return $this->createQueryBuilder('v')
+			->select('v.id, v.name')
 			->innerJoin('v.user', 'u')
 			->innerJoin('u.profil', 'p')
 			->orWhere(
-				$query->expr()->andX(
-					$query->expr()->eq('p.isAdmin', ':isAdmin'),
-					$query->expr()->eq('v.isShared', ':isShared'),
+				$this->expr()->andX(
+					$this->expr()->eq('p.isAdmin', ':isAdmin'),
+					$this->expr()->eq('v.isShared', ':isShared'),
 				),
-				$query->expr()->eq('v.user', ':user')
+				$this->expr()->eq('v.user', ':user')
 			)
 			->setParameter('isAdmin', true)
 			->setParameter('isShared', true)
 			->setParameter('user', $user)
 			->orderBy('v.name')
 			->getQuery()
-			->getResult()
+			->getArrayResult()
 		;
 	}
 	

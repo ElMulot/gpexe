@@ -77,318 +77,13 @@ UrlSearch.prototype = {
 		
 		let url = $('#table').data('url') + this.toUrl();
 		$('#table').hide();
-		ajax.set('#spinner', url, 'GET', undefined, false, this.fillTable.bind(this));
+		global.ajax.set('#spinner', url);
 		
 	},
 	
-	fillTable: function(target, result = '') {
-		
-		$('#spinner').empty();
-		$('#table > tbody').empty();
-		$('#table').show();
-		if (result == false) return;
-		
-		console.log(result.query);
-		
-		let searchUrl = $.param(result.query);
-		this._paramsArray = new URLSearchParams(searchUrl);
-		this.delete('id[]');
-		
-		let that = this;
-		
-		//vue
-		$('#vues').find('button[data-id]').each(function() {
-			if ($(this).data('id') == that.get('vue')) {
-				$(this).attr('class', 'btn btn-outline-primary');
-				$(this).parent().find('div > button').attr('class', 'btn btn-outline-primary dropdown-toggle');
-			} else {
-				$(this).attr('class', 'btn btn-primary');
-				$(this).parent().find('div > button').attr('class', 'btn btn-primary dropdown-toggle');
-			}
-		});
-		
-		for (let tableHeader of tableHeaders) {
-			
-			//display
-			
-			if (display = this.get('display[' + tableHeader.id + ']')) {
-
-				tableHeader.aDisplay.addClass('btn-outline-primary');
-				tableHeader.aDisplay.removeClass('btn-primary');
-				tableHeader.chxDisplay.prop('checked', true);
-				tableHeader.col.css('width', display + 'em');
-				tableHeader.col.show();
-				tableHeader.th.show();
-				
-				//headers
-				
-				tableHeader.btnDropdown.empty();
-				
-				tableHeader.isFiltered = false;
-				tableHeader.isSortedAsc = false;
-				tableHeader.isSortedDesc = false;
-				
-				for (let select of tableHeader.selects) {
-					
-					if (this.has(select.name)) {
-						tableHeader.isFiltered = true;
-					}
-				}
-				
-				if (this.get('sortAsc') == tableHeader.id) {
-					tableHeader.isSortedAsc = true;
-				}
-				
-				if (this.get('sortDesc') == tableHeader.id) {
-					tableHeader.isSortedDesc = true;
-				}
-				
-				tableHeader.btnDropdown.append((tableHeader.isFiltered)?icon.funnelFill:icon.funnel);					
-				
-				if (tableHeader.isSortedAsc) {
-					tableHeader.btnDropdown.append(icon.arrowDown);
-				}
-				
-				if (tableHeader.isSortedDesc) {
-					tableHeader.btnDropdown.append(icon.arrowUp);
-				}
-				
-			} else {
-				tableHeader.aDisplay.addClass('btn-primary');
-				tableHeader.aDisplay.removeClass('btn-outline-primary');
-				tableHeader.chxDisplay.prop('checked', false);
-				tableHeader.col.hide();
-				tableHeader.th.hide();
-			}
-			
-		}
-		
-		//tbody
-		for (let version of result.versions) {
-			
-			let tr = $('#table > tbody').append(create.tr).children().last();
-			
-			let div = tr.append(create.td).children().last()
-				.append(create.div).children().last()
-					.addClass('custom-control custom-checkbox')
-			;
-			
-			div.append(create.checkbox).children().last()
-				.attr('id', 'c_' + version.id)
-				.val(version.id)
-				.on('click', this.lineChecked.bind(this))
-			;
-			
-			div.append(create.label).children().last()
-				.attr('for', 'c_' + version.id)
-			;
-			
-			
-			for (let tableHeader of tableHeaders) {
-				
-				data = version[tableHeader.id];
-				
-				if (data !== undefined) {
-					switch (tableHeader.col.attr('class')) {
-						case 'type-boolean':
-							if (data == 0) data = 'No';
-							if (data == 1) data = 'Yes';
-						case 'type-version':
-						case 'type-date':
-							dataClass = 'text-center';
-							break;
-						case 'type-reference':
-						case 'type-name':
-							dataClass = 'text-left';
-							break;
-						default:
-							dataClass = '';
-					}
-					
-					tr.append(create.td).children().last()
-						.addClass(dataClass)
-						.text(data)
-					;
-					
-					//highlight
-					
-					if (urlSearch.get('highlight') == tableHeader.id) {
-						if (data.toDate() !== null) {
-							if (data.toDate() < new Date()) {
-								tr.addClass('highlight-late');
-							} else if (data.toDate().addDays(-15) < new Date()) {
-								tr.addClass('highlight-15');
-							} else if (data.toDate().addDays(-30) < new Date()) {
-								tr.addClass('highlight-30');
-							} else {
-								tr.addClass('highlight-ok');
-							}
-						}
-					}
-					
-				} else {
-					
-					tableHeader.col.hide();
-					tableHeader.th.hide();
-					
-				}
-			}
-			
-			tr.append(create.td).children().last()
-				.append(create.smallButton).children().last()
-					.addClass('btn-success w-100')
-					.attr('data-url', version.detailUrl)
-					.text(text.details)
-					
-			;
-			
-		}
-		
-		$('#table tbody button[data-url]').on('click', function() {
-			$('#modal_detail').modal('show');
-			ajax.set('#modal_detail .modal-body', $(this).data('url'), 'GET', undefined, false, that.showDetail.bind(that));
-		});
-		
-		//pagination
-		$('#pagination').empty();
-			
-		$('#table_container').addClass('mb-4');
-		
-		let pageMax = result.pageMax;
-		let page = parseInt(this.get('page')) || 1;
-		page = Math.max(Math.min(page, pageMax), 1);
-		
-		div = $('#pagination').append(create.div).children().last()
-			.addClass('row m-0')
-		;
-		
-		div.append(create.div).children().last()
-			.addClass('col')
-		;
-		
-		ul = div.append(create.ul).children().last()
-			.addClass('pagination col justify-content-center')
-		;
-		
-		if (result.pageMax > 1) {
-			ul.append(create.li).children().last()
-				.addClass('page-item' + ((page == 1)?' disabled':''))
-				.on('click', function() {
-					if (page > 1) {
-						that.set('page', page - 1);
-						that.delete('vue');
-						that.fetch();
-					}
-				})
-				.append(create.a).children().last()
-					.addClass('page-link')
-					.attr('data-value', Math.max(1, page - 1))
-					.append(create.span).children().last()
-						.attr('aria-hidden', true)
-						.html('&laquo;')
-			;
-			
-			let pageStart = Math.min(Math.max(1, page - 2), Math.max(1, result.pageMax - 4));
-			let pageEnd = Math.min(pageStart + 5, pageMax);
-			
-			for (let i = pageStart; i <= pageEnd; i++) {
-				ul.append(create.li).children().last()
-					.addClass('page-item' + ((page == i)?' active':''))
-					.on('click', function() {
-						that.set('page', i);
-						that.delete('vue');
-						that.fetch();
-					})
-					.append(create.a).children().last()
-						.addClass('page-link')
-						.attr('data-value', i)
-						.text(i)
-				;
-			}
-			
-			ul.append(create.li).children().last()
-				.addClass('page-item' + ((page == pageMax)?' disabled':''))
-				.on('click', function() {
-					if (page < pageMax) {
-						that.set('page', page + 1);
-						that.delete('vue');
-						that.fetch();
-					}
-				})
-				.append(create.a).children().last()
-					.addClass('page-link')
-					.attr('data-value', Math.min(pageMax, page + 1))
-					.append(create.span).children().last()
-						.attr('aria-hidden', true)
-						.html('&raquo;')
-			;
-		}
-		
-		select = div.append(create.div).children().last()
-			.addClass('col d-flex justify-content-end mt-1 mr-5')
-			.append(create.select).children().last()
-			.addClass('form-control form-control-sm bg-dark border-secondary text-white')
-			.css('width', '150')
-			.on('change', function() {
-				urlSearch.set('results_per_page', $(this).val())
-				that.delete('vue');
-				urlSearch.fetch();
-			})
-		;
-		
-		let resultsPerPage = new Map([['10', 10], ['50', 50], ['100', 100], [text.all, '0']]);
-		for (let [text, value] of resultsPerPage) {
-			select.append(create.option).children().last()
-				.attr('value', value)
-				.attr('selected', urlSearch.get('results_per_page') == value)
-				.text(text)
-			;
-		}
-		
-		
-		//flashes
-		
-		$('#toast').empty();
-		
-		for (const label in result.flash) {
-			
-			let div = $('#toast').append(create.div).children().last()
-				.addClass('alert alert-' + label + ' d-flex px-3')
-				.attr('role', 'alert')
-				.data('delay', 5000)
-				.attr('aria-live', 'assertive')
-				.attr('aria-atomic', true)
-			;
-			
-			div.append(create.div).children().last()
-				.addClass('align-self-center')
-				.append(icon[label]);
-			
-			let body = div.append(create.ul).children().last()
-				.addClass('justify-content-center flex-fill')
-			;
-			
-			div.append(create.div).children().last()
-				.addClass('justify-content-end')
-				.append(icon.close);
-			
-			if (result.flash[label].length > 1) {
-				for (let message of result.flash[label]) {
-					body.append(create.li).children().last()
-						.text(message)
-					;
-				}
-			} else {
-				body.text(result.flash[label][0]);
-			}
-			
-			div.toast('show');
-		}
-		
-		this.lineChecked();
-		
-		//$('table').stickyTableHeaders();
-		
+	getVues: function() {
+		let url = $('#vues').data('url');
+		global.ajax.set('#vues', url);
 	},
 	
 	lineChecked: function () {
@@ -434,116 +129,6 @@ UrlSearch.prototype = {
 			$('#version_menu').hide();
 		}
 	},
-	
-	showDetail: function(target, result = '') {
-		$(target).find('.spinner-border').parent().remove();
-		if (result) {
-			$(target).html($(target).html() + result);
-		}
-		
-		//---------------------
-		// popover
-		//---------------------
-		
-		$(target).find('[data-toggle="popover"]').popover();
-		
-		//---------------------
-		// Ajax
-		//---------------------
-		
-	    //ajax.fetch(target, this.showDetail.bind(this));
-	    
-		let that = this;
-		
-		$('#version_tabs').find('a').each(function() {
-			
-			$(this).on('click', function(e) {
-				if ($(this).parent().has('.active')) {
-					$(this).parent().find('.active').removeClass('active');
-					$(this).addClass('active');
-				}
-				
-				ajax.set('#version_content', $(this).data('url'), 'GET', undefined, false, that.showContent.bind(that));
-			});
-			
-			if ($(this).hasClass('active')) {
-				$(this).trigger('click');
-			}
-		});
-		
-		$('#version_new_detail, #version_edit_detail, #version_remove_detail').on('click', function() {
-			$('#modal').modal('show');
-			ajax.set('#modal .modal-content', $(this).data('url') + '?id[]=' + $('#version_tabs>a.active').data('id'), 'GET', undefined, false, that.onDataEdited.bind(that));
-	    });
-
-		
-		//---------------------
-		// Modal & Collapse
-		//---------------------
-	    
-		$(target).on('hidden.bs.collapse', function() {
-			$('[data-toggle="collapse"][href="#' + $(this).attr('id') + '"]')
-				.removeClass('active')
-				.blur()
-			;
-		});
-		
-		$(target).on('hidden.bs.modal', function() {
-			$('[data-toggle="modal"]').blur();
-		});
-		
-		$(target).find('button[data-dismiss]').on('click', function() {
-			$('#modal').modal('hide');
-		});
-		
-		
-		//---------------------
-		// Bootstrap datepicker
-		//---------------------
-		
-		$(target).find('.datepicker').each(function() {
-			$(this).datepicker();
-		})
-	},
-	
-	showContent: function(target, result = '') {
-		
-		ajax.onSuccess(target, result);
-
-		let that = this;
-		
-		$('#save').on('click', function() {
-			$('#modal').modal('show');
-			ajax.set('#modal .modal-content', $(this).data('url'), 'GET', undefined, false, that.onDataEdited.bind(that));
-	    });
-	},
-	
-	onDataEdited: function(target, result = '') {
-		
-		if (result) {
-			ajax.onSuccess(target, result, this.onDataEdited.bind(this));
-		} else {
-			let that = this;
-			urlSearch.fetch();
-			if ($('#modal_detail').hasClass('show')) {
-				ajax.set('#modal_detail .modal-body', $('#menu').data('url'), 'GET', undefined, false, that.showDetail.bind(that));
-			}
-			$('#modal .modal-content').empty();
-			$('#modal').modal('hide');
-		}
-		
-	},
-	
-	onVueEdited: function(target, result = '') {
-		
-		if (result) {
-			ajax.onSuccess(target, result, this.onVueEdited.bind(this));
-		} else {
-			location.assign(location.origin + location.pathname + urlSearch.toUrl());
-		}
-		
-	},
-	
 }
 
 //---------------
@@ -1077,7 +662,7 @@ function createTableHeader(that) {
 //---------------
 
 function fillDisplay() {
-	var col = $('#display').append(create.div).children().last()
+	var col = $('#display_panel').append(create.div).children().last()
 		.addClass('row py-2')
 		.append(create.div).children().last()
 			.addClass('col')
@@ -1086,7 +671,7 @@ function fillDisplay() {
 	for (let tableHeader of tableHeaders) {
 		
 		tableHeader.aDisplay = col.append(create.a).children().last()
-			.addClass('btn-outline-primary col-2 m-1 text-left')
+			.addClass('btn btn-sm btn-outline-primary col-2 m-1 text-left text-nowrap')
 			.on('click', function() {
 				
 				tableHeader.chxDisplay.prop('checked', !tableHeader.chxDisplay.is(':checked'));
@@ -1138,6 +723,7 @@ $(document).ready(function() {
 	$('#search button').on('click', function() {
 		
 		urlSearch.set('search', $('#search input').val());
+		urlSearch.delete('vue');
 		urlSearch.fetch();
 		
 		return true;
@@ -1146,8 +732,6 @@ $(document).ready(function() {
 	
 	$('#search a').on('click', function() {
 		
-		$('#search input').val('');
-		
 		if (urlSearch.has('search')) {
 			urlSearch.delete('search');
 			urlSearch.fetch();
@@ -1155,41 +739,15 @@ $(document).ready(function() {
 		return true;
 		
 	});
-	
-	//---------------------
-	// Modal
-	//---------------------
-	
-	/*
-	$('#modal').on('show.bs.modal', function(e) {
-		ajax.set('#modal .modal-content', $(e.relatedTarget).data('url') + urlSearch.toUrl());
-	});
-	*/
-	
-	$('#document_new, #document_edit, #document_move, #document_delete, #version_new, #version_edit, #version_delete').on('click', function() {
-		$('#modal').modal('show');
-		ajax.set('#modal .modal-content', $(this).data('url') + urlSearch.toUrl('id[]'), 'GET', undefined, false, urlSearch.onDataEdited.bind(urlSearch));
-	})
-	
-	
-	//---------------------
-	// Modal_detail
-	//---------------------
-	
-	/*
-	$(document).ajaxComplete(function(e, xhr) {
-		if (xhr.responseText === '') {
-			//urlSearch.fetch();
-			$('#modal').modal('hide');
-			ajax.set('#toast', $('#toast').data('url'));
-		}
-	});
-	*/
 
 	//---------------------
 	// Menu display
 	//---------------------
 
+	$('#document_new, #document_edit, #document_move, #document_delete, #version_new, #version_edit, #version_delete').on('click', function() {
+		global.ajax.set('#modal', $(this).data('url') + urlSearch.toUrl('id[]'), {from: this});
+	});
+	
 	$('#document_edit').hide();
 	$('#document_move').hide();
 	$('#document_delete').hide();
@@ -1266,23 +824,418 @@ $(document).ready(function() {
 	// Vues
 	//---------------------
 	
-	$('#vues').find('button[data-id]').on('click', function() {
-		urlSearch.set('vue', $(this).data('id'));
-		urlSearch.fetch();
-	});
-	
-	$('#vues').find('a[data-url]').on('click', function() {
-		$('#modal').modal('show');
-		ajax.set('#modal .modal-content', $(this).data('url') + urlSearch.toUrl(), 'GET', undefined, false, urlSearch.onVueEdited.bind(urlSearch));
-	});
-	
 	$('#vue_new').on('click', function() {
-		$('#modal').modal('show');
-		ajax.set('#modal .modal-content', $(this).data('url') + urlSearch.toUrl(), 'GET', undefined, false, urlSearch.onVueEdited.bind(urlSearch));
+		$('#modal').attr('data-upload', 'vues');
+		global.ajax.set('#modal', $(this).data('url') + urlSearch.toUrl(), {modal: true});
 	});
 	
 	fillDisplay();
 	urlSearch.setFromUrl(window.location.search);
-	urlSearch.fetch();
+	//urlSearch.fetch();
+	
+	$('#vues').on('ajax.success', function(e, result, textStatus, jqXHR) {
+		
+		e.stopPropagation();	
+		$('#vues').empty();
+		
+		for (let vue of result) {
+			
+			div = $('#vues')
+				.append(create.div).children().last()
+				.addClass('btn-group m-1')
+				.attr('role', 'group')
+			;
+			
+			btn = div.append(create.button).children().last()
+				.addClass('btn-primary')
+				.attr('data-id', vue.id)
+				.text(vue.name)
+				.on('click', function() {
+					urlSearch.set('vue', vue.id);
+					urlSearch.fetch();
+					$(this).blur();
+				})
+			;
+			
+			div2 = div.append(create.div).children().last()
+				.addClass('btn-group')
+				.attr('role', 'group')
+			;
+			
+			btn2 = div2.append(create.button).children().last()
+				.addClass('btn-primary dropdown-toggle')
+				.attr('data-toggle', 'dropdown')
+				.attr('aria-haspopup', true)
+				.attr('aria-expanded', false)
+			;
+			div3 = div2.append(create.div).children().last()
+				.addClass('dropdown-menu')
+			;
+			
+			div3.append(create.a).children().last()
+				.addClass('dropdown-item text-success')
+				.on('click', function() {
+					$('#modal').attr('data-upload', 'vues');
+					global.ajax.set('#modal', vue['edit_url'], {modal: true});
+				})
+				.text(text.edit)
+			;
+			
+			div3.append(create.a).children().last()
+				.addClass('dropdown-item text-danger')
+				.on('click', function() {
+					$('#modal').attr('data-upload', 'vues');
+					global.ajax.set('#modal', vue['delete_url'], {modal: true, from: this});
+				})
+				.text(text.delete)
+			;
+		}
+	
+	});
+	
+	$('#table_container').on('ajax.success', function(e, result, textStatus, jqXHR) {
+		
+		e.stopPropagation();
+		
+		$('#spinner').empty();
+		$('#table > tbody').empty();
+		$('#table').show();
+		if (result == false) return;
+		
+		console.log(result.query);
+		
+		let searchUrl = $.param(result.query);
+		urlSearch._paramsArray = new URLSearchParams(searchUrl);
+		urlSearch.delete('id[]');
+		
+		//vue
+		$('#vues').find('button[data-id]').each(function() {
+			if ($(this).data('id') == urlSearch.get('vue')) {
+				$(this).attr('class', 'btn btn-outline-primary');
+				$(this).parent().find('div > button').attr('class', 'btn btn-outline-primary dropdown-toggle');
+			} else {
+				$(this).attr('class', 'btn btn-primary');
+				$(this).parent().find('div > button').attr('class', 'btn btn-primary dropdown-toggle');
+			}
+		});
+		
+		for (let tableHeader of tableHeaders) {
+			
+			//display
+			
+			if (display = urlSearch.get('display[' + tableHeader.id + ']')) {
+
+				tableHeader.aDisplay.addClass('btn-outline-primary');
+				tableHeader.aDisplay.removeClass('btn-primary');
+				tableHeader.chxDisplay.prop('checked', true);
+				tableHeader.col.css('width', display + 'em');
+				tableHeader.col.show();
+				tableHeader.th.show();
+				
+				//headers
+				
+				tableHeader.btnDropdown.empty();
+				
+				tableHeader.isFiltered = false;
+				tableHeader.isSortedAsc = false;
+				tableHeader.isSortedDesc = false;
+				
+				for (let select of tableHeader.selects) {
+					
+					if (urlSearch.has(select.name)) {
+						tableHeader.isFiltered = true;
+					}
+				}
+				
+				if (urlSearch.get('sortAsc') == tableHeader.id) {
+					tableHeader.isSortedAsc = true;
+				}
+				
+				if (urlSearch.get('sortDesc') == tableHeader.id) {
+					tableHeader.isSortedDesc = true;
+				}
+				
+				tableHeader.btnDropdown.append((tableHeader.isFiltered)?icon.funnelFill:icon.funnel);					
+				
+				if (tableHeader.isSortedAsc) {
+					tableHeader.btnDropdown.append(icon.arrowDown);
+				}
+				
+				if (tableHeader.isSortedDesc) {
+					tableHeader.btnDropdown.append(icon.arrowUp);
+				}
+				
+			} else {
+				tableHeader.aDisplay.addClass('btn-primary');
+				tableHeader.aDisplay.removeClass('btn-outline-primary');
+				tableHeader.chxDisplay.prop('checked', false);
+				tableHeader.col.hide();
+				tableHeader.th.hide();
+			}
+			
+		}
+		
+		//tbody
+		for (let version of result.versions) {
+			
+			let tr = $('#table > tbody').append(create.tr).children().last();
+			
+			let div = tr.append(create.td).children().last()
+				.append(create.div).children().last()
+					.addClass('custom-control custom-checkbox')
+			;
+			
+			div.append(create.checkbox).children().last()
+				.attr('id', 'c_' + version.id)
+				.val(version.id)
+				.on('click', urlSearch.lineChecked.bind(urlSearch))
+			;
+			
+			div.append(create.label).children().last()
+				.attr('for', 'c_' + version.id)
+			;
+			
+			
+			for (let tableHeader of tableHeaders) {
+				
+				data = version[tableHeader.id];
+				
+				if (data !== undefined) {
+					switch (tableHeader.col.attr('class')) {
+						case 'type-boolean':
+							if (data == 0) data = 'No';
+							if (data == 1) data = 'Yes';
+						case 'type-version':
+						case 'type-date':
+							dataClass = 'text-center';
+							break;
+						case 'type-reference':
+						case 'type-name':
+							dataClass = 'text-left';
+							break;
+						default:
+							dataClass = '';
+					}
+					
+					tr.append(create.td).children().last()
+						.addClass(dataClass)
+						.text(data)
+					;
+					
+					//highlight
+					
+					if (urlSearch.get('highlight') == tableHeader.id) {
+						if (data.toDate() !== null) {
+							if (data.toDate() < new Date()) {
+								tr.addClass('highlight-late');
+							} else if (data.toDate().addDays(-15) < new Date()) {
+								tr.addClass('highlight-15');
+							} else if (data.toDate().addDays(-30) < new Date()) {
+								tr.addClass('highlight-30');
+							} else {
+								tr.addClass('highlight-ok');
+							}
+						}
+					}
+					
+				} else {
+					
+					tableHeader.col.hide();
+					tableHeader.th.hide();
+					
+				}
+			}
+			
+			tr.append(create.td).children().last()
+				.append(create.smallButton).children().last()
+					.addClass('btn-success w-100')
+					.attr('data-url', version.detailUrl)
+					.attr('data-toggle', 'modal ajax')
+					.attr('data-target', '#modal_detail')
+					.text(text.details)
+			;
+			
+		}
+		
+		//pagination
+		$('#pagination').empty();
+			
+		$('#table_container').addClass('mb-4');
+		
+		let pageMax = result.pageMax;
+		let page = parseInt(urlSearch.get('page')) || 1;
+		page = Math.max(Math.min(page, pageMax), 1);
+		
+		div = $('#pagination').append(create.div).children().last()
+			.addClass('row m-0')
+		;
+		
+		div.append(create.div).children().last()
+			.addClass('col')
+		;
+		
+		ul = div.append(create.ul).children().last()
+			.addClass('pagination col justify-content-center')
+		;
+		
+		if (result.pageMax > 1) {
+			ul.append(create.li).children().last()
+				.addClass('page-item' + ((page == 1)?' disabled':''))
+				.on('click', function() {
+					if (page > 1) {
+						urlSearch.set('page', page - 1);
+						urlSearch.delete('vue');
+						urlSearch.fetch();
+					}
+				})
+				.append(create.a).children().last()
+					.addClass('page-link')
+					.attr('data-value', Math.max(1, page - 1))
+					.append(create.span).children().last()
+						.attr('aria-hidden', true)
+						.html('&laquo;')
+			;
+			
+			let pageStart = Math.min(Math.max(1, page - 2), Math.max(1, result.pageMax - 4));
+			let pageEnd = Math.min(pageStart + 5, pageMax);
+			
+			for (let i = pageStart; i <= pageEnd; i++) {
+				ul.append(create.li).children().last()
+					.addClass('page-item' + ((page == i)?' active':''))
+					.on('click', function() {
+						urlSearch.set('page', i);
+						urlSearch.delete('vue');
+						urlSearch.fetch();
+					})
+					.append(create.a).children().last()
+						.addClass('page-link')
+						.attr('data-value', i)
+						.text(i)
+				;
+			}
+			
+			ul.append(create.li).children().last()
+				.addClass('page-item' + ((page == pageMax)?' disabled':''))
+				.on('click', function() {
+					if (page < pageMax) {
+						urlSearch.set('page', page + 1);
+						urlSearch.delete('vue');
+						urlSearch.fetch();
+					}
+				})
+				.append(create.a).children().last()
+					.addClass('page-link')
+					.attr('data-value', Math.min(pageMax, page + 1))
+					.append(create.span).children().last()
+						.attr('aria-hidden', true)
+						.html('&raquo;')
+			;
+		}
+		
+		select = div.append(create.div).children().last()
+			.addClass('col d-flex justify-content-end mt-1 mr-5')
+			.append(create.select).children().last()
+			.addClass('form-control form-control-sm bg-dark border-secondary text-white')
+			.css('width', '150')
+			.on('change', function() {
+				urlSearch.set('results_per_page', $(this).val())
+				urlSearch.delete('vue');
+				urlSearch.fetch();
+			})
+		;
+		
+		let resultsPerPage = new Map([['10', 10], ['50', 50], ['100', 100], [text.all, '0']]);
+		for (let [text, value] of resultsPerPage) {
+			select.append(create.option).children().last()
+				.attr('value', value)
+				.attr('selected', urlSearch.get('results_per_page') == value)
+				.text(text)
+			;
+		}
+		
+		
+		//flashes
+		
+		$('#toast').empty();
+		
+		for (const label in result.flash) {
+			
+			let div = $('#toast').append(create.div).children().last()
+				.addClass('alert alert-' + label + ' d-flex px-3')
+				.attr('role', 'alert')
+				.data('delay', 5000)
+				.attr('aria-live', 'assertive')
+				.attr('aria-atomic', true)
+			;
+			
+			div.append(create.div).children().last()
+				.addClass('align-self-center')
+				.append(icon[label]);
+			
+			let body = div.append(create.ul).children().last()
+				.addClass('justify-content-center flex-fill')
+			;
+			
+			div.append(create.div).children().last()
+				.addClass('justify-content-end')
+				.append(icon.close);
+			
+			if (result.flash[label].length > 1) {
+				for (let message of result.flash[label]) {
+					body.append(create.li).children().last()
+						.text(message)
+					;
+				}
+			} else {
+				body.text(result.flash[label][0]);
+			}
+			
+			div.toast('show');
+		}
+		
+		urlSearch.lineChecked();
+		
+		global.ajax.fetch('#table > tbody');
+		//$('table').stickyTableHeaders();
+		
+	});
+	
+	$('#modal_detail').on('ajax.completed', function(e, result, textStatus, jqXHR) {
+		
+		$(e.target).find('#version_edit_detail, #version_delete_detail').on('click', function() {
+			global.ajax.set('#modal', $(this).data('url') + '?id[]=' + $('#version_tabs>a.active').data('id'), {from: this});
+	    });
+		
+	});
+		
+	$('#modal').on('ajax.success', function(e, result, textStatus, jqXHR) {
+		
+		if (result === '') {
+			
+			if ($('#modal_detail_container').hasClass('show')) {
+				global.ajax.set('#modal_detail', $('#menu').data('url'));
+			}
+			$('#modal').empty();
+			$('#modal_container').modal('hide');
+			
+			if ($('#modal').data('upload') === 'vues') {
+				
+				global.ajax.set('#vues', $('#vues').data('url'));
+				$('#modal').removeAttr('data-upload');
+				
+			} else {
+			
+				urlSearch.fetch();
+				
+			}
+			e.stopPropagation();
+		}
+		
+	});
+	
+	$('#vues').on('ajax.completed', function(e, result, textStatus, jqXHR) {
+		urlSearch.fetch();
+		e.stopPropagation();
+	});
 	
 });

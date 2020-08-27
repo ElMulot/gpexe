@@ -4,7 +4,6 @@ namespace App\Repository;
 
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\ORM\Query\Expr\Join;
@@ -17,6 +16,8 @@ use App\Entity\Document;
 use App\Entity\User;
 use App\Entity\Version;
 use App\Entity\Review;
+use App\Service\RepositoryService;
+use Monolog\Test\TestCase;
 
 /**
  * @method Version|null find($id, $lockMode = null, $lockVersion = null)
@@ -24,7 +25,7 @@ use App\Entity\Review;
  * @method Version[]	findAll()
  * @method Version[]	findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class VersionRepository extends ServiceEntityRepository
+class VersionRepository extends RepositoryService
 {
 	
 	private $uid;
@@ -133,6 +134,7 @@ class VersionRepository extends ServiceEntityRepository
 		$versions = $this->query->getQuery()->getResult();
 		
 		if ($search = $request->query->get('search')) {
+			
 			$search = preg_replace('/\*+/', '.*', $search);
 			foreach ($versions as $key => $version) {
 				if (preg_match('/' . $search . '/', $version->getDocument()->getReference()) === 0) {
@@ -272,9 +274,16 @@ class VersionRepository extends ServiceEntityRepository
 		$this->query = $this->createQueryBuilder('v')
 			->innerJoin('v.status', 't')
 			->innerJoin('v.document', 'd')
-			->innerJoin('d.serie', 's');
+			->innerJoin('d.serie', 's')
+			->andWhere('d.serie IN (:id)')->setParameter('id', $series);
 		
-		$this->query->andWhere('d.serie IN (:id)')->setParameter('id', $series);
+		
+		$this->query->leftJoin('s.metadataItems', 'si');
+		$this->query->leftJoin('s.metadataValues', 'sv');
+		$this->query->leftJoin('d.metadataItems', 'di');
+		$this->query->leftJoin('d.metadataValues', 'dv');
+		$this->query->leftJoin('v.metadataItems', 'vi');
+		$this->query->leftJoin('v.metadataValues', 'vv');
 		
 		if ($request) {
 			
@@ -377,7 +386,7 @@ class VersionRepository extends ServiceEntityRepository
 						break;
 				}
 			}
-			
+			dump($metadatasGroup);
 			foreach ($metadatasGroup as $parent => $metadatas) {
 				
 				foreach ($metadatas as $metadataId => $value) {
@@ -467,39 +476,38 @@ class VersionRepository extends ServiceEntityRepository
 						
 					} elseif ($field['type'] == Metadata::LIST) {
 						
-						switch ($parent) {
-							case 'serie':
-								$subQuery = $this->getEntityManager()->createQueryBuilder()
-									->select('s' . $metadataId)
-									->from(Serie::class, 's' . $metadataId)
-									->innerJoin('s' . $metadataId . '.metadataItems', 'i' . $metadataId);
-								break;
+// 						switch ($parent) {
+// 							case 'serie':
+// 								$subQuery = $this->getEntityManager()->createQueryBuilder()
+// 									->select('s' . $metadataId)
+// 									->from(Serie::class, 's' . $metadataId)
+// 									->innerJoin('s' . $metadataId . '.metadataItems', 'i' . $metadataId);
+// 								break;
 								
-							case 'document':
-								$subQuery = $this->getEntityManager()->createQueryBuilder()
-									->select('d' . $metadataId)
-									->from(Document::class, 'd' . $metadataId)
-									->innerJoin('d' . $metadataId . '.metadataItems', 'i' . $metadataId);
-								break;
-							case 'version':
-								$subQuery = $this->createQueryBuilder('v' . $metadataId)
-									->innerJoin('v' . $metadataId . '.metadataItems', 'i' . $metadataId);
-								break;
-						}
+// 							case 'document':
+// 								$subQuery = $this->getEntityManager()->createQueryBuilder()
+// 									->select('d' . $metadataId)
+// 									->from(Document::class, 'd' . $metadataId)
+// 									->innerJoin('d' . $metadataId . '.metadataItems', 'i' . $metadataId);
+// 								break;
+// 							case 'version':
+// 								$subQuery = $this->createQueryBuilder('v' . $metadataId)
+// 									->innerJoin('v' . $metadataId . '.metadataItems', 'i' . $metadataId);
+// 								break;
+// 						}
 						
 						$result = [];
 						foreach ($value as $id) {
-							$subQuery->orWhere(
-								$subQuery->expr()->andX(
-									$this->addEq('i' . $metadataId . '.id', $id),
-									$this->addEq('i' . $metadataId . '.metadata', $metadataId)
-								)
+							$this->query->orWhere(
+								$this->query->expr()->andX(
+									$this->addEq('vi.id', $id),
+									$this->addEq('vi.metadata', $metadataId),								)
 							);
 						}
 						
 					}
 					
-					$this->query->andWhere($this->query->expr()->in('v.id', $subQuery->getDQL()));
+					//$this->query->andWhere($this->query->expr()->in('v.id', $subQuery->getDQL()));
 					
 				}
 			}
@@ -554,6 +562,70 @@ class VersionRepository extends ServiceEntityRepository
 		}
 
 		return $andQuery;
+	}
+	
+	
+	private function displayLog()
+	{
+		
+		$conf = $this->getEntityManager()->getConnection()->getConfiguration();
+		$backupLogger = $conf->getSQLLogger();
+		$logger = new \Doctrine\DBAL\Logging\DebugStack();
+		$conf->setSQLLogger($logger);
+		
+		$this->query->getQuery()->getResult();
+		$conf->setSQLLogger($backupLogger); //restore logger for other queries
+		
+		$res = $logger->queries[1];
+		
+		foreach ($res['params'] as $p) {
+			if (is_array($p)) {
+				foreach ($p as $v) {
+					$res['sql'] = str_replace('?', $v, $res['sql']);
+				}
+			} else {
+				$res['sql'] = str_replace('?', $p, $res['sql']);
+			}
+		}
+		dd($res['sql']);
+	}
+	
+	public function test()
+	{
+
+		$this->query = $this->createQueryBuilder('v')
+			->select('t, v, d, s, vi', 'vv')
+			->innerJoin('v.status', 't')
+			->innerJoin('v.document', 'd')
+			->innerJoin('d.serie', 's')
+			->andWhere('d.serie IN (15)');
+			
+		
+// 		$this->query->leftJoin('s.metadataItems', 'si');
+// 		$this->query->leftJoin('s.metadataValues', 'sv');
+// 		$this->query->leftJoin('d.metadataItems', 'di');
+// 		$this->query->leftJoin('d.metadataValues', 'dv');
+ 		$this->query->leftJoin('v.metadataItems', 'vi');
+		$this->query->leftJoin('v.metadataValues', 'vv');
+		
+// 		$this->query
+// 			->andWhere('vi.metadata = 2')
+// 			->andWhere('vi.id = 9');
+		
+		return $this->query->getQuery()
+//  			->setFetchMode(Version::class, 'status', \Doctrine\ORM\Mapping\ClassMetadata::FETCH_EAGER)
+// 			->setFetchMode(Version::class, 'writer', \Doctrine\ORM\Mapping\ClassMetadata::FETCH_EAGER)
+// 			->setFetchMode(Version::class, 'checker', \Doctrine\ORM\Mapping\ClassMetadata::FETCH_EAGER)
+// 			->setFetchMode(Version::class, 'approver', \Doctrine\ORM\Mapping\ClassMetadata::FETCH_EAGER)
+		
+// 			->setFetchMode(Version::class, 'document', \Doctrine\ORM\Mapping\ClassMetadata::FETCH_EAGER)
+// 			->setFetchMode(Document::class, 'serie', \Doctrine\ORM\Mapping\ClassMetadata::FETCH_EAGER)
+			
+// 			->setFetchMode(Version::class, 'metadataItems', \Doctrine\ORM\Mapping\ClassMetadata::FETCH_EAGER)
+			
+		->getResult();
+			
+		//$this->displayLog();
 	}
 	
 }

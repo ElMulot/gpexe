@@ -336,6 +336,8 @@ document_detail:
     path: /project/serie/document/{id}/detail
     requirements:
         id: \d+
+    defaults:
+        id: 0
     controller: App\Controller\DocumentController::detail
 
 document_new:
@@ -364,7 +366,7 @@ document_delete:
     controller: App\Controller\DocumentController::delete
 
 version_detail:
-    path: /project/serie/document/version/detail/{id}
+    path: /project/serie/document/version/{id}/detail
     requirements:
         id: \d+
     controller: App\Controller\VersionController::detail
@@ -411,6 +413,12 @@ review_delete:
     requirements:
         id: \d+
     controller: App\Controller\ReviewController::delete
+    
+vue:
+    path: /project/{project}/vue
+    requirements:
+        project: \d+
+    controller: App\Controller\VueController::index
     
 vue_new:
     path: /project/{id}/vue/new
@@ -487,3 +495,7 @@ log:
 log_clear:
     path: /log/clear
     controller: App\Controller\LogController::clear
+    
+test:
+    path: /test
+    controller: App\Controller\DocumentController::test

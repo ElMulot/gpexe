@@ -50,6 +50,7 @@ class FieldService
 				'name' => 'document[reference]',
 				'title' => $this->translator->trans('Reference'),
 				'type' => Metadata::LIST,
+				'parent' => 'document',
 				'sort' => false,
 			],
 			'version.name' => [
@@ -57,6 +58,7 @@ class FieldService
 				'name' => 'version[name]',
 				'title' => $this->translator->trans('Version'),
 				'type' => Metadata::TEXT,
+				'parent' => 'version',
 				'sort' => true,
 			],
 			'document.name' => [
@@ -64,6 +66,7 @@ class FieldService
 				'name' => 'document[name]',
 				'title' => $this->translator->trans('Name'),
 				'type' => Metadata::TEXT,
+				'parent' => 'document',
 				'sort' => true,
 			],
 			'version.initialScheduledDate' => [
@@ -71,6 +74,7 @@ class FieldService
 				'name' => 'version[initial_scheduled_date]',
 				'title' => $this->translator->trans('Initial scheduled date'),
 				'type' => Metadata::DATE,
+				'parent' => 'version',
 				'sort' => true,
 			],
 			'version.scheduledDate' => [
@@ -78,6 +82,7 @@ class FieldService
 				'name' => 'version[scheduled_date]',
 				'title' => $this->translator->trans('Scheduled Date'),
 				'type' => Metadata::DATE,
+				'parent' => 'version',
 				'sort' => true,
 			],
 			'version.deliveryDate' => [
@@ -85,6 +90,7 @@ class FieldService
 				'name' => 'version[delivery_date]',
 				'title' => $this->translator->trans('Delivery Date'),
 				'type' => Metadata::DATE,
+				'parent' => 'version',
 				'sort' => true,
 			],
 			'version.isRequired' => [
@@ -92,6 +98,7 @@ class FieldService
 				'name' => 'version[is_required]',
 				'title' => $this->translator->trans('Is required'),
 				'type' => Metadata::BOOLEAN,
+				'parent' => 'version',
 				'sort' => false,
 			],
 			'version.writer' => [
@@ -99,6 +106,7 @@ class FieldService
 				'name' => 'version[writer]',
 				'title' => $this->translator->trans('Writer'),
 				'type' => Metadata::LIST,
+				'parent' => 'version',
 				'sort' => true,
 			],
 			'version.checker' => [
@@ -106,6 +114,7 @@ class FieldService
 				'name' => 'version[checker]',
 				'title' => $this->translator->trans('Checker'),
 				'type' => Metadata::LIST,
+				'parent' => 'version',
 				'sort' => true,
 			],
 			'version.approver' => [
@@ -113,6 +122,7 @@ class FieldService
 				'name' => 'version[approver]',
 				'title' => $this->translator->trans('Approver'),
 				'type' => Metadata::LIST,
+				'parent' => 'version',
 				'sort' => true,
 			],
 			'serie.name' => [
@@ -120,6 +130,7 @@ class FieldService
 				'name' => 'serie[name]',
 				'title' => $this->translator->trans('Serie name'),
 				'type' => Metadata::LIST,
+				'parent' => 'serie',
 				'sort' => true,
 			],
 			'serie.company' => [
@@ -127,6 +138,7 @@ class FieldService
 				'name' => 'serie[company]',
 				'title' => $this->translator->trans('Company'),
 				'type' => Metadata::LIST,
+				'parent' => 'serie',
 				'sort' => true,
 			],
 			'status.name' => [
@@ -134,6 +146,7 @@ class FieldService
 				'name' => 'status[name]',
 				'title' => $this->translator->trans('Status name'),
 				'type' => Metadata::TEXT,
+				'parent' => 'status',
 				'sort' => true,
 			],
 			'status.value' => [
@@ -141,6 +154,7 @@ class FieldService
 				'name' => 'status[value]',
 				'title' => $this->translator->trans('Status value'),
 				'type' => Metadata::LIST,
+				'parent' => 'status',
 				'sort' => true,
 			],
 			'status.type' => [
@@ -148,6 +162,7 @@ class FieldService
 				'name' => 'status[type]',
 				'title' => $this->translator->trans('Status type'),
 				'type' => Metadata::LIST,
+				'parent' => 'status',
 				'sort' => true,
 			],
 		];
@@ -157,7 +172,8 @@ class FieldService
 				'id' => $metadata->getFullDomId(),
 				'name' => $metadata->getFullDomName(),
 				'title' => $metadata->getName(),
-				'type' =>$metadata->getType(),
+				'type' => $metadata->getType(),
+				'parent' => $metadata->getParentName(),
 				'sort' => false,
 			];
 		}
@@ -169,6 +185,7 @@ class FieldService
 					'name' => 'visa[' . $company->getCodename() . ']',
 					'title' => $this->translator->trans('Visa') . ' ' . $company->getName(),
 					'type' => Metadata::LIST,
+					'parent' => 'visa',
 					'sort' => false,
 				];
 			}

@@ -31,6 +31,6 @@
 		<button type="button" class="btn btn-secondary w-75" data-dismiss="modal">{% trans %}Cancel{% endtrans %}</button>
 	</div>
 	<div class="col-4 text-left">
-		<button type="submit" form="form_ajax" class="btn btn-danger w-75" data-toggle="ajax" data-url="{{ app.request.uri }}" data-target="#modal .modal-content">{% trans %}Delete{% endtrans %}</button>
+		<button type="submit" form="form_ajax" class="btn btn-danger w-75" data-toggle="ajax" data-target="#modal" data-url="{{ app.request.uri }}">{% trans %}Delete{% endtrans %}</button>
 	</div>
 </div>

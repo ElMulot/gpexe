@@ -70,8 +70,6 @@ class DocumentController extends AbstractController
 	
 	public function index(Project $project, string $type, Serie $serie = null): Response
 	{
-		$vues = $this->vueRepository->getVues($project, $this->getUser());
-		
 		if ($serie === null) {
 			$company = null;
 			$series = $this->serieRepository->getSeriesByType($project, $type);
@@ -88,7 +86,6 @@ class DocumentController extends AbstractController
 			'type' => $type,
 			'company' => $company,
 			'series' => $series,
-			'vues' => $vues,
 			'fields' => $fields,
 			'route_back' =>  $this->generateUrl('project_view', [
 				'id' => $project->getId(),
@@ -140,18 +137,22 @@ class DocumentController extends AbstractController
 		
 		return new JsonResponse([
 			'versions' => $versions,
-			'query' => $request->query->all(),
 			'pageMax' => $pageMax,
+			'query' => $request->query->all(),
 			'flash' =>$this->get('session')->getFlashBag()->all(),
 		]);
 		
 	}
 	
-	public function detail(Version $version): Response
+	public function detail(Version $version = null): Response
 	{
+		if ($version === null) {
+			$this->addFlash('info', 'No more document');
+			return $this->render('ajax/error.html.twig');
+		}
+		
 		$document = $version->getDocument();
 		$project = $document->getSerie()->getProject();
-		
 	    return $this->render('document/detail.html.twig', [
 	        'current_version' => $version,
 	    	'versions' => $this->versionRepository->getVersionsByDocument($document),
@@ -370,7 +371,8 @@ class DocumentController extends AbstractController
 	    
 	}
 	
-	private function getDefaultDisplay() {
+	private function getDefaultDisplay()
+	{
 		
 		return [
 			'document_reference' => '20',
@@ -381,6 +383,15 @@ class DocumentController extends AbstractController
 			'version_is_required' => '10',
 			'status_value' => '10',
 		];
+	}
+	
+	public function test(): Response
+	{
+		$versions = $this->versionRepository->test();
+		
+		return $this->render('document/test.html.twig', [
+			'versions' => $versions,
+		]);
 	}
 	
 }

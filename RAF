@@ -1,6 +1,6 @@
 Général
 	Placer language dans body et modifier le javascript								OK
-	Callback fonction sur ajax
+	Events sur ajax																	OK
 
 Automation :
     Vérifier les imports															OK partiel
@@ -26,7 +26,7 @@ Accueil et project view
 	Vérifier MAJ JS																	OK
 
 Debug:
-	Affichage n° de page à corriger
+	Affichage n° de page à corriger													OK
 	Hauteur de la table à revoir en css. Eviter le codage javascript.				OK
 	Document::move																	OK
 	Toast																			OK

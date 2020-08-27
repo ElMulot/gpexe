@@ -59,8 +59,9 @@ class VersionController extends AbstractController
 		$version = new Version();
 		
 		if ($document === null) {
+			
 			$documents = $this->documentRepository->getDocumentsByRequest($request);
-		
+			
 			if ($documents == false) {
 				$this->addFlash('danger', 'None documents selected');
 				return $this->render('ajax/error.html.twig');

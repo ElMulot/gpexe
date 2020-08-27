@@ -5,16 +5,16 @@
 	{{ form(form) }}
 	
 	<div class="d-flex justify-content-center">
-		<button type="submit" form="form_ajax" class="btn btn-primary w-25" data-toggle="ajax" data-url="{{ app.request.uri }}" data-target="#output">{% trans %}Save{% endtrans %}</button>
+		<button type="submit" form="form_ajax" class="btn btn-primary w-25" data-toggle="ajax" data-url="{{ app.request.uri }}" data-target="#output">{% trans %}Launch{% endtrans %}</button>
 	</div>
 
 {% else %}
 	
-	<div class="d-flex justify-content-center mt-5">
+	<div class="d-flex justify-content-center mt-4">
 		<div class="spinner-border" role="status">
 			<span class="sr-only">{% trans %}Loading...{% endtrans %}</span>
 		</div>
 	</div>
-	<a class="active" data-toggle="ajax" data-url="{{ path('automation_console', app.request.query.all|merge({'id': automation.id})) }}" data-target="#console" data-add="true"></a>
+	<a class="active" data-toggle="ajax" data-url="{{ path('automation_console', app.request.query.all|merge({'id': automation.id})) }}" data-target="#console"></a>
 	
 {% endif %}

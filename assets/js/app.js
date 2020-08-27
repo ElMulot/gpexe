@@ -18,6 +18,10 @@ Date.prototype.addDays = function(days) {
     return date;
 }
 
+$.fn.exist = function () {
+	return this.length !== 0 && this;
+}
+
 global.create = {
 	div: function() {
 		return $(document.createElement('div'))
@@ -26,8 +30,8 @@ global.create = {
 	},
 	
 	a: function() {
-		return $(document.createElement('a'))
-			.addClass('btn btn-sm text-nowrap')
+		return $(document.createElement('a'));
+			//.addClass('btn btn-sm text-nowrap')
 	},
 	
 	span: function() {
@@ -72,14 +76,23 @@ global.create = {
 		;
 	},
 	
+	button: function() {
+		return $(document.createElement('button'))
+			.attr('type', 'button')
+			.addClass('btn')
+		;
+	},
+	
 	menuButton: function() {
 		return $(document.createElement('button'))
+			.attr('type', 'button')
 			.addClass('btn btn-sm btn-primary text-nowrap rounded-0')
 		;
 	},
 	
 	smallButton: function() {
 		return $(document.createElement('button'))
+			.attr('type', 'button')
 			.addClass('btn btn-sm mx-1 text-nowrap')
 		;
 	},
@@ -120,6 +133,8 @@ global.text = {
     details: 'Details',
     error: 'Ereur',
     reload: 'Relancer',
+    edit: 'Edit',
+    delete: 'Delete',
     close: 'Close',
     all: 'All',
     fromDate: 'From date',
@@ -167,7 +182,7 @@ global.icon = {
 			'</svg>',
 	
 	loading:
-		'<div class="d-flex justify-content-center mt-5">' +
+		'<div class="d-flex justify-content-center mt-4">' +
 			'<div class="spinner-border" role="status">' +
 				'<span class="sr-only">' + text.loading + '</span>' +
 			'</div>' +
@@ -182,11 +197,11 @@ global.icon = {
 
 global.ajax = {
 		
-	fetch: function(container, callBack = this.onSuccess.bind(this)) {
+	fetch: function(container) {
 		
 		let that = this;
 		
-		$(container).find('a[data-toggle="ajax"], button[data-toggle="ajax"]').not('[type="submit"]').each(function() {
+		$(container).find('a[data-toggle*="ajax"], button[data-toggle*="ajax"]').not('[type="submit"]').each(function() {
 			
 			$(this).on('click', function(e) {
 				
@@ -197,10 +212,9 @@ global.ajax = {
 				
 				let url = $(this).data('url');
 				let target = $(this).data('target') || this;
-				let add = $(this).data('add');
 				
-				that.set(target, url, undefined, undefined, add, callBack);
-				
+				that.set(target, url, {from: this});
+				return false;
 			});
 			
 			if ($(this).hasClass('active')) {
@@ -209,7 +223,7 @@ global.ajax = {
 			
 		});
 		
-		$(container).find('a[data-toggle="ajax"][type="submit"], button[data-toggle="ajax"][type="submit"]').each(function() {
+		$(container).find('a[data-toggle*="ajax"], button[data-toggle*="ajax"]').filter('[type="submit"]').each(function() {
 			
 			if (($form = $('#' + $(this).attr('form'))) === false) {
 				return false;
@@ -223,9 +237,8 @@ global.ajax = {
 				
 				let url = $(this).data('url');
 				let target = $(this).data('target') || this;
-				let add = $(this).data('add');
 				
-				if ($form.find('input[type="file"]').length) {
+				if ($form.find('input[type="file"]').exist()) {
 					var method = 'POST';
 					var data = new FormData($form.get(0));
 				} else {
@@ -233,7 +246,7 @@ global.ajax = {
 					var data = $form.serializeArray();
 				}
 				
-				that.set(target, url, method, data, add, callBack);
+				that.set(target, url, {method: method, from: this, data: data});
 				return false;
 				
 			});
@@ -244,34 +257,29 @@ global.ajax = {
 			
 		});
 		
-		$(container).find('div[data-toggle="ajax"]').each(function(e) {
-			
+		$(container).find('div[data-toggle*="ajax"]').each(function(e) {
 			let target = $(this).data('target') || this;
 			let url = $(this).data('url');
-			let add = $(this).data('add');
 			
-			that.set(target, url, undefined, undefined, add, callBack);
-			
+			that.set(target, url, {from: this});
 		});
 		
 	},
 		
-	set: function (target, url, method = 'GET', data = [], add = false, callBack = this.onSuccess.bind(this)) {
+	set: function (target, url, options = {}) {
 		
 		if (target && url) {
-			//$(target).closest('.modal').modal('show');
-			if (add === false) {
-				$(target)
-					.show()
-					.empty()
-					.append(icon.loading)
-				;
-			} else {
-				$(target)
-					.show()
-					.find('[data-toggle="ajax"]').remove()
-				;
+			
+			if (options.modal === true || (options.from && $(options.from).is('[data-toggle*="modal"]'))) {
+				if ($(target).is('.modal')) {
+					$(target).modal('show');
+				} else {
+					$(target).parents('.modal').modal('show');
+				}
 			}
+			
+			let method = options.method || 'GET';
+			let data = options.data || [];
 			
 			let that = this;
 			$.ajax({
@@ -281,66 +289,91 @@ global.ajax = {
 				contentType: (data.constructor === FormData)?false:'application/x-www-form-urlencoded; charset=UTF-8',
 				processData: (data.constructor !== FormData),
 				
-				success: function(result) {
-					callBack(target, result);
+				beforeSend: function(jqXHR, settings) {
+					jqXHR.settings = settings;
+					jqXHR.from = $(options.from);
+					$(target).trigger('ajax.beforeSend', [jqXHR, settings]);
 				},
 				
-				error: function(xhr, thrownError) {
-					
-					if (add === false) {
-						let result = '<div class="alert alert-danger">' +
-										'<h6 class="alert-heading font-weight-bold">' + text.error + ' ' + xhr.status + ' : ' + xhr.statusText + '</h6>';
-						
-						if ((m = /<title>(.+)<\/title>/.exec(xhr.responseText)) !== null) {
-							result += '<p>' + m[1] + '</p>';
-						}
-						
-						result += '<button type="button" class="btn btn-sm btn-primary" data-toggle="ajax" data-url="' + url + '" data-target="' + target + '">' + text.reload + '</button>' +
-									'</div>';
-						$(target).html(result);
-						that.fetch(target);
-					}
-				}
+				success: function(result, textStatus, jqXHR) {
+					jqXHR.from = $(options.from);
+					$(target).trigger('ajax.success', [result, textStatus, jqXHR]);
+					$(target).trigger('ajax.completed', [result, textStatus, jqXHR]);
+				},
+				
+				error: function(jqXHR, textStatus, errorThrown) {
+					jqXHR.from = $(options.from);
+					$(target).trigger('ajax.error', [jqXHR, textStatus, errorThrown]);
+				},
 			});
 		}
 		
 	},
+}
+
+$(document).ready(function() {
 	
-	onSuccess: function (target = document.body, result = '', callBack = this.onSuccess.bind(this)) {
-		
-		$(target).find('.spinner-border').parent().remove();
+	//---------------------
+	// Defaults parameters for datepicker
+	//---------------------
+	
+	$.fn.datepicker.defaults.format = "dd-mm-yyyy";
+	$.fn.datepicker.defaults.weekStart = 1;
+	$.fn.datepicker.defaults.maxViewMode = 3;
+	$.fn.datepicker.defaults.language = $(document.body).data('locale').replace(/_/, '-');
+	$.fn.datepicker.defaults.multidate = false;
+	$.fn.datepicker.defaults.daysOfWeekDisabled = "0,6";
+	$.fn.datepicker.defaults.autoclose = true;
+	$.fn.datepicker.defaults.calendarWeeks = true;
+	$.fn.datepicker.defaults.clearBtn = true;
+	$.fn.datepicker.defaults.todayBtn = true;
+	$.fn.datepicker.defaults.todayHighlight = true;
+    
+	
+	
+    $(document).on('ajax.beforeSend', function(e, jqXHR, settings) {
+    	$(e.target)
+			.show()
+			.empty()
+			.append(icon.loading)
+		;
+    });
+    
+    $(document).on('ajax.success', function(e, result, textStatus, jqXHR) {
+    	
+		$(e.target).find('.spinner-border').parent().remove();
 		if (result) {
-			$(target).html($(target).html() + result);
+			$(e.target).html($(e.target).html() + result);
 		}
 		
 		//---------------------
 		// popover
 		//---------------------
 		
-		$(target).find('[data-toggle="popover"]').popover();
+		$(e.target).find('[data-toggle="popover"]').popover();
 		
 		//---------------------
 		// Ajax
 		//---------------------
 		
-	    this.fetch(target, callBack);
+	    global.ajax.fetch(e.target);
 		
 		//---------------------
 		// Modal & Collapse
 		//---------------------
 	    
-		$(target).on('hidden.bs.collapse', function() {
+		$(e.target).on('hidden.bs.collapse', function() {
 			$('[data-toggle="collapse"][href="#' + $(this).attr('id') + '"]')
 				.removeClass('active')
 				.blur()
 			;
 		});
 		
-		$(target).on('hidden.bs.modal', function() {
+		$(e.target).on('hidden.bs.modal', function() {
 			$('[data-toggle="modal"]').blur();
 		});
 		
-		$(target).find('button[data-dismiss]').on('click', function() {
+		$(e.target).find('button[data-dismiss]').on('click', function() {
 			$('#modal').modal('hide');
 		});
 		
@@ -348,7 +381,7 @@ global.ajax = {
 		// Bootstrap datepicker
 		//---------------------
 		
-		$(target).find('.datepicker').each(function() {
+		$(e.target).find('.datepicker').each(function() {
 			$(this).datepicker({'format': $.fn.datepicker.defaults.format});
 		})
 
@@ -357,7 +390,7 @@ global.ajax = {
 		// Form multiple
 		//---------------------
 		
-		$(target).find("[name$='_multiple']").each(function() {
+		$(e.target).find("[name$='_multiple']").each(function() {
 			
 			var id;
 			if (id = $(this).prop('name').match(/(\S+)_multiple$/y)) {
@@ -409,7 +442,7 @@ global.ajax = {
 			}
 		});
 		
-		$(target).find('form').find('div, input, select').each(function () {
+		$(e.target).find('form').find('div, input, select').each(function () {
 			
 			if ($(this).data('multiple')) {
 				$("[name='" + $(this).prop('id') + "_multiple']").filter('[value=1]').trigger('click');
@@ -425,29 +458,26 @@ global.ajax = {
 		//---------------------
 		
 		bsCustomFileInput.init();
+    });
+    
+    $(document).on('ajax.error', function(e, jqXHR, textStatus, errorThrown) {
 		
+    	let result = '<div class="alert alert-danger">' +
+						'<h6 class="alert-heading font-weight-bold">' + text.error + ' ' + jqXHR.status + ' : ' + jqXHR.statusText + '</h6>';
 		
-	},
-}
-
-$(document).ready(function() {
-	
-	//---------------------
-	// Defaults parameters for datepicker
-	//---------------------
-	
-	$.fn.datepicker.defaults.format = "dd-mm-yyyy";
-	$.fn.datepicker.defaults.weekStart = 1;
-	$.fn.datepicker.defaults.maxViewMode = 3;
-	$.fn.datepicker.defaults.language = $(document.body).data('locale').replace(/_/, '-');
-	$.fn.datepicker.defaults.multidate = false;
-	$.fn.datepicker.defaults.daysOfWeekDisabled = "0,6";
-	$.fn.datepicker.defaults.autoclose = true;
-	$.fn.datepicker.defaults.calendarWeeks = true;
-	$.fn.datepicker.defaults.clearBtn = true;
-	$.fn.datepicker.defaults.todayBtn = true;
-	$.fn.datepicker.defaults.todayHighlight = true;
-	
-    ajax.onSuccess();
+		if ((m = /<title>(.+)<\/title>/.exec(jqXHR.responseText)) !== null) {
+			result += '<p>' + m[1] + '</p>';
+		}
+		
+		result += '<button type="button" class="btn btn-sm btn-primary" >' + text.reload + '</button>' +
+					'</div>';
+		$(e.target).html(result);
+		
+		$(e.target).find('button').on('click', function() {
+			global.ajax.set(e.target, jqXHR.settings.url, {data: jqXHR.settings.data})
+		});
+    });
+    
+    $(document).trigger('ajax.success');
     
 });
