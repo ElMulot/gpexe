@@ -165,7 +165,7 @@
                             {% set class = "type-standard" %}
 				    	{% endif %}
         				
-    					<th id="{{ field.id }}" name="{{ field.name }}" class="{{ class }}" data-title="{{ field.title }}" data-sort="{% if field.sort %}true{% else %}false{% endif %}">
+    					<th id="{{ field.id }}" name="{{ field.parent ~ '[' ~ field.name ~ ']' }}" class="{{ class }}" data-title="{{ field.title }}" data-sort="{% if field.sort %}true{% else %}false{% endif %}">
     						{% if field.form is defined %}
         						{% form_theme field.form with ['form/select.html.twig'] only %}	
     					        {{ form(field.form) }}

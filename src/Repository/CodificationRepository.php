@@ -29,6 +29,7 @@ class CodificationRepository extends ServiceEntityRepository
     	return $this->createQueryBuilder('c')
     	->andWhere('c.project = :val')
     	->setParameter('val', $project)
+    	->addOrderBy('c.id', 'ASC')
     	->getQuery()
     	->getResult()
     	;

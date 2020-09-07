@@ -47,7 +47,7 @@ class FieldService
 		$fields = [
 			'document.reference' => [
 				'id' => 'document_reference',
-				'name' => 'document[reference]',
+				'name' => 'reference',
 				'title' => $this->translator->trans('Reference'),
 				'type' => Metadata::LIST,
 				'parent' => 'document',
@@ -55,7 +55,7 @@ class FieldService
 			],
 			'version.name' => [
 				'id' => 'version_name',
-				'name' => 'version[name]',
+				'name' => 'name',
 				'title' => $this->translator->trans('Version'),
 				'type' => Metadata::TEXT,
 				'parent' => 'version',
@@ -63,7 +63,7 @@ class FieldService
 			],
 			'document.name' => [
 				'id' => 'document_name',
-				'name' => 'document[name]',
+				'name' => 'name',
 				'title' => $this->translator->trans('Name'),
 				'type' => Metadata::TEXT,
 				'parent' => 'document',
@@ -71,7 +71,7 @@ class FieldService
 			],
 			'version.initialScheduledDate' => [
 				'id' => 'version_initial_scheduled_date',
-				'name' => 'version[initial_scheduled_date]',
+				'name' => 'initial_scheduled_date',
 				'title' => $this->translator->trans('Initial scheduled date'),
 				'type' => Metadata::DATE,
 				'parent' => 'version',
@@ -79,7 +79,7 @@ class FieldService
 			],
 			'version.scheduledDate' => [
 				'id' => 'version_scheduled_date',
-				'name' => 'version[scheduled_date]',
+				'name' => 'scheduled_date',
 				'title' => $this->translator->trans('Scheduled Date'),
 				'type' => Metadata::DATE,
 				'parent' => 'version',
@@ -87,7 +87,7 @@ class FieldService
 			],
 			'version.deliveryDate' => [
 				'id' => 'version_delivery_date',
-				'name' => 'version[delivery_date]',
+				'name' => 'delivery_date',
 				'title' => $this->translator->trans('Delivery Date'),
 				'type' => Metadata::DATE,
 				'parent' => 'version',
@@ -95,7 +95,7 @@ class FieldService
 			],
 			'version.isRequired' => [
 				'id' => 'version_is_required',
-				'name' => 'version[is_required]',
+				'name' => 'is_required',
 				'title' => $this->translator->trans('Is required'),
 				'type' => Metadata::BOOLEAN,
 				'parent' => 'version',
@@ -103,7 +103,7 @@ class FieldService
 			],
 			'version.writer' => [
 				'id' => 'version_writer',
-				'name' => 'version[writer]',
+				'name' => 'writer',
 				'title' => $this->translator->trans('Writer'),
 				'type' => Metadata::LIST,
 				'parent' => 'version',
@@ -111,7 +111,7 @@ class FieldService
 			],
 			'version.checker' => [
 				'id' => 'version_checker',
-				'name' => 'version[checker]',
+				'name' => 'checker',
 				'title' => $this->translator->trans('Checker'),
 				'type' => Metadata::LIST,
 				'parent' => 'version',
@@ -119,7 +119,7 @@ class FieldService
 			],
 			'version.approver' => [
 				'id' => 'version_approver',
-				'name' => 'version[approver]',
+				'name' => 'approver',
 				'title' => $this->translator->trans('Approver'),
 				'type' => Metadata::LIST,
 				'parent' => 'version',
@@ -127,7 +127,7 @@ class FieldService
 			],
 			'serie.name' => [
 				'id' => 'serie_name',
-				'name' => 'serie[name]',
+				'name' => 'name',
 				'title' => $this->translator->trans('Serie name'),
 				'type' => Metadata::LIST,
 				'parent' => 'serie',
@@ -135,7 +135,7 @@ class FieldService
 			],
 			'serie.company' => [
 				'id' => 'serie_company',
-				'name' => 'serie[company]',
+				'name' => 'company',
 				'title' => $this->translator->trans('Company'),
 				'type' => Metadata::LIST,
 				'parent' => 'serie',
@@ -143,7 +143,7 @@ class FieldService
 			],
 			'status.name' => [
 				'id' => 'status_name',
-				'name' => 'status[name]',
+				'name' => 'name',
 				'title' => $this->translator->trans('Status name'),
 				'type' => Metadata::TEXT,
 				'parent' => 'status',
@@ -151,7 +151,7 @@ class FieldService
 			],
 			'status.value' => [
 				'id' => 'status_value',
-				'name' => 'status[value]',
+				'name' => 'value',
 				'title' => $this->translator->trans('Status value'),
 				'type' => Metadata::LIST,
 				'parent' => 'status',
@@ -159,7 +159,7 @@ class FieldService
 			],
 			'status.type' => [
 				'id' => 'status_type',
-				'name' => 'status[type]',
+				'name' => 'type',
 				'title' => $this->translator->trans('Status type'),
 				'type' => Metadata::LIST,
 				'parent' => 'status',
@@ -170,7 +170,7 @@ class FieldService
 		foreach ($this->metadataRepository->getMetadatas($project) as $metadata) {
 			$fields[$metadata->getFullCodename()] = [
 				'id' => $metadata->getFullDomId(),
-				'name' => $metadata->getFullDomName(),
+				'name' => $metadata->getId(),
 				'title' => $metadata->getName(),
 				'type' => $metadata->getType(),
 				'parent' => $metadata->getParentName(),
@@ -182,7 +182,7 @@ class FieldService
 			if (!$project->getVisasByCompany($company)->isEmpty()) {
 				$fields['visa.' . $company->getCodename()] = [
 					'id' => 'visa_' . $company->getCodename(),
-					'name' => 'visa[' . $company->getCodename() . ']',
+					'name' => $company->getCodename(),
 					'title' => $this->translator->trans('Visa') . ' ' . $company->getName(),
 					'type' => Metadata::LIST,
 					'parent' => 'visa',

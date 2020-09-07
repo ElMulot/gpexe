@@ -30,5 +30,6 @@ Debug:
 	Hauteur de la table à revoir en css. Eviter le codage javascript.				OK
 	Document::move																	OK
 	Toast																			OK
-
+	Vérifier nécessité Denormalize et remplace preg_match par preg_match			
+	Visa : vérifier comment sont sélectionner les visas (par id ou value)			
 	

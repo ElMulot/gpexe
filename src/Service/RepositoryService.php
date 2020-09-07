@@ -131,6 +131,11 @@ class RepositoryService extends EntityRepository implements ServiceEntityReposit
 		return $this->newExpr()->isNotNull($x);
 	}
 	
+	public function hasAlias(string $alias): bool
+	{
+		return in_array($alias, $this->query->getAllAliases());
+	}
+	
 // 	public function getResult()
 // 	{
 // 		return $this->query()->getQuery()->getResult();
