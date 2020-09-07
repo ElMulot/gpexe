@@ -4,9 +4,12 @@ namespace App\Repository;
 
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter;
+use Symfony\Component\Stopwatch\Stopwatch;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\ORM\QueryBuilder;
+use Doctrine\ORM\Query\Expr;
 use Doctrine\ORM\Query\Expr\Join;
+use App\Entity\Codification;
 use App\Entity\Metadata;
 use App\Entity\Project;
 use App\Entity\Serie;
@@ -16,7 +19,8 @@ use App\Entity\User;
 use App\Entity\Version;
 use App\Entity\Review;
 use App\Service\RepositoryService;
-use Monolog\Test\TestCase;
+
+
 
 /**
  * @method Version|null find($id, $lockMode = null, $lockVersion = null)
@@ -31,34 +35,37 @@ class VersionRepository extends RepositoryService
 	
 	private $fields;
 	
+	private $project;
+	
 	public function __construct(ManagerRegistry $registry, UrlGeneratorInterface $router)
 	{
 		parent::__construct($registry, Version::class);
 		$this->router = $router;
+		$this->codificationRepository = $codificationRepository;
 	}
 	
-	public function getVersionsCount(array $fields, array $series, $request=null): int
+	public function getVersionsCount($codifications, $metadatas, $series, $request=null): int
 	{
 		$this->fields = $fields;
 		
-		$this->getCoreQuery($series, $request)
-			->select('count(v.id)');
-		
-		return $this->getSingleScalarResult();
+		$this->newCoreQuery($codifications, $metadatas, $request);
+		return $this->query()
+			->select('count(v.id)')
+			->getQuery()
+			->getSingleScalarResult()
+		;
 	}
 	
 	/**
 	 * @return Version[]
 	 *
 	 */
-	public function getVersionsArray(array $fields, array $series, $request=null): array
+	public function getVersionsArray($codifications, $metadatas, $series, $request=null): array
 	{
 		
 		$this->fields = $fields;
 		
-		$this->query = $this->getCoreQuery($series, $request);
-		
-		
+		$this->newCoreQuery($series, $request);
 		
 		if ($request) {
 			
@@ -68,56 +75,47 @@ class VersionRepository extends RepositoryService
 				
 				switch ($sortedField) {
 					case 'version_name':
-						$this->query->addOrderBy('v.name', $order);
+						$this->query()->addOrderBy('v.name', $order);
 						break;
 					case 'document_name':
-						$this->query->addOrderBy('d.name', $order);
+						$this->query()->addOrderBy('d.name', $order);
 						break;
 					case 'version_initial_scheduled_date':
-						$this->query->addOrderBy('v.initialScheduledDate', $order);
+						$this->query()->addOrderBy('v.initialScheduledDate', $order);
 						break;
 					case 'version_scheduled_date':
-						$this->query->addOrderBy('v.scheduledDate', $order);
+						$this->query()->addOrderBy('v.scheduledDate', $order);
 						break;
 					case 'version_delivery_date':
-						$this->query->addOrderBy('v.deliveryDate', $order);
+						$this->query()->addOrderBy('v.deliveryDate', $order);
 						break;
 					case 'version_writer':
-						$this->query
-							->innerJoin('v.writer', 'w')
-							->addOrderBy('w.name', $order)
+						$this->query()->addOrderBy('w.name', $order)
 						;
 						break;
 					case 'version_checker':
-						$this->query
-							->innerJoin('v.checker', 'c')
-							->addOrderBy('c.name', $order)
+						$this->query()->addOrderBy('k.name', $order)
 						;
 						break;
 					case 'version_approver':
-						$this->query
-						->innerJoin('v.approver', 'a')
-						->addOrderBy('a.name', $order);
+						$this->query()->addOrderBy('a.name', $order);
 						break;
 					case 'serie_name':
-						$this->query->addOrderBy('s.name', $order);
+						$this->query()->addOrderBy('s.name', $order);
 						break;
 					case 'serie_company':
-						$this->query
-						->innerJoin('s.company', 'c')
-						->addOrderBy('c.name', $order);
+						$this->query()->addOrderBy('c.name', $order);
 						break;
 					case 'status_name':
-						$this->query->addOrderBy('t.name', $order);
+						$this->query()->addOrderBy('t.name', $order);
 						break;
 					case 'status_value':
-						$this->query->addOrderBy('t.value', $order);
+						$this->query()->addOrderBy('t.value', $order);
 						break;
 					case 'status_type':
-						$this->query->addOrderBy('t.type', $order);
+						$this->query()->addOrderBy('t.type', $order);
 						break;
 				}
-				
 			}
 		}
 		
@@ -125,12 +123,32 @@ class VersionRepository extends RepositoryService
 		$page = $request->query->get('page');
 		
 		if ($request->query->get('results_per_page') > 0) {
-			$this->query
+			$this->query()
 				->setFirstResult(($page -1) * $request->query->get('results_per_page'))
 				->setMaxResults($request->query->get('results_per_page'));
 		}
 		
-		$versions = $this->query->getQuery()->getResult();
+		$display = $request->query->get('display') ?? [];
+		
+// 		$this->ddSql();
+// 		$this->query()->select('');
+// 		$this->query()->addSelect('v.name, vi.value');
+		
+// 		foreach ($this->fields as $fullCodeName => $field) {
+// 			if (($display[$field['id']] ?? null) > 0) {
+				
+				
+				
+// 				$row[$field['id']] = $version->getPropertyValueToString($fullCodeName);
+// 			}
+// 		}
+		
+		
+// 		$stopwatch  = new Stopwatch();
+// 		$stopwatch ->start('a');
+		$versions = $this->query()->getQuery()->getResult();
+		//dd($versions);
+// 		dd($stopwatch ->stop('a')->getDuration());
 		
 		if ($search = $request->query->get('search')) {
 			
@@ -142,7 +160,6 @@ class VersionRepository extends RepositoryService
 			}
 		}
 		
-		$display = $request->query->get('display') ?? [];
 		$result = [];
 		$row = [];
 		
@@ -172,10 +189,11 @@ class VersionRepository extends RepositoryService
 	{
 		if ($versionIds = $request->query->get('id')) {
 			if (is_array($versionIds)) {
-				$this->query = $this->createQueryBuilder('v');
-				return $this->query->andWhere($this->query->expr()->in('v.id', $versionIds))
+				$this->newQuery('v')
+					->andWhere($this->in('v.id', $versionIds))
 					->getQuery()
-					->getResult();
+					->getResult()
+				;
 			}
 		}
 	}
@@ -186,10 +204,9 @@ class VersionRepository extends RepositoryService
 	 */
 	public function getVersionsByDocument(Document $document)
 	{
-		return $this->createQueryBuilder('v')
+		return $this->newQuery('v')
 			->innerJoin('v.document', 'd')
-			->andWhere('d.id = :id')
-			->setParameter('id', $document->getId())
+			->andWhere($this->eq('d.id', $document->getId()))
 			->addOrderBy('v.initialScheduledDate', 'DESC')
 			->addOrderBy('v.scheduledDate', 'DESC')
 			->addOrderBy('v.deliveryDate', 'DESC')
@@ -205,11 +222,10 @@ class VersionRepository extends RepositoryService
 	 */
 	public function getVersionsByProject(Project $project)
 	{
-		return $this->createQueryBuilder('v')
+		return $this->newQuery('v')
 			->innerJoin('v.document', 'd')
 			->innerJoin('d.serie', 's')
-			->andWhere('s.project = :project')
-			->setParameter('project', $project)
+			->andWhere($this->eq('s.project', $project))
 			->getQuery()
 			->getResult()
 		;
@@ -217,18 +233,15 @@ class VersionRepository extends RepositoryService
 	
 	public function getProdAlerts(Project $project, User $user)
 	{
-		return $this->createQueryBuilder('v')
+		return $this->newQuery('v')
 			->select('s.id AS serieId, s.name AS serieName, c.type AS companyType, v.isRequired, count(v.id) AS count, MIN(DATE_DIFF(v.scheduledDate, CURRENT_DATE())) AS min')
 			->innerJoin('v.document', 'd')
 			->innerJoin('d.serie', 's')
 			->innerJoin('s.company', 'c')
-			->andWhere('s.project = :project')
-			->andWhere('v.isRequired = true')
-			->andWhere('v.writer = :user')
-			->andWhere('c.type IN (:type)')
-			->setParameter('project', $project)
-			->setParameter('user', $user)
-			->setParameter('type', [Company::MAIN_CONTRACTOR, Company::SUB_CONTRACTOR, Company::SUPPLIER])
+			->andWhere($this->eq('s.project', $project))
+			->andWhere($this->eq('v.isRequired', true))
+			->andWhere($this->eq('v.writer', $user))
+			->andWhere($this->in('c.type', [Company::MAIN_CONTRACTOR, Company::SUB_CONTRACTOR, Company::SUPPLIER]))
 			->groupBy('s.id')
 			->getQuery()
 			->getResult()
@@ -237,69 +250,91 @@ class VersionRepository extends RepositoryService
 	
 	public function getCheckAlerts(Project $project, User $user)
 	{
-		
-		$qb = $this->getEntityManager()->createQueryBuilder();
-		
-		$subQuery = $qb->select('r')
-			->from(Review::class, 'r')
-			->andWhere('r.user = :user')
-		;
-		
-		return $this->createQueryBuilder('v')
+		return $this->newQuery('v')
 			->select('s.id AS serieId, s.name AS serieName, c.type AS companyType, v.isRequired, count(v.id) AS count, MAX(DATE_DIFF(CURRENT_DATE(), v.deliveryDate)) AS max')
 			->innerJoin('v.document', 'd')
 			->innerJoin('d.serie', 's')
 			->innerJoin('s.company', 'c')
-			->andWhere('s.project = :project')
-			->andWhere('v.isRequired = false')
-			->andWhere('v.checker = :user')
-			->andWhere('c.type IN (:type)')
-			->andWhere($qb->expr()->notIn('v.id', $subQuery->getDQL()))
-			->setParameter('project', $project)
-			->setParameter('user', $user)
-			->setParameter('type', [Company::MAIN_CONTRACTOR, Company::SUB_CONTRACTOR, Company::SUPPLIER])
+			->leftJoin('v.reviews', 'r')
+			->andWhere($this->eq('s.project', $project))
+			->andWhere($this->eq('v.isRequired', false))
+			->andWhere($this->eq('v.checker', $user))
+			->andWhere($this->in('c.type', [Company::MAIN_CONTRACTOR, Company::SUB_CONTRACTOR, Company::SUPPLIER]))
+ 			->andWhere($this->orX($this->neq('r.user', $user), $this->isNull('r.user')))
 			->groupBy('s.id')
 			->getQuery()
 			->getResult()
 		;
 	}
 	
-	private function setCoreQuery(array $series, $request)
+	private function newCoreQuery($codifications, $metadatas, $request)
 	{
 		$normalizer = new CamelCaseToSnakeCaseNameConverter();
 		$codificationQuery = [];
 		$subQuery = [];
 		
-		$this->query('v')
+		
+		$this->newQuery('v')
 			->innerJoin('v.status', 't')
 			->innerJoin('v.document', 'd')
 			->innerJoin('d.serie', 's')
-			->leftJoin('d.codificationItems', 'ci')
-			->leftJoin('d.codificationValues', 'cv')
-			->leftJoin('s.metadataItems', 'si')
+			->innerJoin('s.company', 'c')
+			->leftJoin('v.writer', 'w')
+			->leftJoin('v.checker', 'k')
+			->leftJoin('v.approver', 'a')
+		;
+		
+		foreach ($codifications as $codification) {
+			switch ($codification->getType()) {
+				case Codification::REGEX:
+					$this->query()->leftJoin('d.codificationValues', 'codification[' . $codification->getId() . ']');
+					break;
+				case Codification::LIST:
+					$this->query()->leftJoin('d.codificationItems', 'codification[' . $codification->getId() . ']');
+					break;
+			}
+		}
+		
+		foreach ($metadatas as $metadata) {
+			switch ($codification->getType()) {
+				case Codification::REGEX:
+					$this->query()->leftJoin('d.codificationValues', 'codification[' . $codification->getId() . ']');
+					break;
+				case Codification::LIST:
+					$this->query()->leftJoin('d.codificationItems', 'codification[' . $codification->getId() . ']');
+					break;
+			}
+		}
+
+		$this->query()->leftJoin('s.metadataItems', 'si')
 			->leftJoin('s.metadataValues', 'sv')
 			->leftJoin('d.metadataItems', 'di')
 			->leftJoin('d.metadataValues', 'dv')
 			->leftJoin('v.metadataItems', 'vi')
 			->leftJoin('v.metadataValues', 'vv')
+			->leftJoin('v.reviews', 'r')
+			->leftJoin('r.user', 'u')
 			->andWhere($this->in('d.serie', $series));
-		
+			
 		if ($request) {
 			
 			$codifications = $request->query->get('codification') ?? [];
 			
 			foreach ($codifications as $codification => $ids) {
 				
-				$subExpr = $this->expr();
+				$subExpr = $this->orX();
 				
 				foreach ($ids as $id) {
+					
 					if ($id) {
-						$subExpr->orX(
-							$this->expr()->andX(
+						$subExpr->add(
+							$this->newExpr()->andX(
 								$this->eq('ci.id', $id),
 								$this->eq('ci.codification', $codification)
-							),
-							$this->expr()->andX(
+							)
+						);
+						$subExpr->add(
+							$this->newExpr()->andX(
 								$this->eq('cv.id', $id),
 								$this->eq('cv.codification', $codification)
 							)
@@ -308,10 +343,7 @@ class VersionRepository extends RepositoryService
 					
 				}
 				$this->query()->andWhere($subExpr);
-				
 			}
-			
-			$metadatasGroup = [];
 			
 			foreach ($request->query->get('serie') ?? [] as $field => $value) {
 				switch ($field) {
@@ -322,14 +354,14 @@ class VersionRepository extends RepositoryService
 						$this->query()->andWhere($this->in('s.company', $value));
 						break;
 					default:
-						$this->andWhereMetadata('serie', $field, $value);
+						$this->query()->andWhere($this->getMetadataExpr('serie', $field, $value));
 				}
 			}
 			
 			foreach ($request->query->get('document') ?? [] as $field => $value) {
 				switch ($field) {
 					default:
-						$this->andWhereMetadata('document', $field, $value);
+						$this->query()->andWhere($this->getMetadataExpr('document', $field, $value));
 				}
 			}
 			
@@ -361,7 +393,7 @@ class VersionRepository extends RepositoryService
 						$this->query()->andWhere($this->in('v.approver', $value));
 						break;
 					default:
-						$this->andWhereMetadata('version', $field, $value);
+						$this->query()->andWhere($this->getMetadataExpr('version', $field, $value));
 				}
 			}
 			
@@ -376,131 +408,18 @@ class VersionRepository extends RepositoryService
 				}
 			}
 			
-			foreach ($metadatasGroup as $parent => $metadatas) {
-				
-				foreach ($metadatas as $metadataId => $value) {
-					
-					$field = $this->getField($parent, $metadataId);
-					
-					if ($field['type'] == Metadata::BOOLEAN) {
-						
-						switch ($parent) {
-							case 'serie':
-								$subQuery = $this->getEntityManager()->createQueryBuilder()
-								->select('s' . $metadataId)
-								->from(Serie::class, 's' . $metadataId)
-								->innerJoin('s' . $metadataId . '.metadataValues', 'a');
-								break;
-								
-							case 'document':
-								$subQuery = $this->getEntityManager()->createQueryBuilder()
-								->select('d' . $metadataId)
-								->from(Document::class, 'd' . $metadataId)
-								->innerJoin('d' . $metadataId . '.metadataValues', 'a');
-								break;
-							case 'version':
-								$subQuery = $this->createQueryBuilder('v' . $metadataId)
-								->innerJoin('v' . $metadataId . '.metadataValues', 'a');
-								break;
-						}
-						
-						if ($value == "0") {
-							
-							$subQuery->orWhere(
-								$subQuery->expr()->orX(
-									$this->addNotEq('i' . $metadataId . '.id', $ids),
-									$this->addNotEq('i' . $metadataId . '.metadata', $metadataId)
-								)
-							);
-							
-						} elseif ($ids == "1") {
-							
-							$subQuery->orWhere(
-								$subQuery->expr()->andX(
-									$this->addEq('i' . $metadataId . '.id', $ids),
-									$this->addEq('i' . $metadataId . '.metadata', $metadataId)
-								)
-							);
-						}
-						
-					} elseif ($field['type'] == Metadata::DATE) {
-						
-						switch ($parent) {
-							case 'serie':
-								$subQuery = $this->getEntityManager()->createQueryBuilder()
-									->select('s' . $metadataId)
-									->from(Serie::class, 's' . $metadataId)
-									->innerJoin('s' . $metadataId . '.metadataValues', 'a');
-								break;
-								
-							case 'document':
-								$subQuery = $this->getEntityManager()->createQueryBuilder()
-									->select('d' . $metadataId)
-									->from(Document::class, 'd' . $metadataId)
-									->innerJoin('d' . $metadataId . '.metadataValues', 'a');
-								break;
-							case 'version':
-								$subQuery = $this->createQueryBuilder('v')
-									->innerJoin('v' . $metadataId . '.metadataValues', 'a');
-								break;
-						}
-						
-						$result = [];
-						foreach ($value as $id) {
-							
-							if (preg_match('/>(\d{2}-\d{2}-\d{4})/', $id, $result) === 1) {
-								
-								$subQuery
-									->andWhere('a.' . $metadataId . '. >= :inf' . $metadataId)
-									->setParameter('inf' . $fieldName, $result[1])
-								;
-							} elseif (preg_match('/<(\d{2}-\d{2}-\d{4})/', $id, $result) === 1) {
-								$subQuery
-									->andWhere('a.' . $metadataId . '. <= :sup' . $fieldName)
-									->setParameter('sup' . $fieldName, $result[1])
-								;
-							}
-							
-						}
-						
-					} elseif ($field['type'] == Metadata::LIST) {
-						
-						$subExpr->orX(
-							$this->expr()->andX(
-								$this->eq('ci.id', $id),
-								$this->eq('ci.codification', $codification)
-							),
-							$this->expr()->andX(
-								$this->eq('cv.id', $id),
-								$this->eq('cv.codification', $codification)
-							)
-						);
-						
-					}
-					
-					//$this->query->andWhere($this->query->expr()->in('v.id', $subQuery->getDQL()));
-					
-				}
-			}
-			
 			if ($visas = $request->query->get('visa')) {
-				$subQuery = $this->getEntityManager()->createQueryBuilder()
-					->select('r')
-					->from(Review::class, 'r')
-					->innerJoin('r.user', 'u')
-					->innerJoin('u.company', 'c')
-					->andWhere($this->query->expr()->in('r.visa', array_keys($visas)))
-					->andWhere($this->query->expr()->in('c.codename', array_values($visas)));
-				$this->query->andWhere($this->query->expr()->in('v.id', $subQuery->getDQL()));
+				$this->query()
+					->andWhere($this->in('r.visa', array_keys($visas)))
+					->andWhere($this->in('c.codename', array_values($visas)));
 			}
 			
 		}
 		
-		return $this->query;
-		
+		$this->ddSql();
 	}
 	
-	private function andWhereMetadata(string $parent, int $metadataId, $value)
+	private function getMetadataExpr(string $parent, int $metadataId, $value)
 	{
 		
 		switch ($parent) {
@@ -518,23 +437,21 @@ class VersionRepository extends RepositoryService
 		foreach ($this->fields as $field) {
 			if ($field['id'] == $parent . '_' . $metadataId) {
 				
-				$subExpr = $this->expr();
-				
 				switch ($field['type']) {
 					
 					case Metadata::BOOLEAN:
-							
+						
 						if ($value == "1") {
-							$subExpr = $this->expr()->orX(
-								$this->expr()->andX(
-									$this->eq($alias . 'v.metadata', $field['id']),
+							$subExpr = $this->orX(
+								$this->andX(
+									$this->eq($alias . 'v.metadata', $metadataId),
 									$this->eq($alias . 'v.value', 1)
 								)
 							);
 						} else {
-							$subExpr = $this->expr()->orX(
-								$this->expr()->andX(
-									$this->eq($alias . 'v.metadata', $field['id']),
+							$subExpr = $this->orX(
+								$this->andX(
+									$this->eq($alias . 'v.metadata', $metadataId),
 									$this->neq($alias . 'v.value', 1)
 								)
 							);
@@ -543,23 +460,24 @@ class VersionRepository extends RepositoryService
 						
 					case Metadata::DATE:
 						
+						$subExpr = $this->newExpr();
 						$result = [];
 						foreach ($value as $v) {
 							
 							if (preg_match('/>(\d{2}-\d{2}-\d{4})/', $v, $result) === 1) {
 								
-								$subExpr = $this->expr()->orX(
-									$this->expr()->andX(
-										$this->eq($alias . 'v.metadata', $field['id']),
+								$subExpr = $subExpr->orX(
+									$this->andX(
+										$this->eq($alias . 'v.metadata', $metadataId),
 										$this->gte($alias . 'v.value', $result[1])
 									)
 								);
 								
 							} elseif (preg_match('/<(\d{2}-\d{2}-\d{4})/', $v, $result) === 1) {
 
-								$subExpr = $this->expr()->orX(
-									$this->expr()->andX(
-										$this->eq($alias . 'v.metadata', $field['id']),
+								$subExpr = $subExpr->orX(
+									$this->andX(
+										$this->eq($alias . 'v.metadata', $metadataId),
 										$this->lte($alias . 'v.value', $result[1])
 									)
 								);
@@ -571,88 +489,26 @@ class VersionRepository extends RepositoryService
 					
 					case Metadata::LIST:
 						
-						$subExpr->orX(
-							$this->expr()->andX(
-								$this->eq($alias . 'i.metadata', $field['id']),
-								$this->in($alias . 'i.value', $value),
+						$subExpr = $this->orX(
+							$this->andX(
+								$this->eq($alias . 'i.metadata', $metadataId),
+								$this->in($alias . 'i.id', $value),
 							)
 						);
+						break;
 				
 				}
-				
+				return $subExpr;
 			}
+			
 		}
-		
-		
-		
-	}
-	
-	private function getField(string $parent, int $metadataId): ?array
-	{
-
-	}
-	
-	private function displayLog()
-	{
-		
-		$conf = $this->getEntityManager()->getConnection()->getConfiguration();
-		$backupLogger = $conf->getSQLLogger();
-		$logger = new \Doctrine\DBAL\Logging\DebugStack();
-		$conf->setSQLLogger($logger);
-		
-		$this->query->getQuery()->getResult();
-		$conf->setSQLLogger($backupLogger); //restore logger for other queries
-		
-		$res = $logger->queries[1];
-		
-		foreach ($res['params'] as $p) {
-			if (is_array($p)) {
-				foreach ($p as $v) {
-					$res['sql'] = str_replace('?', $v, $res['sql']);
-				}
-			} else {
-				$res['sql'] = str_replace('?', $p, $res['sql']);
-			}
-		}
-		dd($res['sql']);
+		return null;
 	}
 	
 	public function test()
 	{
 
-		$this->query = $this->createQueryBuilder('v')
-			->select('t, v, d, s, vi', 'vv')
-			->innerJoin('v.status', 't')
-			->innerJoin('v.document', 'd')
-			->innerJoin('d.serie', 's')
-			->andWhere('d.serie IN (15)');
-			
 		
-// 		$this->query->leftJoin('s.metadataItems', 'si');
-// 		$this->query->leftJoin('s.metadataValues', 'sv');
-// 		$this->query->leftJoin('d.metadataItems', 'di');
-// 		$this->query->leftJoin('d.metadataValues', 'dv');
- 		$this->query->leftJoin('v.metadataItems', 'vi');
-		$this->query->leftJoin('v.metadataValues', 'vv');
-		
-// 		$this->query
-// 			->andWhere('vi.metadata = 2')
-// 			->andWhere('vi.id = 9');
-		
-		return $this->query->getQuery()
-//  			->setFetchMode(Version::class, 'status', \Doctrine\ORM\Mapping\ClassMetadata::FETCH_EAGER)
-// 			->setFetchMode(Version::class, 'writer', \Doctrine\ORM\Mapping\ClassMetadata::FETCH_EAGER)
-// 			->setFetchMode(Version::class, 'checker', \Doctrine\ORM\Mapping\ClassMetadata::FETCH_EAGER)
-// 			->setFetchMode(Version::class, 'approver', \Doctrine\ORM\Mapping\ClassMetadata::FETCH_EAGER)
-		
-// 			->setFetchMode(Version::class, 'document', \Doctrine\ORM\Mapping\ClassMetadata::FETCH_EAGER)
-// 			->setFetchMode(Document::class, 'serie', \Doctrine\ORM\Mapping\ClassMetadata::FETCH_EAGER)
-			
-// 			->setFetchMode(Version::class, 'metadataItems', \Doctrine\ORM\Mapping\ClassMetadata::FETCH_EAGER)
-			
-		->getResult();
-			
-		//$this->displayLog();
 	}
 	
 }

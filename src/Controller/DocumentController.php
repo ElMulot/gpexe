@@ -121,8 +121,11 @@ class DocumentController extends AbstractController
 			$series = [$serie];
 		}
 		
-		$fields = $this->fieldService->getFields($project);
-		$versionsCount = $this->versionRepository->getVersionsCount($fields, $series, $request);
+		//$fields = $this->fieldService->getFields($project);
+		$codifications = $this->codificationRepository->getCodifications($project);
+		$metadatas = $this->metadataRepository->getMetadatas($project);
+		
+		$versionsCount = $this->versionRepository->getVersionsCount($codifications, $metadatas, $series, $request);
 		
 		$resultsPerPage = $request->query->get('results_per_page') ?? 50;
 		if ($resultsPerPage == 0) { //display all
@@ -133,7 +136,7 @@ class DocumentController extends AbstractController
 		$request->query->set('results_per_page', $resultsPerPage);
 		$request->query->set('page', min($request->query->get('page') ?? 1, $pageMax));
 		
-		$versions = $this->versionRepository->getVersionsArray($fields, $series, $request);
+		$versions = $this->versionRepository->getVersionsArray($codifications, $metadatas, $series, $request);
 		
 		return new JsonResponse([
 			'versions' => $versions,

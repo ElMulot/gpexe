@@ -28,20 +28,17 @@ class VueRepository extends RepositoryService
 	 */
 	public function getVues(Project $project, User $user)
 	{
-		return $this->createQueryBuilder('v')
+		return $this->newQuery('v')
 			->select('v.id, v.name')
 			->innerJoin('v.user', 'u')
 			->innerJoin('u.profil', 'p')
 			->orWhere(
-				$this->expr()->andX(
-					$this->expr()->eq('p.isAdmin', ':isAdmin'),
-					$this->expr()->eq('v.isShared', ':isShared'),
+				$this->andX(
+					$this->eq('p.isAdmin', true),
+					$this->eq('v.isShared', true),
 				),
-				$this->expr()->eq('v.user', ':user')
+				$this->eq('v.user', $user)
 			)
-			->setParameter('isAdmin', true)
-			->setParameter('isShared', true)
-			->setParameter('user', $user)
 			->orderBy('v.name')
 			->getQuery()
 			->getArrayResult()
@@ -54,9 +51,8 @@ class VueRepository extends RepositoryService
 	 */
 	public function getVueById(int $vueId)
 	{
-		return $this->createQueryBuilder('v')
-			->andWhere('v.id = :id')
-			->setParameter('id', $vueId)
+		return $this->newQuery('v')
+			->andWhere($this->eq('v.id', $vueId))
 			->getQuery()
 			->getOneOrNullResult()
 		;
@@ -68,23 +64,18 @@ class VueRepository extends RepositoryService
 	 */
 	public function getDefaultVue(Project $project, User $user)
 	{
-		$query = $this->createQueryBuilder('v');
 		
-		return $query
+		return $this->newQuery('v')
 			->innerJoin('v.user', 'u')
 			->innerJoin('u.profil', 'p')
 			->orWhere(
-				$query->expr()->andX(
-					$query->expr()->eq('p.isAdmin', ':isAdmin'),
-					$query->expr()->eq('v.isShared', ':isShared'),
+				$this->andX(
+					$this->eq('p.isAdmin', true),
+					$this->eq('v.isShared', true),
 					),
-				$query->expr()->eq('v.user', ':user')
+				$this->eq('v.user', $user)
 				)
-			->andWhere('v.isDefault = :isDefault')
-			->setParameter('isAdmin', true)
-			->setParameter('isShared', true)
-			->setParameter('user', $user)
-			->setParameter('isDefault', true)
+			->andWhere($this->eq('v.isDefault', true))
 			->orderBy('v.isDefault')
 			->getQuery()
 			->getOneOrNullResult()

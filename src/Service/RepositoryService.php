@@ -8,7 +8,7 @@ use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\DBAL\Logging\DebugStack;
 use LogicException;
 use Doctrine\ORM\QueryBuilder;
-use Doctrine\Common\Collections\ExpressionBuilder;
+use Doctrine\ORM\Query\Expr;
 
 class RepositoryService extends EntityRepository implements ServiceEntityRepositoryInterface
 {
@@ -34,126 +34,184 @@ class RepositoryService extends EntityRepository implements ServiceEntityReposit
 		parent::__construct($manager, $manager->getClassMetadata($entityClass));
 	}
 	
-	public function query($alias, $indexBy = null): QueryBuilder
+	public function newQuery($alias, $indexBy = null): QueryBuilder
 	{
-		if ($this->query === null) {
-			if ($alias == false) {
-				$this->query = $this->getEntityManager()->createQueryBuilder();
-			} else {
-				$this->query = $this->createQueryBuilder($alias, $indexBy);
-			}
+		if ($alias == false) {
+			$this->query = $this->getEntityManager()->createQueryBuilder();
+		} else {
+			$this->query = $this->createQueryBuilder($alias, $indexBy);
 		}
 		
 		return $this->query;
 	}
 	
-	public function expr(): ExpressionBuilder
+	public function query()
+	{
+		return $this->query;
+	}
+	
+	public function newExpr(): Expr
 	{
 		return $this->getEntityManager()->createQueryBuilder()->expr();
 	}
 	
-	public function eq($field, $parameter): ExpressionBuilder
+	public function eq($field, $parameter): Expr\Comparison
 	{
 		$this->uid++;
-		$this->getQuery()->setParameter($this->uid, $parameter);
-		return $this->expr()->eq($field, '?' . $this->uid);
+		$this->query->setParameter($this->uid, $parameter);
+		return $this->newExpr()->eq($field, '?' . $this->uid);
 	}
 	
-	public function neq($field, $parameter): ExpressionBuilder
+	public function neq($field, $parameter): Expr\Comparison
 	{
 		$this->uid++;
-		$this->getQuery()->setParameter($this->uid, $parameter);
-		return $this->expr()->neq($field, '?' . $this->uid);
+		$this->query->setParameter($this->uid, $parameter);
+		return $this->newExpr()->neq($field, '?' . $this->uid);
 	}
 	
-	public function gt($field, $parameter): ExpressionBuilder
+	public function gt($field, $parameter): Expr\Comparison
 	{
 		$this->uid++;
-		$this->getQuery()->setParameter($this->uid, $parameter);
-		return $this->expr()->gt($field, '?' . $this->uid);
+		$this->query->setParameter($this->uid, $parameter);
+		return $this->newExpr()->gt($field, '?' . $this->uid);
 	}
 	
-	public function gte($field, $parameter): ExpressionBuilder
+	public function gte($field, $parameter): Expr\Comparison
 	{
 		$this->uid++;
-		$this->getQuery()->setParameter($this->uid, $parameter);
-		return $this->expr()->gte($field, '?' . $this->uid);
+		$this->query->setParameter($this->uid, $parameter);
+		return $this->newExpr()->gte($field, '?' . $this->uid);
 	}
 	
-	public function in($field, $parameter): ExpressionBuilder
+	public function in($field, $parameter): Expr\Func
 	{
 		$this->uid++;
-		$this->getQuery()->setParameter($this->uid, $parameter);
-		return $this->expr()->in($field, '?' . $this->uid);
+		$this->query->setParameter($this->uid, $parameter);
+		return $this->newExpr()->in($field, '?' . $this->uid);
 	}
 	
-	public function lt($field, $parameter): ExpressionBuilder
+	public function notIn($field, $parameter): Expr\Func
 	{
 		$this->uid++;
-		$this->getQuery()->setParameter($this->uid, $parameter);
-		return $this->expr()->lt($field, '?' . $this->uid);
+		$this->query->setParameter($this->uid, $parameter);
+		return $this->newExpr()->notIn($field, '?' . $this->uid);
 	}
 	
-	public function lte($field, $parameter): ExpressionBuilder
+	public function lt($field, $parameter): Expr\Comparison
 	{
 		$this->uid++;
-		$this->getQuery()->setParameter($this->uid, $parameter);
-		return $this->expr()->lte($field, '?' . $this->uid);
+		$this->query->setParameter($this->uid, $parameter);
+		return $this->newExpr()->lt($field, '?' . $this->uid);
 	}
 	
-	public function getResult()
+	public function lte($field, $parameter): Expr\Comparison
 	{
-		return $this->query()->getQuery()->getResult();
+		$this->uid++;
+		$this->query->setParameter($this->uid, $parameter);
+		return $this->newExpr()->lte($field, '?' . $this->uid);
 	}
 	
-	public function getArrayResult(): array
+	public function andX($x = null): Expr\Andx
 	{
-		return $this->query()->getQuery()->getArrayResult();
+		return new Expr\Andx(func_get_args());
 	}
 	
-	public function getScalarResult(): array
+	public function orX($x = null): Expr\Orx
 	{
-		return $this->query()->getQuery()->getScalarResult();
+		return new Expr\Orx(func_get_args());
 	}
 	
-	public function getOneOrNullResult($hydrationMode = null)
+	public function isNull(string $x): string
 	{
-		return $this->query()->getQuery()->getOneOrNullResult($hydrationMode);
+		return $this->newExpr()->isNull($x);
 	}
 	
-	public function getSingleResult($hydrationMode = null)
+	public function isNotNull(string $x): string
 	{
-		return $this->query()->getQuery()->getSingleResult($hydrationMode);
+		return $this->newExpr()->isNotNull($x);
 	}
 	
-	public function getSingleScalarResult()
-	{
-		return $this->query()->getQuery()->getSingleScalarResult();
-	}
+// 	public function getResult()
+// 	{
+// 		return $this->query()->getQuery()->getResult();
+// 	}
 	
-	public function dumpLog()
+// 	public function getArrayResult(): array
+// 	{
+// 		return $this->query()->getQuery()->getArrayResult();
+// 	}
+	
+// 	public function getScalarResult(): array
+// 	{
+// 		return $this->query()->getQuery()->getScalarResult();
+// 	}
+	
+// 	public function getOneOrNullResult($hydrationMode = null)
+// 	{
+// 		return $this->query()->getQuery()->getOneOrNullResult($hydrationMode);
+// 	}
+	
+// 	public function getSingleResult($hydrationMode = null)
+// 	{
+// 		return $this->query()->getQuery()->getSingleResult($hydrationMode);
+// 	}
+	
+// 	public function getSingleScalarResult()
+// 	{
+// 		return $this->query()->getQuery()->getSingleScalarResult();
+// 	}
+	
+	public function ddSql()
 	{
+		$sql = $this->query()->getQuery()->getSQL();
 		
-		$conf = $this->getEntityManager()->getConnection()->getConfiguration();
-		$backupLogger = $conf->getSQLLogger();
-		$logger = new DebugStack();
-		$conf->setSQLLogger($logger);
-		
-		$this->getResult();
-		$conf->setSQLLogger($backupLogger); //restore logger for other queries
-		
-		$res = $logger->queries[1];
-		
-		foreach ($res['params'] as $p) {
-			if (is_array($p)) {
-				foreach ($p as $v) {
-					$res['sql'] = str_replace('?', $v, $res['sql']);
-				}
-			} else {
-				$res['sql'] = str_replace('?', $p, $res['sql']);
-			}
+		foreach ($this->query()->getParameters() as $parameter) {
+			$sql = preg_replace('/\?/', $this->getValueToString($parameter->getValue()), $sql, 1);
 		}
-		dump($res['sql']);
+		dd($sql);
+		
+		
+// 		$conf = $this->getEntityManager()->getConnection()->getConfiguration();
+// 		$backupLogger = $conf->getSQLLogger();
+// 		$logger = new \Doctrine\DBAL\Logging\DebugStack();
+// 		$conf->setSQLLogger($logger);
+		
+// 		$this->query()->getQuery()->getResult();
+// 		$conf->setSQLLogger($backupLogger); //restore logger for other queries
+		
+// 		$res = $logger->queries[1];
+// 		dump($res);
+// 		foreach ($res['params'] as $p) {
+// 			if (is_array($p)) {
+// 				foreach ($p as $v) {
+// 					$res['sql'] = str_replace('?', $v, $res['sql']);
+// 				}
+// 			} else {
+// 				$res['sql'] = str_replace('?', $p, $res['sql']);
+// 			}
+// 		}
+// 		dd($res['sql']);
+	}
+	
+	private function getValueToString($value): string
+	{
+		if (is_object($value)) {
+			if (method_exists($value, 'getId')) {
+				return $value->getId();
+			} elseif (method_exists($value, '__toString')) {
+				return $value->__toString();
+			} else {
+				throw new \Exception('Objet invalide');
+			}
+		} elseif (is_array($value)) {
+			
+			return join(',', array_map(function($v) {
+				return $this->getValueToString($v);
+			}, $value));
+			
+		} else {
+			return (string)$value;
+		}
 	}
 	
 }
