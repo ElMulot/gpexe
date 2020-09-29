@@ -27,27 +27,23 @@ class Profil
     /**
      * @ORM\Column(type="boolean")
      */
-    private $editProgressRules;
-
+    private $editDocuments;
+    
     /**
      * @ORM\Column(type="boolean")
      */
-    private $editCodifications;
-
-    /**
-     * @ORM\Column(type="boolean")
-     */
-    private $editMetadatas;
-
-    /**
-     * @ORM\Column(type="boolean")
-     */
-    private $editVisas;
-
+    private $isController;
+    
     /**
      * @ORM\Column(type="boolean")
      */
     private $isAdmin;
+
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $isSuperAdmin;
+
 
     public function getId(): ?int
     {
@@ -65,53 +61,29 @@ class Profil
 
         return $this;
     }
-
-    public function getEditProgressRules(): ?bool
+	
+    public function getEditDocuments(): ?bool
     {
-        return $this->editProgressRules;
+    	return $this->editDocuments;
     }
-
-    public function setEditProgressRules(bool $editProgressRules): self
+    
+    public function setEditDocuments(bool $editDocuments): self
     {
-        $this->editProgressRules = $editProgressRules;
-
-        return $this;
+    	$this->editDocuments = $editDocuments;
+    	
+    	return $this;
     }
-
-    public function getEditCodifications(): ?bool
+    
+    public function getIsController(): ?bool
     {
-        return $this->editCodifications;
+    	return $this->isController;
     }
-
-    public function setEditCodifications(bool $editCodifications): self
+    
+    public function setIsController(bool $isController): self
     {
-        $this->editCodifications = $editCodifications;
-
-        return $this;
-    }
-
-    public function getEditMetadatas(): ?bool
-    {
-        return $this->editMetadatas;
-    }
-
-    public function setEditMetadatas(bool $editMetadatas): self
-    {
-        $this->editMetadatas = $editMetadatas;
-
-        return $this;
-    }
-
-    public function getEditVisas(): ?bool
-    {
-        return $this->editVisas;
-    }
-
-    public function setEditVisas(bool $editVisas): self
-    {
-        $this->editVisas = $editVisas;
-
-        return $this;
+    	$this->isController = $isController;
+    	
+    	return $this;
     }
 
     public function getIsAdmin(): ?bool
@@ -125,10 +97,23 @@ class Profil
 
         return $this;
     }
+
+    public function getIsSuperAdmin(): ?bool
+    {
+        return $this->isSuperAdmin;
+    }
+
+    public function setIsSuperAdmin(bool $isSuperAdmin): self
+    {
+        $this->isSuperAdmin = $isSuperAdmin;
+
+        return $this;
+    }
     
     public function __toString(): string
     {
     	return (string)$this->getName();
     }
+    
 }
 ?>

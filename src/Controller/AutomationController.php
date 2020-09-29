@@ -42,10 +42,15 @@ class AutomationController extends AbstractController
 	
 	public function index(Project $project): Response
 	{
+		if ($this->isGranted('ROLE_ADMIN') === false &&
+			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
+			return $this->redirectToRoute('project');
+		}
+		
 		return $this->render('generic/list.html.twig', [
 			'header' => $this->translator->trans('Automations for') . ' : ' . $project->getName(),
 			'route_back' =>  $this->generateUrl('project_view', [
-				'id' => $project->getId(),
+				'project' => $project->getId(),
 			]),
 			'class' => Automation::class,
 			'entities' => $this->automationRepository->getAutomations($project),
@@ -54,24 +59,34 @@ class AutomationController extends AbstractController
 	
 	public function dashboard(Automation $automation): Response
 	{
+		$project = $automation->getProject();
+		if ($this->isGranted('ROLE_ADMIN') === false &&
+			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
+			return $this->redirectToRoute('project');
+		}
 		
 		if ($automation->isValid()) {
 			return $this->render('automation/dashboard.html.twig', [
 				'automation' => $automation,
 				'route_back' =>  $this->generateUrl('project_view', [
-					'id' => $automation->getProject()->getId(),
+					'project' => $project->getId(),
 				]),
 			]);
 		} else {
 			$this->addFlash('danger', 'Invalid automation');
 			return $this->redirectToRoute('project_view', [
-				'id' => $automation->getProject()->getId(),
+				'project' => $project->getId(),
 			]);
 		}
 	}
 	
 	public function launch(Request $request, Automation $automation): Response
 	{
+		$project = $automation->getProject();
+		if ($this->isGranted('ROLE_ADMIN') === false &&
+			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
+			return $this->redirectToRoute('project');
+		}
 		
 		if ($request->query->has('file_name')) {									//launch import
 			
@@ -93,7 +108,7 @@ class AutomationController extends AbstractController
 		} else {
 			$this->addFlash('danger', 'Programme invalide.');
 			return $this->redirectToRoute('project_view', [
-				'id' => $automation->getProject()->getId(),
+				'project' => $project->getId(),
 			]);
 		}
 		
@@ -178,6 +193,17 @@ class AutomationController extends AbstractController
 	
 	public function completed(Request $request, Automation $automation): Response
 	{
+		$project = $automation->getProject();
+		if ($this->isGranted('ROLE_ADMIN') === false &&
+			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
+			return $this->redirectToRoute('project');
+		}
+		
+		if ($this->isGranted('ROLE_ADMIN') === false &&
+			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
+			return $this->redirectToRoute('project');
+		}
+		
 		if ($request->query->has('file_name')) {
 			
 			$fileName = $request->query->get('file_name');
@@ -186,7 +212,7 @@ class AutomationController extends AbstractController
 			
 			$this->addFlash('danger', 'Erreur interne.');
 			return $this->redirectToRoute('project_view', [
-				'id' => $automation->getProject()->getId(),
+				'project' => $project->getId(),
 			]);
 			
 		}
@@ -199,7 +225,7 @@ class AutomationController extends AbstractController
 			
 			$this->addFlash('danger', 'Erreur interne.');
 			return $this->redirectToRoute('project_view', [
-				'id' => $automation->getProject()->getId(),
+				'project' => $project->getId(),
 			]);
 			
 		}
@@ -229,7 +255,7 @@ class AutomationController extends AbstractController
 			
 			$this->addFlash('danger', 'Programme invalide.');
 			return $this->redirectToRoute('project_view', [
-				'id' => $automation->getProject()->getId(),
+				'project' => $project->getId(),
 			]);
 			
 		}
@@ -237,6 +263,11 @@ class AutomationController extends AbstractController
 	
 	public function console(Request $request, Automation $automation): Response
 	{
+		$project = $automation->getProject();
+		if ($this->isGranted('ROLE_ADMIN') === false &&
+			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
+			return $this->redirectToRoute('project');
+		}
 		
 		$fileName = false;
 		$redirect = '';
@@ -286,6 +317,11 @@ class AutomationController extends AbstractController
 	
 	public function new(Request $request, Project $project): Response
 	{
+		if ($this->isGranted('ROLE_ADMIN') === false &&
+			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
+			return $this->redirectToRoute('project');
+		}
+		
 		$automation = new Automation();
 		$automation->setProject($project);
 		$automation->setEnabled(true);
@@ -305,18 +341,18 @@ class AutomationController extends AbstractController
 			
 			if ($request->request->get('submit') == 'save') {
 				return $this->redirectToRoute('automation_edit', [
-					'id' => $automation->getId(),
+					'automation' => $automation->getId(),
 				]);
 			} else {
 				return $this->redirectToRoute('automation', [
-					'id' => $project->getId()
+					'project' => $project->getId()
 				]);
 			}
 		} else {
 			$view = $form->createView();
 			return $this->render('automation/form.html.twig', [
 				'route_back' =>  $this->generateUrl('automation', [
-					'id' => $project->getId(),
+					'project' => $project->getId(),
 				]),
 				'form' => $view,
 				'fields' => $fields,
@@ -326,7 +362,13 @@ class AutomationController extends AbstractController
 	
 	public function edit(Request $request, Automation $automation): Response
 	{
-		$fields = $this->fieldService->getFieldsList($automation->getProject());
+		$project = $automation->getProject();
+		if ($this->isGranted('ROLE_ADMIN') === false &&
+			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
+			return $this->redirectToRoute('project');
+		}
+		
+		$fields = $this->fieldService->getFieldsList($project);
 		$form = $this->createForm(AutomationType::class, $automation);
 		
 		$form->handleRequest($request);
@@ -344,21 +386,21 @@ class AutomationController extends AbstractController
 				$view = $form->createView();
 				return $this->render('automation/form.html.twig', [
 					'route_back' =>  $this->generateUrl('automation', [
-						'id' => $automation->getProject()->getId(),
+						'project' => $project->getId(),
 					]),
 					'form' => $view,
 					'fields' => $fields,
 				]);
 			} else {
 				return $this->redirectToRoute('automation', [
-					'id' => $automation->getProject()->getId()
+					'project' => $project->getId()
 				]);
 			}
 		} else {
 			$view = $form->createView();
 			return $this->render('automation/form.html.twig', [
 				'route_back' =>  $this->generateUrl('automation', [
-					'id' => $automation->getProject()->getId(),
+					'project' => $project->getId(),
 				]),
 				'form' => $view,
 				'fields' => $fields,
@@ -368,6 +410,12 @@ class AutomationController extends AbstractController
 	
 	public function delete(Request $request, Automation $automation): Response
 	{
+		$project = $automation->getProject();
+		if ($this->isGranted('ROLE_ADMIN') === false &&
+			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
+			return $this->redirectToRoute('project');
+		}
+		
 		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
 			$entityManager = $this->getDoctrine()->getManager();
 			$entityManager->remove($automation);
@@ -375,12 +423,12 @@ class AutomationController extends AbstractController
 			
 			$this->addFlash('success', 'Entry deleted');
 			return $this->redirectToRoute('automation', [
-				'id' => $automation->getProject()->getId()
+				'project' => $project->getId()
 			]);
 		} else {
 			return $this->render('generic/delete.html.twig', [
 				'route_back' =>  $this->generateUrl('automation', [
-					'id' => $automation->getProject()->getId(),
+					'project' => $project->getId(),
 				]),
 				'entities' => [$automation],
 			]);

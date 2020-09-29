@@ -15,6 +15,6 @@
 			<span class="sr-only">{% trans %}Loading...{% endtrans %}</span>
 		</div>
 	</div>
-	<a class="active" data-toggle="ajax" data-url="{{ path('automation_console', app.request.query.all|merge({'id': automation.id})) }}" data-target="#console"></a>
+	<a class="active" data-toggle="ajax" data-url="{{ path('automation_console', app.request.query.all|merge({'automation': automation.id})) }}" data-target="#console"></a>
 	
 {% endif %}

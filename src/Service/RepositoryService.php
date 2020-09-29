@@ -2,138 +2,23 @@
 
 namespace App\Service;
 
-use Doctrine\ORM\EntityRepository;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepositoryInterface;
-use Doctrine\Persistence\ManagerRegistry;
-use Doctrine\DBAL\Logging\DebugStack;
-use LogicException;
-use Doctrine\ORM\QueryBuilder;
-use Doctrine\ORM\Query\Expr;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 
-class RepositoryService extends EntityRepository implements ServiceEntityRepositoryInterface
+class RepositoryService extends ServiceEntityRepository
 {
 	
-	private $query;
-	
-	private $uid;
-	
-	/**
-	 * @param string $entityClass The class name of the entity this repository manages
-	 */
-	public function __construct(ManagerRegistry $registry, $entityClass)
+	public function newQB($alias = null, $indexBy = null): QueryBuilderService
 	{
-		$manager = $registry->getManagerForClass($entityClass);
+		$qb = new QueryBuilderService($this->getEntityManager());
 		
-		if ($manager === null) {
-			throw new LogicException(sprintf(
-				'Could not find the entity manager for class "%s". Check your Doctrine configuration to make sure it is configured to load this entity’s metadata.',
-				$entityClass)
-			);
-		}
-
-		parent::__construct($manager, $manager->getClassMetadata($entityClass));
-	}
-	
-	public function newQuery($alias, $indexBy = null): QueryBuilder
-	{
-		if ($alias == false) {
-			$this->query = $this->getEntityManager()->createQueryBuilder();
-		} else {
-			$this->query = $this->createQueryBuilder($alias, $indexBy);
+		if ($alias) {
+			$qb
+				->select($alias)
+				->from($this->getEntityName(), $alias, $indexBy)
+			;
 		}
 		
-		return $this->query;
-	}
-	
-	public function query()
-	{
-		return $this->query;
-	}
-	
-	public function newExpr(): Expr
-	{
-		return $this->getEntityManager()->createQueryBuilder()->expr();
-	}
-	
-	public function eq($field, $parameter): Expr\Comparison
-	{
-		$this->uid++;
-		$this->query->setParameter($this->uid, $parameter);
-		return $this->newExpr()->eq($field, '?' . $this->uid);
-	}
-	
-	public function neq($field, $parameter): Expr\Comparison
-	{
-		$this->uid++;
-		$this->query->setParameter($this->uid, $parameter);
-		return $this->newExpr()->neq($field, '?' . $this->uid);
-	}
-	
-	public function gt($field, $parameter): Expr\Comparison
-	{
-		$this->uid++;
-		$this->query->setParameter($this->uid, $parameter);
-		return $this->newExpr()->gt($field, '?' . $this->uid);
-	}
-	
-	public function gte($field, $parameter): Expr\Comparison
-	{
-		$this->uid++;
-		$this->query->setParameter($this->uid, $parameter);
-		return $this->newExpr()->gte($field, '?' . $this->uid);
-	}
-	
-	public function in($field, $parameter): Expr\Func
-	{
-		$this->uid++;
-		$this->query->setParameter($this->uid, $parameter);
-		return $this->newExpr()->in($field, '?' . $this->uid);
-	}
-	
-	public function notIn($field, $parameter): Expr\Func
-	{
-		$this->uid++;
-		$this->query->setParameter($this->uid, $parameter);
-		return $this->newExpr()->notIn($field, '?' . $this->uid);
-	}
-	
-	public function lt($field, $parameter): Expr\Comparison
-	{
-		$this->uid++;
-		$this->query->setParameter($this->uid, $parameter);
-		return $this->newExpr()->lt($field, '?' . $this->uid);
-	}
-	
-	public function lte($field, $parameter): Expr\Comparison
-	{
-		$this->uid++;
-		$this->query->setParameter($this->uid, $parameter);
-		return $this->newExpr()->lte($field, '?' . $this->uid);
-	}
-	
-	public function andX($x = null): Expr\Andx
-	{
-		return new Expr\Andx(func_get_args());
-	}
-	
-	public function orX($x = null): Expr\Orx
-	{
-		return new Expr\Orx(func_get_args());
-	}
-	
-	public function isNull(string $x): string
-	{
-		return $this->newExpr()->isNull($x);
-	}
-	
-	public function isNotNull(string $x): string
-	{
-		return $this->newExpr()->isNotNull($x);
-	}
-	
-	public function hasAlias(string $alias): bool
-	{
-		return in_array($alias, $this->query->getAllAliases());
+		return $qb;
 	}
 	
 // 	public function getResult()
@@ -166,11 +51,11 @@ class RepositoryService extends EntityRepository implements ServiceEntityReposit
 // 		return $this->query()->getQuery()->getSingleScalarResult();
 // 	}
 	
-	public function ddSql()
+	public function ddSql($qb)
 	{
-		$sql = $this->query()->getQuery()->getSQL();
+		$sql = $qb->getQuery()->getSQL();
 		
-		foreach ($this->query()->getParameters() as $parameter) {
+		foreach ($qb->getParameters() as $parameter) {
 			$sql = preg_replace('/\?/', $this->getValueToString($parameter->getValue()), $sql, 1);
 		}
 		dd($sql);

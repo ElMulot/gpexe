@@ -9,7 +9,7 @@
 			<li class="nav-item active" style="{{ block('nav_item') }}">
 				<a class="nav-link" href={{ path('project') }}>{% trans %}Projects{% endtrans %}</a>
 			</li>
-			{% if is_granted('ROLE_ADMIN') %}
+            {% if is_granted('ROLE_ADMIN') %}
     			<li class="nav-item dropdown" style="{{ block('nav_item') }}">
     				<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown2" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{% trans %}Admin{% endtrans %}</a>
     				<div class="dropdown-menu" style="{{ block('nav_item') }}">
@@ -50,14 +50,16 @@
     		{% for project in projects %} 
             	<div class="col">
                     <div class="card text-white bg-primary mb-3" style="width: 20rem;">
-                        <a role="button" class="btn btn-primary text-center font-weight-bold" href="{{ path('project_view', {'id': project.id}) }}">{{ project.name }}</a>
+                        <a role="button" class="btn btn-primary text-center font-weight-bold" href="{{ path('project_view', {'project': project.id}) }}">{{ project.name }}</a>
                         <div class="card-body">
                             <p class="card-text"></p>
         				</div>
-        				<div class="card-body text-right">
-                        	<a class="btn btn-sm btn-success text-nowrap" href="{{ path('project_edit', {'id': project.id}) }}">{% trans %}Edit{% endtrans %}</a>
-                    		<a class="btn btn-sm btn-danger text-nowrap" href="{{ path('project_delete', {'id': project.id}) }}">{% trans %}Delete{% endtrans %}</a>
-                    	</div>
+        				{% if (is_granted('ROLE_CONTROLLER') and app.user in project.users) or is_granted('ROLE_ADMIN') %}
+            				<div class="card-body text-right">
+                            	<a class="btn btn-sm btn-success text-nowrap" href="{{ path('project_edit', {'project': project.id}) }}">{% trans %}Edit{% endtrans %}</a>
+                        		<a class="btn btn-sm btn-danger text-nowrap" href="{{ path('project_delete', {'project': project.id}) }}">{% trans %}Delete{% endtrans %}</a>
+                        	</div>
+                    	{% endif %}
                 	</div>
                 </div>
             {% else %}

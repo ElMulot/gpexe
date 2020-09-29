@@ -28,18 +28,22 @@ class VueRepository extends RepositoryService
 	 */
 	public function getVues(Project $project, User $user)
 	{
-		return $this->newQuery('v')
-			->select('v.id, v.name')
+		$qb = $this->newQB('v');
+		
+		return $qb->select('v.id, v.name, u.id AS user_id, p.isSuperAdmin, p.isAdmin')
 			->innerJoin('v.user', 'u')
 			->innerJoin('u.profil', 'p')
 			->orWhere(
-				$this->andX(
-					$this->eq('p.isAdmin', true),
-					$this->eq('v.isShared', true),
-				),
-				$this->eq('v.user', $user)
+				$qb->andX(
+					$qb->orX(
+						$qb->eq('p.isSuperAdmin', true),
+						$qb->eq('p.isAdmin', true)
+					),
+					$qb->eq('v.isShared', true),
+				)
 			)
-			->orderBy('v.name')
+			->orWhere($qb->eq('v.user', $user))
+			->orderBy('p.isSuperAdmin, p.isAdmin, v.name')
 			->getQuery()
 			->getArrayResult()
 		;
@@ -51,8 +55,9 @@ class VueRepository extends RepositoryService
 	 */
 	public function getVueById(int $vueId)
 	{
-		return $this->newQuery('v')
-			->andWhere($this->eq('v.id', $vueId))
+		$qb = $this->newQB('v');
+		
+		return $qb->andWhere($qb->eq('v.id', $vueId))
 			->getQuery()
 			->getOneOrNullResult()
 		;
@@ -65,18 +70,22 @@ class VueRepository extends RepositoryService
 	public function getDefaultVue(Project $project, User $user)
 	{
 		
-		return $this->newQuery('v')
-			->innerJoin('v.user', 'u')
+		$qb = $this->newQB('v');
+		return $qb->innerJoin('v.user', 'u')
 			->innerJoin('u.profil', 'p')
 			->orWhere(
-				$this->andX(
-					$this->eq('p.isAdmin', true),
-					$this->eq('v.isShared', true),
-					),
-				$this->eq('v.user', $user)
+				$qb->andX(
+					$qb->orX(
+						$qb->eq('p.isSuperAdmin', true),
+						$qb->eq('p.isAdmin', true)
+						),
+					$qb->eq('v.isShared', true),
+					)
 				)
-			->andWhere($this->eq('v.isDefault', true))
-			->orderBy('v.isDefault')
+			->orWhere($qb->eq('v.user', $user))
+			->andWhere($qb->eq('v.isDefault', true))
+			->orderBy('p.isSuperAdmin, p.isAdmin')
+			->setMaxResults(1)
 			->getQuery()
 			->getOneOrNullResult()
 		;

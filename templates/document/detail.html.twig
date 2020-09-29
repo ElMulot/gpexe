@@ -2,8 +2,8 @@
 	<div id="menu" class="col-auto d-flex flex-column h-100" data-url="{{ app.request.uri }}">
         <div id="version_tabs" class="d-flex nav-pills flex-column align-items-center overflow-auto h-100" aria-orientation="vertical">
         	{% for version in versions %}
-                <a class="nav-link w-75 my-1{% if version == current_version %} active{% endif %}" data-toggle="ajax" data-target="#version_content" data-url="{{ path('version_detail', {'id': version.id}) }}" data-id="{{ version.id }}">
-                    {{ version.name }} 
+                <a class="nav-link d-flex w-75 my-1{% if version == current_version %} active{% endif %}" data-toggle="ajax" data-target="#version_content" data-url="{{ path('version_detail', {'version': version.id}) }}" data-id="{{ version.id }}">
+                    <div class="flex-grow-1">{{ version.name }}</div>
                     {% if version.isRequired %}
                     	<span class="badge badge-info">{% trans %}to be produced{% endtrans %}</span>
                     {% elseif version.status.isInformation %}

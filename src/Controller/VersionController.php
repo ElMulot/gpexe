@@ -44,7 +44,15 @@ class VersionController extends AbstractController
 	public function detail(Version $version): Response
 	{
 		$document = $version->getDocument();
-		$project = $document->getSerie()->getProject();
+		$serie = $document->getSerie();
+		$project = $serie->getProject();
+		
+		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
+			$this->createAccessDeniedException();
+		}
+		if ($this->getUser()->getCompany()->isMainContractor() === false && $this->getUser()->getCompany() !== $serie->getCompany()) {
+			$this->createAccessDeniedException();
+		}
 		
 		return $this->render('version/detail.html.twig', [
 			'version' => $version,
@@ -54,29 +62,30 @@ class VersionController extends AbstractController
 		]);
 	}
 	
-	public function new(Request $request, Document $document = null): Response
+	public function new(Request $request): Response
 	{
 		$version = new Version();
 		
-		if ($document === null) {
-			
-			$documents = $this->documentRepository->getDocumentsByRequest($request);
-			
-			if ($documents == false) {
-				$this->addFlash('danger', 'None documents selected');
-				return $this->render('ajax/error.html.twig');
-			}
+		$documents = $this->documentRepository->getDocumentsByRequest($request);
 		
-			$document = $documents[0];
-			
-			if (count($documents) > 1) {
-				$this->addFlash('danger', 'You must select only document');
-				return $this->render('ajax/error.html.twig');
-			}
+		if ($documents == false) {
+			$this->addFlash('danger', 'None documents selected');
+			return $this->render('ajax/error.html.twig');
+		}
+	
+		$document = $documents[0];
+		
+		if (count($documents) > 1) {
+			$this->addFlash('danger', 'You must select only document');
+			return $this->render('ajax/error.html.twig');
 		}
 		
 		$serie = $document->getSerie();
 		$project = $serie->getProject();
+		
+		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
+			throw $this->createAccessDeniedException();
+		}
 		
 		$status = $this->statusRepository->getDefaultStatus($project);
 		
@@ -134,6 +143,7 @@ class VersionController extends AbstractController
 	{
 			
 		$documents = $this->documentRepository->getDocumentsByRequest($request);
+		
 		if ($documents == false) {
 			$this->addFlash('danger', 'None documents selected');
 			return $this->render('ajax/error.html.twig');
@@ -151,6 +161,10 @@ class VersionController extends AbstractController
 		
 		$project = $serie->getProject();	
 		
+		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
+			throw $this->createAccessDeniedException();
+		}
+		
 		$form = $this->createForm(VersionType::class, null, [
 			'serie' => $serie,
 			'versions' => $versions,
@@ -164,6 +178,10 @@ class VersionController extends AbstractController
 			$entityManager = $this->getDoctrine()->getManager();
 			
 			foreach ($versions as $version) {
+				
+				if ($form->has('name')) {
+					$version->setName($form->get('name')->getData());
+				}
 				
 				if ($this->isMultiple($form, 'isRequired') == false) {
 					$version->setIsRequired($form->get('isRequired')->getData());
@@ -236,8 +254,13 @@ class VersionController extends AbstractController
         }
         
         $document = $documents[0];
+        $project = $document->getSerie()->getProject();
         $versions = $this->versionRepository->getVersions($request);
 	    
+        if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
+        	throw $this->createAccessDeniedException();
+        }
+        
 	    if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
 	        $entityManager = $this->getDoctrine()->getManager();
 	        

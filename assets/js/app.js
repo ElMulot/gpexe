@@ -12,6 +12,19 @@ String.prototype.toDate = function () {
 	return (d instanceof Date && isNaN(d) === false)?d:null;
 };
 
+Date.prototype.format = function() {
+	
+	day = this.getDate();
+	month = this.getMonth() + 1;
+	year = this.getFullYear();
+	
+	if (month < 10) month = '0' + month;
+	if (day < 10) day = '0' + day;
+	
+	return [day, month, year].join('-');
+	
+}
+
 Date.prototype.addDays = function(days) {
     var date = new Date(this.valueOf());
     date.setDate(date.getDate() + days);

@@ -28,7 +28,7 @@
         			<a class="nav-link" href="{{ route_back }}">{% trans %}Back{% endtrans %}</a>
         		</li>
     		{% endif %}
-			{% if is_granted('ROLE_EDIT') %}
+			{% if is_granted('ROLE_ADMIN') or (is_granted('ROLE_EDIT_DOCUMENTS') and app.user in project.users) %}
     			<li id="document_menu" class="nav-item dropdown" style="{{ block('nav_item') }}">
     				<a class="nav-link dropdown-toggle" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{% trans %}Documents{% endtrans %}</a>
     				<div class="dropdown-menu" style="{{ block('nav_item') }}">
@@ -36,9 +36,7 @@
     						<button id="document_new" class="dropdown-item" data-toggle="modal" data-url={{ path('document_new', {'serie': serie.id}) }}>{% trans %}New{% endtrans %}</button>
     					{% endif %}
     					<button id="document_edit" class="dropdown-item" data-toggle="modal" data-url="{{ path('document_edit') }}">{% trans %}Edit{% endtrans %}</button>
-    					{% if is_granted('ROLE_MOVE') %}
-    						<button id="document_move" class="dropdown-item" data-toggle="modal" data-url="{{ path('document_move') }}">{% trans %}Move{% endtrans %}</button>
-    					{% endif %}
+    					<button id="document_move" class="dropdown-item" data-toggle="modal" data-url="{{ path('document_move') }}">{% trans %}Move{% endtrans %}</button>
     					<button id="document_delete" class="dropdown-item" data-toggle="modal" data-url="{{ path('document_delete') }}">{% trans %}Delete{% endtrans %}</button>
     				</div>
     			</li>
@@ -57,11 +55,6 @@
 	<div class="navbar-collapse "></div>
 	<div class="navbar-collapse">
 		<ul class="navbar-nav ml-auto">
-			{% if is_granted('ROLE_ADMIN') %}
-    			<li class="nav-item" style="{{ block('nav_item') }}">
-    				<a class="nav-link" href="{{ path('test') }}">Test</a>
-    			</li>
-    		{% endif %}
 			<li class="nav-item" style="{{ block('nav_item') }}">
 				<a class="nav-link" href="{{ path('logout') }}">{% trans %}Logout{% endtrans %}</a>
 			</li>
@@ -130,7 +123,7 @@
     				
     			</div>
     			<div class="modal-footer justify-content-center">
-    				<button type="button" class="btn btn-secondary w-25" data-dismiss="modal">Close</button>
+    				<button id="modal_detail_close" type="button" class="btn btn-secondary w-25" data-dismiss="modal">Close</button>
     			</div>
     		</div>
     	</div>
@@ -149,23 +142,7 @@
                 		</div>
         			</th>
         			{% for codename, field in fields %}
-    					{% if codename == 'document.reference' %}
-    				    	{% set class = "type-reference" %}
-        				{% elseif codename == 'version.name' %}
-        					{% set class = "type-name" %}
-        				{% elseif codename == 'document.name' %}
-        					{% set class = "type-name" %}
-						{% elseif field.type is constant('App\\Entity\\Metadata::BOOLEAN') %}
-							{% set class = "type-boolean" %}
-						{% elseif field.type is constant('App\\Entity\\Metadata::DATE')  %}
-							{% set class = "type-date" %}
-						{% elseif field.type is constant('App\\Entity\\Metadata::LINK')  %}
-				    		{% set class = "type-link" %}
-        		    	{% else %}
-                            {% set class = "type-standard" %}
-				    	{% endif %}
-        				
-    					<th id="{{ field.id }}" name="{{ field.parent ~ '[' ~ field.name ~ ']' }}" class="{{ class }}" data-title="{{ field.title }}" data-sort="{% if field.sort %}true{% else %}false{% endif %}">
+    					<th id="{{ field.full_id }}" data-type="{{ field.type }}" data-title="{{ field.title }}" data-sort="{% if field.sort %}true{% else %}false{% endif %}">
     						{% if field.form is defined %}
         						{% form_theme field.form with ['form/select.html.twig'] only %}	
     					        {{ form(field.form) }}
@@ -192,7 +169,7 @@
     	
     	</div>
     	<div class="col-auto">
-    		<button id="vue_new" type="button" class="btn btn-primary" data-url="{{ path('vue_new', app.request.query.all|merge({'id': project.id})) }}" role="button">{% trans %}New vue{% endtrans %}</button>
+    		<button id="vue_new" type="button" class="btn btn-primary" data-url="{{ path('vue_new', app.request.query.all|merge({'project': project.id})) }}" role="button">{% trans %}New vue{% endtrans %}</button>
     	</div>
     </div>
 {% endblock %}
@@ -226,9 +203,11 @@
             		<a class="btn btn-outline-primary text-white m-1" href="{{ path('document', {'project': project.id, 'type': serie.type, 'serie': serie.id}) }}" role="button">{{ serie.name }}</a>
             	{% endfor %}
         	</div>
-        	<div class="col-auto">
-        		<a class="btn btn-primary" href="{{ path('serie', {'id': project.id, 'company': company.id}) }}" role="button">{% trans %}Manage series{% endtrans %}</a>
-        	</div>
+        	{% if is_granted('ROLE_CONTROLLER') and app.user in project.users %}
+            	<div class="col-auto">
+            		<a class="btn btn-primary" href="{{ path('serie', {'project': project.id, 'company': company.id}) }}" role="button">{% trans %}Manage series{% endtrans %}</a>
+            	</div>
+        	{% endif %}
         </div>
 	{% endif %}
 {% endblock %}

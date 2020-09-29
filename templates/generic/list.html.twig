@@ -37,6 +37,14 @@
     	</thead>
     	<tbody>
     		{% set entity_name = class|short_name %}
+    		
+    		{% set display_list = false %}
+    		{% for entity in entities %}
+    			{% if attribute(entity, 'isList') is defined and attribute(entity, 'isList') == "True" %}
+    				{% set display_list = true %}
+    			{% endif %}
+    		{% endfor %}
+    		
     		{% for entity in entities %}
         		<tr>
         			{% for key, header in headers %}
@@ -48,29 +56,30 @@
             			{% elseif value.timezone is defined and value.nonExistingProperty is not defined %}
             				<td class="col-xl-auto text-center">{{ value|date('d-m-Y') }}</td>
             			{% elseif value matches '/^\\d/' %}
-                			{% if value < 10 %}
-                				<td class="col-xl-auto text-center">{{ value }}</td>
-                			{% else %}
-                				<td class="col-xl-auto text-right">{{ value }}</td>
-                			{% endif %}
+                			<td class="col-xl-auto text-center">{{ value }}</td>
             			{% else %}
-            			<td class="col-xl-auto text-left">{{ value|truncate(30, false, "...") }}</td>
+            				<td class="col-xl-auto text-left">{{ value|truncate(30, false, "...") }}</td>
             			{% endif %}
         			{% endfor %}
-	                {% if attribute(entity, 'isList') is defined and attribute(entity, 'isList') == "True" %}
-            			<td style="width: 200px;">
-            			    <a class="btn-secondary btn w-100 text-nowrap" href="{{ path(entity_name ~ '_item', {'id': entity.id}) }}">
-            			        {% trans %}List{% endtrans %}
-            				</a>
-            			</td>
-        	        {% endif %}
+        			{% if display_list %}
+    	                {% if attribute(entity, 'isList') is defined and attribute(entity, 'isList') == "True" %}
+                			<td style="width: 200px;">
+                			    <a class="btn-secondary btn w-100 text-nowrap" href="{{ path(entity_name ~ '_item', {(entity_name): entity.id}) }}">
+                			        {% trans %}List{% endtrans %}
+                				</a>
+                			</td>
+            	        {% else %}
+                			<td style="width: 200px;">
+                			</td>
+                		{% endif %}
+            	    {% endif %}
         			<td style="width: 200px;">
-        				<a class="btn-success btn w-100 text-nowrap" href="{{ path(entity_name ~ '_edit', {'id': entity.id}) }}">
+        				<a class="btn-success btn w-100 text-nowrap" href="{{ path(entity_name ~ '_edit', {(entity_name): entity.id}) }}">
         				    {% trans %}Edit{% endtrans %}
         				</a>
         			</td>
         			<td style="width: 200px;">
-        				<a class="btn-danger btn w-100 text-nowrap" href="{{ path(entity_name ~ '_delete', {'id': entity.id}) }}">
+        				<a class="btn-danger btn w-100 text-nowrap" href="{{ path(entity_name ~ '_delete', {(entity_name): entity.id}) }}">
         				    {% trans %}Delete{% endtrans %}
         				</a>
         			</td>

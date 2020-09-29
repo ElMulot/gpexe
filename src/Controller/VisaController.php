@@ -29,10 +29,15 @@ class VisaController extends AbstractController
 	
 	public function index(Project $project): Response
 	{
+		if ($this->isGranted('ROLE_ADMIN') === false &&
+			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
+			return $this->redirectToRoute('project');
+		}
+		
 		return $this->render('generic/list.html.twig', [
 			'header' => $this->translator->trans('Visas for') . ' : ' . $project->getName(),
 			'route_back' =>  $this->generateUrl('project_view', [
-				'id' => $project->getId(),
+				'project' => $project->getId(),
 			]),
 			'class' => Visa::class,
 			'entities' => $this->visaRepository->getVisas($project),
@@ -41,6 +46,11 @@ class VisaController extends AbstractController
 
 	public function new(Request $request, Project $project): Response
 	{
+		if ($this->isGranted('ROLE_ADMIN') === false &&
+			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
+			return $this->redirectToRoute('project');
+		}
+		
 		$visa = new Visa();
 		$visa->setProject($project);
 		$checkerCompanies = $this->companyRepository->getCheckerCompanies($project);
@@ -56,13 +66,13 @@ class VisaController extends AbstractController
 
 			$this->addFlash('success', 'New entry created');
 			return $this->redirectToRoute('visa', [
-				'id' => $project->getId()
+				'project' => $project->getId()
 			]);
 		} else {
 			$view = $form->createView();
 			return $this->render('generic/form.html.twig', [
 				'route_back' =>  $this->generateUrl('visa', [
-					'id' => $project->getId(),
+					'project' => $project->getId(),
 				]),
 				'form' => $view
 			]);
@@ -71,6 +81,12 @@ class VisaController extends AbstractController
 
 	public function edit(Request $request, Visa $visa): Response
 	{
+		$project = $visa->getProject();
+		if ($this->isGranted('ROLE_ADMIN') === false &&
+			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
+			return $this->redirectToRoute('project');
+		}
+		
 		$checkerCompanies = $this->companyRepository->getCheckerCompanies($visa->getProject());
 		$form = $this->createForm(VisaType::class, $visa, [
 			'choices' => $checkerCompanies,
@@ -82,13 +98,13 @@ class VisaController extends AbstractController
 			$entityManager->flush();
 			$this->addFlash('success', 'Datas updated');
 			return $this->redirectToRoute('visa', [
-				'id' => $visa->getProject()->getId()
+				'project' => $visa->getProject()->getId()
 			]);
 		} else {
 			$view = $form->createView();
 			return $this->render('generic/form.html.twig', [
 				'route_back' =>  $this->generateUrl('visa', [
-					'id' => $visa->getProject()->getId(),
+					'project' => $visa->getProject()->getId(),
 				]),
 				'form' => $view
 			]);
@@ -97,6 +113,12 @@ class VisaController extends AbstractController
 
 	public function delete(Request $request, Visa $visa): Response
 	{
+		$project = $visa->getProject();
+		if ($this->isGranted('ROLE_ADMIN') === false &&
+			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
+			return $this->redirectToRoute('project');
+		}
+		
 		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
 			$entityManager = $this->getDoctrine()->getManager();
 			$entityManager->remove($visa);
@@ -104,12 +126,12 @@ class VisaController extends AbstractController
 
 			$this->addFlash('success', 'Entry deleted');
 			return $this->redirectToRoute('visa', [
-				'id' => $visa->getProject()->getId()
+				'project' => $visa->getProject()->getId()
 			]);
 		} else {
 			return $this->render('generic/delete.html.twig', [
 				'route_back' =>  $this->generateUrl('visa', [
-					'id' => $visa->getProject()->getId(),
+					'project' => $visa->getProject()->getId(),
 				]),
                 'entities' => [$visa],
             ]);

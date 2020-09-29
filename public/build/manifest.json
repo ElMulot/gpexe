@@ -14,12 +14,9 @@
   "build/vendors~app.css": "/build/vendors~app.css",
   "build/vendors~app.js": "/build/vendors~app.js",
   "build/vendors~app~automation~dashboard~document~login.js": "/build/vendors~app~automation~dashboard~document~login.js",
+  "build/vendors~app~dashboard~document.js": "/build/vendors~app~dashboard~document.js",
   "build/vendors~app~document.js": "/build/vendors~app~document.js",
   "build/vendors~automation.css": "/build/vendors~automation.css",
   "build/vendors~automation.js": "/build/vendors~automation.js",
-  "build/vendors~document.js": "/build/vendors~document.js",
-  "build/vendors~app~automation~dashboard~login.js": "/build/vendors~app~automation~dashboard~login.js",
-  "build/vendors~app~automation~document.js": "/build/vendors~app~automation~document.js",
-  "build/vendors~app~dashboard~document.js": "/build/vendors~app~dashboard~document.js",
-  "build/vendors~app~automation~document~login.js": "/build/vendors~app~automation~document~login.js"
+  "build/vendors~document.js": "/build/vendors~document.js"
 }

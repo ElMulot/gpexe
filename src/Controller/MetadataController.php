@@ -22,10 +22,15 @@ class MetadataController extends AbstractController
 	
 	public function index(MetadataRepository $metadataRepository, Project $project): Response
 	{
+		if ($this->isGranted('ROLE_ADMIN') === false &&
+			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
+			return $this->redirectToRoute('project');
+		}
+		
 		return $this->render('generic/list.html.twig', [
 			'header' => $this->translator->trans('Metadata for') . ' : ' . $project->getName(),
 			'route_back' =>  $this->generateUrl('project_view', [
-				'id' => $project->getId(),
+				'project' => $project->getId(),
 			]),
 			'class' => Metadata::class,
 			'entities' => $metadataRepository->getMetadatas($project),
@@ -34,6 +39,11 @@ class MetadataController extends AbstractController
 
 	public function new(Request $request, Project $project): Response
 	{
+		if ($this->isGranted('ROLE_ADMIN') === false &&
+			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
+			return $this->redirectToRoute('project');
+		}
+		
 		$metadata = new Metadata();
 		$metadata->setProject($project);
 		$form = $this->createForm(MetadataType::class, $metadata);
@@ -46,13 +56,13 @@ class MetadataController extends AbstractController
 
 			$this->addFlash('success', 'New entry created');
 			return $this->redirectToRoute('metadata', [
-				'id' => $project->getId()
+				'project' => $project->getId()
 			]);
 		} else {
 			$view = $form->createView();
 			return $this->render('generic/form.html.twig', [
 				'route_back' =>  $this->generateUrl('metadata', [
-					'id' => $project->getId(),
+					'project' => $project->getId(),
 				]),
 				'form' => $view
 			]);
@@ -61,6 +71,12 @@ class MetadataController extends AbstractController
 
 	public function edit(Request $request, Metadata $metadata): Response
 	{
+		$project = $metadata->getProject();
+		if ($this->isGranted('ROLE_ADMIN') === false &&
+			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
+			return $this->redirectToRoute('project');
+		}
+		
 		$form = $this->createForm(MetadataType::class, $metadata);
 		$form->handleRequest($request);
 
@@ -69,13 +85,13 @@ class MetadataController extends AbstractController
 			$entityManager->flush();
 			$this->addFlash('success', 'Datas updated');
 			return $this->redirectToRoute('metadata', [
-				'id' => $metadata->getProject()->getId()
+				'project' => $metadata->getProject()->getId()
 			]);
 		} else {
 			$view = $form->createView();
 			return $this->render('generic/form.html.twig', [
 				'route_back' =>  $this->generateUrl('metadata', [
-					'id' => $metadata->getProject()->getId(),
+					'project' => $metadata->getProject()->getId(),
 				]),
 				'form' => $view
 			]);
@@ -84,6 +100,12 @@ class MetadataController extends AbstractController
 
 	public function delete(Request $request, Metadata $metadata): Response
 	{
+		$project = $metadata->getProject();
+		if ($this->isGranted('ROLE_ADMIN') === false &&
+			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
+			return $this->redirectToRoute('project');
+		}
+		
 		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
 			$entityManager = $this->getDoctrine()->getManager();
 			$entityManager->remove($metadata);
@@ -91,12 +113,12 @@ class MetadataController extends AbstractController
 
 			$this->addFlash('success', 'Entry deleted');
 			return $this->redirectToRoute('metadata', [
-				'id' => $metadata->getProject()->getId()
+				'project' => $metadata->getProject()->getId()
 			]);
 		} else {
 			return $this->render('generic/delete.html.twig', [
 				'route_back' =>  $this->generateUrl('metadata', [
-					'id' => $metadata->getProject()->getId(),
+					'project' => $metadata->getProject()->getId(),
 				]),
 				'entities' => [$metadata],
 			]);

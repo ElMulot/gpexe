@@ -14,7 +14,7 @@ $(document).ready(function() {
 	    indentWithTabs: true,
 	    mode: 'yaml',
 	});
-	cm.setSize('100%','100%');
+	cm.setSize('100%','30rem');
 	
 	$('button[type="button"]').on('click', function() {
 		let text = '[' + $(this).text() + ']';

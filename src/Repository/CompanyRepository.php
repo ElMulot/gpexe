@@ -2,10 +2,11 @@
 
 namespace App\Repository;
 
+use Doctrine\Common\Persistence\ManagerRegistry;
+use App\Service\RepositoryService;
 use App\Entity\Company;
 use App\Entity\Project;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\Common\Persistence\ManagerRegistry;
+use App\Entity\User;
 
 /**
  * @method Company|null find($id, $lockMode = null, $lockVersion = null)
@@ -13,7 +14,7 @@ use Doctrine\Common\Persistence\ManagerRegistry;
  * @method Company[]    findAll()
  * @method Company[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class CompanyRepository extends ServiceEntityRepository
+class CompanyRepository extends RepositoryService
 {
     public function __construct(ManagerRegistry $registry)
     {
@@ -26,7 +27,7 @@ class CompanyRepository extends ServiceEntityRepository
      */
     public function getCompanies()
     {
-    	return $this->createQueryBuilder('c')
+    	return $this->newQb('c')
 	    	->addOrderBy('c.name')
 	    	->getQuery()
 	    	->getResult()
@@ -38,11 +39,11 @@ class CompanyRepository extends ServiceEntityRepository
      */
     public function getCompaniesByProject(Project $project)
     {
-    	return $this->createQueryBuilder('c')
-	    	->innerJoin('c.users', 'u')
+    	$qb = $this->newQb('c');
+    	
+	    return $qb->innerJoin('c.users', 'u')
 	    	->innerJoin('u.projects', 'p')
-	    	->andWhere('p.id = :id')
-	    	->setParameter('id', $project->getId())
+	    	->andWhere($qb->eq('p.id', $project->getId()))
 	    	->addOrderBy('c.name')
 	    	->getQuery()
 	    	->getResult()
@@ -53,37 +54,43 @@ class CompanyRepository extends ServiceEntityRepository
     /**
      * @return Company[]
      */
-    public function getMainContractors(Project $project)
+    public function getMainContractors(Project $project, User $user = null)
     {
-    	return $this->createQueryBuilder('c')
-	    	->innerJoin('c.users', 'u')
+    	$qb = $this->newQb('c');
+	    
+	    $qb->innerJoin('c.users', 'u')
 	    	->innerJoin('u.projects', 'p')
-	    	->andWhere('p.id = :id')
-	    	->setParameter('id', $project->getId())
-	    	->andWhere('c.type = :type')
-	    	->setParameter('type', Company::MAIN_CONTRACTOR)
+	    	->andWhere($qb->eq('p.id',  $project->getId()))
+	    	->andWhere($qb->eq('c.type', Company::MAIN_CONTRACTOR))
 	    	->addOrderBy('c.name')
-	    	->getQuery()
-	    	->getResult()
-    	;
+	    ;
+	    
+	    if ($user !== null) {
+	    	$qb->andWhere($qb->eq('u.id', $user));
+	    }
+	    
+	    return $qb->getQuery()->getResult();
     }
     
     /**
      * @return Company[]
      */
-    public function getSubContractors(Project $project)
+    public function getSubContractors(Project $project, User $user = null)
     {
-    	return $this->createQueryBuilder('c')
-	    	->innerJoin('c.users', 'u')
+    	$qb = $this->newQb('c');
+    	
+    	$qb->innerJoin('c.users', 'u')
 	    	->innerJoin('u.projects', 'p')
-	    	->andWhere('p.id = :id')
-	    	->setParameter('id', $project->getId())
-	    	->andWhere('c.type IN (:type)')
-	    	->setParameter('type', [Company::SUB_CONTRACTOR, Company::SUPPLIER])
+	    	->andWhere($qb->eq('p.id',  $project->getId()))
+	    	->andWhere($qb->in('c.type', [Company::SUB_CONTRACTOR, Company::SUPPLIER]))
 	    	->addOrderBy('c.name')
-	    	->getQuery()
-	    	->getResult()
     	;
+	    
+    	if ($user !== null) {
+    		$qb->andWhere($qb->eq('u.id', $user));
+    	}
+    	
+    	return $qb->getQuery()->getResult();
     }
     
     /**
@@ -91,13 +98,12 @@ class CompanyRepository extends ServiceEntityRepository
      */
     public function getCheckerCompanies(Project $project)
     {
-    	return $this->createQueryBuilder('c')
-	    	->innerJoin('c.users', 'u')
+    	$qb = $this->newQb('c');
+    	
+    	return $qb->innerJoin('c.users', 'u')
 	    	->innerJoin('u.projects', 'p')
-	    	->andWhere('p.id = :id')
-	    	->setParameter('id', $project->getId())
-	    	->andWhere('c.type IN (:type)')
-	    	->setParameter('type', [Company::MAIN_CONTRACTOR, Company::CHECKER])
+	    	->andWhere($qb->eq('p.id',  $project->getId()))
+	    	->andWhere($qb->in('c.type', [Company::MAIN_CONTRACTOR, Company::CHECKER]))
 	    	->addOrderBy('c.priority', 'DESC')
 	    	->addOrderBy('c.name')
 	    	->getQuery()

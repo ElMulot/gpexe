@@ -70,11 +70,21 @@ class DocumentController extends AbstractController
 	
 	public function index(Project $project, string $type, Serie $serie = null): Response
 	{
+		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
+			return $this->redirectToRoute('project');
+		}
+		
 		if ($serie === null) {
+			if ($this->getUser()->getCompany()->isMainContractor() === false) {
+				return $this->redirectToRoute('project');
+			}
 			$company = null;
 			$series = $this->serieRepository->getSeriesByType($project, $type);
 			$fields = $this->fieldService->getFieldsWithForms($project, $series);
 		} else {
+			if ($this->getUser()->getCompany()->isMainContractor() === false && $this->getUser()->getCompany() !== $serie->getCompany()) {
+				return $this->redirectToRoute('project');
+			}
 			$company = $serie->getCompany();
 			$series = $this->serieRepository->getSeries($project, $company);
 			$fields = $this->fieldService->getFieldsWithForms($project, $series);
@@ -88,13 +98,16 @@ class DocumentController extends AbstractController
 			'series' => $series,
 			'fields' => $fields,
 			'route_back' =>  $this->generateUrl('project_view', [
-				'id' => $project->getId(),
+				'project' => $project->getId(),
 			]),
 		]);
 	}
 	
 	public function table(Request $request, Project $project, string $type, Serie $serie = null): Response
 	{
+		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
+			throw $this->createAccessDeniedException();
+		}
 		
 		if ($vueId = $request->query->get('vue')) {
 			if ($vue = $this->vueRepository->getVueById($vueId)) {
@@ -116,12 +129,17 @@ class DocumentController extends AbstractController
 		}
 		
 		if ($serie === null) {
+			if ($this->getUser()->getCompany()->isMainContractor() === false) {
+				throw $this->createAccessDeniedException();
+			}
 			$series = $this->serieRepository->getSeriesByType($project, $type);
 		} else {
+			if ($this->getUser()->getCompany()->isMainContractor() === false && $this->getUser()->getCompany() !== $serie->getCompany()) {
+				throw $this->createAccessDeniedException();
+			}
 			$series = [$serie];
 		}
 		
-		//$fields = $this->fieldService->getFields($project);
 		$codifications = $this->codificationRepository->getCodifications($project);
 		$fields = $this->fieldService->getFields($project);
 		
@@ -136,10 +154,10 @@ class DocumentController extends AbstractController
 		$request->query->set('results_per_page', $resultsPerPage);
 		$request->query->set('page', min($request->query->get('page') ?? 1, $pageMax));
 		
-		$versions = $this->versionRepository->getVersionsArray($codifications, $fields, $series, $request);
+		$versions = $this->versionRepository->getVersionsArray($codifications, $fields, $series, $project, $request);
 		
 		return new JsonResponse([
-			'versions' => $versions,
+			'datas' => $versions,
 			'pageMax' => $pageMax,
 			'query' => $request->query->all(),
 			'flash' =>$this->get('session')->getFlashBag()->all(),
@@ -147,15 +165,23 @@ class DocumentController extends AbstractController
 		
 	}
 	
-	public function detail(Version $version = null): Response
+	public function detail(Version $version): Response
 	{
-		if ($version === null) {
-			$this->addFlash('info', 'No more document');
-			return $this->render('ajax/error.html.twig');
+		$document = $version->getDocument();
+		$serie = $document->getSerie();
+		$project = $serie->getProject();
+		
+		if ($this->isGranted('ROLE_ADMIN') === false && 
+			$this->getUser()->getCompany()->isMainContractor() === false &&
+			$this->getUser()->getCompany() !== $serie->getCompany()) {
+			throw $this->createAccessDeniedException();
 		}
 		
-		$document = $version->getDocument();
-		$project = $document->getSerie()->getProject();
+// 		if ($version === null) {
+// 			$this->addFlash('info', 'No more document');
+// 			return $this->render('ajax/error.html.twig');
+// 		}
+		
 	    return $this->render('document/detail.html.twig', [
 	        'current_version' => $version,
 	    	'versions' => $this->versionRepository->getVersionsByDocument($document),
@@ -165,6 +191,12 @@ class DocumentController extends AbstractController
 
 	public function new(Request $request, Serie $serie): Response
 	{
+		$project = $serie->getProject();
+		
+		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
+			throw $this->createAccessDeniedException();
+		}
+		
 		$document = new Document();
 		$document->setSerie($serie);
 		$project = $serie->getProject();
@@ -231,7 +263,6 @@ class DocumentController extends AbstractController
 	
 	public function edit(Request $request): Response
 	{			
-		
 		$documents = $this->documentRepository->getDocumentsByRequest($request);
 		if ($documents == false) {
 			$this->addFlash('danger', 'None documents selected');
@@ -247,9 +278,14 @@ class DocumentController extends AbstractController
 		
 		$project = $document->getSerie()->getProject();
 		
+		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
+			throw $this->createAccessDeniedException();
+		}
+		
 		$form = $this->createForm(DocumentType::class, $document, [
 			'project' => $project
 		]);
+		
 		$form->handleRequest($request);
 		
 		if ($form->isSubmitted() && $form->isValid()) {
@@ -310,7 +346,12 @@ class DocumentController extends AbstractController
 		
 		$document = $documents[0];
 		$currentSerie = $document->getSerie();
-		$series = $currentSerie->getProject()->getSeries();
+		$project = $currentSerie->getProject();
+		$series = $rpoject->getSeries();
+		
+		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
+			throw $this->createAccessDeniedException();
+		}
 		
 		$form = $this->createForm(SerieChangeType::class, null, [
 			'current_serie' => $currentSerie,
@@ -344,7 +385,7 @@ class DocumentController extends AbstractController
 	
 	public function delete(Request $request): Response
 	{
-	    	        
+		
         $documents = $this->documentRepository->getDocumentsByRequest($request);
         
         if ($documents == false) {
@@ -353,6 +394,11 @@ class DocumentController extends AbstractController
         }
         
         $document = $documents[0];
+        $project = $document->getSerie()->getProject();
+        
+        if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
+        	throw $this->createAccessDeniedException();
+        }
         
 	    if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
 	        $entityManager = $this->getDoctrine()->getManager();
@@ -378,23 +424,14 @@ class DocumentController extends AbstractController
 	{
 		
 		return [
-			'document_reference' => '20',
-			'version_name' => '10',
-			'document_name' => '50',
-			'version_scheduled_date' => '10',
-			'version_delivery_date' => '10',
-			'version_is_required' => '10',
+			'document_reference' => '15',
+			'version_name' => '3',
+			'document_name' => '30',
+			'version_scheduled_date' => '8',
+			'version_delivery_date' => '8',
+			'version_is_required' => '8',
 			'status_value' => '10',
 		];
-	}
-	
-	public function test(): Response
-	{
-		$versions = $this->versionRepository->test();
-		
-		return $this->render('document/test.html.twig', [
-			'versions' => $versions,
-		]);
 	}
 	
 }

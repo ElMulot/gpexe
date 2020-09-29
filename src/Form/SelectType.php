@@ -54,21 +54,20 @@ class SelectType extends AbstractType
     		
     		if (is_array($control['choices']) && is_scalar(current($control['choices']))) {
     			
-    			$builder->add($control['snake_case_full_id'], ChoiceType::class, [
+    			$builder->add($control['full_id'], ChoiceType::class, [
     				'choices' => $control['choices'],
     				'mapped' => false,
     				'required' => false,
     				'multiple' => $control['multiple'],
     				'attr' => [
-    					'name' => $control['full_id'],
-    					'id' => $control['snake_case_full_id'],
+    					'id' => $control['full_id'],
     					'data-title' => $control['title'],
     				],
     			]);
     			
     		} elseif (is_object($control['choices'])) {
     			
-    			$builder->add($control['snake_case_full_id'], EntityType::class, [
+    			$builder->add($control['full_id'], EntityType::class, [
     				'class' => get_class($control['choices']->first()),
     				'choices' => $control['choices'],
     				'mapped' => false,
@@ -76,15 +75,14 @@ class SelectType extends AbstractType
     				'multiple' => $control['multiple'],
     				'choice_label' => $control['choice_label'],
     				'attr' => [
-    					'name' => $control['full_id'],
-    					'id' => $control['snake_case_full_id'],
+    					'id' => $control['full_id'],
     					'data-title' => $control['title'],
     				],
     			]);
     			
     		} else {
     			
-    			$builder->add($control['snake_case_full_id'], EntityType::class, [
+    			$builder->add($control['full_id'], EntityType::class, [
     				'class' => get_class(current($control['choices'])),
     				'choices' => $control['choices'],
     				'mapped' => false,
@@ -92,8 +90,7 @@ class SelectType extends AbstractType
     				'multiple' => $control['multiple'],
     				'choice_label' => $control['choice_label'],
     				'attr' => [
-    					'name' => $control['full_id'],
-    					'id' => $control['snake_case_full_id'],
+    					'id' => $control['full_id'],
     					'data-title' => $control['title'],
     				],
     			]);

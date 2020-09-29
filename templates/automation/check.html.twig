@@ -1,5 +1,5 @@
 <div class="row justify-content-md-center">
-	<button id="launch" type="submit" class="btn btn-primary w-25 m-1" data-toggle="ajax" data-url="{{ path('automation_launch', app.request.query.all|merge({'id': automation.id})) }}" data-target="#output">{% trans %}Lancer l'import{% endtrans %}</button>
+	<button id="launch" type="submit" class="btn btn-primary w-25 m-1" data-toggle="ajax" data-url="{{ path('automation_launch', app.request.query.all|merge({'automation': automation.id})) }}" data-target="#output">{% trans %}Lancer l'import{% endtrans %}</button>
 </div>
 
 <div class="card mt-5">

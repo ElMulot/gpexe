@@ -68,6 +68,11 @@ class Metadata
      * @ORM\OneToMany(targetEntity=MetadataItem::class, mappedBy="metadata", orphanRemoval=true)
      */
     private $metadataItems;
+    
+    /**
+     * @ORM\OneToMany(targetEntity=MetadataValue::class, mappedBy="metadata", orphanRemoval=true)
+     */
+    private $metadataValues;
 
     public function __construct()
     {
@@ -197,12 +202,12 @@ class Metadata
     
     public function getFullDomId(): string
     {
-    	return $this->getParentName() . '_' . $this->id;
+    	return 'metadata_' . $this->id;
     }
     
     public function getFullDomName(): string
     {
-    	return $this->getParentName() . '[' . $this->id . ']';
+    	return 'metadata[' . $this->id . ']';
     }
     
     public function getFullCodename(): string

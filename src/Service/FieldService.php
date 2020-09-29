@@ -46,120 +46,128 @@ class FieldService
 	{
 		$fields = [
 			'document.reference' => [
-				'id' => 'document_reference',
-				'name' => 'reference',
+				'full_id' =>'document_reference',
+				'id' => 'reference',
 				'title' => $this->translator->trans('Reference'),
 				'type' => Metadata::LIST,
 				'parent' => 'document',
 				'sort' => false,
 			],
 			'version.name' => [
-				'id' => 'version_name',
-				'name' => 'name',
+				'full_id' =>'version_name',
+				'id' => 'name',
 				'title' => $this->translator->trans('Version'),
 				'type' => Metadata::TEXT,
 				'parent' => 'version',
 				'sort' => true,
 			],
 			'document.name' => [
-				'id' => 'document_name',
-				'name' => 'name',
+				'full_id' =>'document_name',
+				'id' => 'name',
 				'title' => $this->translator->trans('Name'),
 				'type' => Metadata::TEXT,
 				'parent' => 'document',
 				'sort' => true,
 			],
 			'version.initialScheduledDate' => [
-				'id' => 'version_initial_scheduled_date',
-				'name' => 'initial_scheduled_date',
+				'full_id' =>'version_initial_scheduled_date',
+				'id' => 'initial_scheduled_date',
 				'title' => $this->translator->trans('Initial scheduled date'),
 				'type' => Metadata::DATE,
 				'parent' => 'version',
 				'sort' => true,
 			],
 			'version.scheduledDate' => [
-				'id' => 'version_scheduled_date',
-				'name' => 'scheduled_date',
+				'full_id' =>'version_scheduled_date',
+				'id' => 'scheduled_date',
 				'title' => $this->translator->trans('Scheduled Date'),
 				'type' => Metadata::DATE,
 				'parent' => 'version',
 				'sort' => true,
 			],
 			'version.deliveryDate' => [
-				'id' => 'version_delivery_date',
-				'name' => 'delivery_date',
+				'full_id' =>'version_delivery_date',
+				'id' => 'delivery_date',
 				'title' => $this->translator->trans('Delivery Date'),
 				'type' => Metadata::DATE,
 				'parent' => 'version',
 				'sort' => true,
 			],
 			'version.isRequired' => [
-				'id' => 'version_is_required',
-				'name' => 'is_required',
+				'full_id' =>'version_is_required',
+				'id' => 'is_required',
 				'title' => $this->translator->trans('Is required'),
 				'type' => Metadata::BOOLEAN,
 				'parent' => 'version',
 				'sort' => false,
 			],
 			'version.writer' => [
-				'id' => 'version_writer',
-				'name' => 'writer',
+				'full_id' =>'version_writer',
+				'id' => 'writer',
 				'title' => $this->translator->trans('Writer'),
 				'type' => Metadata::LIST,
 				'parent' => 'version',
 				'sort' => true,
 			],
 			'version.checker' => [
-				'id' => 'version_checker',
-				'name' => 'checker',
+				'full_id' =>'version_checker',
+				'id' => 'checker',
 				'title' => $this->translator->trans('Checker'),
 				'type' => Metadata::LIST,
 				'parent' => 'version',
 				'sort' => true,
 			],
 			'version.approver' => [
-				'id' => 'version_approver',
-				'name' => 'approver',
+				'full_id' =>'version_approver',
+				'id' => 'approver',
 				'title' => $this->translator->trans('Approver'),
 				'type' => Metadata::LIST,
 				'parent' => 'version',
 				'sort' => true,
 			],
+			'version.lastDelivered' => [
+				'full_id' =>'version_last_delivered',
+				'id' => 'last_delivered',
+				'title' => $this->translator->trans('Last delivered'),
+				'type' => Metadata::BOOLEAN,
+				'parent' => 'version',
+				'sort' => false,
+			],
+			'version.lastScheduled' => [
+				'full_id' =>'version_last_scheduled',
+				'id' => 'last_scheduled',
+				'title' => $this->translator->trans('Last scheduled'),
+				'type' => Metadata::BOOLEAN,
+				'parent' => 'version',
+				'sort' => false,
+			],
 			'serie.name' => [
-				'id' => 'serie_name',
-				'name' => 'name',
+				'full_id' =>'serie_name',
+				'id' => 'name',
 				'title' => $this->translator->trans('Serie name'),
 				'type' => Metadata::LIST,
 				'parent' => 'serie',
 				'sort' => true,
 			],
 			'serie.company' => [
-				'id' => 'serie_company',
-				'name' => 'company',
+				'full_id' =>'serie_company',
+				'id' => 'company',
 				'title' => $this->translator->trans('Company'),
 				'type' => Metadata::LIST,
 				'parent' => 'serie',
 				'sort' => true,
 			],
-			'status.name' => [
-				'id' => 'status_name',
-				'name' => 'name',
-				'title' => $this->translator->trans('Status name'),
-				'type' => Metadata::TEXT,
-				'parent' => 'status',
-				'sort' => true,
-			],
 			'status.value' => [
-				'id' => 'status_value',
-				'name' => 'value',
+				'full_id' =>'status_value',
+				'id' => 'value',
 				'title' => $this->translator->trans('Status value'),
 				'type' => Metadata::LIST,
 				'parent' => 'status',
 				'sort' => true,
 			],
 			'status.type' => [
-				'id' => 'status_type',
-				'name' => 'type',
+				'full_id' =>'status_type',
+				'id' => 'type',
 				'title' => $this->translator->trans('Status type'),
 				'type' => Metadata::LIST,
 				'parent' => 'status',
@@ -169,8 +177,8 @@ class FieldService
 		
 		foreach ($this->metadataRepository->getMetadatas($project) as $metadata) {
 			$fields[$metadata->getFullCodename()] = [
-				'id' => $metadata->getFullDomId(),
-				'name' => $metadata->getId(),
+				'full_id' =>$metadata->getFullDomId(),
+				'id' => $metadata->getId(),
 				'title' => $metadata->getName(),
 				'type' => $metadata->getType(),
 				'parent' => $metadata->getParentName(),
@@ -181,8 +189,8 @@ class FieldService
 		foreach ($this->companyRepository->getCheckerCompanies($project) as $company) {
 			if (!$project->getVisasByCompany($company)->isEmpty()) {
 				$fields['visa.' . $company->getCodename()] = [
-					'id' => 'visa_' . $company->getCodename(),
-					'name' => $company->getCodename(),
+					'full_id' =>'visa_' . $company->getId(),
+					'id' => $company->getId(),
 					'title' => $this->translator->trans('Visa') . ' ' . $company->getName(),
 					'type' => Metadata::LIST,
 					'parent' => 'visa',
@@ -203,8 +211,7 @@ class FieldService
 		foreach ($this->codificationRepository->getCodifications($project) as $codification) {
 			if ($codification->isList()) {
 				$codificationControls[] = [
-					'full_id' 				=> $codification->getFullDomName(),
-					'snake_case_full_id' 	=> $codification->getFullDomId(),
+					'full_id' 				=> $codification->getFullDomId(),
 					'title' 				=> $codification->getName(),
 					'multiple'				=> true,
 					'choices' 				=> $codification->getCodificationItems(),
@@ -223,8 +230,7 @@ class FieldService
 		$fields['version.isRequired']['form'] = $this->formFactory->createBuilder(SelectType::class, null, [
 			'controls' => [
 				[
-					'full_id' => 'version[isRequired]',
-					'snake_case_full_id' => 'version_isRequired',
+					'full_id' => 'version_is_required',
 					'title' => $this->translator->trans('Is required'),
 					'multiple' => false,
 					'choices' => [
@@ -241,8 +247,7 @@ class FieldService
 		$fields['version.writer']['form'] = $this->formFactory->createBuilder(SelectType::class, null, [
 			'controls' => [
 				[
-					'full_id' => 'version[writer]',
-					'snake_case_full_id' => 'version_writer',
+					'full_id' => 'version_writer',
 					'title' => $this->translator->trans('Writer'),
 					'multiple' => true,
 					'choices' => $writers,
@@ -257,8 +262,7 @@ class FieldService
 		$fields['version.checker']['form'] = $this->formFactory->createBuilder(SelectType::class, null, [
 			'controls' => [
 				[
-					'full_id' => 'version[checker]',
-					'snake_case_full_id' => 'version_checker',
+					'full_id' => 'version_checker',
 					'title' => $this->translator->trans('Checker'),
 					'multiple' => true,
 					'choices' => $checkers,
@@ -273,8 +277,7 @@ class FieldService
 		$fields['version.approver']['form'] = $this->formFactory->createBuilder(SelectType::class, null, [
 			'controls' => [
 				[
-					'full_id' => 'version[approver]',
-					'snake_case_full_id' => 'version_approver',
+					'full_id' => 'version_approver',
 					'title' => $this->translator->trans('Approver'),
 					'multiple' => true,
 					'choices' => $checkers,
@@ -286,11 +289,44 @@ class FieldService
 			->createView()
 		;
 		
+		$fields['version.lastDelivered']['form'] = $this->formFactory->createBuilder(SelectType::class, null, [
+			'controls' => [
+				[
+					'full_id' => 'version_last_delivered',
+					'title' => $this->translator->trans('Last delivered'),
+					'multiple' => false,
+					'choices' => [
+						'Yes' => '1',
+						'No' => '0',
+					],
+				],
+			],
+		])
+			->getForm()
+			->createView()
+		;
+		
+		$fields['version.lastScheduled']['form'] = $this->formFactory->createBuilder(SelectType::class, null, [
+			'controls' => [
+				[
+					'full_id' => 'version_last_scheduled',
+					'title' => $this->translator->trans('Last scheduled'),
+					'multiple' => false,
+					'choices' => [
+						'Yes' => '1',
+						'No' => '0',
+					],
+				],
+			],
+		])
+			->getForm()
+			->createView()
+		;
+			
 		$fields['serie.name']['form'] = $this->formFactory->createBuilder(SelectType::class, null, [
 			'controls' => [
 				[
-					'full_id' => 'serie[name]',
-					'snake_case_full_id' => 'serie_name',
+					'full_id' => 'serie_name',
 					'title' => $this->translator->trans('Serie name'),
 					'multiple' => true,
 					'choices' => $series,
@@ -305,8 +341,7 @@ class FieldService
 		$fields['serie.company']['form'] = $this->formFactory->createBuilder(SelectType::class, null, [
 			'controls' => [
 				[
-					'full_id' => 'serie[company]',
-					'snake_case_full_id' => 'serie_company',
+					'full_id' => 'serie_company',
 					'title' => $this->translator->trans('Company'),
 					'multiple' => true,
 					'choices' => $this->companyRepository->getCompaniesByProject($project),
@@ -321,8 +356,7 @@ class FieldService
 		$fields['status.value']['form'] = $this->formFactory->createBuilder(SelectType::class, null, [
 			'controls' => [
 				[
-					'full_id' => 'status[value]',
-					'snake_case_full_id' => 'status_value',
+					'full_id' => 'status_value',
 					'title' => $this->translator->trans('Status value'),
 					'multiple' => true,
 					'choices' => $this->statusRepository->getStatuses($project),
@@ -337,8 +371,7 @@ class FieldService
 		$fields['status.type']['form'] = $this->formFactory->createBuilder(SelectType::class, null, [
 			'controls' => [
 				[
-					'full_id' => 'status[type]',
-					'snake_case_full_id' => 'status_typee',
+					'full_id' => 'status_type',
 					'title' => $this->translator->trans('Status type'),
 					'multiple' => true,
 					'choices' => [
@@ -362,8 +395,7 @@ class FieldService
 					$fields[$metadata->getFullCodename()]['form'] = $this->formFactory->createBuilder(SelectType::class, null, [
 						'controls' => [
 							[
-								'full_id' => $metadata->getFullDomName(),
-								'snake_case_full_id' => $metadata->getFullDomId(),
+								'full_id' => $metadata->getFullDomId(),
 								'title' => $metadata->getName(),
 								'multiple' => false,
 								'choices' => [
@@ -383,8 +415,7 @@ class FieldService
 					$fields[$metadata->getFullCodename()]['form'] = $this->formFactory->createBuilder(SelectType::class, null, [
 						'controls' => [
 							[
-								'full_id' => $metadata->getFullDomName(),
-								'snake_case_full_id' => $metadata->getFullDomId(),
+								'full_id' => $metadata->getFullDomId(),
 								'title' => $metadata->getName(),
 								'multiple' => true,
 								'choices' => $metadata->getMetadataItems(),
@@ -405,8 +436,7 @@ class FieldService
 				$fields['visa.' . $checkerCompany->getCodename()]['form'] = $this->formFactory->createBuilder(SelectType::class, null, [
 					'controls' => [
 						[
-							'full_id' => 'visa[' . $checkerCompany->getCodename() . ']',
-							'snake_case_full_id' => 'visa_' . $checkerCompany->getCodename(),
+							'full_id' => 'visa_' . $checkerCompany->getId(),
 							'title' => $this->translator->trans('Visa') . ' ' . $checkerCompany->getName(),
 							'multiple' => true,
 							'choices' => $project->getVisasByCompany($checkerCompany),

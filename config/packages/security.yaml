@@ -35,38 +35,44 @@ security:
             # https://symfony.com/doc/current/security.html#firewalls-authentication
 
             # https://symfony.com/doc/current/security/impersonating_user.html
-            # switch_user: true
+            switch_user: true
 
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
     access_control:
-        - { path: '^/login$',                                                               roles: IS_AUTHENTICATED_ANONYMOUSLY }
-        - { path: '^/logout$',                                                              roles: IS_AUTHENTICATED_ANONYMOUSLY }
-        - { path: '^/company',                                                              roles: ROLE_ADMIN }
-        - { path: '^/user',                                                                 roles: ROLE_ADMIN }
-        - { path: '^/profil',                                                               roles: ROLE_ADMIN }
-        - { path: '^/admin',                                                                roles: ROLE_ADMIN }
-
-        - { path: '^/project/edit',                                                         roles: ROLE_EDIT_CODIFICATIONS }
-        - { path: '^/project/(\d+/)?codifications',                                         roles: ROLE_EDIT_CODIFICATIONS }
-        - { path: '^/project/(\d+/)?metadatas',                                             roles: ROLE_EDIT_METADATAS }
-        - { path: '^/project/(\d+/)?status',                                                roles: ROLE_EDIT_METADATAS }
-        - { path: '^/project/(\d+/)?visa',                                                  roles: ROLE_EDIT_VISAS }
-        - { path: '^/project/automation/(\d+/)?automation',                                 roles: ROLE_EDIT_AUTOMATIONS }
-        - { path: '^/project/automation/[dashboard|launch|console|completed]',              roles: ROLE_LAUNCH_AUTOMATIONS }
-        - { path: '^/project/(\d+/)?progress',                                              roles: ROLE_EDIT_PROGRESS }
-        - { path: '^/project/serie/\d+(/table)?$',                                          roles: ROLE_USER }
-        - { path: '^/project/(\d+/\d+/)?serie',                                             roles: ROLE_EDIT_SERIES }
-        - { path: '^/project/serie/(\d+/)document/(\d+/)detail',                            roles: ROLE_USER }
-        - { path: '^/project/serie/document/move/\d+',                                      roles: ROLE_MOVE }
-        - { path: '^/project/serie/(\d+/)document',                                         roles: ROLE_EDIT }
-        - { path: '^/project/serie/document/(\d+/)version/(\d+/)detail',                    roles: ROLE_USER }
-        - { path: '^/project/serie/document/(\d+/)version',                                 roles: ROLE_EDIT }
-        - { path: '^/project/serie/document/version/\d+/\d+/review$',                       roles: ROLE_USER }  
-        - { path: '^/project/serie/document/version/\d+/\d+/review',                        roles: ROLE_REVIEW }
-        - { path: '.',                                                                      roles: ROLE_USER }
+        - { path: '^/login$',                                                      roles: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: '^/logout$',                                                     roles: IS_AUTHENTICATED_ANONYMOUSLY }
+        
+        - { path: '^/company',                                                     roles: ROLE_ADMIN }
+        - { path: '^/user',                                                        roles: ROLE_ADMIN }
+        - { path: '^/profil',                                                      roles: ROLE_ADMIN }
+        - { path: '^/log',                                                         roles: ROLE_ADMIN }
+        
+        - { path: '^/project/\d+/alert$',                                          roles: ROLE_USER }
+        - { path: '^/project/\d+$',                                                roles: ROLE_USER } #project_view
+        - { path: '^/project/\d+/\d+$',                                            roles: ROLE_USER } #serie_route
+        - { path: '^/project/\d+/(sdr|mdr)$',                                      roles: ROLE_USER } #serie_route_by_type
+        - { path: '^/project/\d+/serie/(sdr|mdr)/?\d*',                            roles: ROLE_USER } #document, document_table
+        
+        - { path: '^/project/\d+/vue',                                             roles: ROLE_USER } #vue, vue_new
+        - { path: '^/project/vue/\d+/',                                            roles: ROLE_USER } #vue_edit, vue_remove
+        
+        - { path: '^/project/serie/document/\d+/detail$',                          roles: ROLE_USER } #document_detail
+        - { path: '^/project/serie/document/version/\d+/detail$',                  roles: ROLE_USER } #version_detail
+        
+        - { path: '^/project/serie/document/version/{version}/{company}/review',   roles: ROLE_USER } #review, review_new
+        - { path: '^/project/serie/document/version/review/\d+/',                  roles: ROLE_USER } #review_edit, review_remove
+        
+        - { path: '^/project/serie/\d+/document/new$',                             roles: ROLE_EDIT_DOCUMENTS } #document_new
+        - { path: '^/project/serie/document/',                                     roles: ROLE_EDIT_DOCUMENTS } #document_edit, document_remove, document_move
+        - { path: '^/project/serie/document/\d+/version/new$',                     roles: ROLE_EDIT_DOCUMENTS } #version_new
+        - { path: '^/project/serie/document/version/',                             roles: ROLE_EDIT_DOCUMENTS } #version_edit, version_remove
+        
+        - { path: '^/project/',                                                    roles: ROLE_CONTROLLER }
+        - { path: '.',                                                             roles: ROLE_USER }
         
     role_hierarchy:
-        ROLE_ADMIN: [ROLE_EDIT_CODIFICATIONS, ROLE_EDIT_METADATAS, ROLE_EDIT_VISAS, ROLE_EDIT_AUTOMATIONS, ROLE_LAUNCH_AUTOMATIONS, ROLE_EDIT_PROGRESS, ROLE_EDIT_SERIES, ROLE_MOVE, ROLE_EDIT, ROLE_REVIEW, ROLE_USER]
-        ROLE_EDIT_AUTOMATION: [ROLE_LAUNCH_AUTOMATION]
-        ROLE_MOVE: [ROLE_EDIT]
+        ROLE_SUPER_ADMIN: [ROLE_ADMIN, ROLE_ALLOWED_TO_SWITCH]
+        ROLE_ADMIN: [ROLE_CONTROLLER]
+        ROLE_CONTROLLER: [ROLE_EDIT_DOCUMENTS]
+        ROLE_EDIT_DOCUMENTS: [ROLE_USER]

@@ -11,9 +11,9 @@ home:
     controller: App\Controller\HomeController::index
     
 alert:
-    path: /project/{id}/alert
+    path: /project/{project}/alert
     requirements:
-        id: \d+
+        project: \d+
     controller: App\Controller\HomeController::alert
 
 about:
@@ -29,16 +29,16 @@ profil_new:
     controller: App\Controller\ProfilController::new
 
 profil_edit:
-    path: /profil/edit/{id}
+    path: /profil/{profil}/edit
     requirements:
-        id: \d+
+        profil: \d+
     controller: App\Controller\ProfilController::edit
 
 profil_delete:
-    path: /profil/delete/{id}
+    path: /profil/{profil}/delete
     methods: GET|DELETE
     requirements:
-        id: \d+
+        profil: \d+
     controller: App\Controller\ProfilController::delete
 
 company:
@@ -50,16 +50,16 @@ company_new:
     controller: App\Controller\CompanyController::new
 
 company_edit:
-    path: /company/edit/{id}
+    path: /company/{company}/edit
     requirements:
-        id: \d+
+        company: \d+
     controller: App\Controller\CompanyController::edit
 
 company_delete:
-    path: /company/delete/{id}
+    path: /company/{company}/delete
     methods: GET|DELETE
     requirements:
-        id: \d+
+        company: \d+
     controller: App\Controller\CompanyController::delete
     
 user:
@@ -71,16 +71,16 @@ user_new:
     controller: App\Controller\UserController::new
 
 user_edit:
-    path: /user/edit/{id}
+    path: /user/{user}/edit
     requirements:
-        id: \d+
+        user: \d+
     controller: App\Controller\UserController::edit
 
 user_delete:
-    path: /user/delete/{id}
+    path: /user/{user}/delete
     methods: GET|DELETE
     requirements:
-        id: \d+
+        user: \d+
     controller: App\Controller\UserController::delete
     
 account:
@@ -95,14 +95,14 @@ change_password:
     path: /account/changePassword
     controller: App\Controller\AccountController::changePassword
 
-project:
+project: #redirigé vers project_view si un seul projet (sauf ROLE_ADMIN)
     path: /project
     controller: App\Controller\ProjectController::index
 
 project_view:
-    path: /project/{id}
+    path: /project/{project}
     requirements:
-        id: \d+
+        project: \d+
     controller: App\Controller\ProjectController::view
 
 project_new:
@@ -110,206 +110,206 @@ project_new:
     controller: App\Controller\ProjectController::new
 
 project_edit:
-    path: /project/edit/{id}
+    path: /project/{project}/edit
     requirements:
-        id: \d+
+        project: \d+
     controller: App\Controller\ProjectController::edit
 
 project_delete:
-    path: /project/delete/{id}
+    path: /project/{project}/delete
     methods: GET|DELETE
     requirements:
-        id: \d+
+        project: \d+
     controller: App\Controller\ProjectController::delete
 
 codification:
-    path: /project/{id}/codification
+    path: /project/{project}/codification
     requirements:
-        id: \d+
+        project: \d+
     controller: App\Controller\CodificationController::index
 
 codification_new:
-    path: /project/{id}/codification/new
+    path: /project/{project}/codification/new
     requirements:
-        id: \d+
+        project: \d+
     controller: App\Controller\CodificationController::new
 
 codification_edit:
-    path: /project/codification/edit/{id}
+    path: /project/codification/{codification}/edit
     requirements:
-        id: \d+
+        codification: \d+
     controller: App\Controller\CodificationController::edit
 
 codification_delete:
-    path: /project/codification/delete/{id}
+    path: /project/codification/{codification}/delete
     methods: GET|DELETE
     requirements:
-        id: \d+
+        codification: \d+
     controller: App\Controller\CodificationController::delete
     
 codification_item:
-    path: /project/codification/{id}/item
+    path: /project/codification/{codification}/item
     requirements:
-        id: \d+
+        codification: \d+
     controller: App\Controller\CodificationItemController::index
 
 codification_item_new:
-    path: /project/codification/{id}/item/new
+    path: /project/codification/{codification}/item/new
     requirements:
-        id: \d+
+        codification: \d+
     controller: App\Controller\CodificationItemController::new
 
 codification_item_edit:
-    path: /project/codification/item/edit/{id}
+    path: /project/codification/item/{codification_item}/edit
     requirements:
-        id: \d+
+        codification_item: \d+
     controller: App\Controller\CodificationItemController::edit
 
 codification_item_delete:
-    path: /project/codification/item/delete/{id}
+    path: /project/codification/item/{codification_item}/delete
     methods: GET|DELETE
     requirements:
-        id: \d+
+        codification_item: \d+
     controller: App\Controller\CodificationItemController::delete
 
 metadata:
-    path: /project/{id}/metadata
+    path: /project/{project}/metadata
     requirements:
-        id: \d+
+        project: \d+
     controller: App\Controller\MetadataController::index
 
 metadata_new:
-    path: /project/{id}/metadata/new
+    path: /project/{project}/metadata/new
     requirements:
-        id: \d+
+        project: \d+
     controller: App\Controller\MetadataController::new
 
 metadata_edit:
-    path: /project/metadata/edit/{id}
+    path: /project/metadata/{metadata}/edit
     requirements:
-        id: \d+
+        metadata: \d+
     controller: App\Controller\MetadataController::edit
 
 metadata_delete:
-    path: /project/metadata/delete/{id}
+    path: /project/metadata/{metadata}/delete
     methods: GET|DELETE
     requirements:
-        id: \d+
+        metadata: \d+
     controller: App\Controller\MetadataController::delete
     
 metadata_item:
-    path: /project/metadata/{id}/item
+    path: /project/metadata/{metadata}/item
     requirements:
-        id: \d+
+        metadata: \d+
     controller: App\Controller\MetadataItemController::index
 
 metadata_item_new:
-    path: /project/metadata/{id}/item/new
+    path: /project/metadata/{metadata}/item/new
     requirements:
-        id: \d+
+        metadata: \d+
     controller: App\Controller\MetadataItemController::new
 
 metadata_item_edit:
-    path: /project/metadata/item/edit/{id}
+    path: /project/metadata/item/{metadata_item}/edit
     requirements:
-        id: \d+
+        metadata_item: \d+
     controller: App\Controller\MetadataItemController::edit
 
 metadata_item_delete:
-    path: /project/metadata/item/delete/{id}
+    path: /project/metadata/item/{metadata_item}/delete
     methods: GET|DELETE
     requirements:
-        id: \d+
+        metadata_item: \d+
     controller: App\Controller\MetadataItemController::delete
 
 status:
-    path: /project/{id}/status
+    path: /project/{project}/status
     requirements:
-        id: \d+
+        project: \d+
     controller: App\Controller\StatusController::index
 
 status_new:
-    path: /project/{id}/status/new
+    path: /project/{project}/status/new
     requirements:
-        id: \d+
+        project: \d+
     controller: App\Controller\StatusController::new
 
 status_edit:
-    path: /project/status/edit/{id}
+    path: /project/status/{status}/edit
     requirements:
-        id: \d+
+        status: \d+
     controller: App\Controller\StatusController::edit
 
 status_delete:
-    path: /project/status/delete/{id}
+    path: /project/status/{status}/delete
     methods: GET|DELETE
     requirements:
-        id: \d+
+        status: \d+
     controller: App\Controller\StatusController::delete
 
 visa:
-    path: /project/{id}/visa
+    path: /project/{project}/visa
     requirements:
-        id: \d+
+        project: \d+
     controller: App\Controller\VisaController::index
 
 visa_new:
-    path: /project/{id}/visa/new
+    path: /project/{project}/visa/new
     requirements:
-        id: \d+
+        project: \d+
     controller: App\Controller\VisaController::new
 
 visa_edit:
-    path: /project/visa/edit/{id}
+    path: /project/visa/{visa}/edit
     requirements:
-        id: \d+
+        visa: \d+
     controller: App\Controller\VisaController::edit
 
 visa_delete:
-    path: /project/visa/delete/{id}
+    path: /project/visa/{visa}/delete
     methods: GET|DELETE
     requirements:
-        id: \d+
+        visa: \d+
     controller: App\Controller\VisaController::delete
 
 serie_route:  #redirigé directement vers document ou vers serie_new (si pas de serie créée)
-    path: /project/{id}/{company}
+    path: /project/{project}/{company}
     requirements:
-        id: \d+
+        project: \d+
         company: \d+
     controller: App\Controller\SerieController::route
     
 serie_route_by_type:  #redirigé directement vers document
-    path: /project/{id}/{type}
+    path: /project/{project}/{type}
     requirements:
-        id: \d+
+        project: \d+
         type: sdr|mdr
     controller: App\Controller\SerieController::routeByType
 
 serie: #administration des séries
-    path: /project/{id}/{company}/serie
+    path: /project/{project}/{company}/serie
     requirements:
-        id: \d+
+        project: \d+
         company: \d+
     controller: App\Controller\SerieController::index
 
 serie_new:
-    path: /project/{id}/{company}/serie/new
+    path: /project/{project}/{company}/serie/new
     requirements:
-        id: \d+
+        project: \d+
         company: \d+
     controller: App\Controller\SerieController::new
 
 serie_edit:
-    path: /project/serie/edit/{id}
+    path: /project/serie/{serie}/edit
     requirements:
-        id: \d+
+        serie: \d+
     controller: App\Controller\SerieController::edit
     
 serie_delete:
-    path: /project/serie/delete/{id}
+    path: /project/serie/{serie}/delete
     requirements:
-        id: \d+
+        serie: \d+
     controller: App\Controller\SerieController::delete
 
 document:   #vue principale
@@ -333,27 +333,19 @@ document_table:
     controller: App\Controller\DocumentController::table
 
 document_detail:
-    path: /project/serie/document/{id}/detail
+    path: /project/serie/document/{version}/detail
     requirements:
-        id: \d+
-    defaults:
-        id: 0
+        version: \d+
     controller: App\Controller\DocumentController::detail
 
 document_new:
     path: /project/serie/{serie}/document/new
     requirements:
         serie: \d+
-    defaults:
-        serie: 0
     controller: App\Controller\DocumentController::new
 
 document_edit:
-    path: /project/serie/document/edit/{document}
-    requirements:
-        document: \d+
-    defaults:
-        document: 0
+    path: /project/serie/document/edit
     controller: App\Controller\DocumentController::edit
     
 document_move:
@@ -366,9 +358,9 @@ document_delete:
     controller: App\Controller\DocumentController::delete
 
 version_detail:
-    path: /project/serie/document/version/{id}/detail
+    path: /project/serie/document/version/{version}/detail
     requirements:
-        id: \d+
+        version: \d+
     controller: App\Controller\VersionController::detail
 
 version_new:
@@ -389,29 +381,29 @@ version_delete:
     controller: App\Controller\VersionController::delete
 
 review:
-    path: /project/serie/document/version/{id}/{company}/review
+    path: /project/serie/document/version/{version}/{company}/review
     requirements:
-        id: \d+
+        version: \d+
         company: \d+
     controller: App\Controller\ReviewController::index
     
 review_new:
-    path: /project/serie/document/version/{id}/{company}/review/new
+    path: /project/serie/document/version/{version}/{company}/review/new
     requirements:
-        id: \d+
+        version: \d+
         company: \d+
     controller: App\Controller\ReviewController::new
 
 review_edit:
-    path: /project/serie/document/version/review/edit/{id}
+    path: /project/serie/document/version/review/{review}/edit
     requirements:
-        id: \d+
+        review: \d+
     controller: App\Controller\ReviewController::edit
 
 review_delete:
-    path: /project/serie/document/version/review/delete/{id}
+    path: /project/serie/document/version/review/{review}/delete
     requirements:
-        id: \d+
+        review: \d+
     controller: App\Controller\ReviewController::delete
     
 vue:
@@ -421,71 +413,71 @@ vue:
     controller: App\Controller\VueController::index
     
 vue_new:
-    path: /project/{id}/vue/new
+    path: /project/{project}/vue/new
     requirements:
-        id: \d+
+        project: \d+
     controller: App\Controller\VueController::new
 
 vue_edit:
-    path: /project/vue/edit/{id}
+    path: /project/vue/{vue}/edit
     requirements:
-        id: \d+
+        vue: \d+
     controller: App\Controller\VueController::edit
 
 vue_delete:
-    path: /project/vue/delete/{id}
+    path: /project/vue/{vue}/delete
     methods: GET|DELETE
     requirements:
-        id: \d+
+        vue: \d+
     controller: App\Controller\VueController::delete
 
 automation:
-    path: /project/{id}/automation
+    path: /project/{project}/automation
     requirements:
-        id: \d+
+        project: \d+
     controller: App\Controller\AutomationController::index
 
 automation_dashboard:
-    path: /project/automation/dashboard/{id}
+    path: /project/automation/{automation}/dashboard
     requirements:
-        id: \d+
+        automation: \d+
     controller: App\Controller\AutomationController::dashboard
 
 automation_launch:
-    path: /project/automation/launch/{id}
+    path: /project/automation/{automation}/launch
     requirements:
-        id: \d+
+        automation: \d+
     controller: App\Controller\AutomationController::launch
     
 automation_console:
-    path: /project/automation/console/{id}
+    path: /project/automation/{automation}/console
     requirements:
-        id: \d+
+        automation: \d+
     controller: App\Controller\AutomationController::console
 
 automation_completed:
-    path: /project/automation/completed/{id}
+    path: /project/automation/{automation}/completed
     requirements:
-        id: \d+
+        automation: \d+
     controller: App\Controller\AutomationController::completed
     
 automation_new:
-    path: /project/{id}/automation/new
+    path: /project/{project}/automation/new
     requirements:
-        id: \d+
+        project: \d+
     controller: App\Controller\AutomationController::new
 
 automation_edit:
-    path: /project/automation/edit/{id}
+    path: /project/automation/{automation}/edit
     requirements:
-        id: \d+
+        automation: \d+
     controller: App\Controller\AutomationController::edit
 
 automation_delete:
-    path: /project/automation/delete/{id}
+    path: /project/automation/{automation}/delete
     methods: GET|DELETE
     requirements:
-        id: \d+
+        automation: \d+
     controller: App\Controller\AutomationController::delete
 
 log:
@@ -498,4 +490,4 @@ log_clear:
     
 test:
     path: /test
-    controller: App\Controller\DocumentController::test
+    controller: App\Controller\TestController::index

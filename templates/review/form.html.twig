@@ -3,6 +3,6 @@
 {{ form(form) }}
 
 <div class="row justify-content-md-center">
-	<button class="btn btn-sm btn-secondary w-25 m-1" data-toggle="ajax" data-url="{{ path('review', {'id': version.id, 'company': company.id}) }}" data-target="#review_content">{% trans %}Cancel{% endtrans %}</button>
+	<button class="btn btn-sm btn-secondary w-25 m-1" data-toggle="ajax" data-url="{{ path('review', {'version': version.id, 'company': company.id}) }}" data-target="#review_content">{% trans %}Cancel{% endtrans %}</button>
 	<button type="submit" form="form_ajax" class="btn btn-sm btn-primary w-25 m-1" data-toggle="ajax" data-url="{{ app.request.uri }}" data-target="#review_content">{% trans %}Save{% endtrans %}</button>
 </div>

@@ -28,12 +28,15 @@ class VueController extends AbstractController
 		$vues = $this->vueRepository->getVues($project, $this->getUser());
 		
 		foreach ($vues as &$vue) {
-			$vue['edit_url'] = $this->generateUrl('vue_edit', [
-				'id' => $vue['id'],
-			]);
-			$vue['delete_url'] = $this->generateUrl('vue_delete', [
-				'id' => $vue['id'],
-			]);
+			if ($vue['user_id'] == $this->getUser()->getId() || 
+				($this->isGranted('ROLE_CONTROLLER') && $project->hasUser($this->getUser()) === false)) {
+				$vue['edit_url'] = $this->generateUrl('vue_edit', [
+					'vue' => $vue['id'],
+				]);
+				$vue['delete_url'] = $this->generateUrl('vue_delete', [
+					'vue' => $vue['id'],
+				]);
+			}
 		}
 		
 		return new JsonResponse($vues);
@@ -67,6 +70,11 @@ class VueController extends AbstractController
 	
 	public function edit(Request $request, Vue $vue): Response
 	{
+		if ($vue->getUser() != $this->getUser() &&
+			($this->isGranted('ROLE_CONTROLLER') === false || $vue->getProject()->hasUser($this->getUser()))) {
+			throw $this->createAccessDeniedException();
+		}
+		
 		$form = $this->createForm(VueType::class, $vue);
 		$form->handleRequest($request);
 		
@@ -86,6 +94,11 @@ class VueController extends AbstractController
 	
 	public function delete(Request $request, Vue $vue): Response
 	{
+		if ($vue->getUser() != $this->getUser() &&
+			($this->isGranted('ROLE_CONTROLLER') === false || $vue->getProject()->hasUser($this->getUser()))) {
+			throw $this->createAccessDeniedException();
+		}
+		
 		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
 			$entityManager = $this->getDoctrine()->getManager();
 			$entityManager->remove($vue);

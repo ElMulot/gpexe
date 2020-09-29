@@ -498,8 +498,9 @@ class Version
 					} else {
 						$this->setDeliveryDate($date);
 					}
+					return true;
 				}
-				return true;
+				return false;
 				
 			case 'version.isRequired':
 				switch ($value) {
@@ -584,7 +585,7 @@ class Version
 						}
 					}
 				} else {
-					return $this->setDocument()->setPropertyValue($codename, $value);
+					return $this->getDocument()->setPropertyValue($codename, $value);
 				}
 		}
 		

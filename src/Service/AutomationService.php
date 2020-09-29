@@ -24,8 +24,6 @@ use App\Entity\Automation;
 use App\Entity\Document;
 use App\Entity\Serie;
 use App\Entity\Version;
-use App\Service\DocumentService;
-use App\Service\FieldService;
 use App\Repository\SerieRepository;
 use App\Repository\DocumentRepository;
 use App\Repository\VersionRepository;
@@ -39,6 +37,7 @@ class AutomationService
 	const WARNING_COLOR 		= 'FFE591';
 	const ERROR_COLOR 			= 'FF9191';
 	const VALID_COLOR 			= 'CCFF91';
+	const BORDER_COLOR			= 'FF0000';
 	
 	private $slugger;
 	
@@ -285,7 +284,7 @@ class AutomationService
 			//exclude
 			foreach ($this->parsedCode['exclude'] as $exclude) {
 				if ($this->evaluate($exclude, null, $row) && $exclude != '') {
-					$this->sheet->getStyle($row . ':' . $row)->getFill()->getStartColor()->setARGB(self::IGNORED_COLOR);
+					$this->sheet->getStyle($row . ':' . $row)->getFill()->getStartColor()->setARGB(self::IGNORE_COLOR);
 					$this->addComment('ignore', "Ligne exclue via l'instruction 'Exclude'.");
 					$this->writeComments($row);
 					$row++;
@@ -347,17 +346,18 @@ class AutomationService
 				
 				foreach ($this->parsedCode['get_document']['then'] as $then) {
 					
-					if (preg_match('/(\(.+\))?\s*\[(\w+.\w+)\]\s*\=\s*(.+)/', $then, $matches) === 1) {
+					if (preg_match('/(?:\(([^()]+)\)\?)*\[(\w+.\w+)\]\s*\=\s*(.+)/', $then, $matches) === 1) {
 						
 						if ($matches[1] && $this->evaluate($matches[1], $currentDocument, $row) === false) {
-							$this->addComment('warning', "Condition '{$matches[1]}' non validée.");
+							$this->addComment('valid', "Condition '{$matches[1]}' non validée.");
 							continue;
 						}
 						
-						if ($currentDocument->setPropertyValue($matches[2], $this->evaluate($matches[3], $currentDocument, $row))) {
+						if ($currentDocument->setPropertyValue($matches[2], $this->get($matches[3], $currentDocument, $row))) {
 							$this->addComment('valid', "Champ '{$matches[2]}' mis à jour.");
 						} else {
-							$this->addComment('warning', "Erreur en écrivant le champ '{$matches[2]}'.");
+							$col = $this->getCol($matches[3]);
+							$this->addComment('warning', "Erreur en écrivant le champ '{$matches[2]}'.", $col);
 						}
 						
 					}
@@ -368,10 +368,10 @@ class AutomationService
 				
 				foreach ($this->parsedCode['get_document']['else'] as $else) {
 					
-					if (preg_match('/(\(.+\))?\s*\[(\w+.\w+)\]\s*\=\s*(.+)/', $else, $matches) === 1) {
+					if (preg_match('/(?:\(([^()]+)\)\?)*\[(\w+.\w+)\]\s*\=\s*(.+)/', $else, $matches) === 1) {
 						
 						if ($matches[1] && $this->evaluate($matches[1], null, $row) === false) {
-							$this->addComment('warning', "Condition '{$matches[1]}' non validée.");
+							$this->addComment('valid', "Condition '{$matches[1]}' non validée.");
 							continue;
 						}
 						
@@ -381,14 +381,15 @@ class AutomationService
 							$this->addComment('valid', "Création d'un nouveau document.");
 						}
 						
-						if ($currentDocument->setPropertyValue($matches[2], $this->evaluate($matches[3], $currentDocument, $row))) {
+						if ($currentDocument->setPropertyValue($matches[2], $this->get($matches[3], $currentDocument, $row))) {
 							$this->addComment('valid', "Champ '{$matches[2]}' mis à jour.");
 						} elseif ($matches[2] == 'document.name' || $matches[2] == 'document.reference') {
 							$this->addComment('warning', "Erreur en écrivant le champ '{$matches[2]}'.");
 							$currentDocument = null;
 							break;
 						} else {
-							$this->addComment('warning', "Erreur en écrivant le champ '{$matches[2]}'.");
+							$col = $this->getCol($matches[3]);
+							$this->addComment('warning', "Erreur en écrivant le champ '{$matches[2]}'.", $col);
 						}
 						
 					}
@@ -426,17 +427,18 @@ class AutomationService
 				
 				foreach ($this->parsedCode['get_version']['then'] as $then) {
 					
-					if (preg_match('/(\(.+\))?\s*\[(\w+.\w+)\]\s*\=\s*(.+)/', $then, $matches) === 1) {
+					if (preg_match('/(?:\(([^()]+)\)\?)*\[(\w+.\w+)\]\s*\=\s*(.+)/', $then, $matches) === 1) {
 						
-						if ($this->evaluate($matches[1], $currentVersion, $row) === false) {
-							$this->addComment('warning', "Condition '{$matches[1]}' non validée.");
+						if ($matches[1] && $this->evaluate($matches[1], $currentVersion, $row) === false) {
+							$this->addComment('valid', "Condition '{$matches[1]}' non validée.");
 							continue;
 						}
 						
-						if ($currentVersion->setPropertyValue($matches[2], $this->evaluate($matches[3], $currentVersion, $row))) {
+						if ($currentVersion->setPropertyValue($matches[2], $this->get($matches[3], $currentVersion, $row))) {
 							$this->addComment('valid', "Champ '{$matches[2]}' mis à jour.");
 						} else {
-							$this->addComment('warning', "Erreur en écrivant le champ '{$matches[2]}'.");
+							$col = $this->getCol($matches[3]);
+							$this->addComment('warning', "Erreur en écrivant le champ '{$matches[2]}'.", $col);
 						}
 						
 					}
@@ -448,10 +450,10 @@ class AutomationService
 				
 				foreach ($this->parsedCode['get_version']['else'] as $else) {
 					
-					if (preg_match('/(\(.+\))?\s*\[(\w+.\w+)\]\s*\=\s*(.+)/', $else, $matches) === 1) {
+					if (preg_match('/(?:\(([^()]+)\)\?)*\[(\w+.\w+)\]\s*\=\s*(.+)/', $else, $matches) === 1) {
 						
-						if ($this->evaluate($matches[1], null, $row) === false) {
-							$this->addComment('warning', "Condition '{$matches[1]}' non validée.");
+						if ($matches[1] && $this->evaluate($matches[1], null, $row) === false) {
+							$this->addComment('valid', "Condition '{$matches[1]}' non validée.");
 							continue;
 						}
 						
@@ -462,14 +464,15 @@ class AutomationService
 							$this->addComment('valid', "Création d'une nouvelle version.");
 						}
 						
-						if ($currentVersion->setPropertyValue($matches[2], $this->evaluate($matches[3], $currentVersion, $row))) {
+						if ($currentVersion->setPropertyValue($matches[2], $this->get($matches[3], $currentVersion, $row))) {
 							$this->addComment('valid', "Champ '{$matches[2]}' mis à jour.");
 						} elseif ($matches[2] == 'version.name' || $matches[2] == 'version.date') {
 							$this->addComment('warning', "Erreur en écrivant le champ '{$matches[2]}'.");
 							$currentDocument = null;
 							break;
 						} else {
-							$this->addComment('warning', "Erreur en écrivant le champ '{$matches[2]}'.");
+							$col = $this->getCol($matches[3]);
+							$this->addComment('warning', "Erreur en écrivant le champ '{$matches[2]}'.", $col);
 						}
 						
 					}
@@ -566,39 +569,60 @@ class AutomationService
 		}
 	}
 	
-	private function evaluate(string $expression, $entity, int $row=0)
+	private function prepare(string $expression, $entity, bool $isRegex=false, int $row=0): string
 	{
-		if ($expression == '') {
-			return true;
-		} else {
+		if ($expression != '') {
 			
-			//check if regex
-			$expression = preg_replace_callback('/"*\/[^\/]*\/"*/', function($matches) {
-					return '"' . preg_replace('/^"*([^"]*)"*$/', '$1', $matches[0]) . '"';
-				},
-				$expression
-			);
-			$expression = preg_replace('/(\\\\)/', '\\\\\\\\', $expression);
+			//check if contains regex
+			$expression = preg_replace_callback('/\"*\/(\S*)\/\"*/', function ($matches) use ($entity, $row) {
+				return '"/' . $this->prepare($matches[1], $entity, true, $row) . '/"';
+			}, $expression);
+			
+// 			$expression = preg_replace_callback('/\"*(\/\S*\/)\"*/', '"$1"', $expression);
+// 			$expression = preg_replace('/(\\\\)/', '\\\\\\\\', $expression);
 			
 			//replace by property value
 			if (($entity instanceof Serie || $entity instanceof Document || $entity instanceof Version) && $entity) { //field
 				
-				$expression = preg_replace_callback('/\[(\w+\.\w+)\]/', function($matches) use ($entity) {
-					return '"' . $entity->getPropertyValueToString($matches[1]) . '"';
-				}, $expression);
+				if ($isRegex) {
+					
+					$expression = preg_replace_callback('/\[(\w+\.\w+)\]/', function($matches) use ($entity) {
+						return preg_quote($entity->getPropertyValueToString($matches[1]));
+					}, $expression);
+					
+				} else {
 				
+					$expression = preg_replace_callback('/\[(\w+\.\w+)\]/', function($matches) use ($entity) {
+						return '"' . $entity->getPropertyValueToString($matches[1]) . '"';
+					}, $expression);
+					
+				}
 			}
 			
 			//replace by Excel values
-			
 			if ($this->sheet !== null && $row > 0) { //row
-				$expression = preg_replace_callback('/\[([A-Z]{1,2})\]/', function($matches) use ($row) {
-					if (Date::isDateTime($this->sheet->getCell($matches[1] . $row))) {
-						return '"' . Date::excelToDateTimeObject($this->sheet->getCell($matches[1] . $row)->getValue())->format('d-m-Y') . '"';
-					} else {
-						return '"' . $this->sheet->getCell($matches[1] . $row)->getValue() . '"';
-					}
-				}, $expression);
+				
+				if ($isRegex) {
+					
+					$expression = preg_replace_callback('/\[([A-Z]{1,2})\]/', function($matches) use ($row) {
+						if (Date::isDateTime($this->sheet->getCell($matches[1] . $row))) {
+							return preg_quote(Date::excelToDateTimeObject($this->sheet->getCell($matches[1] . $row)->getValue())->format('d-m-Y'));
+						} else {
+							return preg_quote($this->sheet->getCell($matches[1] . $row)->getValue());
+						}
+					}, $expression);
+					
+				} else {
+						//problème avec les dates à revoir...
+					$expression = preg_replace_callback('/\[([A-Z]{1,2})\]/', function($matches) use ($row) {
+						if (Date::isDateTime($this->sheet->getCell($matches[1] . $row))) {
+							return '"' . Date::excelToDateTimeObject($this->sheet->getCell($matches[1] . $row)->getValue())->format('d-m-Y') . '"';
+						} else {
+							return '"' . $this->sheet->getCell($matches[1] . $row)->getValue() . '"';
+						}
+					}, $expression);
+					
+				}
 			}
 			
 			//replace username
@@ -608,23 +632,75 @@ class AutomationService
 			if (strtotime($expression)) {
 				$expression = \DateTime::createFromFormat($this->parsedCode['date_format'], $expression)->format('d-m-Y');
 			}
-//			dump('avant evaluation : ' . $expression);
+			//dump('avant evaluation : ' . $expression);
+			
+		}
+		
+		return $expression;
+	}
+	
+	private function evaluate(string $expression, $entity, int $row=0) {
+		
+		$expression = $this->prepare($expression, $entity, false, $row);
+		
+		try {
+			return $this->expressionLanguage->evaluate($expression);
+		} catch (SyntaxError $e) {
+			$this->flashBagInterface->add('danger', $e->getMessage());
+			return false;
+		}
+	}
+	
+	private function get(string $expression, $entity, int $row=0): string
+	{
+		
+		$expression = $this->prepare($expression, $entity, false, $row);
+		
+		$matches = [];
+		if (preg_match('/(.+)\s+matches\s+\"(\/\S*\/)\"/', $expression, $matches) === 1) {
+			
+			try {
+				$subExpr = $this->expressionLanguage->evaluate($matches[1]);
+			} catch (SyntaxError $e) {
+				$this->flashBagInterface->add('danger', $e->getMessage());
+				return "";
+			}
+			
+			$pattern = $matches[2];
+			
+			if (preg_match($pattern, $subExpr, $matches) === 1) {
+				return $matches[1];
+			} else {
+				return "";
+			}
+			
+		} else {
 			
 			try {
 				return $this->expressionLanguage->evaluate($expression);
 			} catch (SyntaxError $e) {
 				$this->flashBagInterface->add('danger', $e->getMessage());
-				return false;
+				return "";
 			}
+			
 		}
 	}
 	
-	private function addComment($type, $text)
+	private function getCol($expression): ?string
 	{
+		if (preg_match('/\[([A-Z]{1,2})\]/', $expression, $matches) === 1) {
+			return $matches[1];
+		}
+	}
+	
+	private function addComment($type, $text, $col = null)
+	{
+		
 		if ($this->checkOnly) {
 			$this->comments[] = [
 				'type' => $type,
 				'text' => $text,
+				'col' => $col,
 			];
 		}
 	}
@@ -687,29 +763,42 @@ class AutomationService
 				->setAuthor('GPExe')
 			;
 			
+			$numberOfLines = 0;
 			foreach ($this->comments as $comment) {
-				/*
-				switch ($comment['type']) {
-					case 'valid':
-						$color = self::VALID_COLOR;
-						break;
-					case 'warning':
-						$color = self::WARNING_COLOR;
-						break;
-					case 'error':
-						$color = self::ERROR_COLOR;
-						break;
-					case 'ignore':
-						$color = self::IGNORE_COLOR;
-						break;
-				}
-				*/
+				
+				
 				$this->sheet
 					->getComment($this->parsedCode['first_column'] . $row)
 					->getText()
 					->createTextRun($comment['text'] . "\r\n")
 				;
+				
+				if ($comment['col'] !== null) {
+					$this->sheet
+						->getComment($comment['col'] . $row)
+						->setWidth("500px")
+						->setHeight("20px")
+						->getText()
+						->createTextRun($comment['text'] . "\r\n")
+					;
+					
+					$this->sheet
+						->getStyle($comment['col'] . $row)
+						->getBorders()
+						->getAllBorders()
+						->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN)
+						->getColor()
+						->setRGB(self::BORDER_COLOR)
+					;
+				}
+				
+				$numberOfLines++;
 			}
+			$this->sheet
+				->getComment($this->parsedCode['first_column'] . $row)
+				->setWidth("500px")
+				->setHeight(20*$numberOfLines . "px")
+			;
 			
 			$this->comments = [];
 		}

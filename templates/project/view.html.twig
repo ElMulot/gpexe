@@ -17,16 +17,16 @@
         			<a class="nav-link" href="{{ route_back }}">{% trans %}Back{% endtrans %}</a>
         		</li>
     		{% endif %}
-			{% if is_granted('ROLE_ADMIN') %}
+            {% if (is_granted('ROLE_CONTROLLER') and app.user in project.users) or is_granted('ROLE_ADMIN') %}
     			<li class="nav-item dropdown" style="{{ block('nav_item') }}">
     				<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown2" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{% trans %}Project admin{% endtrans %}</a>
     				<div class="dropdown-menu" style="{{ block('nav_item') }}">
-    					<a class="dropdown-item" href="{{ path('project_edit', {'id': project.id}) }}">{% trans %}Edit project{% endtrans %}</a>
-    					<a class="dropdown-item" href="{{ path('codification', {'id': project.id}) }}">{% trans %}Codification{% endtrans %}</a>
-    					<a class="dropdown-item" href="{{ path('metadata', {'id': project.id}) }}">{% trans %}Metadatas{% endtrans %}</a>
-    					<a class="dropdown-item" href="{{ path('status', {'id': project.id}) }}">{% trans %}Statuses{% endtrans %}</a>
-    					<a class="dropdown-item" href="{{ path('visa', {'id': project.id}) }}">{% trans %}Visas{% endtrans %}</a>
-    					<a class="dropdown-item" href="{{ path('automation', {'id': project.id}) }}">{% trans %}Automation{% endtrans %}</a>
+    					<a class="dropdown-item" href="{{ path('project_edit', {'project': project.id}) }}">{% trans %}Edit project{% endtrans %}</a>
+    					<a class="dropdown-item" href="{{ path('codification', {'project': project.id}) }}">{% trans %}Codification{% endtrans %}</a>
+    					<a class="dropdown-item" href="{{ path('metadata', {'project': project.id}) }}">{% trans %}Metadatas{% endtrans %}</a>
+    					<a class="dropdown-item" href="{{ path('status', {'project': project.id}) }}">{% trans %}Statuses{% endtrans %}</a>
+    					<a class="dropdown-item" href="{{ path('visa', {'project': project.id}) }}">{% trans %}Visas{% endtrans %}</a>
+    					<a class="dropdown-item" href="{{ path('automation', {'project': project.id}) }}">{% trans %}Automation{% endtrans %}</a>
     				</div>
     			</li>
     		{% endif %}
@@ -38,11 +38,11 @@
 	<div class="navbar-collapse">
 		<ul class="navbar-nav ml-auto">
 			<li id="automation_menu" class="nav-item dropdown" style="{{ block('nav_item') }}">
-			    {% if is_granted('ROLE_ADMIN') and automations is not empty %}
+			    {% if automations is not empty %}
     				<a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{% trans %}Automations{% endtrans %}</a>
     				<div class="dropdown-menu" style="{{ block('nav_item') }}">
     					{% for automation in automations %}
-    						<a class="dropdown-item" href="{{ path('automation_dashboard', {'id': automation.id}) }}">{{ automation.name }}</a>
+    						<a class="dropdown-item" href="{{ path('automation_dashboard', {'automation': automation.id}) }}">{{ automation.name }}</a>
     					{% endfor %}
     				</div>
 			    {% endif %}
@@ -55,54 +55,57 @@
 {% endblock %}
 
 {% block content %}
-	<div class="jumbotron w-100 p-2">
-		<ul class="nav nav-tabs mb-3">
-    		<li class="nav-item">
-    			<a class="nav-link active" data-toggle="collapse" href="#sub_contractors" role="button" aria-expanded="true">{% trans %}Companies{% endtrans %}</a>
-    		</li>
-    	</ul>
-		<div id="sub_contractors" class="row collapse show mb-5">
-            <div class="card text-white bg-primary m-3">
-                <a role="button" class="btn btn-primary text-center font-weight-bold" href="{{ path('serie_route_by_type', {'id': project.id, 'type': 'sdr'}) }}">{% trans %}Whole SDR{% endtrans %}</a>
-                <div class="card-body text-right">
-                </div>
-            </div>
-    		{% for sub_contractor in sub_contractors %}
-                <div class="card text-white bg-primary m-3">
-                    <a role="button" class="btn btn-primary text-center font-weight-bold" href="{{ path('serie_route', {'id': project.id, 'company': sub_contractor.id}) }}">{{ sub_contractor.name }}</a>
-                    <div class="card-body text-right">
-    				</div>
-            	</div>
-            {% else %}
-        		<div class="col pt-5">{% trans %}Empty list{% endtrans %}</div>
-            {% endfor %}
-        </div>
-	</div>
-	<div class="jumbotron w-100 p-2">
-	   <ul class="nav nav-tabs mb-3">
-            <li class="nav-item">
-                <a class="nav-link active" data-toggle="collapse" href="#main_contractors" role="button" aria-expanded="true">{% trans %}Main contractors{% endtrans %}</a>
-            </li>
-        </ul>
-        <div id="main_contractors" class="row collapse show"> 
-            <div class="card text-white bg-primary m-3">
-                <a role="button" class="btn btn-primary text-center font-weight-bold" href="{{ path('serie_route_by_type', {'id': project.id, 'type': 'mdr'}) }}">{% trans %}Whole MDR{% endtrans %}</a>
-                <div class="card-body text-right">
-                </div>
-            </div>
-            {% for main_contractor in main_contractors %}
-                <div class="card text-white bg-primary m-3">
-                    <a role="button" class="btn btn-primary text-center font-weight-bold" href="{{ path('serie_route', {'id': project.id, 'company': main_contractor.id}) }}">{{ main_contractor.name }}</a>
-                    <div class="card-body">
-                        <p class="card-text"></p>
+	{% if sub_contractors is not empty %}
+    	<div class="jumbotron w-100 p-2">
+    		<ul class="nav nav-tabs mb-3">
+        		<li class="nav-item">
+        			<a class="nav-link active" data-toggle="collapse" href="#sub_contractors" role="button" aria-expanded="true">{% trans %}Companies{% endtrans %}</a>
+        		</li>
+        	</ul>
+    		<div id="sub_contractors" class="row collapse show mb-5">
+                {% if sub_contractors is not empty and app.user.company.isMainContractor %}
+                    <div class="card text-white bg-primary m-3">
+                        <a role="button" class="btn btn-primary text-center font-weight-bold" href="{{ path('serie_route_by_type', {'project': project.id, 'type': 'sdr'}) }}">{% trans %}Whole SDR{% endtrans %}</a>
+                        <div class="card-body text-right">
+                        </div>
                     </div>
-                </div>
-            {% else %}
-                <div class="col pt-5">{% trans %}Empty list{% endtrans %}</div>
-            {% endfor %}
-        </div>
-		
-	</div>
+                {% endif %}
+        		{% for sub_contractor in sub_contractors %}
+                    <div class="card text-white bg-primary m-3">
+                        <a role="button" class="btn btn-primary text-center font-weight-bold" href="{{ path('serie_route', {'project': project.id, 'company': sub_contractor.id}) }}">{{ sub_contractor.name }}</a>
+                        <div class="card-body text-right">
+        				</div>
+                	</div>
+                {% endfor %}
+            </div>
+    	</div>
+    {% endif %}
+    {% if main_contractors is not empty %}
+    	<div class="jumbotron w-100 p-2">
+    	   <ul class="nav nav-tabs mb-3">
+                <li class="nav-item">
+                    <a class="nav-link active" data-toggle="collapse" href="#main_contractors" role="button" aria-expanded="true">{% trans %}Main contractors{% endtrans %}</a>
+                </li>
+            </ul>
+            <div id="main_contractors" class="row collapse show"> 
+                {% if main_contractors is not empty and app.user.company.isMainContractor %}
+                    <div class="card text-white bg-primary m-3">
+                        <a role="button" class="btn btn-primary text-center font-weight-bold" href="{{ path('serie_route_by_type', {'project': project.id, 'type': 'mdr'}) }}">{% trans %}Whole MDR{% endtrans %}</a>
+                        <div class="card-body text-right">
+                        </div>
+                    </div>
+                {% endif %}
+                {% for main_contractor in main_contractors %}
+                    <div class="card text-white bg-primary m-3">
+                        <a role="button" class="btn btn-primary text-center font-weight-bold" href="{{ path('serie_route', {'project': project.id, 'company': main_contractor.id}) }}">{{ main_contractor.name }}</a>
+                        <div class="card-body">
+                            <p class="card-text"></p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+    	</div>
+    {% endif %}
 {% endblock %}
 
 {% block javascripts %}

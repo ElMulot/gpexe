@@ -22,10 +22,15 @@ class StatusController extends AbstractController
 	
 	public function index(StatusRepository $statusRepository, Project $project): Response
 	{
+		if ($this->isGranted('ROLE_ADMIN') === false &&
+			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
+			return $this->redirectToRoute('project');
+		}
+		
 		return $this->render('generic/list.html.twig', [
 			'header' => $this->translator->trans('Statuses for') . ' : ' . $project->getName(),
 			'route_back' =>  $this->generateUrl('project_view', [
-				'id' => $project->getId(),
+				'project' => $project->getId(),
 			]),
 			'class' => Status::class,
 			'entities' => $statusRepository->getStatuses($project),
@@ -34,6 +39,11 @@ class StatusController extends AbstractController
 
 	public function new(Request $request, Project $project): Response
 	{
+		if ($this->isGranted('ROLE_ADMIN') === false &&
+			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
+			return $this->redirectToRoute('project');
+		}
+		
 		$status = new Status();
 		$status->setProject($project);
 		$form = $this->createForm(StatusType::class, $status);
@@ -46,13 +56,13 @@ class StatusController extends AbstractController
 			
 			$this->addFlash('success', 'New entry created');
 			return $this->redirectToRoute('status', [
-				'id' => $project->getId()
+				'project' => $project->getId()
 			]);
 		} else {
 			$view = $form->createView();
 			return $this->render('generic/form.html.twig', [
 				'route_back' =>  $this->generateUrl('status', [
-					'id' => $project->getId(),
+					'project' => $project->getId(),
 				]),
 				'form' => $view
 			]);
@@ -61,6 +71,12 @@ class StatusController extends AbstractController
 
 	public function edit(Request $request, Status $status): Response
 	{
+		$project = $status->getProject();
+		if ($this->isGranted('ROLE_ADMIN') === false &&
+			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
+			return $this->redirectToRoute('project');
+		}
+		
 		$form = $this->createForm(StatusType::class, $status);
 		$form = $this->createForm(StatusType::class, $status);
 		$form->handleRequest($request);
@@ -72,13 +88,13 @@ class StatusController extends AbstractController
 			$this->addFlash('success', 'Datas updated');
 			
 			return $this->redirectToRoute('status', [
-				'id' => $status->getProject()->getId()
+				'project' => $status->getProject()->getId()
 			]);
 		} else {
 			$view = $form->createView();
 			return $this->render('generic/form.html.twig', [
 				'route_back' =>  $this->generateUrl('status', [
-					'id' => $status->getProject()->getId(),
+					'project' => $status->getProject()->getId(),
 				]),
 				'form' => $view
 			]);
@@ -87,6 +103,12 @@ class StatusController extends AbstractController
 
 	public function delete(Request $request, Status $status): Response
 	{
+		$project = $status->getProject();
+		if ($this->isGranted('ROLE_ADMIN') === false &&
+			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
+			return $this->redirectToRoute('project');
+		}
+		
 		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
 			$entityManager = $this->getDoctrine()->getManager();
 			$entityManager->remove($status);
@@ -94,12 +116,12 @@ class StatusController extends AbstractController
 
 			$this->addFlash('success', 'Entry deleted');
 			return $this->redirectToRoute('status', [
-				'id' => $status->getProject()->getId()
+				'project' => $status->getProject()->getId()
 			]);
 		} else {
 			return $this->render('generic/delete.html.twig', [
 				'route_back' =>  $this->generateUrl('status', [
-					'id' => $status->getProject()->getId(),
+					'project' => $status->getProject()->getId(),
 				]),
                 'entities' => [$status],
             ]);

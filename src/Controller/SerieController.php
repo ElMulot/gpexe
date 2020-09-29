@@ -30,16 +30,20 @@ class SerieController extends AbstractController
 	
 	public function index(Project $project, Company $company): Response
 	{
+		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
+			return $this->redirectToRoute('project');
+		}
+		
 		$series = $this->serieRepository->getSeries($project, $company);
 		if (empty($series)) {
 			return $this->redirectToRoute('project_view', [
-				'id' => $project->getId(),
+				'project' => $project->getId(),
 			]);
 		} else {
 			return $this->render('generic/list.html.twig', [
 				'header' => $this->translator->trans('Series for') . ' : ' . $project->getName(),
 				'route_back' => $this->generateUrl('serie_route', [
-					'id' => $project->getId(),
+					'project' => $project->getId(),
 					'company' => $company->getId()
 				]),
 				'class' => Serie::class,
@@ -50,10 +54,14 @@ class SerieController extends AbstractController
 
 	public function route(Project $project, Company $company): Response
 	{
+		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
+			return $this->redirectToRoute('project');
+		}
+		
 		$series = $this->serieRepository->getSeries($project, $company);
 		if (empty($series)) {
 			return $this->redirectToRoute('serie_new', [
-				'id' => $project->getId(),
+				'project' => $project->getId(),
 				'company' => $company->getId(),
 			]);
 		} else {
@@ -67,6 +75,10 @@ class SerieController extends AbstractController
 	
 	public function routeByType(Project $project, string $type): Response
 	{
+		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
+			return $this->redirectToRoute('project');
+		}
+		
 		return $this->redirectToRoute('document', [
 			'project' => $project->getId(),
 			'type' => $type,
@@ -75,6 +87,10 @@ class SerieController extends AbstractController
 	
 	public function new(Request $request, Project $project, Company $company): Response
 	{
+		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
+			return $this->redirectToRoute('project');
+		}
+		
 		$serie = new Serie();
 		$serie->setProject($project);
 		$serie->setCompany($company);
@@ -91,7 +107,7 @@ class SerieController extends AbstractController
 					$view = $form->createView();
 					return $this->render('generic/form.html.twig', [
 						'route_back' =>  $this->generateUrl('document', [
-							'id' => $document->getSerie()->getId(),
+							'serie' => $document->getSerie()->getId(),
 						]),
 						'form' => $view,
 					]);
@@ -106,14 +122,14 @@ class SerieController extends AbstractController
 			
 			$this->addFlash('success', 'New serie created');
 			return $this->redirectToRoute('serie', [
-				'id' => $project->getId(),
+				'project' => $project->getId(),
 				'company' => $company->getId(),
 			]);
 		} else {
 			$view = $form->createView();
 			return $this->render('generic/form.html.twig', [
 				'route_back' =>  $this->generateUrl('serie', [
-					'id' => $project->getId(),
+					'project' => $project->getId(),
 					'company' => $company->getId(),
 				]),
 				'form' => $view,
@@ -124,6 +140,10 @@ class SerieController extends AbstractController
 	public function edit(Request $request, Serie $serie): Response
 	{
 		$project = $serie->getProject();
+		
+		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
+			return $this->redirectToRoute('project');
+		}
 		
 		$form = $this->createForm(SerieType::class, $serie);
 		$form->handleRequest($request);
@@ -139,7 +159,7 @@ class SerieController extends AbstractController
 					$view = $form->createView();
 					return $this->render('generic/form.html.twig', [
 						'route_back' =>  $this->generateUrl('document', [
-							'id' => $document->getSerie()->getId(),
+							'serie' => $serie->getId(),
 						]),
 						'form' => $view,
 					]);
@@ -153,14 +173,14 @@ class SerieController extends AbstractController
 			$entityManager->flush();
 			$this->addFlash('success', 'Serie updated');
 			return $this->redirectToRoute('serie', [
-				'id' => $serie->getProject()->getId(),
+				'project' => $project->getId(),
 				'company' => $serie->getCompany()->getId(),
 			]);
 		} else {
 			$view = $form->createView();
 			return $this->render('generic/form.html.twig', [
 				'route_back' =>  $this->generateUrl('serie', [
-					'id' => $serie->getProject()->getId(),
+					'project' => $project->getId(),
 					'company' => $serie->getCompany()->getId(),
 				]),
 				'form' => $view,
@@ -170,6 +190,12 @@ class SerieController extends AbstractController
 	
 	public function delete(Request $request, Serie $serie): Response
 	{
+		$project = $serie->getProject();
+		
+		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
+			return $this->redirectToRoute('project');
+		}
+		
 		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
 			$entityManager = $this->getDoctrine()->getManager();
 			$entityManager->remove($serie);
@@ -177,13 +203,13 @@ class SerieController extends AbstractController
 			
 			$this->addFlash('success', 'Serie deleted');
 			return $this->redirectToRoute('serie', [
-				'id' => $serie->getProject()->getId(),
+				'project' => $serie->getProject()->getId(),
 				'company' => $serie->getCompany()->getId(),
 			]);
 		} else {
 			return $this->render('generic/delete.html.twig', [
 				'route_back' =>  $this->generateUrl('serie', [
-					'id' => $serie->getProject()->getId(),
+					'project' => $serie->getProject()->getId(),
 					'company' => $serie->getCompany()->getId(),
 				]),
 				'entities' => [$serie],

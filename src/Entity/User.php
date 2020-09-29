@@ -107,8 +107,6 @@ class User implements UserInterface
     }
 
     /**
-     * A visual identifier that represents this user.
-     *
      * @see UserInterface
      */
     public function getUsername(): string
@@ -130,21 +128,6 @@ class User implements UserInterface
         $this->password = $password;
 
         return $this;
-    }
-    
-    /**
-     * @see UserInterface
-     */
-    public function getSalt()
-    {
-        // not needed when using the "bcrypt" algorithm in security.yaml
-    }    /**
-     * @see UserInterface
-     */
-    public function eraseCredentials()
-    {
-        // If you store any temporary, sensitive data on the user, clear it here
-        // $this->plainPassword = null;
     }
     
     public function getName(): ?string
@@ -217,20 +200,7 @@ class User implements UserInterface
 
         return $this;
     }
-    
-    public function getRoles(): array
-    { 
-    	if (empty($this->roles)) {
-            if ($this->getProfil()->getEditProgressRules())     $this->roles[] = 'ROLE_PROGRESS_RULES';
-            if ($this->getProfil()->getEditCodifications())     $this->roles[] = 'ROLE_CODIFICATIONS';
-            if ($this->getProfil()->getEditMetadatas())         $this->roles[] = 'ROLE_METADATAS';
-            if ($this->getProfil()->getEditVisas())             $this->roles[] = 'ROLE_VISAS';
-            if ($this->getProfil()->getIsAdmin())               $this->roles[] = 'ROLE_ADMIN';
-        }
-        $this->roles[] = 'ROLE_USER';
-        return array_unique($this->roles);
-    }
-    
+
     /**
      * @return Collection|Project[]
      */
@@ -257,11 +227,6 @@ class User implements UserInterface
         }
 
         return $this;
-    }
-    
-    public function __toString(): string
-    {
-    	return (string)$this->getName();
     }
 
     /**
@@ -293,6 +258,38 @@ class User implements UserInterface
         }
 
         return $this;
+    }
+    
+    
+    /**
+     * @see UserInterface
+     */
+    public function getSalt()
+    {
+    	// not needed when using the "bcrypt" algorithm in security.yaml
+    }
+    
+    public function eraseCredentials()
+    {
+    	// If you store any temporary, sensitive data on the user, clear it here
+    	// $this->plainPassword = null;
+    }
+    
+    public function getRoles(): array
+    {
+    	if (empty($this->roles)) {
+    		if ($this->getProfil()->getEditDocuments())         $this->roles[] = 'ROLE_EDIT_DOCUMENTS';
+    		if ($this->getProfil()->getIsController())         	$this->roles[] = 'ROLE_CONTROLLER';
+    		if ($this->getProfil()->getIsAdmin())               $this->roles[] = 'ROLE_ADMIN';
+    		if ($this->getProfil()->getIsSuperAdmin())          $this->roles[] = 'ROLE_SUPER_ADMIN';
+    	}
+    	$this->roles[] = 'ROLE_USER';
+    	return array_unique($this->roles);
+    }
+    
+    public function __toString(): string
+    {
+    	return (string)$this->getName();
     }
 }
 ?>

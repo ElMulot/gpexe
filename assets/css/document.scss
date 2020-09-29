@@ -50,6 +50,12 @@ main {
 	height: 6rem!important;
 }
 
+#tabs button {
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
 #vues > div, #vue_new, #series_panel a {
 	width: 10rem;
 }
@@ -121,11 +127,6 @@ th {
     z-index: $zindex-sticky;
 }
 
-th button {
-	overflow: hidden;
-	text-overflow: ellipsis;
-}
-
 td {
 	overflow: hidden;
 	white-space: nowrap !important;
@@ -135,46 +136,6 @@ td {
 
 #checkbox {
 	width: 2em;
-}
-
-.type-reference {
-	width: 12em;
-}
-
-.type-version {
-	width: 6em;
-}
-
-.type-name {
-	width: 20em;
-}
-
-.type-boolean {
-	width: 6em;
-}
-
-.type-date {
-	width:8em;
-}
-
-.type-link {
-	width:5em;
-}
-
-.type-standard {
-	width:10em;
-}
-
-.type-text {
-	
-}
-
-.type-integer {
-	
-}
-
-.text-float {
-	
 }
 
 .highlight-late {
@@ -197,15 +158,28 @@ td {
 	width: 6em;
 }
 
+#version_tabs .badge {
+	max-height: 1.8rem;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: normal;
+	padding-top: 0.25rem;
+	padding-bottom: 0.25rem;
+	margin-left: 0.5rem;
+	margin-top: auto;
+	margin-bottom: auto;
+	font-size: x-small;
+}
+
+#review_content {
+	height: 8em;
+}
+
 #page {
 	position: relative;
 	z-index: -1;
 }
 
-
-#review_content {
-	height: 8em;
-}
 /*
 .review-container {
 	height: 4em;

@@ -61,6 +61,11 @@ class Codification
      * @ORM\OneToMany(targetEntity=CodificationItem::class, mappedBy="codification", orphanRemoval=true)
      */
     private $codificationItems;
+    
+    /**
+     * @ORM\OneToMany(targetEntity=CodificationValue::class, mappedBy="codification", orphanRemoval=true)
+     */
+    private $codificationValues;
 
     public function __construct()
     {
