@@ -83,7 +83,7 @@ class Version
 	private $document;
 
 	/**
-	 * @ORM\OneToMany(targetEntity=Review::class, mappedBy="version", orphanRemoval=true)
+	 * @ORM\OneToMany(targetEntity=Review::class, mappedBy="version", orphanRemoval=true, cascade={"persist"})
 	 */
 	private $reviews;
 
@@ -489,6 +489,7 @@ class Version
 				return true;
 			
 			case 'version.date':
+// 				dd($value);
 				if ($date = \DateTime::createFromFormat('d-m-Y', $value)) {
 					if ($date > new \DateTime('now')) {
 						$this->setIsRequired(true);
@@ -581,6 +582,22 @@ class Version
 					foreach ($this->getDocument()->getSerie()->getProject()->getStatuses()->getValues() as $status) {
 						if ($status->getValue() == $value) {
 							$this->setStatus($status);
+							return true;
+						}
+					}
+				} elseif (preg_match('/visa\.(\w+)/', $codename, $matches)) {
+					foreach ($this->getDocument()->getSerie()->getProject()->getVisas()->getValues() as $visa) {
+						if ($visa->getCompany()->getCodeName() == $matches[1] && $visa->getName() == $value) {
+							$review = new Review();
+							foreach ($this->getDocument()->getSerie()->getProject()->getUsers() as $user) {
+								if ($user->getCompany()->getCodeName() == $matches[1]) {
+									$review->setUser($user);
+									break;
+								}
+							}
+							$review->setDate(new \DateTime('now'));
+							$review->setVisa($visa);
+							$this->addReview($review);
 							return true;
 						}
 					}

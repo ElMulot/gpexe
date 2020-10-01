@@ -5,17 +5,11 @@
         {{ block('nav') }}
     </nav>
     <main class="mt-3">
-    	{% if app.session.flashbag.get('_count') is defined %}
-            {% set count = app.session.flashbag.get('_count')|first %}
-        {% else %}
-            {% set count = 1 %}
-        {% endif %}
-        
         {% for label, messages in app.flashes %}
             {% for message in messages %}
             	<div class="row justify-content-center">
             		<div class="alert alert-{{ label }} col-xl-5">   
-                        {{ message|trans({'count': count}) }}.
+                        {{ message|trans }}.
             		</div>
         	    </div>
             {% endfor %}

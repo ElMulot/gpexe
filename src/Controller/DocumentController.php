@@ -177,11 +177,6 @@ class DocumentController extends AbstractController
 			throw $this->createAccessDeniedException();
 		}
 		
-// 		if ($version === null) {
-// 			$this->addFlash('info', 'No more document');
-// 			return $this->render('ajax/error.html.twig');
-// 		}
-		
 	    return $this->render('document/detail.html.twig', [
 	        'current_version' => $version,
 	    	'versions' => $this->versionRepository->getVersionsByDocument($document),
@@ -214,7 +209,7 @@ class DocumentController extends AbstractController
 				$value = $form->get($codification->getCodeName())->getData();
 				
 				if ($value === null && $codification->getIsMandatory()) {
-					$this->addFlash('danger', 'The field  \'' . $codification->getName() . '\' must not be empty');
+					$this->addFlash('danger', $this->translator->trans('notEmpty.field', ['field' => $codification->getName()]));
 					$view = $form->createView();
 					return $this->render('ajax/form.html.twig', [
 						'form' => $view,
@@ -225,7 +220,7 @@ class DocumentController extends AbstractController
 			}
 			
 			if ($this->documentService->validateReference($document) === false) {
-				$this->addFlash('danger', 'The reference  \'' . $document->getReference() . '\' already exist');
+				$this->addFlash('danger', $this->translator->trans('alreadyExist.reference', ['reference' => $document->getReference()]));
 				$view = $form->createView();
 				return $this->render('ajax/form.html.twig', [
 					'form' => $view,
@@ -236,7 +231,7 @@ class DocumentController extends AbstractController
 				$value = $form->get($metadata->getCodeName())->getData();
 				
 				if ($value === null && $metadata->getIsMandatory()) {
-					$this->addFlash('danger', 'The field  \'' . $metadata->getName() . '\' must not be empty');
+					$this->addFlash('danger', $this->translator->trans('notEmpty.field', ['field' => $metadata->getName()]));
 					$view = $form->createView();
 					return $this->render('ajax/form.html.twig', [
 						'form' => $view,
@@ -294,7 +289,7 @@ class DocumentController extends AbstractController
 				$value = $form->get($codification->getCodeName())->getData();
 				
 				if ($value === null && $metadata->getIsMandatory()) {
-					$this->addFlash('danger', 'The field  \'' . $codification->getName() . '\' must not be empty');
+					$this->addFlash('danger', $this->translator->trans('notEmpty.field', ['field' => $codification->getName()]));
 					$view = $form->createView();
 					return $this->render('ajax/form.html.twig', [
 						'form' => $view,
@@ -308,7 +303,7 @@ class DocumentController extends AbstractController
 				$value = $form->get($metadata->getCodeName())->getData();
 				
 				if ($value === null && $metadata->getIsMandatory()) {
-					$this->addFlash('danger', 'The field  \'' . $metadata->getName() . '\' must not be empty');
+					$this->addFlash('danger', $this->translator->trans('notEmpty.field', ['field' => $metadata->getName()]));
 					$view = $form->createView();
 					return $this->render('ajax/form.html.twig', [
 						'form' => $view,
@@ -371,7 +366,7 @@ class DocumentController extends AbstractController
 			
 			$entityManager->flush();
 			
-			$this->addFlash('success', 'The document has been successfully moved.');
+			$this->addFlash('success', 'The document has been successfully moved');
 			return new Response();
 		} else {
 			$view = $form->createView();
@@ -408,9 +403,7 @@ class DocumentController extends AbstractController
 	        }
 	        $entityManager->flush();
 	        
-	        $this->addFlash('success', 'deleted.document');
-	        $this->addFlash('_count', count($documents));
-	        
+	        $this->addFlash('success', $this->translator->trans('deleted.document', ['count' => count($documents)]));
 	        return new Response();
 	    } else {
 	        return $this->render('ajax/delete.html.twig', [

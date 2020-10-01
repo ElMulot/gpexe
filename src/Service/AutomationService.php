@@ -18,6 +18,7 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx as Writer;
 use PhpOffice\PhpSpreadsheet\Writer\Exception as WriterException;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use PhpOffice\PhpSpreadsheet\Cell\Cell;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use App\Entity\Automation;
@@ -321,25 +322,42 @@ class AutomationService
 				}
 			}
 			
-			if ($currentDocument === null && ($options['move_from_mdr'] || $options['move_from_sdr'])) {
+			//check if the document is not in another serie
+			
+			if ($currentDocument === null) {
 				
 				$documents = $this->documentRepository->getAllDocuments($project);
 				foreach ($documents as $document) {
 					if ($this->evaluate($this->parsedCode['get_document']['condition'], $document, $row)) {
-						if ($document->getSerie()->belongToMDR() && $options['move_from_mdr']) {
-							$currentDocument = $document;
-							$document->setSerie($currentSerie);
-							$this->addComment('valid', "Document trouvé dans le MDR et rappatrié dans la série en cours.");
-							break;
+						if ($document->getSerie()->belongToMDR()) {
+							if ($options['move_from_mdr']) {
+								$currentDocument = $document;
+								$document->setSerie($currentSerie);
+								$this->addComment('valid', "Document trouvé dans le MDR et rappatrié dans la série en cours.");
+								break;
+							} else {
+								$this->addComment('error', "Document trouvé dans une autre série du MDR.");
+								$this->writeComments($row);
+								$row++;
+								continue(2);
+							}
 						}
-						if ($document->getSerie()->belongToSDR() && $options['move_from_ddr']) {
-							$currentDocument = $document;
-							$document->setSerie($currentSerie);
-							$this->addComment('valid', "Document trouvé dans le SDR et rappatrié dans la série en cours.");
-							break;
+						if ($document->getSerie()->belongToSDR()) {
+							if ($options['move_from_sdr']) {
+								$currentDocument = $document;
+								$document->setSerie($currentSerie);
+								$this->addComment('valid', "Document trouvé dans le SDR et rappatrié dans la série en cours.");
+								break;
+							} else {
+								$this->addComment('error', "Document trouvé dans une autre série du SDR.");
+								$this->writeComments($row);
+								$row++;
+								continue(2);
+							}
 						}
 					}
 				}
+				
 			}
 			
 			if ($currentDocument !== null) {
@@ -557,11 +575,7 @@ class AutomationService
 		$options = $this->parsedCode['option'] ?? [];
 		foreach ($options as $key => $option) {
 			if ($option == 'choose') {
-				if ($request->request->has($key)) {
-					$option = $request->request->get($key);
-				} else {
-					$option = false;
-				}
+				$option = $request->request->get('launcher_import')[$key] ?? false;
 			}
 			$optionItem = $this->cache->getItem('option.' . $key);
 			$optionItem->set($option);
@@ -599,24 +613,31 @@ class AutomationService
 				}
 			}
 			
+			//date
+			$dateFormat = $this->parsedCode['date_format'];
+			$date = \DateTime::createFromFormat($dateFormat, $expression);
+			if ($date && $date->format($dateFormat) === $expression) {
+				$expression = '"' . $date->format('d-m-Y') . '"';
+			}
+			
 			//replace by Excel values
 			if ($this->sheet !== null && $row > 0) { //row
 				
 				if ($isRegex) {
 					
 					$expression = preg_replace_callback('/\[([A-Z]{1,2})\]/', function($matches) use ($row) {
-						if (Date::isDateTime($this->sheet->getCell($matches[1] . $row))) {
-							return preg_quote(Date::excelToDateTimeObject($this->sheet->getCell($matches[1] . $row)->getValue())->format('d-m-Y'));
+						if ($date = $this->getDateTime($this->sheet->getCell($matches[1] . $row))) {
+							return preg_quote($date->format('d-m-Y'));
 						} else {
 							return preg_quote($this->sheet->getCell($matches[1] . $row)->getValue());
 						}
 					}, $expression);
 					
 				} else {
-						//problème avec les dates à revoir...
+					
 					$expression = preg_replace_callback('/\[([A-Z]{1,2})\]/', function($matches) use ($row) {
-						if (Date::isDateTime($this->sheet->getCell($matches[1] . $row))) {
-							return '"' . Date::excelToDateTimeObject($this->sheet->getCell($matches[1] . $row)->getValue())->format('d-m-Y') . '"';
+						if ($date = $this->getDateTime($this->sheet->getCell($matches[1] . $row))) {
+							return '"' . $date->format('d-m-Y') . '"';
 						} else {
 							return '"' . $this->sheet->getCell($matches[1] . $row)->getValue() . '"';
 						}
@@ -628,18 +649,29 @@ class AutomationService
 			//replace username
 			$expression = preg_replace('/(\[username\])/', $this->security->getUser(), $expression);
 			
-			//date
-			if (strtotime($expression)) {
-				$expression = \DateTime::createFromFormat($this->parsedCode['date_format'], $expression)->format('d-m-Y');
-			}
-			//dump('avant evaluation : ' . $expression);
+// 			dump('avant evaluation : ' . $expression);
 			
 		}
 		
 		return $expression;
 	}
 	
-	private function evaluate(string $expression, $entity, int $row=0) {
+	private function getDateTime(Cell $cell): ?\DateTime
+	{
+		if (Date::isDateTime($cell)) {
+			return Date::excelToDateTimeObject($cell->getValue());
+		} else {
+			$dateFormat = $this->parsedCode['date_format'];
+			$date = \DateTime::createFromFormat($dateFormat, $cell->getValue());
+			if ($date && $date->format($dateFormat) === $cell->getValue()) {
+				return $date;
+			}
+		}
+		return null;
+	}
+	
+	private function evaluate(string $expression, $entity, int $row=0)
+	{
 		
 		$expression = $this->prepare($expression, $entity, false, $row);
 		

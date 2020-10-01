@@ -115,7 +115,7 @@ class VersionController extends AbstractController
 				$value = $form->get($metadata->getCodeName())->getData();
 				
 				if ($value === null && $metadata->getIsMandatory()) {
-					$this->addFlash('danger', 'The field  \'' . $metadata->getName() . '\' must not be empty');
+					$this->addFlash('danger', $this->translator->trans('notEmpty.field', ['field' => $metadata->getName()]));
 					$view = $form->createView();
 					return $this->render('ajax/form.html.twig', [
 						'form' => $view,
@@ -206,7 +206,7 @@ class VersionController extends AbstractController
 						$value = $form->get($metadata->getCodeName())->getData();
 						
 						if ($value === null && $metadata->getIsMandatory()) {
-							$this->addFlash('danger', 'The field  \'' . $metadata->getName() . '\' must not be empty');
+							$this->addFlash('danger', $this->translator->trans('notEmpty.field', ['field' => $metadata->getName()]));
 							$view = $form->createView();
 							return $this->render('ajax/form.html.twig', [
 								'form' => $view,
@@ -268,9 +268,7 @@ class VersionController extends AbstractController
 	            $entityManager->remove($version);
 	        }
 	        $entityManager->flush();
-	        
-	        $this->addFlash('success', 'deleted.version');
-	        $this->addFlash('_count', count($versions));
+	        $this->addFlash('success', $this->translator->trans('deleted.version', ['count' => count($versions)]));
 	        
 	        return new Response();
 	    } else {

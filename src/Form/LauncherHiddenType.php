@@ -11,17 +11,19 @@ class LauncherHiddenType extends AbstractType
 {
 	public function buildForm(FormBuilderInterface $builder, array $options)
 	{
-		$builder->add('hidden_file', HiddenType::class, [
-			'mapped' => false,
-			//'data' => $options['request']['hidden_file'],
-		]);
+		foreach ($options['values'] as $key => $value) {
+			$builder->add('hidden_file', HiddenType::class, [
+				'mapped' => false,
+				'data' => $value,
+			]);
+		}
 	}
 	
 	public function configureOptions(OptionsResolver $resolver)
 	{
 		$resolver->setDefaults([
 			'data_class' => null,
-			//'request' => [],
+			'values' => [],
 		]);
 	}
 }

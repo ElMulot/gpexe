@@ -73,7 +73,7 @@ class AutomationController extends AbstractController
 				]),
 			]);
 		} else {
-			$this->addFlash('danger', 'Invalid automation');
+			$this->addFlash('danger', 'Programme invalide');
 			return $this->redirectToRoute('project_view', [
 				'project' => $project->getId(),
 			]);
@@ -88,14 +88,13 @@ class AutomationController extends AbstractController
 			return $this->redirectToRoute('project');
 		}
 		
-		if ($request->query->has('file_name')) {									//launch import
+		if ($request->query->has('launch')) {										//launch import
+			
+			$form = $this->createForm(LauncherHiddenType::class, $automation);
 			
 			$fileName = $request->query->get('file_name');
 			$request->query->set('check_only', false);
-			
 			$this->automationService->setCache($automation, $request);
-			
-			$countProcessedItem = $this->cache->getItem('automation.count_processed');
 			
 			return $this->render('automation/launcher.html.twig', [
 				'automation' => $automation,
@@ -106,7 +105,7 @@ class AutomationController extends AbstractController
 		} elseif ($automation->isTypeExport()) {									//launch export
 			$form = $this->createForm(LauncherExportType::class, $automation);
 		} else {
-			$this->addFlash('danger', 'Programme invalide.');
+			$this->addFlash('danger', 'Programme invalide');
 			return $this->redirectToRoute('project_view', [
 				'project' => $project->getId(),
 			]);
@@ -121,6 +120,7 @@ class AutomationController extends AbstractController
 			if ($automation->isTypeImport()) { 										//check import
 				
 				$file = $form->get('file')->getData();
+				$this->automationService->setCache($automation, $request);
 				
 				if ($file === null) {
 					$this->addFlash('danger', 'Aucun fichier sélectionné');
@@ -210,7 +210,7 @@ class AutomationController extends AbstractController
 			
 		} else {
 			
-			$this->addFlash('danger', 'Erreur interne.');
+			$this->addFlash('danger', 'Erreur interne');
 			return $this->redirectToRoute('project_view', [
 				'project' => $project->getId(),
 			]);
@@ -223,7 +223,7 @@ class AutomationController extends AbstractController
 			
 		} else {
 			
-			$this->addFlash('danger', 'Erreur interne.');
+			$this->addFlash('danger', 'Erreur interne');
 			return $this->redirectToRoute('project_view', [
 				'project' => $project->getId(),
 			]);
@@ -245,7 +245,7 @@ class AutomationController extends AbstractController
 			
 		} elseif ($automation->isTypeExport()) {										//launch export
 			
-			//$this->addFlash('success', 'Fin de l\'export.');
+			//$this->addFlash('success', 'Fin de l\'export');
 			return $this->render('automation/export.html.twig', [
 				'automation' => $automation,
 				'upload_url' => $this->getParameter('uploads_directory') . '/' . $fileName,
@@ -253,7 +253,7 @@ class AutomationController extends AbstractController
 			
 		} else {
 			
-			$this->addFlash('danger', 'Programme invalide.');
+			$this->addFlash('danger', 'Programme invalide');
 			return $this->redirectToRoute('project_view', [
 				'project' => $project->getId(),
 			]);

@@ -28,3 +28,9 @@ deleted:
          one   {Version supprimée}
          other {Versions supprimées}
       }
+      
+notEmpty:
+    field: 'Le champ "{field}" ne doit pas être vide'
+
+alreadyExist:
+    reference: 'La référence "{reference}" existe déjà'
