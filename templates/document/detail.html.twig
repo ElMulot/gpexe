@@ -5,7 +5,7 @@
                 <a class="nav-link d-flex w-75 my-1{% if version == current_version %} active{% endif %}" data-toggle="ajax" data-target="#version_content" data-url="{{ path('version_detail', {'version': version.id}) }}" data-id="{{ version.id }}">
                     <div class="flex-grow-1">{{ version.name }}</div>
                     {% if version.isRequired %}
-                    	<span class="badge badge-info">{% trans %}to be produced{% endtrans %}</span>
+                    	<span class="badge badge-info">{% trans %}is required{% endtrans %}</span>
                     {% elseif version.status.isInformation %}
 						<span class="badge badge-success">{% trans %}information{% endtrans %}</span>
                     {% elseif version.status.isCancel %}

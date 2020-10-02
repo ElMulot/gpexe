@@ -1,31 +1,44 @@
 #Main
 'True': Vrai
 'False': Faux
+Yes: Oui
+No: Non
 Ok: Ok
 Cancel: Annuler
+n/a: n/a
 Save: Enregistrer
+Save & Close: Enregistrer & Fermer
 Close: Fermer
 Back: Retour
 New: Nouveau
 Edit: Editer
 Delete: Supprimer
+Clear: Effacer
+Move: Déplacer
+Display: Afficher
+Search: Rechercher
+Set: Définir
 Id: Id
 Name: Nom
+List: Liste
 Empty list: Liste vide
-New entry created: Nouvelle entrée créée
-Datas updated: Informations mises à jour
+Various: Multiple
+New entry created: Nouvelle entrée créée #
+Datas updated: Informations mises à jour #
+Confirm deletion: Confirmer la suppression
 
 #Control access
-Connection: Connexion
+Connection: Connexion #
 User Name: Nom d'utilisateur
 Password: Mot de passe
 Email: Email
-Locale: Langue
-Activated: Activé
+Locale: Langue #
+Activated: Activé #
 Remember me: Se souvenir de moi
 Logout successful: Vous êtes déconnecté
 
 #Home
+GPExe: GPExe
 Home: Accueil
 Project: Projet
 Admin: Administration
@@ -33,58 +46,149 @@ Company: Entreprise
 User: Utilisateur
 Profil: Profil
 Account: Mon compte
+Log: Journal
+Wiki: Wiki
+Report bug: Signaler un bug
+About: A propos
 Logout: Se déconnecter
 
 #Account
 Last connected: Dernière connexion
 Edit account properties: Editer les propriétés du compte
 Change password: Changer le mot de passe
-Current password: Mot de passe actuel
-New password: Nouveau mot de passe
-Confirm new password: Confirmation du nouveau mot de passe
-Password changed: Mot de passe changé
+Current password: Mot de passe actuel #
+New password: Nouveau mot de passe #
+Confirm new password: Confirmation du nouveau mot de passe #
+Password changed: Mot de passe changé #
 
 #Company
 Type: Type
-Priority: Priorité
-Main contractor: Entrepreneur principal
-Sub-contractor: Sous-traitant
+Priority: Priorité #
+Main contractor: Entrepreneur principal #
+Sub-contractor: Sous-traitant #
 Supplier: Fournisseur
-Checker: Vérificateur
 
 #Profil
-Edit progress rules: Editer les règles d'avancement
-Edit references: Editer les réferences
-Edit metadatas: Editer les metadonnées
-Edit visas: Editer les visas
-Is admin: Est admin
+Profils: Profils
+Edit progress rules: Editer les règles d'avancement #
+Edit references: Editer les réferences #
+Edit metadatas: Editer les metadonnées #
+Edit visas: Editer les visas #
+Is admin: Est admin #
 
 #User
-Edit user: Editer l'utilisateur
-Delete user: Supprimer l'utilisateur
-The last entry with Admin rights cannot be deleted: La dernière entrée avec des droits d'administrateur ne peut être supprimée
-
-#Project
-Projects: Projets
-New project: Nouveau projet
-Separator: Séparateur
-Users: Utilisateurs
-Project admin: Administration du projet
-Main contractors: Entrepreneurs principaux
-Companies: Entreprises
+Edit user: Editer l'utilisateur #
+Delete user: Supprimer l'utilisateur #
+The last entry with Admin rights cannot be deleted: La dernière entrée avec des droits d'administrateur ne peut être supprimée #
 
 #Codification
 Codification for: Codification pour
 Codification: Codification
-Value: Valeur
-Is list: Est une liste
-Is mandatory: Est obligatoire
-List: Liste
+Value: Valeur #
+Is list: Est une liste #
+Is mandatory: Est obligatoire #
 List for the code: Liste pour le code
 
 #Metadata
-List for the metadata: Liste pour la metadonnées
+Metadatas: Metadonnées
+Metadatas for: Metadonnées pour
+List for the metadata: Liste pour la metadonnée
+
+#Project
+Projects: Projets #
+New project: Nouveau projet
+Edit project: Editer le projet
+Separator: Séparateur #
+Users: Utilisateurs #
+Project admin: Administration du projet
+Main contractors: Entrepreneurs principaux
+Companies: Entreprises
+
+#Serie
+Serie: Serie
+Series: Series
+Series for: Series pour
+Serie name: Nom de la série
+Manage series: Gestion des séries
+Whole SDR: SDR complet
+Whole MDR: MDR complet
+
+#Document
+Documents: Documents
+Reference: Reference
+Document detail: Détails sur le document
+Details: Détails
+Query: Recherche
+Symbol: Symbole
+must be used as splitter: doit être utilisé comme séparateur
+The wild-card: Le caractère
+can be used in place of one or several parameter: peut être utilisé à la place de un ou plusieurs caractères
+Filter: Filtrer
+
+#Version
+Version: Version
+Versions: Versions
+Initial scheduled date: Date initiale planifiée
+Scheduled Date: Date planifiée
+Delivery Date: Date de remise
+Is required: A produire
+People involved: Personnes impliquées
+Writer: Rédacteur
+Checker: Vérificateur
+Approver: Approbateur
+Last delivered: Dernier remis
+Last scheduled: Dernier programmé
+information: information
+cancelled: annulé
+as built: TQC
+Expected date: Attendu pour le
+Date of issue: Remis le
+Document recieved: Document reçu
+Save document: Sauvegarder le document
+Click here: Cliquer ici
+
+#Status
+Status: Status
+Statuses: Status
+Statuses for: Status pour
+Status value: Valeur du status
+Status type: Type de status
+Information: Pour information
+Review: Pour revue
+As built: Tel que construit
+
+#Review
+On: Le
+by: par
+No visa yet: Pas encore de visa
 
 #Visa
+Visa: Visa
+Visas: Visas
 Visas for: Visas pour
-Revision required: Révision requise
+Revision required: Révision requise #
+
+#Vue
+Vues: Vues
+New vue: Nouvelle vue
+
+#Automations
+Automation: Automatisation
+Automations: Automatisations
+Automations for: Automatisations pour
+
+#Alert
+Some documents to be produced are very late: Certains documents à produire sont très en retard
+Some documents to be produced are late: Certains documents à produire sont en retard
+Some documents must be produce in the next 15 days: Certains documents doivent être produits dans les 15 prochains jours
+Some documents to be checked are very late: Certains documents à vérifier sont très en retard
+Some documents to be checked are late: Certains documents à vérifier sont  en retard
+Some documents must be checked in the next 15 days: Certains documents doivent être vérifiés dans les 15 prochains jours
+Nothing to do on this project: Rien à faire sur ce project
+
+#Log
+Entity: Entité
+Date: Date
+Field: Champ
+Old value: Ancienne valeur
+New value: Nouvelle valeur

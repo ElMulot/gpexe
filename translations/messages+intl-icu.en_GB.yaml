@@ -1,0 +1,36 @@
+delay: >-
+      {count, plural,
+         one   {# day of delay}
+         other {# days of delay}
+      }
+
+confirm:
+   document: Confirm deletion
+      {count, plural,
+         one   {of this document}
+         other {of these documents}
+      }
+   version: Confirm deletion
+      {count, plural,
+         one   {of this version}
+         other {of these versions}
+      }
+      
+deleted:
+   document: >-
+      {count, plural,
+         one   {Document deleted}
+         other {Documents deleted}
+      }
+      
+   version: >-
+      {count, plural,
+         one   {Version deleted}
+         other {Versions deleted}
+      }
+      
+notEmpty:
+    field: 'The field "{field}" must not be empty'
+
+alreadyExist:
+    reference: 'The reference "{reference}" already exist'

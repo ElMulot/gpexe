@@ -28,7 +28,7 @@ class MetadataController extends AbstractController
 		}
 		
 		return $this->render('generic/list.html.twig', [
-			'header' => $this->translator->trans('Metadata for') . ' : ' . $project->getName(),
+			'header' => $this->translator->trans('Metadatas for') . ' : ' . $project->getName(),
 			'route_back' =>  $this->generateUrl('project_view', [
 				'project' => $project->getId(),
 			]),
