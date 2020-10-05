@@ -7,3 +7,4 @@ twig:
         app_version: '%env(APP_VERSION)%'
         app_date: '%env(APP_DATE)%'
         app_name: 'GPExe'
+        uploads_directory: '%uploads_directory%/'

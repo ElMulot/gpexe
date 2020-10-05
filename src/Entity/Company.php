@@ -57,6 +57,11 @@ class Company
      * @ORM\OneToMany(targetEntity=Serie::class, mappedBy="company", orphanRemoval=true)
      */
     private $series;
+    
+    /**
+     * @ORM\OneToMany(targetEntity=Visa::class, mappedBy="company", orphanRemoval=true)
+     */
+    private $visas;
 
     public function __construct()
     {

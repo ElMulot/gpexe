@@ -5,7 +5,7 @@ namespace App\Repository;
 use App\Entity\MetadataItem;
 use App\Entity\Metadata;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\Common\Persistence\ManagerRegistry;
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method MetadataItem|null find($id, $lockMode = null, $lockVersion = null)

@@ -2,10 +2,10 @@
 
 namespace App\Entity;
 
-use App\Repository\AutomationRepository;
-use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Yaml\Yaml;
 use Symfony\Component\Yaml\Exception\ParseException;
+use Doctrine\ORM\Mapping as ORM;
+use App\Repository\AutomationRepository;
 
 /**
  * @ORM\Entity(repositoryClass=AutomationRepository::class)
@@ -300,6 +300,7 @@ class Automation
 		return [
 			'type' => 'export',
 			'first_row' => '\d+',
+			'date_format' => '[djDlSzFMmnYyaAhgGHisvu\s#;:\/\.,\-\(\)]+',
 			'exclude' => ['.+'],
 			'write' => [
 				[

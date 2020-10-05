@@ -64,6 +64,11 @@ App\Entity\Project:
     constraints:
         - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity: name
 
+App\Entity\Review:
+    constraints:
+        - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity:
+            fields: ['user', 'version']
+
 App\Entity\Serie:
     constraints:
         - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity:
@@ -73,7 +78,6 @@ App\Entity\Status:
     constraints:
         - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity:
             fields: ['name', 'project']
-        - Callback: validate
 
 App\Entity\User:
     constraints:

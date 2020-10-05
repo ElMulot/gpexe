@@ -342,7 +342,7 @@ class DocumentController extends AbstractController
 		$document = $documents[0];
 		$currentSerie = $document->getSerie();
 		$project = $currentSerie->getProject();
-		$series = $rpoject->getSeries();
+		$series = $project->getSeries();
 		
 		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
 			throw $this->createAccessDeniedException();

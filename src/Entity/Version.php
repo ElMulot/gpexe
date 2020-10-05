@@ -588,17 +588,25 @@ class Version
 				} elseif (preg_match('/visa\.(\w+)/', $codename, $matches)) {
 					foreach ($this->getDocument()->getSerie()->getProject()->getVisas()->getValues() as $visa) {
 						if ($visa->getCompany()->getCodeName() == $matches[1] && $visa->getName() == $value) {
-							$review = new Review();
-							foreach ($this->getDocument()->getSerie()->getProject()->getUsers() as $user) {
-								if ($user->getCompany()->getCodeName() == $matches[1]) {
-									$review->setUser($user);
-									break;
+							
+							if ($review = $this->getReviewByCompany($visa->getCompany())) {
+								if ($review->getVisa()->getName() != $value) {
+									$review->setVisa($visa);
 								}
+							} else {							
+								$review = new Review();
+								foreach ($this->getDocument()->getSerie()->getProject()->getUsers() as $user) {
+									if ($user->getCompany()->getCodeName() == $matches[1]) {
+										$review->setUser($user);
+										break;
+									}
+								}
+								$review->setDate(new \DateTime('now'));
+								$review->setVisa($visa);
+								$this->addReview($review);
 							}
-							$review->setDate(new \DateTime('now'));
-							$review->setVisa($visa);
-							$this->addReview($review);
 							return true;
+							
 						}
 					}
 				} else {

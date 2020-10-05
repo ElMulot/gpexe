@@ -29,6 +29,12 @@ class CacheService {
 		
 		return $this;
 	}
+	
+	public function delete(string $key): self
+	{
+		$this->cache->deleteItem($key);
+		return $this;
+	}
 		
 }
 

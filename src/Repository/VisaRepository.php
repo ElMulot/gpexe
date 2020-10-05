@@ -5,7 +5,7 @@ namespace App\Repository;
 use App\Entity\Visa;
 use App\Entity\Project;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\Common\Persistence\ManagerRegistry;
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method Visa|null find($id, $lockMode = null, $lockVersion = null)

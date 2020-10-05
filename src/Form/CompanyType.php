@@ -7,6 +7,8 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\NumberType;
+
 
 class CompanyType extends AbstractType
 {
@@ -15,16 +17,20 @@ class CompanyType extends AbstractType
         $builder
             ->add('name')
             ->add('codename')
-            ->add('type', ChoiceType::class, ['choices' => [
-                'Main contractor' => Company::MAIN_CONTRACTOR, 
-                'Sub-contractor' => Company::SUB_CONTRACTOR,
-                'Supplier' => Company::SUPPLIER,
-                'Checker' => Company::CHECKER,
+            ->add('type', ChoiceType::class, [
+            	'choices' => [
+	                'Main contractor' => Company::MAIN_CONTRACTOR, 
+	                'Sub-contractor' => Company::SUB_CONTRACTOR,
+	                'Supplier' => Company::SUPPLIER,
+	                'Checker' => Company::CHECKER,
                 ],
             	'expanded' => true,
             ])
-            ->add('priority')
-        ;
+            ->add('priority', NumberType::class, [
+            	'required' => false,
+            	'empty_data' => '0',
+            ])
+		;
     }
 
     public function configureOptions(OptionsResolver $resolver)

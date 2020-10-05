@@ -5,7 +5,7 @@ namespace App\Repository;
 use App\Entity\CodificationItem;
 use App\Entity\Codification;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\Common\Persistence\ManagerRegistry;
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method CodificationItem|null find($id, $lockMode = null, $lockVersion = null)

@@ -3,7 +3,7 @@
 namespace App\EventListener;
 
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\Common\Persistence\Event\LifecycleEventArgs;
+use Doctrine\Persistence\Event\LifecycleEventArgs;
 use App\Entity\Status;
 use App\Repository\StatusRepository;
 
@@ -55,8 +55,8 @@ class StatusListener
 				return;
 			}
 		}
-		$s->setIsDefault(true);
-		$event->getObjectManager()->persist($s);
+		$status->setIsDefault(true);
+		$event->getObjectManager()->persist($status);
 		$event->getObjectManager()->flush();
 	}
 }

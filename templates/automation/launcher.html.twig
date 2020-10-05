@@ -1,20 +1,7 @@
-{% if form is defined %}
+{% form_theme form 'ajax/layout.html.twig' %}
 
-	{% form_theme form 'ajax/layout.html.twig' %}
-	
-	{{ form(form) }}
-	
-	<div class="d-flex justify-content-center">
-		<button type="submit" form="form_ajax" class="btn btn-primary w-25" data-toggle="ajax" data-url="{{ app.request.uri }}" data-target="#output">Lancer</button>
-	</div>
+{{ form(form) }}
 
-{% else %}
-	
-	<div class="d-flex justify-content-center mt-4">
-		<div class="spinner-border" role="status">
-			<span class="sr-only">Chargement...</span>
-		</div>
-	</div>
-	<a class="active" data-toggle="ajax" data-url="{{ path('automation_console', app.request.query.all|merge({'automation': automation.id})) }}" data-target="#console"></a>
-	
-{% endif %}
+<div class="d-flex justify-content-center">
+	<button type="submit" form="form_ajax" class="btn btn-primary w-25" data-toggle="ajax" data-url="{{ app.request.uri }}" data-target="#output">Lancer</button>
+</div>

@@ -50,11 +50,13 @@ class AutomationService
 	
 	private $documentRepository;
 	
-	private $versionRespository;
+	private $versionRepository;
 	
 	private $statusRespository;
 	
 	private $documentService;
+	
+	private $cacheService;
 	
 	private $fieldService;
 	
@@ -64,8 +66,6 @@ class AutomationService
 	
 	private $filesystem;
 	
-	private $cache;
-	
 	private $targetDirectory;
 	
 	private $comments;
@@ -74,7 +74,7 @@ class AutomationService
 	
 	private $sheet;
 
-	public function __construct(FlashBagInterface $flashBagInterface, SluggerInterface $slugger, EntityManagerInterface $entityManager, SerieRepository $serieRepository, DocumentRepository $documentRepository, VersionRepository $versionRepository, StatusRepository $statusRespository, DocumentService $documentService, FieldService $fieldService, Security $security, string $targetDirectory)
+	public function __construct(FlashBagInterface $flashBagInterface, SluggerInterface $slugger, EntityManagerInterface $entityManager, SerieRepository $serieRepository, DocumentRepository $documentRepository, VersionRepository $versionRepository, StatusRepository $statusRespository, CacheService $cacheService, DocumentService $documentService, FieldService $fieldService, Security $security, string $targetDirectory)
 	{
 		$this->slugger = $slugger;
 		$this->flashBagInterface = $flashBagInterface;
@@ -83,33 +83,39 @@ class AutomationService
 		$this->documentRepository = $documentRepository;
 		$this->versionRepository = $versionRepository;
 		$this->statusRespository = $statusRespository;
+		$this->cacheService = $cacheService;
 		$this->documentService = $documentService;
 		$this->fieldService = $fieldService;
 		$this->security = $security;
 		$this->expressionLanguage = new ExpressionLanguage();
 		$this->filesystem = new Filesystem();
-		$this->cache = new FilesystemAdapter;
 		$this->targetDirectory = $targetDirectory;
 		$this->comments = [];
 	}
 	
-	public function load(Automation $automation, string $file, Request $request)
+	public function load(Automation $automation, Request $request, string $file = ''): bool
 	{
 		
 		$this->flashBagInterface->add('info', 'Démarrage de l\'opération');
 		
-		$this->setCache($automation, $request);
-		
 		$this->parsedCode = $automation->getParsedCode();
 		$firstRow = $this->parsedCode['first_row'];
 		
-		$reader = IOFactory::createReaderForFile($file);
-		//$reader->setReadDataOnly(true);
-		$spreadsheet = $reader->load($file);
+		//setting up cache
+		$this->cacheService->set('automation.current_row', $firstRow);
 		
-		$this->sheet = $spreadsheet->getActiveSheet();
+		$options = $this->parsedCode['option'] ?? [];
+		foreach ($options as $key => $option) {
+			if ($option == 'choose') {
+				$option = $request->request->get('launcher_import')[$key] ?? false;
+			}
+			$this->cacheService->set('automation.option.' . $key, $option);
+		}
 		
 		if ($automation->isTypeExport()) {
+			
+			$spreadsheet = new Spreadsheet();
+			$this->sheet = $spreadsheet->getActiveSheet();
 			
 			//set document properties
 			$spreadsheet->getProperties()
@@ -131,9 +137,21 @@ class AutomationService
 				}
 			}
 			
-			return $this->save($spreadsheet);
+			//save
+			$fileName = $this->save($spreadsheet);
+			if ($fileName != false) {
+				$this->cacheService->set('automation.file_name', $fileName);
+				return true;
+			} else {
+				$this->flashBagInterface->add('error', 'Erreur : écriture du fichier impossible');
+				return false;
+			}
 
 		} elseif ($automation->isTypeImport()) {
+			
+			$reader = IOFactory::createReaderForFile($file);
+			$spreadsheet = $reader->load($file);
+			$this->sheet = $spreadsheet->getActiveSheet();
 			
 			$this->documentService->removeOrphans();
 			
@@ -143,7 +161,15 @@ class AutomationService
 				->setTitle('GPEXE Import')
 			;
 			
-			return $this->save($spreadsheet);
+			//save
+			$fileName = $this->save($spreadsheet);
+			if ($fileName != false) {
+				$this->cacheService->set('automation.file_name', $fileName);
+				return true;
+			} else {
+				$this->flashBagInterface->add('error', 'Erreur : ouverture du fichier impossible');
+				return false;
+			}
 			
 		} else {
 			
@@ -153,75 +179,106 @@ class AutomationService
 		}
 	}
 	
-	public function export(Automation $automation, string $file):? string
+	public function unload(Automation $automation): bool
+	{
+		
+		if ($automation->isTypeExport()) {
+			
+			$this->cacheService->delete('automation.file_name');
+			$this->cacheService->delete('automation.count_processed');
+			$this->cacheService->delete('automation.current_row');
+			$this->cacheService->delete('automation.new_batch');
+			return true;
+			
+		} elseif ($automation->isTypeImport()) {
+			
+			$this->cacheService->delete('automation.file_name');
+			$this->cacheService->delete('automation.count_processed');
+			$this->cacheService->delete('automation.current_row');
+			$this->cacheService->delete('automation.new_batch');
+			$this->cacheService->delete('automation.ready_to_persist');
+			$options = $this->parsedCode['option'] ?? [];
+			foreach ($options as $key => $option) {
+				$this->cacheService->delete('automation.option.' . $key);
+			}
+			return true;
+			
+		} else {
+			
+			$this->flashBagInterface->add('error', 'Erreur : programme invalide');
+			return false;
+			
+		}
+		
+	}
+	
+	public function export(Automation $automation): bool
 	{
 		$project = $automation->getProject();
 		$this->parsedCode = $automation->getParsedCode();
-		$fields = $this->fieldService->getFields($project);
 		
 		//cache
-		$currentRowItem = $this->cache->getItem('automation.current_row');
-		if ($currentRowItem->isHit()) {
-			$row = $currentRowItem->get();
-		} else {
-			$this->flashBagInterface->add('error', 'Erreur interne.');
-			return false;
+		$fileName = $this->cacheService->get('automation.file_name');
+		$row = $this->cacheService->get('automation.current_row');
+		$countProcessed = (int)$this->cacheService->get('automation.count_processed');
+		$options = [];
+		foreach (array_keys($this->parsedCode['option']) as $key) {
+			$options[$key] = $this->cacheService->get('automation.option.' . $key);
 		}
-		
-		$countProcessedItem = $this->cache->getItem('automation.count_processed');
-		if ($countProcessedItem->isHit()) {
-			$countProcessed = $countProcessedItem->get();
-		} else {
-			$this->flashBagInterface->add('error', 'Erreur interne.');
-			return false;
-		}
-		
-		$newBatchItem = $this->cache->getItem('automation.new_batch');
-		if ($newBatchItem->isHit() === false) {
-			$this->flashBagInterface->add('error', 'Erreur interne.');
-			return false;
-		}
-		
-		$reader = IOFactory::createReaderForFile($file);
-		//$reader->setReadDataOnly(true);
-		$spreadsheet = $reader->load($file);
-		
+		$newBatch = false;
+				
+		$spreadsheet = $this->open($fileName);
 		$this->sheet = $spreadsheet->getActiveSheet();
 		
-		$versions = $this->versionRespository->getVersionsByProject($project);
+		$versions = $this->versionRepository->getVersionsByProject($project);
 		
 		//content
-		$row = $firstRow + 1;
 		foreach ($versions as $version) {
+			
+			//exclude
 			foreach ($this->parsedCode['exclude'] as $exclude) {
-				if ($this->evaluate($exclude, $version) && $exclude != '') continue 2;
+				if ($this->evaluate($exclude, $version) && $exclude != '') {
+					$row++;
+					continue 2;
+				}
 			}
 			
 			foreach ($this->parsedCode['write'] as $write) {
 				if ($this->evaluate($write['condition'], $version)) {
-					$this->sheet->setCellValue($write['to'] . $row, $this->evaluate($write['value'], $version));
+					$this->sheet->setCellValue($write['to'] . $row, $this->get($write['value'], $version));
 				}
 			}
+						
+			if ($row - $this->cacheService->get('automation.current_row') > self::MAX_LINES_PROCESSED) {
+				$newBatch = true;
+				break;
+			}
+			
 			$row++;
+			$countProcessed++;
 		}
 		
-		$this->flashBagInterface->add('success', 'Export successful. ' . ($row - $firstRow - 1) . ' lines written');
+		//update cache
+		$this->cacheService->set('automation.new_batch', $newBatch);
 		
-		//save
-		return $this->save($spreadsheet);
-
+		if ($newBatch === false) {
+			$this->flashBagInterface->add('success', 'Export réussi. ' . $countProcessed . '/' . ($row - $this->parsedCode['first_row'] - 1) . ' lignes exportées');
+		} else {
+			$this->cacheService->set('automation.count_processed', $countProcessed);
+			$this->cacheService->set('automation.current_row', $row + 1);
+		}
+		
+		return (bool)$this->save($spreadsheet);
 	}
 	
-	public function import(Automation $automation, string $file, bool $checkOnly)
+	public function import(Automation $automation): bool
 	{
 		
 		$matches = null;
 		$project = $automation->getProject();
 		$this->parsedCode = $automation->getParsedCode();
-		$this->checkOnly = $checkOnly;
-		$fields = $this->fieldService->getFields($project);
 		$firstColumn = $this->parsedCode['first_column'];
-				
+		
 		$defaultStatus = $this->statusRespository->getDefaultStatus($project);
 		if ($defaultStatus === null) {
 			$this->flashBagInterface->add('error', 'Pas de status par défaut.');
@@ -229,55 +286,16 @@ class AutomationService
 		}
 		
 		//cache
-		$currentRowItem = $this->cache->getItem('automation.current_row');
-		if ($currentRowItem->isHit()) {
-			$row = $currentRowItem->get();
-		} else {
-			$this->flashBagInterface->add('error', 'Erreur interne.');
-			return false;
+		$fileName = $this->cacheService->get('automation.file_name');
+		$row = $this->cacheService->get('automation.current_row');
+		$countProcessed = (int)$this->cacheService->get('automation.count_processed');
+		$options = [];
+		foreach (array_keys($this->parsedCode['option']) as $key) {
+			$options[$key] = $this->cacheService->get('automation.option.' . $key);
 		}
+		$newBatch = false;
 		
-		$countProcessedItem = $this->cache->getItem('automation.count_processed');
-		if ($countProcessedItem->isHit()) {
-			$countProcessed = $countProcessedItem->get();
-		} else {
-			$this->flashBagInterface->add('error', 'Erreur interne.');
-			return false;
-		}
-		
-		$newBatchItem = $this->cache->getItem('automation.new_batch');
-		if ($newBatchItem->isHit() === false) {
-			$this->flashBagInterface->add('error', 'Erreur interne.');
-			return false;
-		} else {
-			$newBatchItem->set(false);
-		}
-		
-		$updateOnlyItem = $this->cache->getItem('option.update_only');
-		if ($updateOnlyItem->isHit() === false) {
-			$options['update_only'] = false;
-		} else {
-			$options['update_only'] = $updateOnlyItem->get();
-		}
-		
-		$moveFromMdrItem = $this->cache->getItem('option.move_from_mdr');
-		if ($moveFromMdrItem->isHit() === false) {
-			$options['move_from_mdr'] = false;
-		} else {
-			$options['move_from_mdr'] = $moveFromMdrItem->get();
-		}
-		
-		$moveFromSdrItem = $this->cache->getItem('option.move_from_sdr');
-		if ($moveFromSdrItem->isHit() === false) {
-			$options['move_from_sdr'] = false;
-		} else {
-			$options['move_from_sdr'] = $moveFromSdrItem->get();
-		}
-		
-		$reader = IOFactory::createReaderForFile($file);
-		//$reader->setReadDataOnly(true);
-		$spreadsheet = $reader->load($file);
-		
+		$spreadsheet = $this->open($fileName);
 		$this->sheet = $spreadsheet->getActiveSheet();
 		
 		while ($this->sheet->getCell($firstColumn . $row)->getValue()) {
@@ -428,7 +446,7 @@ class AutomationService
 				$this->writeComments($row);
 				$row++;
 				continue;
-			} elseif ($checkOnly === false) {
+			} elseif ($this->cacheService->get('automation.ready_to_persist')) {
 				$this->entityManager->persist($currentDocument);
 			}
 			
@@ -513,79 +531,46 @@ class AutomationService
 				$this->writeComments($row);
 				$row++;
 				continue;
-			} elseif ($checkOnly === false) {
+			} elseif ($this->cacheService->get('automation.ready_to_persist')) {
 				$this->entityManager->persist($currentVersion);
 			}
 			
 			$this->writeComments($row);
 			$countProcessed++;
 			
-			if ($row - $currentRowItem->get() > self::MAX_LINES_PROCESSED) {
-				$newBatchItem->set(true);
+			if ($row - $this->cacheService->get('automation.current_row') > self::MAX_LINES_PROCESSED) {
+				$newBatch = true;
 				break;
 			}
 			$row++;
 		}
 		
-		$currentRowItem->set($row + 1);
-		$countProcessedItem->set($countProcessed);
+		$this->cacheService->set('automation.new_batch', $newBatch);
 		
-		$this->cache->save($currentRowItem);
-		$this->cache->save($countProcessedItem);
-		$this->cache->save($newBatchItem);
-				
-		if ($checkOnly) {
-			
-			if ($newBatchItem->get() === false) {
-				$this->flashBagInterface->add('info', 'Vérification terminée : ' . $countProcessed . '/' . ($row - $this->parsedCode['first_row']) . ' lignes peuvent être importées');
-			}
-			
-			return $this->save($spreadsheet);
-		} else {
-			$this->entityManager->flush();
-			
-			if ($newBatchItem->get() === false) {
+		if ($newBatch === false) {
+			if ($this->cacheService->get('automation.ready_to_persist')) {
+				$this->entityManager->flush();
 				$this->flashBagInterface->add('info', 'Import terminé : ' . $countProcessed . '/' . ($row - $this->parsedCode['first_row']) . ' lignes ont été importées');
+				return true;
+			} else {
+				$this->flashBagInterface->add('info', 'Vérification terminée : ' . $countProcessed . '/' . ($row - $this->parsedCode['first_row']) . ' lignes peuvent être importées');
+				return (bool)$this->save($spreadsheet);
 			}
-			
-			return true;
-		}
-		
-	}
-	
-	public function setCache(Automation $automation, Request $request)
-	{
-		//automation
-		$this->parsedCode = $automation->getParsedCode();
-		$firstRow = $this->parsedCode['first_row'];
-		
-		$currentRowItem = $this->cache->getItem('automation.current_row');
-		$currentRowItem->set($firstRow);
-		$this->cache->save($currentRowItem);
-		
-		$countProcessedItem = $this->cache->getItem('automation.count_processed');
-		$countProcessedItem->set(0);
-		$this->cache->save($countProcessedItem);
-		
-		$newBatchItem = $this->cache->getItem('automation.new_batch');
-		$newBatchItem->set(false);
-		$this->cache->save($newBatchItem);
-		
-		//options
-		$options = $this->parsedCode['option'] ?? [];
-		foreach ($options as $key => $option) {
-			if ($option == 'choose') {
-				$option = $request->request->get('launcher_import')[$key] ?? false;
+		} else {
+			if ($this->cacheService->get('automation.ready_to_persist')) {
+				return true;
+			} else {
+				$this->cacheService->set('automation.count_processed', $countProcessed);
+				$this->cacheService->set('automation.current_row', $row + 1);
+				return (bool)$this->save($spreadsheet);
 			}
-			$optionItem = $this->cache->getItem('option.' . $key);
-			$optionItem->set($option);
-			$this->cache->save($optionItem);
 		}
 	}
 	
 	private function prepare(string $expression, $entity, bool $isRegex=false, int $row=0): string
 	{
-		if ($expression != '') {
+		
+		if ($expression) {
 			
 			//check if contains regex
 			$expression = preg_replace_callback('/\"*\/(\S*)\/\"*/', function ($matches) use ($entity, $row) {
@@ -675,11 +660,13 @@ class AutomationService
 		
 		$expression = $this->prepare($expression, $entity, false, $row);
 		
-		try {
-			return $this->expressionLanguage->evaluate($expression);
-		} catch (SyntaxError $e) {
-			$this->flashBagInterface->add('danger', $e->getMessage());
-			return false;
+		if ($expression) {
+			try {
+				return $this->expressionLanguage->evaluate($expression);
+			} catch (SyntaxError $e) {
+				$this->flashBagInterface->add('danger', $e->getMessage());
+				return false;
+			}
 		}
 	}
 	
@@ -728,7 +715,7 @@ class AutomationService
 	private function addComment($type, $text, $col = null)
 	{
 		
-		if ($this->checkOnly) {
+		if ($this->cacheService->get('automation.ready_to_persist') == false) {
 			$this->comments[] = [
 				'type' => $type,
 				'text' => $text,
@@ -739,7 +726,7 @@ class AutomationService
 	
 	private function writeComments($row)
 	{		
-		if ($this->checkOnly) {
+		if ($this->cacheService->get('automation.ready_to_persist') == false) {
 			$type = null;
 			foreach ($this->comments as $comment) {
 				if ($type === null) {
@@ -836,6 +823,13 @@ class AutomationService
 		}
 	}
 	
+	private function open(string $fileName): Spreadsheet
+	{
+		$file = $this->targetDirectory . $fileName;
+		$reader = IOFactory::createReaderForFile($file);
+		return $reader->load($file);
+	}
+	
 	private function save(Spreadsheet $spreadsheet): string
 	{
 		
@@ -851,7 +845,7 @@ class AutomationService
 		
 		$writer = new Writer($spreadsheet);
 		try {
-			$writer->save($this->targetDirectory . '/'. $safeFilename);
+			$writer->save($this->targetDirectory . $safeFilename);
 		} catch (WriterException $e) {
 			$this->flashBagInterface->add('danger', $e->getMessage());
 			return '';

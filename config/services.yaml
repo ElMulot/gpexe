@@ -55,7 +55,7 @@ services:
         
     App\Service\AutomationService:
         arguments:
-            $targetDirectory: '%kernel.project_dir%/public%uploads_directory%'
+            $targetDirectory: '%kernel.project_dir%/public%uploads_directory%/'
             
     App\Service\RepositoryService:
         autowire: false
