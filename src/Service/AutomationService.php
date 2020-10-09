@@ -29,6 +29,8 @@ use App\Repository\SerieRepository;
 use App\Repository\DocumentRepository;
 use App\Repository\VersionRepository;
 use App\Repository\StatusRepository;
+use Symfony\Component\BrowserKit\Response;
+use App\Entity\MetadataItem;
 
 class AutomationService
 {
@@ -99,10 +101,14 @@ class AutomationService
 		$this->flashBagInterface->add('info', 'Démarrage de l\'opération');
 		
 		$this->parsedCode = $automation->getParsedCode();
-		$firstRow = $this->parsedCode['first_row'];
 		
 		//setting up cache
+		$firstRow = $this->parsedCode['first_row'];
 		$this->cacheService->set('automation.current_row', $firstRow);
+		
+		if ($this->cacheService->get('automation.ready_to_persist')) {
+			return true;
+		}
 		
 		$options = $this->parsedCode['option'] ?? [];
 		foreach ($options as $key => $option) {
@@ -222,7 +228,7 @@ class AutomationService
 		$row = $this->cacheService->get('automation.current_row');
 		$countProcessed = (int)$this->cacheService->get('automation.count_processed');
 		$options = [];
-		foreach (array_keys($this->parsedCode['option']) as $key) {
+		foreach (array_keys($this->parsedCode['option'] ?? []) as $key) {
 			$options[$key] = $this->cacheService->get('automation.option.' . $key);
 		}
 		$newBatch = false;
@@ -230,39 +236,45 @@ class AutomationService
 		$spreadsheet = $this->open($fileName);
 		$this->sheet = $spreadsheet->getActiveSheet();
 		
-		$versions = $this->versionRepository->getVersionsByProject($project);
+		//load datas
+		$series = $this->serieRepository->getHydratedSeries($project);
 		
 		//content
-		foreach ($versions as $version) {
+		foreach ($series as $serie) {
+			foreach ($serie->getDocuments() as $document) {
+				foreach ($document->getVersions() as $version) {
 			
-			//exclude
-			foreach ($this->parsedCode['exclude'] as $exclude) {
-				if ($this->evaluate($exclude, $version) && $exclude != '') {
+					//exclude
+					foreach ($this->parsedCode['exclude'] as $exclude) {
+						if ($exclude && $this->evaluate($exclude, $version)) {
+							$row++;
+							continue 2;
+						}
+					}
+					
+					foreach ($this->parsedCode['write'] as $write) {
+						if ($write['condition'] == '' || $this->evaluate($write['condition'], $version)) {
+							$this->sheet->setCellValue($write['to'] . $row, $this->get($write['value'], $version));
+						}
+					}
+								
+					if ($row - $this->cacheService->get('automation.current_row') > self::MAX_LINES_PROCESSED) {
+						$newBatch = true;
+						break;
+					}
+					
 					$row++;
-					continue 2;
+					$countProcessed++;
+					
 				}
 			}
-			
-			foreach ($this->parsedCode['write'] as $write) {
-				if ($this->evaluate($write['condition'], $version)) {
-					$this->sheet->setCellValue($write['to'] . $row, $this->get($write['value'], $version));
-				}
-			}
-						
-			if ($row - $this->cacheService->get('automation.current_row') > self::MAX_LINES_PROCESSED) {
-				$newBatch = true;
-				break;
-			}
-			
-			$row++;
-			$countProcessed++;
 		}
 		
 		//update cache
 		$this->cacheService->set('automation.new_batch', $newBatch);
 		
 		if ($newBatch === false) {
-			$this->flashBagInterface->add('success', 'Export réussi. ' . $countProcessed . '/' . ($row - $this->parsedCode['first_row'] - 1) . ' lignes exportées');
+			$this->flashBagInterface->add('success', 'Export réussi. ' . $countProcessed . '/' . ($row - $this->parsedCode['first_row']) . ' lignes exportées');
 		} else {
 			$this->cacheService->set('automation.count_processed', $countProcessed);
 			$this->cacheService->set('automation.current_row', $row + 1);
@@ -290,13 +302,19 @@ class AutomationService
 		$row = $this->cacheService->get('automation.current_row');
 		$countProcessed = (int)$this->cacheService->get('automation.count_processed');
 		$options = [];
-		foreach (array_keys($this->parsedCode['option']) as $key) {
+		foreach (array_keys($this->parsedCode['option'] ?? []) as $key) {
 			$options[$key] = $this->cacheService->get('automation.option.' . $key);
 		}
 		$newBatch = false;
 		
 		$spreadsheet = $this->open($fileName);
 		$this->sheet = $spreadsheet->getActiveSheet();
+		
+		//load datas
+		$series = $this->serieRepository->getHydratedSeries($project);
+		$currentSerie = null;
+		$currentDocument = null;
+		$currentVersion = null;
 		
 		while ($this->sheet->getCell($firstColumn . $row)->getValue()) {
 			
@@ -311,71 +329,87 @@ class AutomationService
 				}
 			}
 			
+			unset($currentSerie, $currentDocument, $currentVersion);
 			$currentSerie = null;
 			$currentDocument = null;
 			$currentVersion = null;
 			
 			//get serie
-			foreach ($project->getSeries()->getValues() as $serie) {
-				if ($this->evaluate($this->parsedCode['get_serie']['condition'], $serie, $row)) {
-					$currentSerie = $serie;
-					$this->addComment('valid', "Série trouvée.");
-					break;
-				}
-			}
-			
-			if ($currentSerie === null) {
-				$this->addComment('error', "Ligne exclue : série non trouvée.");
-				$this->writeComments($row);
-				$row++;
-				continue;
-			}
-			
-			//get document
-			foreach ($currentSerie->getDocuments()->getValues() as $document) {
-				if ($this->evaluate($this->parsedCode['get_document']['condition'], $document, $row)) {
-					$currentDocument = $document;
-					$this->addComment('valid', "Document trouvé.");
-					break;
-				}
-			}
-			
-			//check if the document is not in another serie
-			
-			if ($currentDocument === null) {
+			if ($this->parsedCode['get_serie']['condition'] == 'skip') {
 				
-				$documents = $this->documentRepository->getAllDocuments($project);
-				foreach ($documents as $document) {
-					if ($this->evaluate($this->parsedCode['get_document']['condition'], $document, $row)) {
-						if ($document->getSerie()->belongToMDR()) {
-							if ($options['move_from_mdr']) {
-								$currentDocument = $document;
-								$document->setSerie($currentSerie);
-								$this->addComment('valid', "Document trouvé dans le MDR et rappatrié dans la série en cours.");
-								break;
-							} else {
-								$this->addComment('error', "Document trouvé dans une autre série du MDR.");
-								$this->writeComments($row);
-								$row++;
-								continue(2);
-							}
-						}
-						if ($document->getSerie()->belongToSDR()) {
-							if ($options['move_from_sdr']) {
-								$currentDocument = $document;
-								$document->setSerie($currentSerie);
-								$this->addComment('valid', "Document trouvé dans le SDR et rappatrié dans la série en cours.");
-								break;
-							} else {
-								$this->addComment('error', "Document trouvé dans une autre série du SDR.");
-								$this->writeComments($row);
-								$row++;
-								continue(2);
-							}
+				foreach ($series as &$serie) {
+					foreach ($serie->getDocuments() as &$document) {
+						if ($this->evaluate($this->parsedCode['get_document']['condition'], $document, $row)) {
+							$currentDocument = &$document;
+							$currentSerie = $document->getSerie();
+							$this->addComment('valid', "Document trouvé.");
+							$this->addComment('valid', "Serie déduite : '{$currentSerie->getName()}'.");
+							break 2;
 						}
 					}
 				}
 				
+			} else {
+				foreach ($series as &$serie) {
+					if ($this->evaluate($this->parsedCode['get_serie']['condition'], $serie, $row)) {
+						$currentSerie =& $serie;
+						$this->addComment('valid', "Série trouvée.");
+						break;
+					}
+				}
+				
+				if ($currentSerie === null) {
+					$this->addComment('error', "Ligne exclue : série non trouvée.");
+					$this->writeComments($row);
+					$row++;
+					continue;
+				}
+			
+				foreach ($currentSerie->getDocuments() as &$document) {
+					if ($this->evaluate($this->parsedCode['get_document']['condition'], $document, $row)) {
+						$currentDocument =& $document;
+						$this->addComment('valid', "Document trouvé.");
+						break;
+					}
+				}
+			
+				//check if the document is not in another serie
+				if ($currentDocument === null) {
+					
+					foreach ($series as &$serie) {
+						foreach ($serie->getDocuments() as &$document) {
+							if ($this->evaluate($this->parsedCode['get_document']['condition'], $document, $row)) {
+								if ($document->getSerie()->belongToMDR()) {
+									if ($options['move_from_mdr']) {
+										$currentDocument = &$document;
+										$document->setSerie($currentSerie);
+										$this->addComment('valid', "Document trouvé dans le MDR et rappatrié dans la série en cours.");
+										break 2;
+									} else {
+										$this->addComment('error', "Document trouvé dans une autre série du MDR.");
+										$this->writeComments($row);
+										$row++;
+										continue(3);
+									}
+								}
+								if ($document->getSerie()->belongToSDR()) {
+									if ($options['move_from_sdr']) {
+										$currentDocument = &$document;
+										$document->setSerie($currentSerie);
+										$this->addComment('valid', "Document trouvé dans le SDR et rappatrié dans la série en cours.");
+										break 2;
+									} else {
+										$this->addComment('error', "Document trouvé dans une autre série du SDR.");
+										$this->writeComments($row);
+										$row++;
+										continue(3);
+									}
+								}
+							}
+						}
+					}
+					
+				}
 			}
 			
 			if ($currentDocument !== null) {
@@ -414,6 +448,7 @@ class AutomationService
 						if ($currentDocument === null) {
 							$currentDocument = new Document();
 							$currentDocument->setSerie($currentSerie);
+							$currentSerie->addDocument($currentDocument);
 							$this->addComment('valid', "Création d'un nouveau document.");
 						}
 						
@@ -421,6 +456,7 @@ class AutomationService
 							$this->addComment('valid', "Champ '{$matches[2]}' mis à jour.");
 						} elseif ($matches[2] == 'document.name' || $matches[2] == 'document.reference') {
 							$this->addComment('warning', "Erreur en écrivant le champ '{$matches[2]}'.");
+							unset($currentDocument);
 							$currentDocument = null;
 							break;
 						} else {
@@ -451,9 +487,10 @@ class AutomationService
 			}
 			
 			//get version
-			foreach ($currentDocument->getVersions()->getValues() as $version) {
+			
+			foreach ($currentDocument->getVersions() as &$version) {
 				if ($this->evaluate($this->parsedCode['get_version']['condition'], $version, $row)) {
-					$currentVersion = $version;
+					$currentVersion =& $version;
 					$this->addComment('valid', "Version trouvée.");
 					break;
 				}
@@ -494,9 +531,37 @@ class AutomationService
 						}
 						
 						if ($currentVersion === null) {
+							
 							$currentVersion = new Version();
+							
+							if ($lastVersion = $currentDocument->getLastVersion()) {
+								
+								$currentVersion
+									->setName($lastVersion->getName())
+									->setIsRequired($lastVersion->getIsRequired())
+									->setDate($lastVersion->getDate())
+									->setStatus($lastVersion->getStatus())
+									->setWriter($lastVersion->getWriter())
+									->setChecker($lastVersion->getChecker())
+									->setApprover($lastVersion->getApprover())
+								;
+								
+								foreach ($lastVersion->getMetadataItems() as $metadataItem) {
+									$currentVersion->setMetadataValue($metadataItem->getMetadata(), $metadataItem->getValue());
+									
+								}
+								foreach ($lastVersion->getMetadataValues() as $metadataValue) {
+									$currentVersion->setMetadataValue($metadataValue->getMetadata(), $metadataValue->getValue());
+								}
+								
+							} else {
+								
+								$currentVersion->setStatus($defaultStatus);
+								
+							}
+							
 							$currentVersion->setDocument($currentDocument);
-							$currentVersion->setStatus($defaultStatus);
+							$currentDocument->addVersion($currentVersion);
 							$this->addComment('valid', "Création d'une nouvelle version.");
 						}
 						
@@ -504,7 +569,8 @@ class AutomationService
 							$this->addComment('valid', "Champ '{$matches[2]}' mis à jour.");
 						} elseif ($matches[2] == 'version.name' || $matches[2] == 'version.date') {
 							$this->addComment('warning', "Erreur en écrivant le champ '{$matches[2]}'.");
-							$currentDocument = null;
+							unset($currentVersion);
+							$currentVersion = null;
 							break;
 						} else {
 							$col = $this->getCol($matches[3]);
@@ -525,6 +591,7 @@ class AutomationService
 			if ($currentVersion === null) {
 				$this->addComment('error', "Ligne exclue : création de la version annulée.");
 				if ($currentDocument->getVersions()->count() == 0) {
+					unset($currentDocument);
 					$currentDocument = null;
 					$this->addComment('error', "Ligne exclue : création du document annulée.");
 				}
@@ -558,6 +625,8 @@ class AutomationService
 			}
 		} else {
 			if ($this->cacheService->get('automation.ready_to_persist')) {
+				$this->cacheService->set('automation.current_row', $row + 1);
+				$this->entityManager->flush();
 				return true;
 			} else {
 				$this->cacheService->set('automation.count_processed', $countProcessed);
@@ -634,7 +703,7 @@ class AutomationService
 			//replace username
 			$expression = preg_replace('/(\[username\])/', $this->security->getUser(), $expression);
 			
-// 			dump('avant evaluation : ' . $expression);
+// 			$this->flashBagInterface->add('info', 'avant evaluation : ' . $expression);
 			
 		}
 		

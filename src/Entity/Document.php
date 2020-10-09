@@ -308,6 +308,31 @@ class Document
     	return true;
     }
     
+    public function getCodificationValue(Codification $codification) {
+    	
+    	switch ($codification->getType()) {
+    		
+    		case Codification::FIXED:
+    				return $codification->getValue();
+    		case Codification::REGEX:
+    			foreach ($this->getCodificationValues()->getValues() as $codificationValue) {
+    				if ($codificationValue->getCodification() == $codification) {
+    					return $codificationValue;
+    				}
+    			}
+    			break;
+    			
+    		case Codification::LIST:
+    			foreach ($this->getCodificationItems()->getValues() as $codificationItem) {
+    				if ($codificationItem->getCodification() == $codification) {
+    					return $codificationItem;
+    				}
+    			}
+    			break;
+    	}
+    	
+    }
+    
     public function setCodificationValue(Codification $codification, $value): bool
     {
     	
@@ -465,6 +490,12 @@ class Document
     						return $this->getMetadataValue($metadata);
     					}
     				}
+    			} elseif (preg_match('/codification\.\w+/', $codename)) {
+    				foreach ($this->getCodificationsItems()->getValues() as $codificationItem) {
+    					if ($codificationItem->getCodification()->getFullCodename() == $codename) {
+    						return $codificationItem->getName();
+    					}
+    				}
     			} else {
     				return $this->getSerie()->getPropertyValue($codename);
     			}
@@ -526,6 +557,25 @@ class Document
     		default:
     			return (string)$value;
     	}
+    }
+    
+    public function getLastVersion(): ?Version
+    {
+    	
+    	$lastVersion = null;
+    	foreach ($this->getVersions()->getValues() as $version) {
+    		if ($lastVersion === null) {
+    			$lastVersion = $version;
+    		} else {
+    			if ($version->getDate() > $lastVersion->getDate()) {
+    				$lastVersion = $version;
+    			} elseif ($version->getDate() == $lastVersion->getDate() && $version->getName() > $lastVersion->getName()) {
+    				$lastVersion = $version;
+    			}
+    		}
+    	}
+    	
+    	return $lastVersion;
     }
     
     public function __toString(): string

@@ -4,7 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Project;
 use App\Entity\User;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use App\Service\RepositoryService;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -13,7 +13,7 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method Project[]    findAll()
  * @method Project[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class ProjectRepository extends ServiceEntityRepository
+class ProjectRepository extends RepositoryService
 {
     public function __construct(ManagerRegistry $registry)
     {
@@ -27,12 +27,12 @@ class ProjectRepository extends ServiceEntityRepository
     public function getProjects(User $user)
     {
     	return $this->createQueryBuilder('p')
-    	->innerJoin('p.users', 'u')
-    	->andWhere('u.id = :val')
-    	->setParameter('val', $user->getId())
-    	->addOrderBy('p.name')
-    	->getQuery()
-    	->getResult()
+	    	->innerJoin('p.users', 'u')
+	    	->andWhere('u.id = :val')
+	    	->setParameter('val', $user->getId())
+	    	->addOrderBy('p.name')
+	    	->getQuery()
+	    	->getResult()
     	;
     }
     
@@ -43,9 +43,9 @@ class ProjectRepository extends ServiceEntityRepository
     public function getAllProjects()
     {
     	return $this->createQueryBuilder('p')
-    	->addOrderBy('p.name')
-    	->getQuery()
-    	->getResult()
+	    	->addOrderBy('p.name')
+	    	->getQuery()
+	    	->getResult()
     	;
     }
 }

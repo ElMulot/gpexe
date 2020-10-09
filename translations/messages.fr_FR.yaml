@@ -129,15 +129,16 @@ Filter: Filtrer
 Version: Version
 Versions: Versions
 Initial scheduled date: Date initiale planifiée
-Scheduled Date: Date planifiée
-Delivery Date: Date de remise
-Is required: A produire
+Scheduled date: Date planifiée
+Delivery date: Date de remise
+Required: A produire
 People involved: Personnes impliquées
 Writer: Rédacteur
 Checker: Vérificateur
 Approver: Approbateur
 Last delivered: Dernier remis
 Last scheduled: Dernier programmé
+required: à produire
 information: information
 cancelled: annulé
 as built: TQC
@@ -176,6 +177,8 @@ New vue: Nouvelle vue
 Automation: Automatisation
 Automations: Automatisations
 Automations for: Automatisations pour
+Read: Lecture
+Write: Ecriture
 
 #Alert
 Some documents to be produced are very late: Certains documents à produire sont très en retard
@@ -184,7 +187,7 @@ Some documents must be produce in the next 15 days: Certains documents doivent �
 Some documents to be checked are very late: Certains documents à vérifier sont très en retard
 Some documents to be checked are late: Certains documents à vérifier sont  en retard
 Some documents must be checked in the next 15 days: Certains documents doivent être vérifiés dans les 15 prochains jours
-Nothing to do on this project: Rien à faire sur ce project
+Nothing to do on this project: Rien à faire sur ce projet
 
 #Log
 Entity: Entité

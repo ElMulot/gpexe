@@ -16,6 +16,7 @@ use App\Repository\DocumentRepository;
 use App\Repository\VersionRepository;
 use App\Repository\MetadataRepository;
 use App\Repository\StatusRepository;
+use App\Service\DocumentService;
 
 class VersionController extends AbstractController
 {
@@ -31,7 +32,9 @@ class VersionController extends AbstractController
 	
 	private $statusRepository;
 	
-	public function __construct(TranslatorInterface $translator, CompanyRepository $companyRepository, DocumentRepository $documentRepository, VersionRepository $versionRepository, MetadataRepository $metadataRepository, StatusRepository $statusRepository)
+	private $documentService;
+	
+	public function __construct(TranslatorInterface $translator, CompanyRepository $companyRepository, DocumentRepository $documentRepository, VersionRepository $versionRepository, MetadataRepository $metadataRepository, StatusRepository $statusRepository, DocumentService $documentService)
 	{
 		$this->translator = $translator;
 		$this->companyRepository = $companyRepository;
@@ -39,6 +42,7 @@ class VersionController extends AbstractController
 		$this->versionRepository = $versionRepository;
 		$this->metadataRepository = $metadataRepository;
 		$this->statusRepository = $statusRepository;
+		$this->documentService = $documentService;
 	}
 	
 	public function detail(Version $version): Response
@@ -268,6 +272,7 @@ class VersionController extends AbstractController
 	            $entityManager->remove($version);
 	        }
 	        $entityManager->flush();
+	        $this->documentService->removeOrphans();
 	        $this->addFlash('success', $this->translator->trans('deleted.version', ['count' => count($versions)]));
 	        
 	        return new Response();

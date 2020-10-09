@@ -77,7 +77,7 @@ class Version
 	private $approver;
 
 	/**
-	 * @ORM\ManyToOne(targetEntity=Document::class, inversedBy="versions", cascade={"persist", "remove"})
+	 * @ORM\ManyToOne(targetEntity=Document::class, inversedBy="versions", cascade={"persist"})
 	 * @ORM\JoinColumn(nullable=false)
 	 */
 	private $document;
@@ -90,6 +90,7 @@ class Version
 	public function __construct()
 	{
 		$this->isRequired = false;
+		$this->deliveryDate = new \DateTime('now');
 		$this->metadataItems = new ArrayCollection();
 		$this->metadataValues = new ArrayCollection();
 	 	$this->reviews = new ArrayCollection();
@@ -154,10 +155,8 @@ class Version
 	
 	public function setDeliveryDate(?\DateTimeInterface $deliveryDate): self
 	{
-		if ($deliveryDate === null) {
-			$this->deliveryDate = new \DateTime('now');
-		} else {
-			$this->deliveryDate = min($deliveryDate, new \DateTime('now'));
+		if ($deliveryDate !== null) {
+			$this->deliveryDate = $deliveryDate;
 		}
 		
 		return $this;
@@ -166,6 +165,17 @@ class Version
 	public function getDate(): ?\DateTimeInterface
 	{
 		return ($this->isRequired)?$this->scheduledDate:$this->deliveryDate;
+	}
+	
+	public function setDate(?\DateTimeInterface $date): self
+	{
+		if ($this->getIsRequired()) {
+			$this->scheduledDate = $date;
+		} else {
+			$this->deliveryDate = $date;
+		}
+		
+		return $this;
 	}
 	
 	public function getStatus(): ?Status
@@ -485,20 +495,19 @@ class Version
 		
 		switch ($codename) {
 			case 'version.name':
-				$this->setName($value);
-				return true;
+				if ($value) {
+					$this->setName($value);
+					return true;
+				} else {
+					return false;
+				}
 			
 			case 'version.date':
-// 				dd($value);
 				if ($date = \DateTime::createFromFormat('d-m-Y', $value)) {
 					if ($date > new \DateTime('now')) {
-						$this->setIsRequired(true);
-						$this->setDeliveryDate($date);
-					} elseif ($this->getIsRequired()) {
-						$this->setScheduledDate($date);
-					} else {
-						$this->setDeliveryDate($date);
+						$this->isRequired = true;
 					}
+					$this->setDate($date);
 					return true;
 				}
 				return false;

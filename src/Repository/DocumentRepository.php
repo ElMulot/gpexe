@@ -3,13 +3,12 @@
 namespace App\Repository;
 
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Serializer\Encoder\JsonEncoder;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Common\Collections\Collection;
 use App\Entity\Company;
 use App\Entity\Document;
 use App\Entity\Project;
+use App\Service\RepositoryService;
 
 /**
  * @method Document|null find($id, $lockMode = null, $lockVersion = null)
@@ -17,27 +16,24 @@ use App\Entity\Project;
  * @method Document[]    findAll()
  * @method Document[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class DocumentRepository extends ServiceEntityRepository
+class DocumentRepository extends RepositoryService
 {
-    
-	private $encoder;
 	
 	public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Document::class);
-        $this->encoder = new JsonEncoder();
     }
     
     /**
      * @return Document[]
      *
      */
-    public function getAllDocuments(Project $project)
+    public function getDocumentsByProject(Project $project)
     {
-    	return $this->createQueryBuilder('d')
-	    	->innerJoin('d.serie', 's')
-	    	->andWhere('s.project = :project')
-	    	->setParameter('project', $project)
+    	$qb = $this->newQB('d');
+    	return $qb
+    		->innerJoin('d.serie', 's')
+	    	->andWhere($qb->eq('s.project', $project))
 	    	->getQuery()
 	    	->getResult()
     	;
@@ -53,12 +49,14 @@ class DocumentRepository extends ServiceEntityRepository
     	$versionIds = $request->query->get('id');
     	
     	if (is_array($versionIds)) {
-    		$query = $this->createQueryBuilder('d')
-    			->innerJoin('d.versions', 'v');
-    		return $query->andWhere($query->expr()->in('v.id', $versionIds))
+    		$qb = $this->newQB('d');
+    		return $qb
+	    		->innerJoin('d.versions', 'v')
+	    		->andWhere($qb->in('v.id', $versionIds))
     			->addGroupBy('d.id')
     			->getQuery()
-    			->getResult();
+    			->getResult()
+    		;
     	}
     	return null;
     }
@@ -69,23 +67,21 @@ class DocumentRepository extends ServiceEntityRepository
      */
     public function getDocumentByReference(Project $project, $codificationItems, $codificationValues)
     {
-    	$query = $this->createQueryBuilder('d')
-    		->innerJoin('d.serie', 's')
-	    	->andWhere('s.project = :project')
-	    	->setParameter('project', $project);
+    	$qb = $this->newQB('d');
+    	$qb->innerJoin('d.serie', 's')
+    		->andWhere($qb->eq('s.project', $project));
 		
     	foreach ($codificationItems->getValues() as $codificationItem) {
     		
     		$id = $codificationItem->getCodification()->getId();
     		
-    		$subQuery = $this->getEntityManager()->createQueryBuilder()
-    			->select('d' . $id)
+    		$subQb = $this->newQB();
+    		$subQb->select('d' . $id)
     			->from(Document::class, 'd' . $id)
     			->innerJoin('d' . $id . '.codificationItems', 'i' . $id)
-    			->andWhere('i' . $id . '.value = ?' . $id)
+    			->andWhere($subQb->eq('i' . $id . '.value', $codificationItem->getValue()))
     		;
-			$query->setParameter($id, $codificationItem->getValue());
-    		$query->andWhere($query->expr()->in('d.id', $subQuery->getDQL()));
+    		$qb->andWhere($qb->in('d.id', $subQb->getDQL()));
     		
     	}
     	
@@ -93,19 +89,22 @@ class DocumentRepository extends ServiceEntityRepository
     		
     		$id = $codificationValue->getCodification()->getId();
     		
-    		$subQuery = $this->getEntityManager()->createQueryBuilder()
-	    		->select('d' . $id)
+    		$subQb = $this->newQB();
+    		$subQb->select('d' . $id)
 	    		->from(Document::class, 'd' . $id)
 	    		->innerJoin('d' . $id . '.codificationValues', 'v' . $id)
-	    		->andWhere('v' . $id . '.value = ?' . $id)
+	    		->andWhere($subQb->eq('i' . $id . '.value', $codificationValue->getValue()))
 	    	;
     		
-	    	$query->setParameter($id, $codificationValue->getValue());
-	    	$query->andWhere($query->expr()->in('d.id', $subQuery->getDQL()));
+	    		$qb->andWhere($qb->in('d.id', $subQb->getDQL()));
     		
     	}
     	
-    	return $query->setMaxResults(1)->getQuery()->getResult();
+    	return $qb
+    		->setMaxResults(1)
+    		->getQuery()
+    		->getResult()
+    	;
     }
     
     /**
@@ -114,9 +113,11 @@ class DocumentRepository extends ServiceEntityRepository
      */
     public function getOrphanedDocuments()
     {
-    	return $this->createQueryBuilder('d')
+    	$qb = $this->newQB('d');
+    	
+    	return $qb
     		->leftJoin('d.versions', 'v')
-    		->andWhere($this->createQueryBuilder('')->expr()->isNull('v.id'))
+    		->andWhere($qb->isNull('v.id'))
     		->getQuery()
     		->getResult()
     	;

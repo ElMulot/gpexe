@@ -12,8 +12,8 @@
 			<div class="col-4">
 			    {{ version.date|date('d-m-Y') }}
                 {% if version.isRequired and version.scheduledDate %}
-        			{% if version.scheduledDate.diff(version.initialScheduledDate).days %}
-        			    <span> ({{ 'delay'|trans({'count': version.scheduledDate.diff(version.initialScheduledDate).days}) }})</span>
+        			{% if version.scheduledDate.diff(date('now')).days %}
+        			    <span> ({{ 'delay'|trans({'count': version.scheduledDate.diff(date('now')).days}) }})</span>
         			   {% endif %}
 			    {% endif %}
 			</div>
@@ -26,7 +26,7 @@
 		</div>
 		<div class="row">
 			<div class="col-2">
-                {% trans %}Status :{% endtrans %}
+                {% trans %}Status{% endtrans %} :
 			</div>
 			<div class="col-4">
 				{{ version.status }}
@@ -42,7 +42,7 @@
 </div>
 <div class="row p-3">
 	<div class="card col w-50 border rounded border-dark p-0">
-		<div class="card-header font-weight-bold text-white">{% trans %}Responsible people{% endtrans %}</div>
+		<div class="card-header font-weight-bold text-white">{% trans %}People involved{% endtrans %}</div>
 		<div class="card-body">
 			<div class="row">
 				<div class="col-4">
@@ -94,6 +94,22 @@
 	<div class="card-header font-weight-bold text-white">{% trans %}Metadatas{% endtrans %}</div>
 	<div class="card-body">
 		<div class="row">
+			{% if version.isRequired and version.initialScheduledDate %}
+    			<div class="col-4">
+                    {% trans %}Initial scheduled date{% endtrans %} :
+    			</div>
+    			<div class="col-8">
+    				{{ version.initialScheduledDate|date('d-m-Y') }}
+    			</div>
+    		{% endif %}
+			{% if version.isRequired and version.scheduledDate %}
+    			<div class="col-4">
+                    {% trans %}Scheduled date{% endtrans %} :
+    			</div>
+    			<div class="col-8">
+    				{{ version.scheduledDate|date('d-m-Y') }}
+    			</div>
+    		{% endif %}
 			{% for metadata in project.metadatas %}
 				<div class="col-4">
 					{{ metadata.name }} :

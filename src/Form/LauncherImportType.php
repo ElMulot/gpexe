@@ -17,6 +17,7 @@ class LauncherImportType extends AbstractType
 			'mapped' => false,
 			'constraints' => [
 				new File([
+					'maxSize' => '5M',
 					'mimeTypes' => [
 						'application/vnd.ms-excel',
 						'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',

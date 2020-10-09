@@ -93,6 +93,7 @@ class AutomationController extends AbstractController
 		if ($automation->isTypeImport()) {											
 			
 			if ($this->cacheService->get('automation.ready_to_persist')) {			//launch import
+				$this->automationService->load($automation, $request);
 				return $this->render('automation/loading.html.twig', [
 					'automation' => $automation,
 				]);
@@ -263,7 +264,7 @@ class AutomationController extends AbstractController
 		$automation->setEnabled(true);
 		$automation->setCreatedBy($this->getUser());
 		
-		$fields = $this->fieldService->getFieldsList($project);
+		$fields = $this->fieldService->getFields($project);
 		$form = $this->createForm(AutomationType::class, $automation);
 		$form->handleRequest($request);
 		
@@ -304,7 +305,7 @@ class AutomationController extends AbstractController
 			return $this->redirectToRoute('project');
 		}
 		
-		$fields = $this->fieldService->getFieldsList($project);
+		$fields = $this->fieldService->getFields($project);
 		$form = $this->createForm(AutomationType::class, $automation);
 		
 		$form->handleRequest($request);

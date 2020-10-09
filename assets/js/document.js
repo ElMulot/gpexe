@@ -183,8 +183,7 @@ function createTableHeader(that) {
 		
 	});
 	
-	if (tableHeader.selects.length || tableHeader.type == type.date) {
-	
+	if (tableHeader.sort || tableHeader.selects.length) {
 		tableHeader.divDropdownGroup = tableHeader.th.append(create.div).children().last()
 			.addClass('btn-group w-100')
 			.attr('role', 'group')
@@ -483,7 +482,7 @@ function createTableHeader(that) {
 				}
 			}
 			
-		} else if (tableHeader.type == type.date) {
+		} else if (tableHeader.sort) {
 			
 			if ((result = />(\d{2}-\d{2}-\d{4})/.exec(urlSearch.get('filter[' + tableHeader.id + '][]').toString())) !== null) {
 				var valueInf = result[1];

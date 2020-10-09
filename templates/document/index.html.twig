@@ -141,13 +141,15 @@
                 			<label class="custom-control-label mx-1" for="check_all"></label>
                 		</div>
         			</th>
-        			{% for codename, field in fields %}
-    					<th id="{{ field.full_id }}" data-type="{{ field.type }}" data-title="{{ field.title }}" data-sort="{% if field.sort %}true{% else %}false{% endif %}">
-    						{% if field.form is defined %}
-        						{% form_theme field.form with ['form/select.html.twig'] only %}	
-    					        {{ form(field.form) }}
-                            {% endif %}
-    					</th>
+        			{% for field in fields %}
+    					{% if field.display.table and field.permissions.read %}
+        					<th id="{{ field.full_id }}" data-type="{{ field.type }}" data-title="{{ field.title }}" data-sort="{% if field.sort %}true{% else %}false{% endif %}">
+        						{% if field.form is defined %}
+            						{% form_theme field.form with ['form/select.html.twig'] only %}	
+        					        {{ form(field.form) }}
+                                {% endif %}
+        					</th>
+        				{% endif %}
         			{% endfor %}
                     <th id="detail"></th>
         		</tr>

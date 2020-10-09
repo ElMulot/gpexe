@@ -86,7 +86,7 @@ class DocumentController extends AbstractController
 				return $this->redirectToRoute('project');
 			}
 			$company = $serie->getCompany();
-			$series = $this->serieRepository->getSeries($project, $company);
+			$series = $this->serieRepository->getSeriesByCompany($project, $company);
 			$fields = $this->fieldService->getFieldsWithForms($project, $series);
 		}
 		
@@ -149,8 +149,9 @@ class DocumentController extends AbstractController
 		if ($resultsPerPage == 0) { //display all
 			$pageMax = 1;
 		} else {
-			$pageMax = max(floor($versionsCount / $resultsPerPage), 1);
+			$pageMax = max(ceil($versionsCount / $resultsPerPage), 1);
 		}
+		
 		$request->query->set('results_per_page', $resultsPerPage);
 		$request->query->set('page', min($request->query->get('page') ?? 1, $pageMax));
 		
