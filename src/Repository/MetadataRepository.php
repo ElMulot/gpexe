@@ -4,7 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Metadata;
 use App\Entity\Project;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use App\Service\RepositoryService;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -13,7 +13,7 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method Metadata[]    findAll()
  * @method Metadata[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class MetadataRepository extends ServiceEntityRepository
+class MetadataRepository extends RepositoryService
 {
     public function __construct(ManagerRegistry $registry)
     {
@@ -26,10 +26,9 @@ class MetadataRepository extends ServiceEntityRepository
      */
     public function getMetadatas(Project $project)
     {
-    	return $this->createQueryBuilder('m')
-	    	->andWhere('m.project = :project')
-	    	->setParameter('project', $project)
-	    	->addOrderBy('m.name')
+    	$qb = $this->newQb('m');
+    	return $qb
+	    	->andWhere($qb->eq('m.project', $project))
 	    	->getQuery()
 	    	->getResult()
     	;
@@ -41,12 +40,10 @@ class MetadataRepository extends ServiceEntityRepository
      */
     public function getMetadatasForSerie(Project $project)
     {
-    	return $this->createQueryBuilder('m')
-	    	->andWhere('m.project = :project')
-	    	->setParameter('project', $project)
-	    	->andWhere('m.parent = :parent')
-	    	->setParameter('parent', Metadata::SERIE)
-	    	->addOrderBy('m.name')
+    	$qb = $this->newQb('m');
+    	return $qb
+    		->andWhere($qb->eq('m.project', $project))
+	    	->andWhere($qb->eq('m.parent', Metadata::SERIE))
 	    	->getQuery()
 	    	->getResult()
     	;
@@ -58,14 +55,12 @@ class MetadataRepository extends ServiceEntityRepository
      */
     public function getMetadatasForDocument(Project $project)
     {
-    	return $this->createQueryBuilder('m')
-	    	->andWhere('m.project = :project')
-	    	->setParameter('project', $project)
-	    	->andWhere('m.parent = :parent')
-	    	->setParameter('parent', Metadata::DOCUMENT)
-	    	->addOrderBy('m.name')
-	    	->getQuery()
-	    	->getResult()
+    	$qb = $this->newQb('m');
+    	return $qb
+    	->andWhere($qb->eq('m.project', $project))
+    	->andWhere($qb->eq('m.parent', Metadata::DOCUMENT))
+    	->getQuery()
+    	->getResult()
     	;
     }
     
@@ -75,14 +70,12 @@ class MetadataRepository extends ServiceEntityRepository
      */
     public function getMetadatasForVersion(Project $project)
     {
-    	return $this->createQueryBuilder('m')
-	    	->andWhere('m.project = :project')
-	    	->setParameter('project', $project)
-	    	->andWhere('m.parent = :parent')
-	    	->setParameter('parent', Metadata::VERSION)
-	    	->addOrderBy('m.name')
-	    	->getQuery()
-	    	->getResult()
+    	$qb = $this->newQb('m');
+    	return $qb
+    	->andWhere($qb->eq('m.project', $project))
+    	->andWhere($qb->eq('m.parent', Metadata::VERSION))
+    	->getQuery()
+    	->getResult()
     	;
     }
 }

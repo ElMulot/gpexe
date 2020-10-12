@@ -2,9 +2,9 @@
 
 namespace App\Repository;
 
-use App\Entity\Visa;
 use App\Entity\Project;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use App\Entity\Visa;
+use App\Service\RepositoryService;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -13,7 +13,7 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method Visa[]    findAll()
  * @method Visa[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class VisaRepository extends ServiceEntityRepository
+class VisaRepository extends RepositoryService
 {
     public function __construct(ManagerRegistry $registry)
     {
@@ -26,9 +26,9 @@ class VisaRepository extends ServiceEntityRepository
      */
     public function getVisas(Project $project)
     {
-    	return $this->createQueryBuilder('v')
-	    	->andWhere('v.project = :val')
-	    	->setParameter('val', $project)
+    	$qb = $this->newQB('v');
+    	return $qb
+	    	->andWhere($qb->eq('v.project', $project))
 	    	->addOrderBy('v.name')
 	    	->getQuery()
 	    	->getResult()

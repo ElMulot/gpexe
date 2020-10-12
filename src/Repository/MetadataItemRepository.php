@@ -2,9 +2,9 @@
 
 namespace App\Repository;
 
-use App\Entity\MetadataItem;
 use App\Entity\Metadata;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use App\Entity\MetadataItem;
+use App\Service\RepositoryService;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -13,7 +13,7 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method MetadataItem[]    findAll()
  * @method MetadataItem[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class MetadataItemRepository extends ServiceEntityRepository
+class MetadataItemRepository extends RepositoryService
 {
     public function __construct(ManagerRegistry $registry)
     {
@@ -26,12 +26,11 @@ class MetadataItemRepository extends ServiceEntityRepository
      */
     public function getMetadataItem(Metadata $metadata)
     {
-    	return $this->createQueryBuilder('m')
-    	->andWhere('m.metadata = :val')
-    	->setParameter('val', $metadata)
-    	->addOrderBy('m.value')
-    	->getQuery()
-    	->getResult()
+    	$qb = $this->newQb('m');
+    	return $qb
+	    	->andWhere($qb->eq('m.metadata', $metadata))
+	    	->getQuery()
+	    	->getResult()
     	;
     }
 }

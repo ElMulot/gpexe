@@ -4,11 +4,9 @@ namespace App\Repository;
 
 use Symfony\Component\HttpFoundation\Request;
 use Doctrine\Persistence\ManagerRegistry;
-use Doctrine\Common\Collections\Collection;
-use App\Entity\Company;
+use App\Service\RepositoryService;
 use App\Entity\Document;
 use App\Entity\Project;
-use App\Service\RepositoryService;
 
 /**
  * @method Document|null find($id, $lockMode = null, $lockVersion = null)

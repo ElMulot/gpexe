@@ -4,7 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Codification;
 use App\Entity\Project;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use App\Service\RepositoryService;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -13,7 +13,7 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method Codification[]    findAll()
  * @method Codification[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class CodificationRepository extends ServiceEntityRepository
+class CodificationRepository extends RepositoryService
 {
     public function __construct(ManagerRegistry $registry)
     {
@@ -26,12 +26,11 @@ class CodificationRepository extends ServiceEntityRepository
      */
     public function getCodifications(Project $project)
     {
-    	return $this->createQueryBuilder('c')
-    	->andWhere('c.project = :val')
-    	->setParameter('val', $project)
-    	->addOrderBy('c.id', 'ASC')
-    	->getQuery()
-    	->getResult()
+    	$qb = $this->newQB('c');
+    	return $qb
+	    	->andWhere($qb->eq('c.project', $project))
+	    	->getQuery()
+	    	->getResult()
     	;
     }
 }

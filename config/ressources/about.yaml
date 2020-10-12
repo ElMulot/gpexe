@@ -1,11 +1,5 @@
 - 
     version: 0.1
-    date: 24/04/2020
+    date: 12/10/2020
     changes:
-        - First version
-        
-- 
-    version: 0.1
-    date: 24/06/2020
-    changes:
-        - Second version
+        - Première version de test

@@ -3,7 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\CodificationValue;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use App\Service\RepositoryService;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -12,7 +12,7 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method CodificationData[]    findAll()
  * @method CodificationData[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class CodificationValueRepository extends ServiceEntityRepository
+class CodificationValueRepository extends RepositoryService
 {
     public function __construct(ManagerRegistry $registry)
     {

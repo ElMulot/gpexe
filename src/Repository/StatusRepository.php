@@ -2,10 +2,10 @@
 
 namespace App\Repository;
 
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\Persistence\ManagerRegistry;
-use App\Entity\Status;
 use App\Entity\Project;
+use App\Entity\Status;
+use App\Service\RepositoryService;
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method Status|null find($id, $lockMode = null, $lockVersion = null)
@@ -13,7 +13,7 @@ use App\Entity\Project;
  * @method Status[]    findAll()
  * @method Status[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class StatusRepository extends ServiceEntityRepository
+class StatusRepository extends RepositoryService
 {
     public function __construct(ManagerRegistry $registry)
     {
@@ -26,12 +26,12 @@ class StatusRepository extends ServiceEntityRepository
      */
     public function getStatuses(Project $project)
     {
-    	return $this->createQueryBuilder('s')
-    	->andWhere('s.project = :val')
-    	->setParameter('val', $project)
-    	->addOrderBy('s.name')
-    	->getQuery()
-    	->getResult()
+    	$qb = $this->newQb('s');
+    	return $qb
+	    	->andWhere($qb->eq('s.project', $project))
+	    	->addOrderBy('s.name')
+	    	->getQuery()
+	    	->getResult()
     	;
     }
     
@@ -41,10 +41,10 @@ class StatusRepository extends ServiceEntityRepository
      */
     public function getStatusesCount(Project $project): int
     {
-    	return (int)$this->createQueryBuilder('s')
+    	$qb = $this->newQb('s');
+    	return (int)$qb
 	    	->select('count(s.id)')
-	    	->andWhere('s.project = :val')
-	    	->setParameter('val', $project)
+	    	->andWhere($qb->eq('s.project', $project))
 	    	->getQuery()
 	    	->getSingleScalarResult()
     	;
@@ -56,11 +56,10 @@ class StatusRepository extends ServiceEntityRepository
      */
     public function getDefaultStatus(Project $project)
     {
-    	return $this->createQueryBuilder('s')
-	    	->andWhere('s.project = :project')
-	    	->setParameter('project', $project)
-	    	->andWhere('s.isDefault = :isDefault')
-	    	->setParameter('isDefault', true)
+    	$qb = $this->newQb('s');
+    	return $qb
+    		->andWhere($qb->eq('s.project', $project))
+    		->andWhere($qb->eq('s.isDefault', true))
 	    	->getQuery()
 	    	->getSingleResult()
     	;

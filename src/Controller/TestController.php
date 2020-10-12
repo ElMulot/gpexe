@@ -19,7 +19,8 @@ class TestController extends AbstractController
 	
 	public function index(): Response
     {
-        return $this->render('test/index.html.twig', [
+        dd(phpinfo());
+    	return $this->render('test/index.html.twig', [
             'test' => 'TestController',
         ]);
     }

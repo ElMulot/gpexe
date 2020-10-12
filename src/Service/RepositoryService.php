@@ -21,36 +21,6 @@ class RepositoryService extends ServiceEntityRepository
 		return $qb;
 	}
 	
-// 	public function getResult()
-// 	{
-// 		return $this->query()->getQuery()->getResult();
-// 	}
-	
-// 	public function getArrayResult(): array
-// 	{
-// 		return $this->query()->getQuery()->getArrayResult();
-// 	}
-	
-// 	public function getScalarResult(): array
-// 	{
-// 		return $this->query()->getQuery()->getScalarResult();
-// 	}
-	
-// 	public function getOneOrNullResult($hydrationMode = null)
-// 	{
-// 		return $this->query()->getQuery()->getOneOrNullResult($hydrationMode);
-// 	}
-	
-// 	public function getSingleResult($hydrationMode = null)
-// 	{
-// 		return $this->query()->getQuery()->getSingleResult($hydrationMode);
-// 	}
-	
-// 	public function getSingleScalarResult()
-// 	{
-// 		return $this->query()->getQuery()->getSingleScalarResult();
-// 	}
-	
 	public function ddSql($qb)
 	{
 		$sql = $qb->getQuery()->getSQL();

@@ -3,11 +3,10 @@
 namespace App\Repository;
 
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use Symfony\Component\Stopwatch\Stopwatch;
 use Doctrine\Persistence\ManagerRegistry;
-use Doctrine\ORM\QueryBuilder;
-use Doctrine\ORM\Query\Expr;
 use Doctrine\ORM\Query\Expr\Join;
+use App\Service\RepositoryService;
+use App\Service\QueryBuilderService;
 use App\Entity\Codification;
 use App\Entity\Metadata;
 use App\Entity\Project;
@@ -18,9 +17,6 @@ use App\Entity\Status;
 use App\Entity\User;
 use App\Entity\Version;
 use App\Entity\Review;
-use App\Service\RepositoryService;
-use App\Service\QueryBuilderService;
-
 
 
 /**

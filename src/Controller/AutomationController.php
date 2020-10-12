@@ -125,7 +125,7 @@ class AutomationController extends AbstractController
 						'form' => $form->createView(),
 					]);
 				}
-				
+								
 				if ($this->automationService->load($automation, $request, $file) === false) {
 					$view = $form->createView();
 					return $this->render('automation/launcher.html.twig', [

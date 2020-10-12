@@ -32,8 +32,8 @@
     			<li id="document_menu" class="nav-item dropdown" style="{{ block('nav_item') }}">
     				<a class="nav-link dropdown-toggle" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{% trans %}Documents{% endtrans %}</a>
     				<div class="dropdown-menu" style="{{ block('nav_item') }}">
-    					{% if serie is not null %}
-    						<button id="document_new" class="dropdown-item" data-toggle="modal" data-url={{ path('document_new', {'serie': serie.id}) }}>{% trans %}New{% endtrans %}</button>
+    					{% if currentSerie is not null %}
+    						<button id="document_new" class="dropdown-item" data-toggle="modal" data-url={{ path('document_new', {'serie': currentSerie.id}) }}>{% trans %}New{% endtrans %}</button>
     					{% endif %}
     					<button id="document_edit" class="dropdown-item" data-toggle="modal" data-url="{{ path('document_edit') }}">{% trans %}Edit{% endtrans %}</button>
     					<button id="document_move" class="dropdown-item" data-toggle="modal" data-url="{{ path('document_move') }}">{% trans %}Move{% endtrans %}</button>
@@ -71,7 +71,7 @@
             <li class="nav-item">
             	<a class="nav-link" id="search-tab" data-toggle="tab" href="#search_panel" role="tab" aria-controls="search_panel" aria-selected="false">{% trans %}Search{% endtrans %}</a>
             </li>
-            {% if company is not null %}
+            {% if currentCompany is not null %}
                 <li class="nav-item">
                 	<a class="nav-link" id="series-tab" data-toggle="tab" href="#series_panel" role="tab" aria-controls="series_panel" aria-selected="false">{% trans %}Series{% endtrans %}</a>
                 </li>
@@ -87,7 +87,7 @@
 			<div class="tab-pane fade" id="search_panel" role="tabpanel" aria-labelledby="search-tab">
 				{{ block('search') }}
 			</div>
-			{% if company is not null %}
+			{% if currentCompany is not null %}
     			<div class="tab-pane fade" id="series_panel" role="tabpanel" aria-labelledby="series-tab">
     				{{ block('series') }}
     			</div>
@@ -171,7 +171,7 @@
     	
     	</div>
     	<div class="col-auto">
-    		<button id="vue_new" type="button" class="btn btn-primary" data-url="{{ path('vue_new', app.request.query.all|merge({'project': project.id})) }}" role="button">{% trans %}New vue{% endtrans %}</button>
+    		<button id="vue_new" type="button" class="btn btn-primary m-1" data-url="{{ path('vue_new', app.request.query.all|merge({'project': project.id})) }}" role="button">{% trans %}New vue{% endtrans %}</button>
     	</div>
     </div>
 {% endblock %}
@@ -198,16 +198,21 @@
 {% endblock %}
 
 {% block series %}
-    {% if company is not null %}
+    {% if currentCompany is not null %}
         <div class="row p-2">
         	<div class="col px-2">
             	{% for serie in series %}
-            		<a class="btn btn-outline-primary text-white m-1" href="{{ path('document', {'project': project.id, 'type': serie.type, 'serie': serie.id}) }}" role="button">{{ serie.name }}</a>
+            		{% if currentSerie == serie %}
+            			{% set class="btn btn-outline-primary m-1" %}
+            		{% else %}
+            			{% set class="btn btn-primary m-1" %}
+            		{% endif %}
+            		<a class="{{ class }}" href="{{ path('document', {'project': project.id, 'type': serie.type, 'serie': serie.id}) }}" role="button">{{ serie.name }}</a>
             	{% endfor %}
         	</div>
         	{% if is_granted('ROLE_CONTROLLER') and app.user in project.users %}
             	<div class="col-auto">
-            		<a class="btn btn-primary" href="{{ path('serie', {'project': project.id, 'company': company.id}) }}" role="button">{% trans %}Manage series{% endtrans %}</a>
+            		<a class="btn btn-primary m-1" href="{{ path('serie', {'project': project.id, 'company': currentCompany.id}) }}" role="button">{% trans %}Manage series{% endtrans %}</a>
             	</div>
         	{% endif %}
         </div>

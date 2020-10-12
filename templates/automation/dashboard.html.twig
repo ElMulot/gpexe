@@ -29,9 +29,14 @@
         <div id="output" class="col-6">
 
         </div>
-        <div id="console" class="jumbotron py-3 col-6 overflow-auto h-100">
-        	<a class="active" data-toggle="ajax" data-target="#console" data-url="{{ path('automation_console', app.request.query.all|merge({'automation': automation.id})) }}"></a>
-        </div>
+        <div class="col-6 jumbotron pt-1">
+        	<div class="d-flex justify-content-end">
+            	<button id="clear" type="button" class="btn btn-sm btn-primary">Effacer</button>
+            </div>
+            <div id="console" class="py-3 overflow-auto h-100">
+            	<a class="active" data-toggle="ajax" data-target="#console" data-url="{{ path('automation_console', app.request.query.all|merge({'automation': automation.id})) }}"></a>
+            </div>
+		</div>
     </div>
 {% endblock %}
 

@@ -213,13 +213,15 @@ class Automation
 		return $this->parsedCode;
 	}
 	
-	public function getValidatedCode($code): string
+	public function getValidatedCode($code)
 	{
 		$code = preg_replace('/\t/', '    ', $code);
+		$code = preg_replace("/'([^'\n]*)'*\r\n/", "'$1'\r\n", $code);
+		
 		try {
 			$parsedCode = Yaml::parse($code ?? '') ?? [];
 		} catch (ParseException $exception) {
-			return '';
+			return $exception;
 		}
 		
 		if (($parsedCode['type'] ?? '') == 'import') {
@@ -271,7 +273,7 @@ class Automation
 		return [
 			'type' => 'import',
 			'first_row' => '\d+',
-			'first_column' => '[A-Z]{1,2}',
+			'main_column' => '[A-Z]{1,2}',
 			'date_format' => '[djDlSzFMmnYyaAhgGHisvu\s#;:\/\.,\-\(\)]+',
 			'exclude' => ['.+'],
 			'get_serie' => [
@@ -291,6 +293,7 @@ class Automation
 				'move_from_mdr' => 'true|false|choose',
 				'move_from_sdr' => 'true|false|choose',
 				'update_only' => 'true|false|choose',
+				'ready_to_persist' => 'true|false|choose',
 			],
 		];
 	}

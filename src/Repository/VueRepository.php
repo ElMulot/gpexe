@@ -3,9 +3,9 @@
 namespace App\Repository;
 
 use Doctrine\Persistence\ManagerRegistry;
-use App\Entity\Vue;
 use App\Entity\Project;
 use App\Entity\User;
+use App\Entity\Vue;
 use App\Service\RepositoryService;
 
 /**

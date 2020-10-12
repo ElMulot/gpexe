@@ -50,7 +50,7 @@ class AutomationType extends AbstractType
     	;
 		
 	    $builder->get('code')->addViewTransformer($this->transformer);
-    }
+	}
 
     public function configureOptions(OptionsResolver $resolver)
     {

@@ -1,6 +1,6 @@
 {% for label, messages in app.flashes %}
 	{% for message in messages %}
-		<div class="text-{{ label }}">{{ message|trans }}.</div>
+		<div class="text-{{ label }}">{{ message }}.</div>
 	{% endfor %}
 {% endfor %}
 

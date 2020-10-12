@@ -28,6 +28,9 @@ $enable-responsive-font-sizes: true;
 
 a {
 	cursor: pointer;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
 }
 
 .custom-file-label-sm {

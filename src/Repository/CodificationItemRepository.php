@@ -2,9 +2,9 @@
 
 namespace App\Repository;
 
-use App\Entity\CodificationItem;
 use App\Entity\Codification;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use App\Entity\CodificationItem;
+use App\Service\RepositoryService;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -13,7 +13,7 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method CodificationItem[]    findAll()
  * @method CodificationItem[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class CodificationItemRepository extends ServiceEntityRepository
+class CodificationItemRepository extends RepositoryService
 {
     public function __construct(ManagerRegistry $registry)
     {
@@ -26,12 +26,11 @@ class CodificationItemRepository extends ServiceEntityRepository
      */
     public function getCodificationItem(Codification $codification)
     {
-    	return $this->createQueryBuilder('c')
-    	->andWhere('c.codification = :val')
-    	->setParameter('val', $codification)
-    	->addOrderBy('c.id')
-    	->getQuery()
-    	->getResult()
+    	$qb = $this->newQb('c');
+    	return $qb
+	    	->andWhere($qb->eq('c.codification', $codification))
+	    	->getQuery()
+	    	->getResult()
     	;
     }
 }

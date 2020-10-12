@@ -481,7 +481,7 @@ $(document).ready(function() {
 		if ((m = /<title>(.+)<\/title>/.exec(jqXHR.responseText)) !== null) {
 			result += '<p>' + m[1] + '</p>';
 		}
-		
+    			
 		result += '<button type="button" class="btn btn-sm btn-primary" >' + text.reload + '</button>' +
 					'</div>';
 		$(e.target).html(result);

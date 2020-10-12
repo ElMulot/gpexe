@@ -2,9 +2,9 @@
 
 namespace App\Repository;
 
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\Persistence\ManagerRegistry;
 use App\Entity\ChangeSet;
+use App\Service\RepositoryService;
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method ChangeSet|null find($id, $lockMode = null, $lockVersion = null)
@@ -12,7 +12,7 @@ use App\Entity\ChangeSet;
  * @method ChangeSet[]    findAll()
  * @method ChangeSet[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class ChangeSetRepository extends ServiceEntityRepository
+class ChangeSetRepository extends RepositoryService
 {
     public function __construct(ManagerRegistry $registry)
     {

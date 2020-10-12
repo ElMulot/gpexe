@@ -92,9 +92,9 @@ class DocumentController extends AbstractController
 		
 		return $this->render('document/index.html.twig', [
 			'project' => $project,
-			'serie' => $serie,
+			'currentSerie' => $serie,
 			'type' => $type,
-			'company' => $company,
+			'currentCompany' => $company,
 			'series' => $series,
 			'fields' => $fields,
 			'route_back' =>  $this->generateUrl('project_view', [

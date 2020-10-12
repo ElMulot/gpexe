@@ -2,10 +2,10 @@
 
 namespace App\Repository;
 
-use App\Entity\User;
 use App\Entity\Company;
 use App\Entity\Project;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use App\Entity\User;
+use App\Service\RepositoryService;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\User\PasswordUpgraderInterface;
@@ -17,7 +17,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
  * @method User[]    findAll()
  * @method User[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class UserRepository extends ServiceEntityRepository implements PasswordUpgraderInterface
+class UserRepository extends RepositoryService implements PasswordUpgraderInterface
 {
     public function __construct(ManagerRegistry $registry)
     {
@@ -43,7 +43,7 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
      */
     public function getUsers()
     {
-    	return $this->createQueryBuilder('u')
+    	return $this->newQB('u')
 	    	->addOrderBy('u.name')
 	    	->getQuery()
 	    	->getResult()
@@ -55,13 +55,12 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
      */
     public function getCheckers(Project $project)
     {
-    	return $this->createQueryBuilder('u')
+    	$qb = $this->newQB('u');
+    	return $qb
 	    	->innerJoin('u.company', 'c')
 	    	->innerJoin('u.projects', 'p')
-	    	->andWhere('p.id = :project')
-	    	->setParameter('project', $project)
-	    	->andWhere('c.type IN (:type)')
-	    	->setParameter('type', [Company::MAIN_CONTRACTOR, Company::CHECKER])
+	    	->andWhere($qb->eq('p.id', $project))
+	    	->andWhere($qb->in('c.type', [Company::MAIN_CONTRACTOR, Company::CHECKER]))
 	    	->addOrderBy('u.name')
 	    	->getQuery()
 	    	->getResult()
@@ -73,9 +72,9 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
      */
     public function getUsersByCompany(Company $company)
     {
-    	return $this->createQueryBuilder('u')
-	    	->andWhere('u.company = :company')
-	    	->setParameter('company', $company)
+    	$qb = $this->newQB('u');
+		return $qb
+			->andWhere($qb->eq('u.company', $company))
 	    	->addOrderBy('u.name')
 	    	->getQuery()
 	    	->getResult()
@@ -90,10 +89,11 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     	if ($series == false) {
     		return [];
     	}
-    	return $this->createQueryBuilder('u')
+    	$qb = $this->newQB('u');
+    	return $qb
 	    	->innerJoin('u.projects', 'p')
 	    	->innerJoin('p.series', 's')
-	    	->andWhere($this->createQueryBuilder('s')->expr()->in('s.id', $series))
+	    	->andWhere($qb->in('s.id', $series))
 	    	->addOrderBy('u.name')
 	    	->getQuery()
 	    	->getResult()

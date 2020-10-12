@@ -21,4 +21,8 @@ $(document).ready(function() {
 		
 	});
 	
+	$('#clear').on('click', function() {
+		$('#console').empty();
+	});
+	
 });

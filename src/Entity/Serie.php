@@ -47,7 +47,7 @@ class Serie
     private $project;
 
     /**
-     * @ORM\OneToMany(targetEntity=Document::class, mappedBy="serie", orphanRemoval=true)
+     * @ORM\OneToMany(targetEntity=Document::class, mappedBy="serie", orphanRemoval=true, cascade={"persist"})
      */
     private $documents;
 

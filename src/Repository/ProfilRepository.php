@@ -3,7 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Profil;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use App\Service\RepositoryService;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -12,7 +12,7 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method Profil[]    findAll()
  * @method Profil[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class ProfilRepository extends ServiceEntityRepository
+class ProfilRepository extends RepositoryService
 {
     public function __construct(ManagerRegistry $registry)
     {
@@ -25,8 +25,7 @@ class ProfilRepository extends ServiceEntityRepository
      */
     public function getProfils()
     {
-    	return $this->createQueryBuilder('p')
-	    	->addOrderBy('p.name')
+    	return $this->newQB('p')
 	    	->getQuery()
 	    	->getResult()
     	;
@@ -37,12 +36,12 @@ class ProfilRepository extends ServiceEntityRepository
      *
      */
     public function countAdminProfil(int $id): int
-     {
-	     return (int)$this->createQueryBuilder('p')
+	{
+		$qb = $this->newQB('p');
+     	return (int)$qb
 		     ->select('count(p.id)')
-		     ->andWhere('p.id <> :val')
-		     ->setParameter('val', $id)
-		     ->andWhere('p.isAdmin = true')
+		     ->andWhere($qb->neq('p.id', $id))
+		     ->andWhere($qb->eq('p.isAdmin', true))
 		     ->getQuery()
 		     ->getSingleScalarResult()
 	     ;

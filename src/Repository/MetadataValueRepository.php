@@ -2,9 +2,9 @@
 
 namespace App\Repository;
 
-use App\Entity\MetadataValue;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use App\Service\RepositoryService;
+use App\Entity\MetadataValue;
 
 /**
  * @method MetadataValue|null find($id, $lockMode = null, $lockVersion = null)
@@ -12,7 +12,7 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method MetadataValue[]    findAll()
  * @method MetadataValue[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class MetadataValueRepository extends ServiceEntityRepository
+class MetadataValueRepository extends RepositoryService
 {
     public function __construct(ManagerRegistry $registry)
     {

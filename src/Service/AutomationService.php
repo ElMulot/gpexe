@@ -11,7 +11,7 @@ use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 use Symfony\Component\ExpressionLanguage\SyntaxError;
 use Symfony\Component\Filesystem\Exception\IOExceptionInterface;
 use Symfony\Component\Filesystem\Filesystem;
-use Symfony\Component\Cache\Adapter\FilesystemAdapter;
+use Symfony\Component\Cache\Adapter\PhpArrayAdapter;
 use Doctrine\ORM\EntityManagerInterface;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx as Writer;
@@ -25,12 +25,17 @@ use App\Entity\Automation;
 use App\Entity\Document;
 use App\Entity\Serie;
 use App\Entity\Version;
+use App\Service\PhpSpreadsheetFilters\ChunkFilter;
+use App\Service\PhpSpreadsheetFilters\MainColumnFilter;
 use App\Repository\SerieRepository;
 use App\Repository\DocumentRepository;
 use App\Repository\VersionRepository;
 use App\Repository\StatusRepository;
 use Symfony\Component\BrowserKit\Response;
 use App\Entity\MetadataItem;
+use Symfony\Component\Cache\Adapter\FilesystemAdapter;
+use Symfony\Component\HttpFoundation\File\File;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
 
 class AutomationService
 {
@@ -89,33 +94,40 @@ class AutomationService
 		$this->documentService = $documentService;
 		$this->fieldService = $fieldService;
 		$this->security = $security;
+// 		$cache = new PhpArrayAdapter(__DIR__ . $targetDirectory . '/c.cache', new FilesystemAdapter());
 		$this->expressionLanguage = new ExpressionLanguage();
 		$this->filesystem = new Filesystem();
 		$this->targetDirectory = $targetDirectory;
 		$this->comments = [];
 	}
 	
-	public function load(Automation $automation, Request $request, string $file = ''): bool
+	public function load(Automation $automation, Request $request, File $file = null): bool
 	{
 		
 		$this->flashBagInterface->add('info', 'Démarrage de l\'opération');
 		
 		$this->parsedCode = $automation->getParsedCode();
-		
-		//setting up cache
-		$firstRow = $this->parsedCode['first_row'];
-		$this->cacheService->set('automation.current_row', $firstRow);
-		
+				
 		if ($this->cacheService->get('automation.ready_to_persist')) {
 			return true;
 		}
 		
+		$firstRow = $this->parsedCode['first_row'];
+		$mainColumn = $this->parsedCode['main_column'];
+		
+		//setting up cache
+		$this->cacheService->set('automation.current_row', $firstRow);
+		
 		$options = $this->parsedCode['option'] ?? [];
 		foreach ($options as $key => $option) {
 			if ($option == 'choose') {
-				$option = $request->request->get('launcher_import')[$key] ?? false;
+				if ($automation->isTypeExport()) {
+					$option = $request->request->get('launcher_export')[$key] ?? false;
+				} elseif ($automation->isTypeImport()) {
+					$option = $request->request->get('launcher_import')[$key] ?? false;
+				}
 			}
-			$this->cacheService->set('automation.option.' . $key, $option);
+			$this->cacheService->set('automation.' . $key, $option);
 		}
 		
 		if ($automation->isTypeExport()) {
@@ -155,11 +167,30 @@ class AutomationService
 
 		} elseif ($automation->isTypeImport()) {
 			
-			$reader = IOFactory::createReaderForFile($file);
+			//upload file
+			try {
+				$file = $file->move($this->targetDirectory, 'GPEXE-Import.xlsx');
+			} catch (FileException $e) {
+				$this->flashBagInterface->add('danger', $e->getMessage());
+				return false;
+			}
+			
+			$reader = IOFactory::createReaderForFile($file->getPathname());
+// 			$reader->setReadDataOnly(true);
+			$filter = new mainColumnFilter($mainColumn);
+			$reader->setReadFilter($filter);
+			
 			$spreadsheet = $reader->load($file);
 			$this->sheet = $spreadsheet->getActiveSheet();
 			
 			$this->documentService->removeOrphans();
+			
+			//setting up cache
+			$row = $firstRow;
+			while ($this->sheet->getCell($this->parsedCode['main_column'] . $row)->getValue()) {
+				$row++;
+			}
+			$this->cacheService->set('automation.count_row', max(1, $row - $firstRow));
 			
 			//set document properties
 			$spreadsheet->getProperties()
@@ -170,6 +201,7 @@ class AutomationService
 			//save
 			$fileName = $this->save($spreadsheet);
 			if ($fileName != false) {
+				$this->cacheService->set('automation.file_name', $file);
 				$this->cacheService->set('automation.file_name', $fileName);
 				return true;
 			} else {
@@ -199,13 +231,14 @@ class AutomationService
 		} elseif ($automation->isTypeImport()) {
 			
 			$this->cacheService->delete('automation.file_name');
+			$this->cacheService->delete('automation.count_row');
 			$this->cacheService->delete('automation.count_processed');
 			$this->cacheService->delete('automation.current_row');
 			$this->cacheService->delete('automation.new_batch');
 			$this->cacheService->delete('automation.ready_to_persist');
 			$options = $this->parsedCode['option'] ?? [];
 			foreach ($options as $key => $option) {
-				$this->cacheService->delete('automation.option.' . $key);
+				$this->cacheService->delete('automation.' . $key);
 			}
 			return true;
 			
@@ -229,7 +262,7 @@ class AutomationService
 		$countProcessed = (int)$this->cacheService->get('automation.count_processed');
 		$options = [];
 		foreach (array_keys($this->parsedCode['option'] ?? []) as $key) {
-			$options[$key] = $this->cacheService->get('automation.option.' . $key);
+			$options[$key] = $this->cacheService->get('automation.' . $key);
 		}
 		$newBatch = false;
 				
@@ -285,11 +318,11 @@ class AutomationService
 	
 	public function import(Automation $automation): bool
 	{
-		
 		$matches = null;
 		$project = $automation->getProject();
 		$this->parsedCode = $automation->getParsedCode();
-		$firstColumn = $this->parsedCode['first_column'];
+		$firstRow = $this->parsedCode['first_row'];
+		$mainColumn = $this->parsedCode['main_column'];
 		
 		$defaultStatus = $this->statusRespository->getDefaultStatus($project);
 		if ($defaultStatus === null) {
@@ -300,23 +333,27 @@ class AutomationService
 		//cache
 		$fileName = $this->cacheService->get('automation.file_name');
 		$row = $this->cacheService->get('automation.current_row');
+		$countRow = $this->cacheService->get('automation.count_row') ?? 1;
 		$countProcessed = (int)$this->cacheService->get('automation.count_processed');
 		$options = [];
 		foreach (array_keys($this->parsedCode['option'] ?? []) as $key) {
-			$options[$key] = $this->cacheService->get('automation.option.' . $key);
+			$options[$key] = $this->cacheService->get('automation.' . $key);
 		}
 		$newBatch = false;
 		
-		$spreadsheet = $this->open($fileName);
+		dump('open : ' . $row . ' => ' . ($row + self::MAX_LINES_PROCESSED));
+		$spreadsheet = $this->open($fileName, $row, $row + self::MAX_LINES_PROCESSED);
 		$this->sheet = $spreadsheet->getActiveSheet();
 		
 		//load datas
 		$series = $this->serieRepository->getHydratedSeries($project);
-		$currentSerie = null;
-		$currentDocument = null;
-		$currentVersion = null;
 		
-		while ($this->sheet->getCell($firstColumn . $row)->getValue()) {
+		while ($this->sheet->getCell($mainColumn . $row)->getValue()) {
+			
+			if ($row - $this->cacheService->get('automation.current_row') >= self::MAX_LINES_PROCESSED) {
+				$newBatch = true;
+				break;
+			}
 			
 			//exclude
 			foreach ($this->parsedCode['exclude'] as $exclude) {
@@ -329,7 +366,7 @@ class AutomationService
 				}
 			}
 			
-			unset($currentSerie, $currentDocument, $currentVersion);
+// 			unset($currentSerie, $currentDocument, $currentVersion);
 			$currentSerie = null;
 			$currentDocument = null;
 			$currentVersion = null;
@@ -337,10 +374,10 @@ class AutomationService
 			//get serie
 			if ($this->parsedCode['get_serie']['condition'] == 'skip') {
 				
-				foreach ($series as &$serie) {
-					foreach ($serie->getDocuments() as &$document) {
+				foreach ($series as $serie) {
+					foreach ($serie->getDocuments() as $document) {
 						if ($this->evaluate($this->parsedCode['get_document']['condition'], $document, $row)) {
-							$currentDocument = &$document;
+							$currentDocument = $document;
 							$currentSerie = $document->getSerie();
 							$this->addComment('valid', "Document trouvé.");
 							$this->addComment('valid', "Serie déduite : '{$currentSerie->getName()}'.");
@@ -350,9 +387,10 @@ class AutomationService
 				}
 				
 			} else {
-				foreach ($series as &$serie) {
+				
+				foreach ($series as $serie) {
 					if ($this->evaluate($this->parsedCode['get_serie']['condition'], $serie, $row)) {
-						$currentSerie =& $serie;
+						$currentSerie = $serie;
 						$this->addComment('valid', "Série trouvée.");
 						break;
 					}
@@ -365,23 +403,22 @@ class AutomationService
 					continue;
 				}
 			
-				foreach ($currentSerie->getDocuments() as &$document) {
+				foreach ($currentSerie->getDocuments() as $document) {
 					if ($this->evaluate($this->parsedCode['get_document']['condition'], $document, $row)) {
-						$currentDocument =& $document;
+						$currentDocument = $document;
 						$this->addComment('valid', "Document trouvé.");
 						break;
 					}
 				}
 			
 				//check if the document is not in another serie
-				if ($currentDocument === null) {
-					
-					foreach ($series as &$serie) {
-						foreach ($serie->getDocuments() as &$document) {
-							if ($this->evaluate($this->parsedCode['get_document']['condition'], $document, $row)) {
+				if ($currentDocument === null && ($options['move_from_mdr'] || $options['move_from_sdr'])) {
+					foreach ($series as $serie) {
+						foreach ($serie->getDocuments() as $document) {
+							if ($this->evaluate($this->parsedCode['get_document']['condition'], $document, $row)) { //cette ligne créé un Internal Server Error
 								if ($document->getSerie()->belongToMDR()) {
 									if ($options['move_from_mdr']) {
-										$currentDocument = &$document;
+										$currentDocument = $document;
 										$document->setSerie($currentSerie);
 										$this->addComment('valid', "Document trouvé dans le MDR et rappatrié dans la série en cours.");
 										break 2;
@@ -394,7 +431,7 @@ class AutomationService
 								}
 								if ($document->getSerie()->belongToSDR()) {
 									if ($options['move_from_sdr']) {
-										$currentDocument = &$document;
+										$currentDocument = $document;
 										$document->setSerie($currentSerie);
 										$this->addComment('valid', "Document trouvé dans le SDR et rappatrié dans la série en cours.");
 										break 2;
@@ -408,7 +445,6 @@ class AutomationService
 							}
 						}
 					}
-					
 				}
 			}
 			
@@ -456,7 +492,7 @@ class AutomationService
 							$this->addComment('valid', "Champ '{$matches[2]}' mis à jour.");
 						} elseif ($matches[2] == 'document.name' || $matches[2] == 'document.reference') {
 							$this->addComment('warning', "Erreur en écrivant le champ '{$matches[2]}'.");
-							unset($currentDocument);
+							$currentSerie->removeDocument($currentDocument);
 							$currentDocument = null;
 							break;
 						} else {
@@ -487,134 +523,135 @@ class AutomationService
 			}
 			
 			//get version
-			
-			foreach ($currentDocument->getVersions() as &$version) {
-				if ($this->evaluate($this->parsedCode['get_version']['condition'], $version, $row)) {
-					$currentVersion =& $version;
-					$this->addComment('valid', "Version trouvée.");
-					break;
-				}
-			}
-			
-			if ($currentVersion !== null) {
+			if ($this->parsedCode['get_version']['condition']) {
 				
-				foreach ($this->parsedCode['get_version']['then'] as $then) {
-					
-					if (preg_match('/(?:\(([^()]+)\)\?)*\[(\w+.\w+)\]\s*\=\s*(.+)/', $then, $matches) === 1) {
-						
-						if ($matches[1] && $this->evaluate($matches[1], $currentVersion, $row) === false) {
-							$this->addComment('valid', "Condition '{$matches[1]}' non validée.");
-							continue;
-						}
-						
-						if ($currentVersion->setPropertyValue($matches[2], $this->get($matches[3], $currentVersion, $row))) {
-							$this->addComment('valid', "Champ '{$matches[2]}' mis à jour.");
-						} else {
-							$col = $this->getCol($matches[3]);
-							$this->addComment('warning', "Erreur en écrivant le champ '{$matches[2]}'.", $col);
-						}
-						
+				foreach ($currentDocument->getVersions() as $version) {
+					if ($this->evaluate($this->parsedCode['get_version']['condition'], $version, $row)) {
+						$currentVersion = $version;
+						$this->addComment('valid', "Version trouvée.");
+						break;
 					}
-					
 				}
 				
-			} elseif ($options['update_only'] === false) {
-				
-				
-				foreach ($this->parsedCode['get_version']['else'] as $else) {
+				if ($currentVersion !== null) {
 					
-					if (preg_match('/(?:\(([^()]+)\)\?)*\[(\w+.\w+)\]\s*\=\s*(.+)/', $else, $matches) === 1) {
+					foreach ($this->parsedCode['get_version']['then'] as $then) {
 						
-						if ($matches[1] && $this->evaluate($matches[1], null, $row) === false) {
-							$this->addComment('valid', "Condition '{$matches[1]}' non validée.");
-							continue;
-						}
-						
-						if ($currentVersion === null) {
+						if (preg_match('/(?:\(([^()]+)\)\?)*\[(\w+.\w+)\]\s*\=\s*(.+)/', $then, $matches) === 1) {
 							
-							$currentVersion = new Version();
-							
-							if ($lastVersion = $currentDocument->getLastVersion()) {
-								
-								$currentVersion
-									->setName($lastVersion->getName())
-									->setIsRequired($lastVersion->getIsRequired())
-									->setDate($lastVersion->getDate())
-									->setStatus($lastVersion->getStatus())
-									->setWriter($lastVersion->getWriter())
-									->setChecker($lastVersion->getChecker())
-									->setApprover($lastVersion->getApprover())
-								;
-								
-								foreach ($lastVersion->getMetadataItems() as $metadataItem) {
-									$currentVersion->setMetadataValue($metadataItem->getMetadata(), $metadataItem->getValue());
-									
-								}
-								foreach ($lastVersion->getMetadataValues() as $metadataValue) {
-									$currentVersion->setMetadataValue($metadataValue->getMetadata(), $metadataValue->getValue());
-								}
-								
-							} else {
-								
-								$currentVersion->setStatus($defaultStatus);
-								
+							if ($matches[1] && $this->evaluate($matches[1], $currentVersion, $row) === false) {
+								$this->addComment('valid', "Condition '{$matches[1]}' non validée.");
+								continue;
 							}
 							
-							$currentVersion->setDocument($currentDocument);
-							$currentDocument->addVersion($currentVersion);
-							$this->addComment('valid', "Création d'une nouvelle version.");
-						}
-						
-						if ($currentVersion->setPropertyValue($matches[2], $this->get($matches[3], $currentVersion, $row))) {
-							$this->addComment('valid', "Champ '{$matches[2]}' mis à jour.");
-						} elseif ($matches[2] == 'version.name' || $matches[2] == 'version.date') {
-							$this->addComment('warning', "Erreur en écrivant le champ '{$matches[2]}'.");
-							unset($currentVersion);
-							$currentVersion = null;
-							break;
-						} else {
-							$col = $this->getCol($matches[3]);
-							$this->addComment('warning', "Erreur en écrivant le champ '{$matches[2]}'.", $col);
+							if ($currentVersion->setPropertyValue($matches[2], $this->get($matches[3], $currentVersion, $row))) {
+								$this->addComment('valid', "Champ '{$matches[2]}' mis à jour.");
+							} else {
+								$col = $this->getCol($matches[3]);
+								$this->addComment('warning', "Erreur en écrivant le champ '{$matches[2]}'.", $col);
+							}
+							
 						}
 						
 					}
 					
+				} elseif ($options['update_only'] === false) {
+					
+					
+					foreach ($this->parsedCode['get_version']['else'] as $else) {
+						
+						if (preg_match('/(?:\(([^()]+)\)\?)*\[(\w+.\w+)\]\s*\=\s*(.+)/', $else, $matches) === 1) {
+							
+							if ($matches[1] && $this->evaluate($matches[1], null, $row) === false) {
+								$this->addComment('valid', "Condition '{$matches[1]}' non validée.");
+								continue;
+							}
+							
+							if ($currentVersion === null) {
+								
+								$currentVersion = new Version();
+								
+								if ($lastVersion = $currentDocument->getLastVersion()) {
+									
+									$currentVersion
+										->setName($lastVersion->getName())
+										->setIsRequired($lastVersion->getIsRequired())
+										->setDate($lastVersion->getDate())
+										->setStatus($lastVersion->getStatus())
+										->setWriter($lastVersion->getWriter())
+										->setChecker($lastVersion->getChecker())
+										->setApprover($lastVersion->getApprover())
+									;
+									
+									foreach ($lastVersion->getMetadataItems() as $metadataItem) {
+										$currentVersion->setMetadataValue($metadataItem->getMetadata(), $metadataItem->getValue());
+										
+									}
+									foreach ($lastVersion->getMetadataValues() as $metadataValue) {
+										$currentVersion->setMetadataValue($metadataValue->getMetadata(), $metadataValue->getValue());
+									}
+									
+								} else {
+									
+									$currentVersion->setStatus($defaultStatus);
+									
+								}
+								
+								$currentVersion->setDocument($currentDocument);
+								$currentDocument->addVersion($currentVersion);
+								$this->addComment('valid', "Création d'une nouvelle version.");
+							}
+							
+							if ($currentVersion->setPropertyValue($matches[2], $this->get($matches[3], $currentVersion, $row))) {
+								$this->addComment('valid', "Champ '{$matches[2]}' mis à jour.");
+							} elseif ($matches[2] == 'version.name' || $matches[2] == 'version.date') {
+								$this->addComment('warning', "Erreur en écrivant le champ '{$matches[2]}'.");
+								$currentDocument->removeVersion($currentVersion);
+								$currentVersion = null;
+								break;
+							} else {
+								$col = $this->getCol($matches[3]);
+								$this->addComment('warning', "Erreur en écrivant le champ '{$matches[2]}'.", $col);
+							}
+							
+						}
+						
+					}
+					
+				} else {
+					$this->addComment('warning', "Version non trouvée.");
+					$this->writeComments($row);
+					$row++;
+					continue;
 				}
 				
-			} else {
-				$this->addComment('warning', "Version non trouvée.");
-				$this->writeComments($row);
-				$row++;
-				continue;
-			}
-			
-			if ($currentVersion === null) {
-				$this->addComment('error', "Ligne exclue : création de la version annulée.");
-				if ($currentDocument->getVersions()->count() == 0) {
-					unset($currentDocument);
-					$currentDocument = null;
-					$this->addComment('error', "Ligne exclue : création du document annulée.");
+				if ($currentVersion === null) {
+					$this->addComment('error', "Ligne exclue : création de la version annulée.");
+					if ($currentDocument->getVersions()->count() == 0) {
+						$currentDocument = null;
+						$this->addComment('error', "Ligne exclue : création du document annulée.");
+					}
+					$this->writeComments($row);
+					$row++;
+					continue;
+				} elseif ($this->cacheService->get('automation.ready_to_persist')) {
+					$this->entityManager->persist($currentVersion);
 				}
-				$this->writeComments($row);
-				$row++;
-				continue;
-			} elseif ($this->cacheService->get('automation.ready_to_persist')) {
-				$this->entityManager->persist($currentVersion);
+				
 			}
 			
 			$this->writeComments($row);
 			$countProcessed++;
 			
-			if ($row - $this->cacheService->get('automation.current_row') > self::MAX_LINES_PROCESSED) {
-				$newBatch = true;
-				break;
-			}
 			$row++;
 		}
-		
+		dump($mainColumn . $row, $this->sheet->getCell($mainColumn . $row)->getValue());
 		$this->cacheService->set('automation.new_batch', $newBatch);
 		
 		if ($newBatch === false) {
+			if ($countRow > self::MAX_LINES_PROCESSED) {
+				$this->flashBagInterface->add('info', '100% terminés.');
+			}
 			if ($this->cacheService->get('automation.ready_to_persist')) {
 				$this->entityManager->flush();
 				$this->flashBagInterface->add('info', 'Import terminé : ' . $countProcessed . '/' . ($row - $this->parsedCode['first_row']) . ' lignes ont été importées');
@@ -624,13 +661,14 @@ class AutomationService
 				return (bool)$this->save($spreadsheet);
 			}
 		} else {
+			$this->flashBagInterface->add('info', round(100 * ($row - 1 - $firstRow) / $countRow) . '% terminés.');
 			if ($this->cacheService->get('automation.ready_to_persist')) {
-				$this->cacheService->set('automation.current_row', $row + 1);
+				$this->cacheService->set('automation.current_row', $row);
 				$this->entityManager->flush();
 				return true;
 			} else {
 				$this->cacheService->set('automation.count_processed', $countProcessed);
-				$this->cacheService->set('automation.current_row', $row + 1);
+				$this->cacheService->set('automation.current_row', $row);
 				return (bool)$this->save($spreadsheet);
 			}
 		}
@@ -683,7 +721,7 @@ class AutomationService
 						if ($date = $this->getDateTime($this->sheet->getCell($matches[1] . $row))) {
 							return preg_quote($date->format('d-m-Y'));
 						} else {
-							return preg_quote($this->sheet->getCell($matches[1] . $row)->getValue());
+							return preg_quote($this->sheet->getCell($matches[1] . $row)->getCalculatedValue());
 						}
 					}, $expression);
 					
@@ -693,7 +731,7 @@ class AutomationService
 						if ($date = $this->getDateTime($this->sheet->getCell($matches[1] . $row))) {
 							return '"' . $date->format('d-m-Y') . '"';
 						} else {
-							return '"' . $this->sheet->getCell($matches[1] . $row)->getValue() . '"';
+							return '"' . $this->sheet->getCell($matches[1] . $row)->getCalculatedValue() . '"';
 						}
 					}, $expression);
 					
@@ -724,7 +762,7 @@ class AutomationService
 		return null;
 	}
 	
-	private function evaluate(string $expression, $entity, int $row=0)
+	private function evaluate(string $expression, $entity, int $row=0): bool
 	{
 		
 		$expression = $this->prepare($expression, $entity, false, $row);
@@ -737,6 +775,8 @@ class AutomationService
 				return false;
 			}
 		}
+		
+		return false;
 	}
 	
 	private function get(string $expression, $entity, int $row=0): string
@@ -847,7 +887,7 @@ class AutomationService
 			}
 			
 			$this->sheet
-				->getComment($this->parsedCode['first_column'] . $row)
+				->getComment($this->parsedCode['main_column'] . $row)
 				->setAuthor('GPExe')
 			;
 			
@@ -856,7 +896,7 @@ class AutomationService
 				
 				
 				$this->sheet
-					->getComment($this->parsedCode['first_column'] . $row)
+					->getComment($this->parsedCode['main_column'] . $row)
 					->getText()
 					->createTextRun($comment['text'] . "\r\n")
 				;
@@ -883,7 +923,7 @@ class AutomationService
 				$numberOfLines++;
 			}
 			$this->sheet
-				->getComment($this->parsedCode['first_column'] . $row)
+				->getComment($this->parsedCode['main_column'] . $row)
 				->setWidth("500px")
 				->setHeight(20*$numberOfLines . "px")
 			;
@@ -892,10 +932,17 @@ class AutomationService
 		}
 	}
 	
-	private function open(string $fileName): Spreadsheet
+	private function open(string $fileName, int $firstRow = 0, int $lastRow = 0): Spreadsheet
 	{
 		$file = $this->targetDirectory . $fileName;
+// 		$file = $fileName;
 		$reader = IOFactory::createReaderForFile($file);
+		
+		if ($firstRow && $lastRow) {
+			$filter = new ChunkFilter($firstRow, $lastRow);
+			$reader->setReadFilter($filter);
+		}
+		
 		return $reader->load($file);
 	}
 	
@@ -904,21 +951,21 @@ class AutomationService
 		
 		$safeFilename = $this->slugger->slug($spreadsheet->getProperties()->getTitle()) . '.xlsx'; 
 		
-		if ($this->filesystem->exists($this->targetDirectory) == false) {
-			try {
-				$this->filesystem->mkdir($this->targetDirectory);
-			} catch (IOExceptionInterface $e) {
-				$this->flashBagInterface->add('danger', $e->getMessage());
-			}
-		}
+// 		if ($this->filesystem->exists($this->targetDirectory) == false) {
+// 			try {
+// 				$this->filesystem->mkdir($this->targetDirectory);
+// 			} catch (IOExceptionInterface $e) {
+// 				$this->flashBagInterface->add('danger', $e->getMessage());
+// 			}
+// 		}
 		
-		$writer = new Writer($spreadsheet);
-		try {
-			$writer->save($this->targetDirectory . $safeFilename);
-		} catch (WriterException $e) {
-			$this->flashBagInterface->add('danger', $e->getMessage());
-			return '';
-		}
+// 		$writer = new Writer($spreadsheet);
+// 		try {
+// 			$writer->save($this->targetDirectory . $safeFilename);
+// 		} catch (WriterException $e) {
+// 			$this->flashBagInterface->add('danger', $e->getMessage());
+// 			return '';
+// 		}
 		
 		return $safeFilename;
 	}

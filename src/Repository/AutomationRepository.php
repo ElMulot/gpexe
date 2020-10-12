@@ -2,10 +2,10 @@
 
 namespace App\Repository;
 
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\Persistence\ManagerRegistry;
 use App\Entity\Automation;
 use App\Entity\Project;
+use App\Service\RepositoryService;
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method Automation|null find($id, $lockMode = null, $lockVersion = null)
@@ -13,7 +13,7 @@ use App\Entity\Project;
  * @method Automation[]    findAll()
  * @method Automation[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class AutomationRepository extends ServiceEntityRepository
+class AutomationRepository extends RepositoryService
 {
     public function __construct(ManagerRegistry $registry)
     {
@@ -26,10 +26,9 @@ class AutomationRepository extends ServiceEntityRepository
      */
     public function getAutomations(Project $project)
     {
-    	return $this->createQueryBuilder('a')
-	    	->andWhere('a.project = :val')
-	    	->setParameter('val', $project)
-	    	->addOrderBy('a.name')
+    	$qb = $this->newQB('a');
+    	return $qb
+	    	->andWhere($qb->eq('a.project', $project))
 	    	->getQuery()
 	    	->getResult()
     	;
@@ -41,12 +40,10 @@ class AutomationRepository extends ServiceEntityRepository
      */
     public function getEnabledAutomations(Project $project)
     {
-    	return $this->createQueryBuilder('a')
-	    	->andWhere('a.project = :project')
-	    	->setParameter('project', $project)
-	    	->andWhere('a.enabled = :enabled')
-	    	->setParameter('enabled', true)
-	    	->addOrderBy('a.name')
+    	$qb = $this->newQB('a');
+    	return $qb
+	    	->andWhere($qb->eq('a.project', $project))
+	    	->andWhere($qb->eq('a.enabled', true))
 	    	->getQuery()
     		->getResult()
     	;
