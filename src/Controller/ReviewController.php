@@ -28,7 +28,10 @@ class ReviewController extends AbstractController
 	{
 		if ($this->getUser()->getCompany() == $company) {
 			$review = new Review();
-			$form = $this->createForm(ReviewType::class, $review);
+			$form = $this->createForm(ReviewType::class, $review, [
+				'project' => $version->getDocument()->getSerie()->getProject(),
+				'company' => $company,
+			]);
 			$form->handleRequest($request);
 			
 			if ($form->isSubmitted() && $form->isValid()) {
@@ -68,7 +71,11 @@ class ReviewController extends AbstractController
 		$version = $review->getVersion();
 		
 		if ($this->getUser()->getCompany() == $company) {
-			$form = $this->createForm(ReviewType::class, $review);
+			$form = $this->createForm(ReviewType::class, $review, [
+				'project' => $version->getDocument()->getSerie()->getProject(),
+				'company' => $company,
+			]);
+			
 			$form->handleRequest($request);
 			
 			if ($form->isSubmitted() && $form->isValid()) {

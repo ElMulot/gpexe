@@ -1,5 +1,12 @@
 - 
-    version: 0.1
+    version: 0.1.0
     date: 12/10/2020
     changes:
         - Première version de test
+- 
+    version: 0.1.1
+    date: 13/10/2020
+    changes:
+        - Seules les dernières versions sont prises en compte sur l'écran d'accueil
+        - Correction d'affichage des visas disponibles
+        - Correction de bugs

@@ -170,9 +170,9 @@ class Version
 	public function setDate(?\DateTimeInterface $date): self
 	{
 		if ($this->getIsRequired()) {
-			$this->scheduledDate = $date;
+			$this->setScheduledDate($date);
 		} else {
-			$this->deliveryDate = $date;
+			$this->setDeliveryDate($date);
 		}
 		
 		return $this;
@@ -595,21 +595,34 @@ class Version
 						}
 					}
 				} elseif (preg_match('/visa\.(\w+)/', $codename, $matches)) {
+					
 					foreach ($this->getDocument()->getSerie()->getProject()->getVisas()->getValues() as $visa) {
-						if ($visa->getCompany()->getCodeName() == $matches[1] && $visa->getName() == $value) {
+						
+						if ($visa->getCompany()->getCodename() == $matches[1] && $visa->getName() == $value) {
 							
 							if ($review = $this->getReviewByCompany($visa->getCompany())) {
 								if ($review->getVisa()->getName() != $value) {
 									$review->setVisa($visa);
 								}
-							} else {							
+							} else {
 								$review = new Review();
-								foreach ($this->getDocument()->getSerie()->getProject()->getUsers() as $user) {
-									if ($user->getCompany()->getCodeName() == $matches[1]) {
+								
+								if ($this->getChecker()) {
+									if ($this->getChecker()->getCompany() == $visa->getCompany()) {
+										$review->setUser($this->getChecker());
+									} else {
+										foreach ($visa->getCompany()->getUsers()->getValues() as $user) {
+											$review->setUser($user);
+											break;
+										}
+									}
+								} else {
+									foreach ($visa->getCompany()->getUsers()->getValues() as $user) {
 										$review->setUser($user);
 										break;
 									}
 								}
+								
 								$review->setDate(new \DateTime('now'));
 								$review->setVisa($visa);
 								$this->addReview($review);

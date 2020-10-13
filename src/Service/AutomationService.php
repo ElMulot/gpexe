@@ -167,18 +167,18 @@ class AutomationService
 
 		} elseif ($automation->isTypeImport()) {
 			
-			//upload file
-			try {
-				$file = $file->move($this->targetDirectory, 'GPEXE-Import.xlsx');
-			} catch (FileException $e) {
-				$this->flashBagInterface->add('danger', $e->getMessage());
-				return false;
-			}
+// 			//upload file
+// 			try {
+// 				$file = $file->move($this->targetDirectory, 'GPEXE-Import.xlsx');
+// 			} catch (FileException $e) {
+// 				$this->flashBagInterface->add('danger', $e->getMessage());
+// 				return false;
+// 			}
 			
 			$reader = IOFactory::createReaderForFile($file->getPathname());
 // 			$reader->setReadDataOnly(true);
-			$filter = new mainColumnFilter($mainColumn);
-			$reader->setReadFilter($filter);
+// 			$filter = new mainColumnFilter($mainColumn);
+// 			$reader->setReadFilter($filter);
 			
 			$spreadsheet = $reader->load($file);
 			$this->sheet = $spreadsheet->getActiveSheet();
@@ -201,7 +201,6 @@ class AutomationService
 			//save
 			$fileName = $this->save($spreadsheet);
 			if ($fileName != false) {
-				$this->cacheService->set('automation.file_name', $file);
 				$this->cacheService->set('automation.file_name', $fileName);
 				return true;
 			} else {
@@ -341,7 +340,6 @@ class AutomationService
 		}
 		$newBatch = false;
 		
-		dump('open : ' . $row . ' => ' . ($row + self::MAX_LINES_PROCESSED));
 		$spreadsheet = $this->open($fileName, $row, $row + self::MAX_LINES_PROCESSED);
 		$this->sheet = $spreadsheet->getActiveSheet();
 		
@@ -645,7 +643,7 @@ class AutomationService
 			
 			$row++;
 		}
-		dump($mainColumn . $row, $this->sheet->getCell($mainColumn . $row)->getValue());
+		
 		$this->cacheService->set('automation.new_batch', $newBatch);
 		
 		if ($newBatch === false) {
@@ -663,6 +661,7 @@ class AutomationService
 		} else {
 			$this->flashBagInterface->add('info', round(100 * ($row - 1 - $firstRow) / $countRow) . '% terminés.');
 			if ($this->cacheService->get('automation.ready_to_persist')) {
+				$this->cacheService->set('automation.count_processed', $countProcessed);
 				$this->cacheService->set('automation.current_row', $row);
 				$this->entityManager->flush();
 				return true;
@@ -938,10 +937,10 @@ class AutomationService
 // 		$file = $fileName;
 		$reader = IOFactory::createReaderForFile($file);
 		
-		if ($firstRow && $lastRow) {
-			$filter = new ChunkFilter($firstRow, $lastRow);
-			$reader->setReadFilter($filter);
-		}
+// 		if ($firstRow && $lastRow) {
+// 			$filter = new ChunkFilter($firstRow, $lastRow);
+// 			$reader->setReadFilter($filter);
+// 		}
 		
 		return $reader->load($file);
 	}
@@ -951,21 +950,21 @@ class AutomationService
 		
 		$safeFilename = $this->slugger->slug($spreadsheet->getProperties()->getTitle()) . '.xlsx'; 
 		
-// 		if ($this->filesystem->exists($this->targetDirectory) == false) {
-// 			try {
-// 				$this->filesystem->mkdir($this->targetDirectory);
-// 			} catch (IOExceptionInterface $e) {
-// 				$this->flashBagInterface->add('danger', $e->getMessage());
-// 			}
-// 		}
+		if ($this->filesystem->exists($this->targetDirectory) == false) {
+			try {
+				$this->filesystem->mkdir($this->targetDirectory);
+			} catch (IOExceptionInterface $e) {
+				$this->flashBagInterface->add('danger', $e->getMessage());
+			}
+		}
 		
-// 		$writer = new Writer($spreadsheet);
-// 		try {
-// 			$writer->save($this->targetDirectory . $safeFilename);
-// 		} catch (WriterException $e) {
-// 			$this->flashBagInterface->add('danger', $e->getMessage());
-// 			return '';
-// 		}
+		$writer = new Writer($spreadsheet);
+		try {
+			$writer->save($this->targetDirectory . $safeFilename);
+		} catch (WriterException $e) {
+			$this->flashBagInterface->add('danger', $e->getMessage());
+			return '';
+		}
 		
 		return $safeFilename;
 	}

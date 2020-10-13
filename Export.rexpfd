@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<rexpfd>
+    <destination path="5CG5170D2S.ftp.cluster030.hosting.ovh.net:/www"/>
+    <options createDirectoryStructure="true" createSelectedOnly="false" descriptionFilePath="/gpexe/Export.rexpfd" overWriteExistingFiles="true" reviewSynchronize="false" saveSettings="true"/>
+    <selectedElements>
+        <folder path="/gpexe/public"/>
+    </selectedElements>
+</rexpfd>

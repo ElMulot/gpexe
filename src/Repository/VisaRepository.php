@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Company;
 use App\Entity\Project;
 use App\Entity\Visa;
 use App\Service\RepositoryService;
@@ -29,6 +30,22 @@ class VisaRepository extends RepositoryService
     	$qb = $this->newQB('v');
     	return $qb
 	    	->andWhere($qb->eq('v.project', $project))
+	    	->addOrderBy('v.name')
+	    	->getQuery()
+	    	->getResult()
+    	;
+    }
+    
+    /**
+     * @return Visa[]
+     *
+     */
+    public function getVisasByCompany(Project $project, Company $company)
+    {
+    	$qb = $this->newQB('v');
+    	return $qb
+	    	->andWhere($qb->eq('v.project', $project))
+	    	->andWhere($qb->eq('v.company', $company))
 	    	->addOrderBy('v.name')
 	    	->getQuery()
 	    	->getResult()

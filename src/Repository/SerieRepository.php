@@ -7,6 +7,7 @@ use App\Entity\Document;
 use App\Entity\Project;
 use App\Entity\Review;
 use App\Entity\Serie;
+use App\Entity\User;
 use App\Entity\Version;
 use App\Service\RepositoryService;
 use Doctrine\Persistence\ManagerRegistry;
@@ -47,11 +48,21 @@ class SerieRepository extends RepositoryService
 		$qb = $this->newQb();
 		
 		$series = $qb
-			->select('serie, document, company')
+			->select('serie, document, company, project')
 			->from(Serie::class, 'serie')
 			->leftJoin('serie.documents', 'document')
 			->innerJoin('serie.company', 'company')
+			->innerJoin('serie.project', 'project')
 			->andWhere($qb->eq('serie.project', $project))
+			->getQuery()
+			->getResult()
+		;
+		
+		$this->newQB()
+			->select('PARTIAL project.{id}, visa, company')
+			->from(Project::class, 'project')
+			->innerJoin('project.visas', 'visa')
+			->innerJoin('visa.company', 'company')
 			->getQuery()
 			->getResult()
 		;

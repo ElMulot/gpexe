@@ -493,15 +493,26 @@ class VersionRepository extends RepositoryService
 	
 	public function getProdAlerts(Project $project, User $user)
 	{
+		
+		$subQb = $this->newQB('v1');
+		$subQb->select('v1.id')
+			->leftJoin(Version::class, 'v2', Join::WITH, 'v1.document = v2.document AND v1.scheduledDate <= v2.scheduledDate AND v1.name < v2.name')
+			->innerJoin('v1.status', 's')
+			->where($subQb->isNull('v2.scheduledDate'))
+			->andWhere($subQb->eq('v1.isRequired', true))
+			->andWhere($subQb->eq('v1.writer', $user))
+			->andWhere($subQb->neq('s.type', Status::CANCEL))
+			->addGroupBy('v1.document')
+		;
+		
 		$qb = $this->newQB('v');
 		return $qb->select('s.id AS serieId, s.name AS serieName, c.type AS companyType, v.isRequired, count(v.id) AS count, MIN(DATE_DIFF(v.scheduledDate, CURRENT_DATE())) AS min')
 			->innerJoin('v.document', 'd')
 			->innerJoin('d.serie', 's')
 			->innerJoin('s.company', 'c')
 			->andWhere($qb->eq('s.project', $project))
-			->andWhere($qb->eq('v.isRequired', true))
-			->andWhere($qb->eq('v.writer', $user))
 			->andWhere($qb->in('c.type', [Company::MAIN_CONTRACTOR, Company::SUB_CONTRACTOR, Company::SUPPLIER]))
+			->andWhere($qb->in('v.id', $subQb->getQuery()->getArrayResult()))
 			->groupBy('s.id')
 			->getQuery()
 			->getResult()
@@ -510,17 +521,28 @@ class VersionRepository extends RepositoryService
 	
 	public function getCheckAlerts(Project $project, User $user)
 	{
+
+		$subQb = $this->newQB('v1');
+		$subQb->select('v1.id')
+			->leftJoin(Version::class, 'v2', Join::WITH, 'v1.document = v2.document AND v1.deliveryDate <= v2.deliveryDate AND v1.name < v2.name')
+			->innerJoin('v1.status', 's')
+			->where($subQb->isNull('v2.deliveryDate'))
+			->andWhere($subQb->eq('v1.isRequired', false))
+			->andWhere($subQb->eq('v1.checker', $user))
+			->andWhere($subQb->neq('s.type', Status::CANCEL))
+			->addGroupBy('v1.document')
+		;
+		
 		$qb = $this->newQB('v');
-		return $qb->select('s.id AS serieId, s.name AS serieName, c.type AS companyType, v.isRequired, count(v.id) AS count, MAX(DATE_DIFF(CURRENT_DATE(), v.deliveryDate)) AS max')
+		return $qb->select('s.id AS serieId, s.name AS serieName, c.type AS companyType, v.isRequired, count(d.id) AS count, MAX(DATE_DIFF(CURRENT_DATE(), v.deliveryDate)) AS max')
 			->innerJoin('v.document', 'd')
 			->innerJoin('d.serie', 's')
 			->innerJoin('s.company', 'c')
 			->leftJoin('v.reviews', 'r')
 			->andWhere($qb->eq('s.project', $project))
-			->andWhere($qb->eq('v.isRequired', false))
-			->andWhere($qb->eq('v.checker', $user))
 			->andWhere($qb->in('c.type', [Company::MAIN_CONTRACTOR, Company::SUB_CONTRACTOR, Company::SUPPLIER]))
 			->andWhere($qb->orX($qb->neq('r.user', $user), $qb->isNull('r.user')))
+			->andWhere($qb->in('v.id', $subQb->getQuery()->getArrayResult()))
 			->groupBy('s.id')
 			->getQuery()
 			->getResult()
