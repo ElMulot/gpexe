@@ -118,16 +118,6 @@ class DocumentController extends AbstractController
 			}
 		}
 		
-		if ($request->query->all() == false) {
- 			if ($vue = $this->vueRepository->getDefaultVue($project, $this->getUser())) {
- 				$vueId = $vue->getId();
- 				$request->query->replace($vue->getValue());
- 				$request->query->set('vue', $vueId);
- 			} else {
- 				$request->query->set('display', $this->getDefaultDisplay());
-			}
-		}
-		
 		if ($serie === null) {
 			if ($this->getUser()->getCompany()->isMainContractor() === false) {
 				throw $this->createAccessDeniedException();
@@ -142,6 +132,16 @@ class DocumentController extends AbstractController
 		
 		$codifications = $this->codificationRepository->getCodifications($project);
 		$fields = $this->fieldService->getFields($project);
+		
+		if ($request->query->all() == false) {
+			if ($vue = $this->vueRepository->getDefaultVue($project, $this->getUser())) {
+				$vueId = $vue->getId();
+				$request->query->replace($vue->getValue());
+				$request->query->set('vue', $vueId);
+			} else {
+				$request->query->set('display', $this->getDefaultDisplay($fields));
+			}
+		}
 		
 		$versionsCount = $this->versionRepository->getVersionsCount($codifications, $fields, $series, $request);
 		
@@ -414,17 +414,17 @@ class DocumentController extends AbstractController
 	    
 	}
 	
-	private function getDefaultDisplay()
+	private function getDefaultDisplay(array $fields): array
 	{
 		
 		return [
-			'document_reference' => '15',
-			'version_name' => '3',
-			'document_name' => '30',
-			'version_scheduled_date' => '8',
-			'version_delivery_date' => '8',
-			'version_is_required' => '8',
-			'status_value' => '10',
+			'document_reference' => $fields['document.reference']['default_width'],
+			'version_name' => $fields['version.name']['default_width'],
+			'document_name' => $fields['document.name']['default_width'],
+			'version_scheduled_date' => $fields['version.scheduledDate']['default_width'],
+			'version_delivery_date' => $fields['version.deliveryDate']['default_width'],
+			'version_is_required' => $fields['version.isRequired']['default_width'],
+			'status_value' => $fields['status.value']['default_width'],
 		];
 	}
 	

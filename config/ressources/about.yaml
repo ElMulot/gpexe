@@ -10,3 +10,9 @@
         - Seules les dernières versions sont prises en compte sur l'écran d'accueil
         - Correction d'affichage des visas disponibles
         - Correction de bugs
+- 
+    version: 0.1.2
+    date: 14/10/2020
+    changes:
+        - Traduction des balises js
+        - Désormais, les liens sur la page d'acceuil renvoi vers la série considérée avec le bon filtre

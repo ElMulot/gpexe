@@ -1,5 +1,6 @@
 const $ = require('jquery');
 const popper = require('popper.js');
+//require('i18next');
 require('sticky-table-headers');
 //const tableDragger = require('table-dragger');
 //require('jquery-resizable-columns');
@@ -151,6 +152,7 @@ function createTableHeader(that) {
 		id: $(that).attr('id'),
 		title: $(that).data('title'),
 		sort: $(that).data('sort'),
+		defaultWidth: $(that).data('default_width'),
 		type: $(that).data('type'),
 		isFiltered: false,
 		isSortedAsc: false,
@@ -288,7 +290,7 @@ function createTableHeader(that) {
 					}
 					
 					select.btnFilter = select.divFilter.append(create.smallButton).children().last()
-						.text(text.filter)
+						.text($.i18N('filter'))
 						.addClass('px-3 btn-primary')
 						.on('click', function() {
 							for (let select of tableHeader.selects) {
@@ -377,7 +379,7 @@ function createTableHeader(that) {
 					
 					select.divSelectAll.append(create.label).children().last()
 						.attr('for', select.id + '_selectAll')
-						.text(text.selectAll)
+						.text($.i18N('selectAll'))
 					;
 					
 					for (let option of select.options) {
@@ -443,7 +445,7 @@ function createTableHeader(that) {
 				
 					select.divUnknown.append(create.label).children().last()
 						.attr('for', select.id + '_notApplicable')
-						.text(text.notApplicable)
+						.text($.i18n('notApplicable'))
 					;
 					
 					for (let option of select.options) {
@@ -522,7 +524,7 @@ function createTableHeader(that) {
 			;
 			
 			tableHeader.btnFilter = tableHeader.divFilter.append(create.smallButton).children().last()
-				.text(text.filter)
+				.text($.i18n('filter'))
 				.addClass('px-3 btn-primary')
 				.on('click', function() {
 					urlSearch.delete('filter[' + tableHeader.id + '][]');
@@ -578,7 +580,7 @@ function createTableHeader(that) {
 							tableHeader.inputInf.val('');
 						}
 					} else {
-						tableHeader.inputInf.val(text.fromDate);
+						tableHeader.inputInf.val($.i18n('fromDate'));
 					}
 					tableHeader.inputInf.attr('readonly', checked === false);
 				})
@@ -590,7 +592,7 @@ function createTableHeader(that) {
 			
 			tableHeader.inputInf = tableHeader.labelInf.append(create.input).children().last()
 				.addClass('form-control datepicker')
-				.val((valueInf)?('≥ ' + valueInf):text.fromDate)
+				.val((valueInf)?('≥ ' + valueInf):$.i18n('fromDate'))
 				.attr('readonly', valueInf == '')
 				.datepicker({'format': '≥ dd-mm-yyyy'})
 				.on('click', function() {
@@ -616,7 +618,7 @@ function createTableHeader(that) {
 							tableHeader.inputSup.val('');
 						}
 					} else {
-						tableHeader.inputSup.val(text.toDate);
+						tableHeader.inputSup.val($.i18n('toDate'));
 					}
 					tableHeader.inputSup.attr('readonly', checked === false);
 				})
@@ -628,7 +630,7 @@ function createTableHeader(that) {
 			
 			tableHeader.inputSup = tableHeader.labelSup.append(create.input).children().last()
 				.addClass('form-control datepicker')
-				.val((valueSup)?'≤ ' + valueSup:text.toDate)
+				.val((valueSup)?'≤ ' + valueSup:$.i18n('toDate'))
 				.attr('readonly', valueSup == '')
 				.datepicker({'format': "≤ dd-mm-yyyy"})
 				.on('click', function() {
@@ -653,7 +655,7 @@ function createTableHeader(that) {
 			
 			tableHeader.labelHighlight = tableHeader.divHighlight.append(create.label).children().last()
 				.attr('for', tableHeader.id + '_highlight')
-				.text(text.highlight)
+				.text($.i18n('highlight'))
 			;
 			
 		}
@@ -688,7 +690,7 @@ function fillDisplay() {
 				
 				if (tableHeader.chxDisplay.is(':checked')) {
 					if (display == false) {
-						urlSearch.append('display[' + tableHeader.id + ']', 10);
+						urlSearch.append('display[' + tableHeader.id + ']', tableHeader.defaultWidth);
 					}
 				}
 				urlSearch.delete('vue');
@@ -895,7 +897,7 @@ $(document).ready(function() {
 						$('#modal').attr('data-upload', 'vues');
 						global.ajax.set('#modal', vue['edit_url'], {modal: true});
 					})
-					.text(text.edit)
+					.text($.i18n('edit'))
 				;
 				
 				div3.append(create.a).children().last()
@@ -904,7 +906,7 @@ $(document).ready(function() {
 						$('#modal').attr('data-upload', 'vues');
 						global.ajax.set('#modal', vue['delete_url'], {modal: true, from: this});
 					})
-					.text(text.delete)
+					.text($.i18n('delete'))
 				;
 			}
 		}
@@ -920,7 +922,7 @@ $(document).ready(function() {
 		$('#table').show();
 		if (result == false) return;
 		
-		console.log(result.query);
+//		console.log(result.query);
 //		console.log(result.datas);
 		
 		let searchUrl = $.param(result.query);
@@ -1095,7 +1097,7 @@ $(document).ready(function() {
 					.attr('data-url', data.detailUrl)
 					.attr('data-toggle', 'modal ajax')
 					.attr('data-target', '#modal_detail')
-					.text(text.details)
+					.text($.i18n('details'))
 			;
 			
 		}
@@ -1187,7 +1189,7 @@ $(document).ready(function() {
 			})
 		;
 		
-		let resultsPerPage = new Map([['10', 10], ['50', 50], ['100', 100], [text.all, '0']]);
+		let resultsPerPage = new Map([['10', 10], ['50', 50], ['100', 100], [$.i18n('all'), '0']]);
 		for (let [text, value] of resultsPerPage) {
 			select.append(create.option).children().last()
 				.attr('value', value)

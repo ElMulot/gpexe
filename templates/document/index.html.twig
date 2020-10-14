@@ -143,7 +143,7 @@
         			</th>
         			{% for field in fields %}
     					{% if field.display.table and field.permissions.read %}
-        					<th id="{{ field.full_id }}" data-type="{{ field.type }}" data-title="{{ field.title }}" data-sort="{% if field.sort %}true{% else %}false{% endif %}">
+        					<th id="{{ field.full_id }}" data-type="{{ field.type }}" data-title="{{ field.title }}" data-sort="{% if field.sort %}true{% else %}false{% endif %}" data-default_width="{{ field.default_width }}">
         						{% if field.form is defined %}
             						{% form_theme field.form with ['form/select.html.twig'] only %}	
         					        {{ form(field.form) }}

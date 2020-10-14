@@ -1,0 +1,25 @@
+{
+	"@metadata": {
+		"authors": ["Mulot"],
+		"last-updated": "2020-10-14",
+		"locale": "en_GB",
+		"message-documentation": "",
+		"AnotherMetadata": "Translation file for locale en_GB"
+	},
+	"noneSelected": "None selected",
+	"multipleSeparator": ",",
+	"selectAll": "Select all",
+	"notApplicable": "n/a",
+	"filter": "Filter",
+	"loading": "Loading...",
+	"details": "Details",
+	"error": "Error",
+	"reload": "Reload",
+	"edit": "Edit",
+	"delete": "Delete",
+	"close": "Close",
+	"all": "All",
+	"fromDate": "From date",
+	"toDate": "To date",
+	"highlight": "Highlight"
+}

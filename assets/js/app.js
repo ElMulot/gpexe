@@ -4,6 +4,8 @@ require('bootstrap');
 require('bootstrap-datepicker');
 require('bootstrap-datepicker/dist/locales/bootstrap-datepicker.fr.min.js');
 const bsCustomFileInput = require('bs-custom-file-input');
+require ('@wikimedia/jquery.i18n/src/jquery.i18n.js');
+require ('@wikimedia/jquery.i18n/src/jquery.i18n.messagestore.js');
 require('../css/global.scss');
 
 String.prototype.toDate = function () {
@@ -136,25 +138,6 @@ global.create = {
 	
 };
 
-global.text = {
-    noneSelected: 'None selected',
-    multipleSeparator: ', ',
-    selectAll: 'Select all',
-    notApplicable: 'n/a',
-    filter: 'Filter',
-    loading: 'Loading...',
-    details: 'Details',
-    error: 'Ereur',
-    reload: 'Relancer',
-    edit: 'Edit',
-    delete: 'Delete',
-    close: 'Close',
-    all: 'All',
-    fromDate: 'From date',
-    toDate: 'To date',
-    highlight: 'Highlight',
-};
-
 global.icon = {
 	arrowUp:
 		'<svg class="bi bi-arrow-bar-up" width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">' +
@@ -194,17 +177,17 @@ global.icon = {
 				'<path fill-rule="evenodd" d="M2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2zm6 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>' +
 			'</svg>',
 	
-	loading:
-		'<div class="d-flex justify-content-center mt-4">' +
-			'<div class="spinner-border" role="status">' +
-				'<span class="sr-only">' + text.loading + '</span>' +
-			'</div>' +
-		'</div>',
-	
-	close:
-	    '<button type="button" class="ml-2 mb-1 close ml-auto" data-dismiss="toast" aria-label=' + text.close + '>' +
-	    	'<span aria-hidden="true">&times;</span>' +
-	    '</button>',
+//	loading:
+//		'<div class="d-flex justify-content-center mt-4">' +
+//			'<div class="spinner-border" role="status">' +
+//				'<span class="sr-only">' + i18next('loading') + '</span>' +
+//			'</div>' +
+//		'</div>',
+//	
+//	close:
+//	    '<button type="button" class="ml-2 mb-1 close ml-auto" data-dismiss="toast" aria-label=' + i18next('close') + '>' +
+//	    	'<span aria-hidden="true">&times;</span>' +
+//	    '</button>',
 	
 };
 
@@ -327,13 +310,27 @@ global.ajax = {
 $(document).ready(function() {
 	
 	//---------------------
+	// Translator
+	//---------------------
+
+	let locale = $('html').attr('lang');
+	
+	$.i18n().load({
+		locale: require('./locales/' + locale + '.json')
+	});
+	
+	$.i18n({
+		locale: 'locale',
+	});
+	
+	//---------------------
 	// Defaults parameters for datepicker
 	//---------------------
 	
 	$.fn.datepicker.defaults.format = "dd-mm-yyyy";
 	$.fn.datepicker.defaults.weekStart = 1;
 	$.fn.datepicker.defaults.maxViewMode = 3;
-	$.fn.datepicker.defaults.language = $(document.body).data('locale').replace(/_/, '-');
+	$.fn.datepicker.defaults.language = locale.replace(/_/, '-');
 	$.fn.datepicker.defaults.multidate = false;
 	$.fn.datepicker.defaults.daysOfWeekDisabled = "0,6";
 	$.fn.datepicker.defaults.autoclose = true;
@@ -476,13 +473,13 @@ $(document).ready(function() {
     $(document).on('ajax.error', function(e, jqXHR, textStatus, errorThrown) {
 		
     	let result = '<div class="alert alert-danger">' +
-						'<h6 class="alert-heading font-weight-bold">' + text.error + ' ' + jqXHR.status + ' : ' + jqXHR.statusText + '</h6>';
+						'<h6 class="alert-heading font-weight-bold">' + i18next('error') + ' ' + jqXHR.status + ' : ' + jqXHR.statusText + '</h6>';
 		
 		if ((m = /<title>(.+)<\/title>/.exec(jqXHR.responseText)) !== null) {
 			result += '<p>' + m[1] + '</p>';
 		}
     			
-		result += '<button type="button" class="btn btn-sm btn-primary" >' + text.reload + '</button>' +
+		result += '<button type="button" class="btn btn-sm btn-primary" >' + i18next('reload') + '</button>' +
 					'</div>';
 		$(e.target).html(result);
 		

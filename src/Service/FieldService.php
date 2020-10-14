@@ -54,6 +54,7 @@ class FieldService
 				'type' => Metadata::LIST,
 				'parent' => 'document',
 				'sort' => false,
+				'default_width' => 15,
 				'display' => [
 					'table' => true,
 					'automation' => true
@@ -71,6 +72,7 @@ class FieldService
 				'type' => Metadata::TEXT,
 				'parent' => 'version',
 				'sort' => false,
+				'default_width' => 3,
 				'display' => [
 					'table' => true,
 					'automation' => true
@@ -88,6 +90,7 @@ class FieldService
 				'type' => Metadata::TEXT,
 				'parent' => 'document',
 				'sort' => false,
+				'default_width' => 30,
 				'display' => [
 					'table' => true,
 					'automation' => true
@@ -105,6 +108,7 @@ class FieldService
 				'type' => Metadata::DATE,
 				'parent' => 'version',
 				'sort' => true,
+				'default_width' => 8,
 				'display' => [
 					'table' => true,
 					'automation' => true
@@ -122,6 +126,7 @@ class FieldService
 				'type' => Metadata::DATE,
 				'parent' => 'version',
 				'sort' => true,
+				'default_width' => 8,
 				'display' => [
 					'table' => true,
 					'automation' => true
@@ -139,6 +144,7 @@ class FieldService
 				'type' => Metadata::DATE,
 				'parent' => 'version',
 				'sort' => true,
+				'default_width' => 8,
 				'display' => [
 					'table' => true,
 					'automation' => true
@@ -156,6 +162,7 @@ class FieldService
 				'type' => Metadata::DATE,
 				'parent' => 'version',
 				'sort' => false,
+				'default_width' => 8,
 				'display' => [
 					'table' => true,
 					'automation' => true
@@ -173,6 +180,7 @@ class FieldService
 				'type' => Metadata::BOOLEAN,
 				'parent' => 'version',
 				'sort' => false,
+				'default_width' => 8,
 				'display' => [
 					'table' => true,
 					'automation' => true
@@ -190,6 +198,7 @@ class FieldService
 				'type' => Metadata::LIST,
 				'parent' => 'version',
 				'sort' => true,
+				'default_width' => 10,
 				'display' => [
 					'table' => true,
 					'automation' => true
@@ -207,6 +216,7 @@ class FieldService
 				'type' => Metadata::LIST,
 				'parent' => 'version',
 				'sort' => true,
+				'default_width' => 10,
 				'display' => [
 					'table' => true,
 					'automation' => true
@@ -224,6 +234,7 @@ class FieldService
 				'type' => Metadata::LIST,
 				'parent' => 'version',
 				'sort' => true,
+				'default_width' => 10,
 				'display' => [
 					'table' => true,
 					'automation' => true
@@ -241,6 +252,7 @@ class FieldService
 				'type' => Metadata::BOOLEAN,
 				'parent' => 'version',
 				'sort' => false,
+				'default_width' => 10,
 				'display' => [
 					'table' => true,
 					'automation' => true
@@ -258,6 +270,7 @@ class FieldService
 				'type' => Metadata::BOOLEAN,
 				'parent' => 'version',
 				'sort' => false,
+				'default_width' => 10,
 				'display' => [
 					'table' => true,
 					'automation' => true
@@ -275,6 +288,7 @@ class FieldService
 				'type' => Metadata::LIST,
 				'parent' => 'serie',
 				'sort' => true,
+				'default_width' => 10,
 				'display' => [
 					'table' => true,
 					'automation' => true
@@ -292,6 +306,7 @@ class FieldService
 				'type' => Metadata::LIST,
 				'parent' => 'serie',
 				'sort' => true,
+				'default_width' => 10,
 				'display' => [
 					'table' => true,
 					'automation' => true
@@ -309,6 +324,7 @@ class FieldService
 				'type' => Metadata::LIST,
 				'parent' => 'status',
 				'sort' => true,
+				'default_width' => 10,
 				'display' => [
 					'table' => true,
 					'automation' => true
@@ -326,6 +342,7 @@ class FieldService
 				'type' => Metadata::LIST,
 				'parent' => 'status',
 				'sort' => true,
+				'default_width' => 10,
 				'display' => [
 					'table' => true,
 					'automation' => true
@@ -346,6 +363,7 @@ class FieldService
 				'type' => $codification->getType(),
 				'parent' => 'codification',
 				'sort' => $codification->isList(),
+				'default_width' => 10,
 				'display' => [
 					'table' => false,
 					'automation' => true
@@ -366,6 +384,7 @@ class FieldService
 				'type' => $metadata->getType(),
 				'parent' => $metadata->getParentName(),
 				'sort' => ($metadata->isDate() || $metadata->isList()),
+				'default_width' => 10,
 				'display' => [
 					'table' => true,
 					'automation' => true
@@ -387,6 +406,7 @@ class FieldService
 					'type' => Metadata::LIST,
 					'parent' => 'visa',
 					'sort' => true,
+					'default_width' => 10,
 					'display' => [
 						'table' => true,
 						'automation' => true

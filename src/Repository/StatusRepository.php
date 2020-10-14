@@ -36,6 +36,22 @@ class StatusRepository extends RepositoryService
     }
     
     /**
+     * @return Status[]
+     *
+     */
+    public function getNonCancelledStatuses(Project $project)
+    {
+    	$qb = $this->newQb('s');
+    	return $qb
+	    	->select('s.id')
+	    	->andWhere($qb->eq('s.project', $project))
+	    	->andWhere($qb->neq('s.type', Status::CANCEL))
+	    	->getQuery()
+	    	->getResult()
+    	;
+    }
+    
+    /**
      * @return int
      *
      */

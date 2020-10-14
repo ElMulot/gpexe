@@ -2,65 +2,70 @@
   "entrypoints": {
     "app": {
       "js": [
-        "/gpexe/public/build/runtime.64efdd6e.js",
-        "/gpexe/public/build/0.7251fcda.js",
-        "/gpexe/public/build/1.05b0b47f.js",
-        "/gpexe/public/build/app.1957f00e.js"
+        "/gpexe/public/build/runtime.js",
+        "/gpexe/public/build/vendors~app~automation~dashboard~document~login.js",
+        "/gpexe/public/build/vendors~app~dashboard~document.js",
+        "/gpexe/public/build/vendors~app~document.js",
+        "/gpexe/public/build/vendors~app.js",
+        "/gpexe/public/build/app.js"
       ],
       "css": [
-        "/gpexe/public/build/app.4e34b692.css"
+        "/gpexe/public/build/vendors~app.css",
+        "/gpexe/public/build/app.css"
       ]
     },
     "login": {
       "js": [
-        "/gpexe/public/build/runtime.64efdd6e.js",
-        "/gpexe/public/build/0.7251fcda.js",
-        "/gpexe/public/build/login.c0aca876.js"
+        "/gpexe/public/build/runtime.js",
+        "/gpexe/public/build/vendors~app~automation~dashboard~document~login.js",
+        "/gpexe/public/build/login.js"
       ],
       "css": [
-        "/gpexe/public/build/login.f0daa721.css"
+        "/gpexe/public/build/login.css"
       ]
     },
     "document": {
       "js": [
-        "/gpexe/public/build/runtime.64efdd6e.js",
-        "/gpexe/public/build/0.7251fcda.js",
-        "/gpexe/public/build/1.05b0b47f.js",
-        "/gpexe/public/build/document.a28748dd.js"
+        "/gpexe/public/build/runtime.js",
+        "/gpexe/public/build/vendors~app~automation~dashboard~document~login.js",
+        "/gpexe/public/build/vendors~app~dashboard~document.js",
+        "/gpexe/public/build/vendors~app~document.js",
+        "/gpexe/public/build/vendors~document.js",
+        "/gpexe/public/build/document.js"
       ],
       "css": [
-        "/gpexe/public/build/document.8d08d915.css"
+        "/gpexe/public/build/document.css"
       ]
     },
     "automation": {
       "js": [
-        "/gpexe/public/build/runtime.64efdd6e.js",
-        "/gpexe/public/build/0.7251fcda.js",
-        "/gpexe/public/build/2.a21f268c.js",
-        "/gpexe/public/build/automation.ae3c8a27.js"
+        "/gpexe/public/build/runtime.js",
+        "/gpexe/public/build/vendors~app~automation~dashboard~document~login.js",
+        "/gpexe/public/build/vendors~automation.js",
+        "/gpexe/public/build/automation.js"
       ],
       "css": [
-        "/gpexe/public/build/2.2255d444.css",
-        "/gpexe/public/build/automation.251c5da2.css"
+        "/gpexe/public/build/vendors~automation.css",
+        "/gpexe/public/build/automation.css"
       ]
     },
     "dashboard": {
       "js": [
-        "/gpexe/public/build/runtime.64efdd6e.js",
-        "/gpexe/public/build/0.7251fcda.js",
-        "/gpexe/public/build/1.05b0b47f.js",
-        "/gpexe/public/build/dashboard.3511d8e8.js"
+        "/gpexe/public/build/runtime.js",
+        "/gpexe/public/build/vendors~app~automation~dashboard~document~login.js",
+        "/gpexe/public/build/vendors~app~dashboard~document.js",
+        "/gpexe/public/build/dashboard.js"
       ],
       "css": [
-        "/gpexe/public/build/dashboard.0c35093f.css"
+        "/gpexe/public/build/dashboard.css"
       ]
     },
     "project": {
       "js": [
-        "/gpexe/public/build/runtime.64efdd6e.js"
+        "/gpexe/public/build/runtime.js"
       ],
       "css": [
-        "/gpexe/public/build/project.0e72e4b8.css"
+        "/gpexe/public/build/project.css"
       ]
     }
   }
