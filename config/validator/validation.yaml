@@ -91,6 +91,9 @@ App\Entity\Version:
     constraints:
         - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity:
             fields: ['name', 'document']
+    properties:
+        name:
+            - NotBlank: ~
 
 App\Entity\Visa:
     constraints:

@@ -26,16 +26,16 @@ class AutomationType extends AbstractType
     	$builder
 	    	->add('name', TextType::class, [
 	    		'attr' => [
-	    			'class' => 'col-sm-5',
+	    			'class' => 'col-5 mt-2',
 	    		],
 	    	])
 	    	->add('enabled', CheckboxType::class, [
 	    		'required' => false,
 	    		'label_attr' => [
-	    			'class' => 'col-sm-2',
+	    			'class' => 'col-2',
 	    		],
 	    		'attr' => [
-	    			'class' => 'col-sm-1 mt-2',
+	    			'class' => 'col-1 mt-2',
 	    		],
 	    	])
 	    	->add('code', TextareaType::class, [

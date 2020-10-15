@@ -1,6 +1,5 @@
 const $ = require('jquery');
 const popper = require('popper.js');
-//require('i18next');
 require('sticky-table-headers');
 //const tableDragger = require('table-dragger');
 //require('jquery-resizable-columns');
@@ -224,12 +223,13 @@ function createTableHeader(that) {
 			.attr('type', 'button')
 			.attr('id', 'b_' + tableHeader.id)
 			.attr('data-toggle', 'dropdown')
+			.attr('data-display', 'static')
 			.attr('aria-haspopup', true)
 			.attr('aria-expanded', false)
 		;
 	
 		tableHeader.divDropdownMenu = tableHeader.divDropdownGroup.append(create.div).children().last()
-			.addClass('dropdown-menu')
+			.addClass('dropdown-menu dropdown-menu-left')
 			.attr('aria-labelledby', 'b_' + tableHeader.id)
 			.append(create.div).children().last()
 				.addClass('d-flex flex-row')

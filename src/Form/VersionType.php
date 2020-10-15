@@ -90,17 +90,17 @@ class VersionType extends AbstractType
 		]);
 	}
 	
-	private function checkMultiple(array $versions, string $label): bool
+	private function checkMultiple(array $versions, string $codename): bool
 	{
 		
 		if ($versions) {
 			foreach ($versions as $version) {
 				if (isset($value)) {
-					if ($value != $version->getPropertyValueToString($label)) {
+					if ($value != $version->getPropertyValueToString($codename)) {
 						return true;
 					}
 				} else {
-					$value = $version->getPropertyValueToString($label);
+					$value = $version->getPropertyValueToString($codename);
 				}
 			}
 		}
@@ -108,13 +108,13 @@ class VersionType extends AbstractType
 		return false;
 	}
 	
-	private function buildRow(string $name, string $id, string $label, int $type, bool $required, array $versions=null, $choices=null)
+	private function buildRow(string $label, string $id, string $codename, int $type, bool $required, array $versions=null, $choices=null)
 	{
 		
 		$multiple = false;
 		
 		if (count($versions) > 1) {
-			$multiple = $this->checkMultiple($versions, $name);
+			$multiple = $this->checkMultiple($versions, $codename);
 		}
 		
 		$version = $versions[0] ?? null;
@@ -125,13 +125,13 @@ class VersionType extends AbstractType
 				
 				$data = false;
 				if (!$multiple && $version) {
-					if ($version->getPropertyValue($label)) {
+					if ($version->getPropertyValue($codename)) {
 						$data = true;
 					}
 				}
 				
 				$this->builder->add($id, ChoiceType::class, [
-					'label' => $name,
+					'label' => $label,
 					'choices' => [
 						'Yes' => true,
 						'No' => false,
@@ -148,11 +148,11 @@ class VersionType extends AbstractType
 				
 				$data = null;
 				if (!$multiple && $version) {
-					$data = $version->getPropertyValue($label);
+					$data = $version->getPropertyValue($codename);
 				}
 				
 				$this->builder->add($id, TextareaType::class, [
-					'label' => $name,
+					'label' => $label,
 					'mapped' => false,
 					'data' => $data,
 					'required' => $required,
@@ -167,14 +167,14 @@ class VersionType extends AbstractType
 				$data = null;
 				if ($required) $data = new \DateTime('now');
 				if (!$multiple && $version) {
-					if ($data = $version->getPropertyValue($label)) {
+					if ($data = $version->getPropertyValue($codename)) {
 						if ($data instanceof MetadataValue) $data = new \DateTime($data->getValue());
 					}
 					if ($data === null) $data = new \DateTime('now');
 				}
 				
 				$this->builder->add($id, DateType::class, [
-					'label' => $name,
+					'label' => $label,
 					'mapped' => false,
 					'widget' => 'single_text',
 					'format' => 'dd-MM-yyyy',
@@ -192,11 +192,11 @@ class VersionType extends AbstractType
 				
 				$data = null;
 				if (!$multiple && $version) {
-					$data = $version->getPropertyValue($label);
+					$data = $version->getPropertyValue($codename);
 				}
 				
 				$this->builder->add($id, TextType::class, [
-					'label' => $name,
+					'label' => $label,
 					'mapped' => false,
 					'data' => $data,
 					'required' => $required,
@@ -209,13 +209,13 @@ class VersionType extends AbstractType
 			case Metadata::LIST:
 				$data = null;
 				if (!$multiple && $version) {
-					$data = $version->getPropertyValue($label);
+					$data = $version->getPropertyValue($codename);
 				}
 				
 				$this->builder->add($id, EntityType::class, [
 					'class' => get_class($choices[0]),
 					'choices' => $choices,
-					'label' => $name,
+					'label' => $label,
 					'mapped' => false,
 					'data' => $data,
 					'required' => $required,

@@ -171,6 +171,10 @@ td {
 	font-size: x-small;
 }
 
+#version_tabs a {
+	overflow: visible;
+}
+
 #review_content {
 	height: 8em;
 }

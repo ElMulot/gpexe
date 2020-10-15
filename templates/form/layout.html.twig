@@ -1,3 +1,19 @@
+{% block default_label_attr %}
+	col-form-label col-3 
+{% endblock default_label_attr %}
+
+{% block default_row_attr %}
+	form-group row 
+{% endblock default_row_attr %}
+
+{% block default_widget_attr %}
+	col-7 
+{% endblock default_widget_attr %}
+
+{% block default_multiple_attr %}
+	col-2 
+{% endblock default_multiple_attr %}
+
 {# Widgets #}
 
 {#
@@ -414,20 +430,20 @@
 {# Labels #}
 
 {% block form_label_class %}
-	col-sm-3
+	col-3
 {% endblock form_label_class %}
 
 {% block form_label %}
     {% if label is same as(false) %}
-        <div class="{{ block('form_label_class') }}"></div>
+        <div class="{{ label_attr }}"></div>
     {% else %}
         {% if expanded is not defined or not expanded %}
-            {% set label_attr = label_attr|merge({class: (label_attr.class|default('') ~ ' col-form-label')|trim}) %}
+            {% set label_attr = label_attr|merge({class: (label_attr.class|default(''))|trim}) %}
         {% endif %}
-        {% set label_attr = label_attr|merge({class: (label_attr.class|default('') ~ ' ' ~ block('form_label_class'))|trim}) %}
+        {% set label_attr = label_attr|merge({class: (label_attr.class|default(block('default_label_attr')))|trim}) %}
         {% if compound is defined and compound %}
             {% set element = 'legend' %}
-            {% set label_attr = label_attr|merge({class: (label_attr.class|default('') ~ ' col-form-label')|trim}) %}
+            {% set label_attr = label_attr|merge({class: (label_attr.class|default(''))|trim}) %}
         {% else %}
             {% set label_attr = label_attr|merge({for: id}) %}
         {% endif %}
@@ -461,11 +477,11 @@
 {# Rows #}
 
 {% block form_widget_class %}
-	col-sm-7 mt-2
+	col-7 mt-2
 {% endblock form_widget_class %}
 
 {% block form_multiple_class %}
-	col-sm-2 mt-2
+	col-2 mt-2
 {% endblock form_multiple_class %}
 
 {% block repeated_row %}
@@ -481,10 +497,10 @@
     {% if help is not empty %}
         {% set widget_attr = {attr: {'aria-describedby': id ~"_help"}} %}
     {% endif %}
-    <div{% with {attr: row_attr|merge({class: (row_attr.class|default('') ~ ' form-group row' ~ ((not compound or force_error|default(false)) and not valid ? ' is-invalid'))|trim})} %}{{ block('attributes') }}{% endwith %}>
+    <div{% with {attr: row_attr|merge({class: (row_attr.class|default(block('default_row_attr')) ~ ((not compound or force_error|default(false)) and not valid ? ' is-invalid'))|trim})} %}{{ block('attributes') }}{% endwith %}>
         {{- form_label(form) -}}
         {% if expanded is defined and expanded %}
-            <fieldset class="{{ block('form_widget_class') }}">
+            <fieldset class="{{ block('default_widget_attr') }}>
                 {{- form_widget(form, widget_attr) }}
                 {% if errors|length > 0 %}
                     <div id="{{ id }}_errors" class="mb-2">
@@ -494,7 +510,7 @@
                 {{- form_help(form) -}}
 			</fieldset>
         {% else %}
-            <div class="{{ block('form_widget_class') }}">
+            <div class="{{ block('default_widget_attr') }}">
                 {{- form_widget(form, widget_attr) -}}
                 {% if errors|length > 0 %}
                     <div id="{{ id }}_errors" class="mb-2">
@@ -505,7 +521,7 @@
             </div>
         {% endif %}
         {% if attr['data-multiple'] is defined and attr['data-multiple'] is same as (true) %}
-        <fieldset class="{{ block('form_multiple_class') }}">
+        <fieldset class="{{ block('default_multiple_attr') }}">
         	<div class="custom-control custom-radio">
             	<input id="{{ id }}_multiple_0" name="{{ id }}_multiple" type="radio" class="custom-control-input" value="0">
             	<label class="custom-control-label" for="{{ id }}_multiple_0">{% trans %}Set{% endtrans %}</label>

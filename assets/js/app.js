@@ -180,12 +180,12 @@ global.icon = {
 //	loading:
 //		'<div class="d-flex justify-content-center mt-4">' +
 //			'<div class="spinner-border" role="status">' +
-//				'<span class="sr-only">' + i18next('loading') + '</span>' +
+//				'<span class="sr-only">' + $.i18n('loading') + '</span>' +
 //			'</div>' +
 //		'</div>',
 //	
 //	close:
-//	    '<button type="button" class="ml-2 mb-1 close ml-auto" data-dismiss="toast" aria-label=' + i18next('close') + '>' +
+//	    '<button type="button" class="ml-2 mb-1 close ml-auto" data-dismiss="toast" aria-label=' + $.i18n('close') + '>' +
 //	    	'<span aria-hidden="true">&times;</span>' +
 //	    '</button>',
 	
@@ -409,7 +409,7 @@ $(document).ready(function() {
 					
 					if ($(this).val() == 0) {
 						
-						$("[id^='" + id[1] + "']").not("[id*='multiple']").each(function() {
+						$("[id='" + id[1] + "']").not("[id*='multiple']").each(function() {
 							if ($(this).hasClass('datepicker')) {
 								$(this).datepicker('setDate', new Date());
 							} else if ($(this).attr('type') == 'radio') {
@@ -428,7 +428,7 @@ $(document).ready(function() {
 						
 					} else {
 						
-						$("[id^='" + id[1] + "']").not("[id*='multiple']").each(function() {
+						$("[id='" + id[1] + "']").not("[id*='multiple']").each(function() {
 							if ($(this).hasClass('datepicker')) {
 								$(this).datepicker('setDate', null);
 							} else if ($(this).attr('type') == 'radio') {
@@ -473,13 +473,13 @@ $(document).ready(function() {
     $(document).on('ajax.error', function(e, jqXHR, textStatus, errorThrown) {
 		
     	let result = '<div class="alert alert-danger">' +
-						'<h6 class="alert-heading font-weight-bold">' + i18next('error') + ' ' + jqXHR.status + ' : ' + jqXHR.statusText + '</h6>';
+						'<h6 class="alert-heading font-weight-bold">' + $.i18n('error') + ' ' + jqXHR.status + ' : ' + jqXHR.statusText + '</h6>';
 		
 		if ((m = /<title>(.+)<\/title>/.exec(jqXHR.responseText)) !== null) {
 			result += '<p>' + m[1] + '</p>';
 		}
     			
-		result += '<button type="button" class="btn btn-sm btn-primary" >' + i18next('reload') + '</button>' +
+		result += '<button type="button" class="btn btn-sm btn-primary" >' + $.i18n('reload') + '</button>' +
 					'</div>';
 		$(e.target).html(result);
 		

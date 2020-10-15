@@ -27,9 +27,10 @@ class ReviewController extends AbstractController
 	public function new(Request $request, Version $version, Company $company) :Response
 	{
 		if ($this->getUser()->getCompany() == $company) {
+			$document = $version->getDocument();
 			$review = new Review();
 			$form = $this->createForm(ReviewType::class, $review, [
-				'project' => $version->getDocument()->getSerie()->getProject(),
+				'project' => $document->getSerie()->getProject(),
 				'company' => $company,
 			]);
 			$form->handleRequest($request);
@@ -42,12 +43,19 @@ class ReviewController extends AbstractController
 				$entityManager->persist($review);
 				$entityManager->flush();
 				
-				return $this->render('review/index.html.twig', [
-					'review' => $review,
-					'company' => $company,
-					'version' => $version,
-				]);
-				
+				if ($review->getVisa()->getRevisionRequired()) {
+					return $this->redirectToRoute('quick_new', [
+						'document' => $document->getId(),
+						'version' => $version->getId(),
+						'company' => $company->getId(),
+					]);
+				} else {
+					return $this->render('review/index.html.twig', [
+						'review' => $review,
+						'company' => $company,
+						'version' => $version,
+					]);
+				}
 			} else {
 				$view = $form->createView();
 				return $this->render('review/form.html.twig', [

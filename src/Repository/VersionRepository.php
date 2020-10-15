@@ -462,18 +462,36 @@ class VersionRepository extends RepositoryService
 	 * @return Version[]
 	 *
 	 */
-	public function getVersionsByDocument(Document $document)
+	public function getVersionsByDocument(Document $document, bool $lastProducedVersion = false)
 	{
 		$qb = $this->newQB('v');
-		return $qb->innerJoin('v.document', 'd')
-			->andWhere($qb->eq('d.id', $document->getId()))
-			->addOrderBy('v.initialScheduledDate', 'DESC')
-			->addOrderBy('v.scheduledDate', 'DESC')
-			->addOrderBy('v.deliveryDate', 'DESC')
-			->addOrderBy('v.name', 'DESC')
-			->getQuery()
-			->getResult()
-		;
+		
+		if ($lastProducedVersion) {
+			
+			return $qb
+				->innerJoin('v.document', 'd')
+				->innerJoin('v.status', 's')
+				->andWhere($qb->eq('d.id', $document->getId()))
+				->andWhere($qb->eq('v.isRequired', false))
+				->andWhere($qb->neq('s.type', Status::CANCEL))
+				->addOrderBy('v.deliveryDate', 'DESC')
+				->getQuery()
+				->getOneOrNullResult()
+			;
+			
+		} else {
+			
+			return $qb->innerJoin('v.document', 'd')
+				->andWhere($qb->eq('d.id', $document->getId()))
+				->addOrderBy('v.initialScheduledDate', 'DESC')
+				->addOrderBy('v.scheduledDate', 'DESC')
+				->addOrderBy('v.deliveryDate', 'DESC')
+				->addOrderBy('v.name', 'DESC')
+				->getQuery()
+				->getResult()
+			;
+			
+		}
 	}
 	
 	/**
@@ -541,7 +559,7 @@ class VersionRepository extends RepositoryService
 			->leftJoin('v.reviews', 'r')
 			->andWhere($qb->eq('s.project', $project))
 			->andWhere($qb->in('c.type', [Company::MAIN_CONTRACTOR, Company::SUB_CONTRACTOR, Company::SUPPLIER]))
-			->andWhere($qb->orX($qb->neq('r.user', $user), $qb->isNull('r.user')))
+			->andWhere($qb->isNull('r.user'))
 			->andWhere($qb->in('v.id', $subQb->getQuery()->getArrayResult()))
 			->groupBy('s.id')
 			->getQuery()

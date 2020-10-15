@@ -6,10 +6,12 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Contracts\Translation\TranslatorInterface;
+use App\Entity\Company;
 use App\Entity\Document;
 use App\Entity\Version;
 use App\Entity\Metadata;
 use App\Entity\MetadataValue;
+use App\Form\QuickVersionType;
 use App\Form\VersionType;
 use App\Repository\CompanyRepository;
 use App\Repository\DocumentRepository;
@@ -285,6 +287,62 @@ class VersionController extends AbstractController
 	        ]);
 	    }
 	    
+	}
+	
+	public function quickNew(Request $request, Document $document, Version $lastVersion, Company $company): Response
+	{
+		
+		$serie = $document->getSerie();
+		$project = $serie->getProject();
+		
+		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
+			return $this->redirectToRoute('review', [
+				'version' => $lastVersion,
+				'company' => $company,
+			]);
+		}
+		
+		$version = new Version();
+		$version->setDocument($document);
+		$version->setScheduledDate(new \DateTime('now + ' . $project->getNewVersionTime() . ' days'));
+		
+		$form = $this->createForm(QuickVersionType::class, $version);
+		$form->handleRequest($request);
+		
+		if ($form->isSubmitted() && $form->isValid()) {
+			
+			$status = $lastVersion->getStatus();
+			$writer = $lastVersion->getWriter();
+			$checker = $lastVersion->getChecker();
+			$approver = $lastVersion->getApprover();
+			
+			$version->setIsRequired(true);
+			$version->setStatus($status);
+			$version->setWriter($writer);
+			$version->setChecker($checker);
+			$version->setApprover($approver);
+			
+// 			$version->setName($form->get('name')->getData());
+// 			$version->setScheduledDate($form->get('scheduledDate')->getData());
+			
+			foreach ($this->metadataRepository->getMetadatasForVersion($project) as $metadata) {	
+				$version->setMetadataValue($metadata, $lastVersion->getMetadataValue($metadata));
+			}
+			
+			$entityManager = $this->getDoctrine()->getManager();
+			$entityManager->persist($version);
+			$entityManager->flush();
+			
+			$this->addFlash('success', 'New version created');
+			return new Response();
+		} else {
+			$view = $form->createView();
+			return $this->render('review/form.html.twig', [
+				'company' => $company,
+				'version' => $lastVersion,
+				'form' => $view,
+			]);
+		}
 	}
 	
 	private function isMultiple($form, string $propertyName): bool

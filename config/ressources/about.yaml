@@ -16,3 +16,9 @@
     changes:
         - Traduction des balises js
         - Désormais, les liens sur la page d'acceuil renvoi vers la série considérée avec le bon filtre
+- 
+    version: 0.1.3
+    date: 15/10/2020
+    changes:
+        - Désormais, il est possible de créer une version après apposition d'un visa avec observations
+        - Corrections de bugs suite mail M. Barnouin

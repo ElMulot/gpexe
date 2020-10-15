@@ -89,7 +89,7 @@ class Version
 
 	public function __construct()
 	{
-		$this->isRequired = false;
+		$this->isRequired = true;
 		$this->deliveryDate = new \DateTime('now');
 		$this->metadataItems = new ArrayCollection();
 		$this->metadataValues = new ArrayCollection();
