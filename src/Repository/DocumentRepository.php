@@ -79,7 +79,8 @@ class DocumentRepository extends RepositoryService
     			->innerJoin('d' . $id . '.codificationItems', 'i' . $id)
     			->andWhere($subQb->eq('i' . $id . '.value', $codificationItem->getValue()))
     		;
-    		$qb->andWhere($qb->in('d.id', $subQb->getDQL()));
+    		
+    		$qb->andWhere($qb->in('d.id', $subQb->getQuery()->getArrayResult()));
     		
     	}
     	
@@ -91,10 +92,10 @@ class DocumentRepository extends RepositoryService
     		$subQb->select('d' . $id)
 	    		->from(Document::class, 'd' . $id)
 	    		->innerJoin('d' . $id . '.codificationValues', 'v' . $id)
-	    		->andWhere($subQb->eq('i' . $id . '.value', $codificationValue->getValue()))
+	    		->andWhere($subQb->eq('v' . $id . '.value', $codificationValue->getValue()))
 	    	;
     		
-	    		$qb->andWhere($qb->in('d.id', $subQb->getDQL()));
+	    	$qb->andWhere($qb->in('d.id', $subQb->getQuery()->getArrayResult()));
     		
     	}
     	

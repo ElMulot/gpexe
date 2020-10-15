@@ -290,7 +290,7 @@ function createTableHeader(that) {
 					}
 					
 					select.btnFilter = select.divFilter.append(create.smallButton).children().last()
-						.text($.i18N('filter'))
+						.text($.i18n('filter'))
 						.addClass('px-3 btn-primary')
 						.on('click', function() {
 							for (let select of tableHeader.selects) {
@@ -379,7 +379,7 @@ function createTableHeader(that) {
 					
 					select.divSelectAll.append(create.label).children().last()
 						.attr('for', select.id + '_selectAll')
-						.text($.i18N('selectAll'))
+						.text($.i18n('selectAll'))
 					;
 					
 					for (let option of select.options) {

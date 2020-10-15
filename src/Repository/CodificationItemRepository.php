@@ -29,6 +29,7 @@ class CodificationItemRepository extends RepositoryService
     	$qb = $this->newQb('c');
     	return $qb
 	    	->andWhere($qb->eq('c.codification', $codification))
+	    	->addOrderBy('c.name', 'ASC')
 	    	->getQuery()
 	    	->getResult()
     	;

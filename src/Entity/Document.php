@@ -60,6 +60,8 @@ class Document
     {
     	$this->codificationItems = new ArrayCollection();
     	$this->codificationValues = new ArrayCollection();
+    	$this->metadataItems = new ArrayCollection();
+    	$this->metadataValues = new ArrayCollection();
         $this->versions = new ArrayCollection();
     }
 

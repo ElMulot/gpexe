@@ -124,6 +124,10 @@ must be used as splitter: doit être utilisé comme séparateur
 The wild-card: Le caractère
 can be used in place of one or several parameter: peut être utilisé à la place de un ou plusieurs caractères
 Filter: Filtrer
+None documents selected: Pas de document sélectionné
+Only one reference must be selected: Une seule référence doit être sélectionnée
+Document updated: Document mis à jour
+The document has been successfully moved: Le document a été déplacé avec succès
 
 #Version
 Version: Version
@@ -147,6 +151,7 @@ Date of issue: Remis le
 Document recieved: Document reçu
 Save document: Sauvegarder le document
 Click here: Cliquer ici
+New version created: Nouvelle version créée
 
 #Status
 Status: Status

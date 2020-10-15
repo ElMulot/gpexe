@@ -66,22 +66,22 @@ class VersionController extends AbstractController
 		]);
 	}
 	
-	public function new(Request $request): Response
+	public function new(Document $document = null, Request $request): Response
 	{
-		$version = new Version();
 		
-		$documents = $this->documentRepository->getDocumentsByRequest($request);
+		if ($document === null) {
+			$documents = $this->documentRepository->getDocumentsByRequest($request);
+			if ($documents == false) {
+				$this->addFlash('danger', 'None documents selected');
+				return $this->render('ajax/error.html.twig');
+			}
 		
-		if ($documents == false) {
-			$this->addFlash('danger', 'None documents selected');
-			return $this->render('ajax/error.html.twig');
-		}
-	
-		$document = $documents[0];
-		
-		if (count($documents) > 1) {
-			$this->addFlash('danger', 'You must select only document');
-			return $this->render('ajax/error.html.twig');
+			if (count($documents) > 1) {
+				$this->addFlash('danger', 'Only one reference must be selected');
+				return $this->render('ajax/error.html.twig');
+			}
+			
+			$document = $documents[0];
 		}
 		
 		$serie = $document->getSerie();
@@ -93,6 +93,7 @@ class VersionController extends AbstractController
 		
 		$status = $this->statusRepository->getDefaultStatus($project);
 		
+		$version = new Version();
 		$version->setDocument($document);
 		$version->setStatus($status);
 		
@@ -133,7 +134,7 @@ class VersionController extends AbstractController
 			$entityManager->persist($version);
 			$entityManager->flush();
 			
-			$this->addFlash('success', 'New entry created');
+			$this->addFlash('success', 'New version created');
 			return new Response();
 		} else {
 			$view = $form->createView();
@@ -143,18 +144,22 @@ class VersionController extends AbstractController
 		}
 	}
 	
-	public function edit(Request $request): Response
+	public function edit(Document $document = null, Request $request): Response
 	{
 			
-		$documents = $this->documentRepository->getDocumentsByRequest($request);
-		
-		if ($documents == false) {
-			$this->addFlash('danger', 'None documents selected');
-			return $this->render('ajax/error.html.twig');
+		if ($document === null) {
+			$documents = $this->documentRepository->getDocumentsByRequest($request);
+			if ($documents == false) {
+				$this->addFlash('danger', 'None documents selected');
+				return $this->render('ajax/error.html.twig');
+			}
+			
+			$document = $documents[0];
 		}
 		
-		$document = $documents[0];
 		$serie = $document->getSerie();
+		$project = $serie->getProject();	
+		
 		$versions = $this->versionRepository->getVersions($request);
 		
 		if ($request->query->has('save')) {
@@ -162,8 +167,6 @@ class VersionController extends AbstractController
 				$version->setIsRequired(false);
 			}
 		}
-		
-		$project = $serie->getProject();	
 		
 		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
 			throw $this->createAccessDeniedException();
@@ -273,8 +276,8 @@ class VersionController extends AbstractController
 	        }
 	        $entityManager->flush();
 	        $this->documentService->removeOrphans();
-	        $this->addFlash('success', $this->translator->trans('deleted.version', ['count' => count($versions)]));
 	        
+	        $this->addFlash('success', $this->translator->trans('deleted.version', ['count' => count($versions)]));
 	        return new Response();
 	    } else {
 	        return $this->render('ajax/delete.html.twig', [

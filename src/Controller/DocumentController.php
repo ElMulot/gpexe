@@ -245,7 +245,7 @@ class DocumentController extends AbstractController
 			$entityManager = $this->getDoctrine()->getManager();
 			$entityManager->persist($document);
 			$entityManager->flush();
-
+			
 			return $this->redirectToRoute('version_new', [
 				'document' => $document->getId()
 			]);
