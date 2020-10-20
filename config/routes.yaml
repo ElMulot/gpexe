@@ -380,7 +380,7 @@ version_delete:
     methods: GET|DELETE
     controller: App\Controller\VersionController::delete
 
-quick_new:
+version_quick_new:
     path: /project/serie/document/{document}/version/{version}/{company}/quick_new
     requirements:
         document: \d+

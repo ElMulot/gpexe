@@ -18,6 +18,7 @@ use App\Repository\DocumentRepository;
 use App\Repository\VersionRepository;
 use App\Repository\MetadataRepository;
 use App\Repository\StatusRepository;
+use App\Service\AjaxRedirectService;
 use App\Service\DocumentService;
 
 class VersionController extends AbstractController
@@ -34,9 +35,11 @@ class VersionController extends AbstractController
 	
 	private $statusRepository;
 	
+	private $ajaxRedirectService;
+	
 	private $documentService;
 	
-	public function __construct(TranslatorInterface $translator, CompanyRepository $companyRepository, DocumentRepository $documentRepository, VersionRepository $versionRepository, MetadataRepository $metadataRepository, StatusRepository $statusRepository, DocumentService $documentService)
+	public function __construct(TranslatorInterface $translator, CompanyRepository $companyRepository, DocumentRepository $documentRepository, VersionRepository $versionRepository, MetadataRepository $metadataRepository, StatusRepository $statusRepository, AjaxRedirectService $ajaxRedirectService, DocumentService $documentService)
 	{
 		$this->translator = $translator;
 		$this->companyRepository = $companyRepository;
@@ -44,6 +47,7 @@ class VersionController extends AbstractController
 		$this->versionRepository = $versionRepository;
 		$this->metadataRepository = $metadataRepository;
 		$this->statusRepository = $statusRepository;
+		$this->ajaxRedirectService = $ajaxRedirectService;
 		$this->documentService = $documentService;
 	}
 	
@@ -182,6 +186,8 @@ class VersionController extends AbstractController
 		
 		$form->handleRequest($request);
 		
+		dump($request, $form);
+		
 		if ($form->isSubmitted() && $form->isValid()) {
 			
 			$entityManager = $this->getDoctrine()->getManager();
@@ -243,7 +249,7 @@ class VersionController extends AbstractController
 			
 			$entityManager->flush();
 			
-			$this->addFlash('success', (count($versions) == 1)?'Entry updated':'Entries updated');
+			$this->addFlash('success', $this->translator->trans('updated.version', ['count' => count($versions)]));
 			return new Response();
 		} else {
 			$view = $form->createView();
@@ -289,7 +295,7 @@ class VersionController extends AbstractController
 	    
 	}
 	
-	public function quickNew(Request $request, Document $document, Version $lastVersion, Company $company): Response
+	public function quickNew(Request $request, Document $document, Version $version, Company $company): Response
 	{
 		
 		$serie = $document->getSerie();
@@ -297,49 +303,42 @@ class VersionController extends AbstractController
 		
 		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
 			return $this->redirectToRoute('review', [
-				'version' => $lastVersion,
+				'version' => $version,
 				'company' => $company,
 			]);
 		}
 		
-		$version = new Version();
-		$version->setDocument($document);
-		$version->setScheduledDate(new \DateTime('now + ' . $project->getNewVersionTime() . ' days'));
+		$newVersion = new Version();
+		$newVersion->setDocument($document);
 		
-		$form = $this->createForm(QuickVersionType::class, $version);
+		$form = $this->createForm(QuickVersionType::class, $newVersion);
 		$form->handleRequest($request);
 		
 		if ($form->isSubmitted() && $form->isValid()) {
 			
-			$status = $lastVersion->getStatus();
-			$writer = $lastVersion->getWriter();
-			$checker = $lastVersion->getChecker();
-			$approver = $lastVersion->getApprover();
+			$newVersion->setScheduledDate(new \DateTime('now + ' . $project->getNewVersionTime() . ' days'));
+			$newVersion->setIsRequired(true);
+			$newVersion->setStatus($version->getStatus());
+			$newVersion->setWriter($version->getWriter());
+			$newVersion->setChecker($version->getChecker());
+			$newVersion->setApprover($version->getApprover());
 			
-			$version->setIsRequired(true);
-			$version->setStatus($status);
-			$version->setWriter($writer);
-			$version->setChecker($checker);
-			$version->setApprover($approver);
-			
-// 			$version->setName($form->get('name')->getData());
-// 			$version->setScheduledDate($form->get('scheduledDate')->getData());
-			
-			foreach ($this->metadataRepository->getMetadatasForVersion($project) as $metadata) {	
-				$version->setMetadataValue($metadata, $lastVersion->getMetadataValue($metadata));
+			foreach ($this->metadataRepository->getMetadatasForVersion($project) as $metadata) {
+				if ($metadata->getIsMandatory()) {
+					$newVersion->setMetadataValue($metadata, $version->getMetadataValue($metadata));
+				}
 			}
 			
 			$entityManager = $this->getDoctrine()->getManager();
-			$entityManager->persist($version);
+			$entityManager->persist($newVersion);
 			$entityManager->flush();
 			
-			$this->addFlash('success', 'New version created');
-			return new Response();
+			return $this->ajaxRedirectService->get($this->generateUrl('document_detail', ['version' => $version->getId()]), '#modal_detail');
 		} else {
 			$view = $form->createView();
 			return $this->render('review/form.html.twig', [
 				'company' => $company,
-				'version' => $lastVersion,
+				'version' => $version,
 				'form' => $view,
 			]);
 		}

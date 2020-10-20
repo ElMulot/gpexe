@@ -44,11 +44,12 @@ class ReviewController extends AbstractController
 				$entityManager->flush();
 				
 				if ($review->getVisa()->getRevisionRequired()) {
-					return $this->redirectToRoute('quick_new', [
+					return $this->redirectToRoute('version_quick_new', [
 						'document' => $document->getId(),
 						'version' => $version->getId(),
 						'company' => $company->getId(),
 					]);
+					
 				} else {
 					return $this->render('review/index.html.twig', [
 						'review' => $review,

@@ -4,6 +4,13 @@ delay: >-
          other {# days of delay}
       }
 
+updated:
+   version: >-
+      {count, plural,
+         one   {version updated}
+         other {versions updated}
+      }
+
 confirm:
    document: Confirm deletion
       {count, plural,

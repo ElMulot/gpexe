@@ -14,21 +14,9 @@ class QuickVersionType extends AbstractType
 	
 	public function buildForm(FormBuilderInterface $builder, array $options)
     {
-    	$builder
-    		->add('name', TextType::class, [
+    	$builder->add('name', TextType::class, [
     			'row_attr' => ['class' => 'row'],
-    			'label_attr' => ['class' => 'col-form-label col-5 py-2'],
-    			'attr' => ['class' => 'col-7 my-0 py-0'],
-    		])
-    		->add('scheduledDate', DateType::class, [
-    			'widget' => 'single_text',
-    			'format' => 'dd-MM-yyyy',
-    			'html5' => false,
-    			'row_attr' => ['class' => 'row'],
-    			'label_attr' => ['class' => 'col-form-label col-5 py-2'],
-    			'attr' => ['class' => 'col-7'],
-			])
-    	;
+    	]);
     }
 
     public function configureOptions(OptionsResolver $resolver)

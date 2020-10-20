@@ -84,9 +84,9 @@ class VersionType extends AbstractType
 	public function configureOptions(OptionsResolver $resolver)
 	{
 		$resolver->setDefaults([
-			'data_class' => Version::class,
 			'serie' => null,
 			'versions' => [],
+			
 		]);
 	}
 	

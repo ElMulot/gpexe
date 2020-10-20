@@ -3,6 +3,13 @@ delay: >-
          one   {# jour de retard}
          other {# jours de retard}
       }
+      
+updated:
+   version: >-
+      {count, plural,
+         one   {version mise à jour}
+         other {versions mises à jour}
+      }
 
 confirm:
    document: Confirmer la suppression

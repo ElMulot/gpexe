@@ -25,6 +25,7 @@ class ReviewType extends AbstractType
         $builder->add('visa', EntityType::class, [
         	'class' => Visa::class,
         	'choices' => $this->visaRepository->getVisasByCompany($options['project'], $options['company']),
+        	'row_attr' => ['class' => 'row'],
         ]);
     }
 

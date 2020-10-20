@@ -274,6 +274,7 @@ class Automation
 			'type' => 'import',
 			'first_row' => '\d+',
 			'main_column' => '[A-Z]{1,2}',
+			'comments_column' => '[A-Z]{1,2}',
 			'date_format' => '[djDlSzFMmnYyaAhgGHisvu\s#;:\/\.,\-\(\)]+',
 			'exclude' => ['.+'],
 			'get_serie' => [
@@ -294,6 +295,7 @@ class Automation
 				'move_from_sdr' => 'true|false|choose',
 				'update_only' => 'true|false|choose',
 				'ready_to_persist' => 'true|false|choose',
+				'library' => 'spout|phpspreadsheet',
 			],
 		];
 	}
@@ -312,6 +314,9 @@ class Automation
 					'value' => '.+',
 					'title' => '.+',
 				],
+			],
+			'option' => [
+				'library' => 'phpspreadsheet|spout',
 			],
 		];
 	}

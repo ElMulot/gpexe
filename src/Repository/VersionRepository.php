@@ -165,8 +165,8 @@ class VersionRepository extends RepositoryService
 					->setFirstResult(($page -1) * $request->query->get('results_per_page'))
 					->setMaxResults($request->query->get('results_per_page'));
 			}
-		
-			$display = array_keys($request->query->get('display') ?? []);
+			
+			$display = array_keys($request->query->all('display') ?? []);
 			
 			if (array_search('document_reference', $display) !== false || $request->query->get('search') || preg_grep('/codification_(\d+)/', $display)) {
 				
@@ -583,15 +583,15 @@ class VersionRepository extends RepositoryService
 			->andWhere($qb->in('serie.id', $series))
 		;
 		
-		if ($request->query->get('filter')) {
+		if ($request->query->all('filter')) {
 			
 			foreach ($codifications as $codification) {
 				
 				$id = $codification->getId();
 				
-				if (array_key_exists("codification_{$id}", $request->query->get('filter'))) {
+				if (array_key_exists("codification_{$id}", $request->query->all('filter'))) {
 					
-					$value = $request->query->get('filter')["codification_{$id}"];
+					$value = $request->query->all('filter')["codification_{$id}"];
 					
 					$subQb = $this->newQB();
 					$subQb->select('d.id')
@@ -607,9 +607,9 @@ class VersionRepository extends RepositoryService
 			
 			foreach ($this->fields as $field) {
 				
-				if (array_key_exists($field['full_id'], $request->query->get('filter'))) {
+				if (array_key_exists($field['full_id'], $request->query->all('filter'))) {
 					
-					$value = $request->query->get('filter')[$field['full_id']];
+					$value = $request->query->all('filter')[$field['full_id']];
 					switch ($field['full_id']) {
 						case 'serie_name':
 							$qb->andWhere($qb->in('serie.id', $value));
@@ -828,9 +828,9 @@ class VersionRepository extends RepositoryService
 			}
 		}
 		
-		if ($request->query->get('display')) {
+		if ($request->query->all('display')) {
 			
-			if (array_key_exists('version_last_scheduled', $request->query->get('display'))) {
+			if (array_key_exists('version_last_scheduled', $request->query->all('display'))) {
 				
 				$subQb = $this->newQB('v1');
 				$subQb->select('v1.id, v1.deliveryDate, v2.id AS v2i, v2.scheduledDate AS v2d')
@@ -844,7 +844,7 @@ class VersionRepository extends RepositoryService
 				
 			}
 			
-			if (array_key_exists('version_last_delivered', $request->query->get('display'))) {
+			if (array_key_exists('version_last_delivered', $request->query->all('display'))) {
 				
 				$subQb = $this->newQB('v1');
 				$subQb->select('v1.id, v1.deliveryDate, v2.id AS v2i, v2.deliveryDate AS v2d')
