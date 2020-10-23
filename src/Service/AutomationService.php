@@ -6,7 +6,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
 use Symfony\Component\Security\Core\Security;
-use Symfony\Component\String\Slugger\SluggerInterface;
 use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 use Symfony\Component\ExpressionLanguage\SyntaxError;
 use Symfony\Component\Filesystem\Exception\IOExceptionInterface;
@@ -39,6 +38,7 @@ use App\Entity\MetadataItem;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
+use App\Service\Excel\Workbook;
 
 class AutomationService
 {
@@ -49,8 +49,6 @@ class AutomationService
 	const ERROR_COLOR 			= 'FF9191';
 	const VALID_COLOR 			= 'CCFF91';
 	const BORDER_COLOR			= 'FF0000';
-	
-	private $slugger;
 	
 	private $flashBagInterface;
 	
@@ -82,15 +80,10 @@ class AutomationService
 	
 	private $parsedCode;
 	
-	private $reader;
-	
-	private $writer;
-	
-	private $sheet;
+	private $workbook;
 
-	public function __construct(FlashBagInterface $flashBagInterface, SluggerInterface $slugger, EntityManagerInterface $entityManager, SerieRepository $serieRepository, DocumentRepository $documentRepository, VersionRepository $versionRepository, StatusRepository $statusRespository, CacheService $cacheService, DocumentService $documentService, FieldService $fieldService, Security $security, string $targetDirectory)
+	public function __construct(FlashBagInterface $flashBagInterface, EntityManagerInterface $entityManager, SerieRepository $serieRepository, DocumentRepository $documentRepository, VersionRepository $versionRepository, StatusRepository $statusRespository, CacheService $cacheService, DocumentService $documentService, FieldService $fieldService, Security $security, string $targetDirectory)
 	{
-		$this->slugger = $slugger;
 		$this->flashBagInterface = $flashBagInterface;
 		$this->entityManager = $entityManager;
 		$this->serieRepository = $serieRepository;
@@ -105,6 +98,7 @@ class AutomationService
 		$this->filesystem = new Filesystem();
 		$this->targetDirectory = $targetDirectory;
 		$this->comments = [];
+		$this->workbook = new Workbook;
 	}
 	
 	public function load(Automation $automation, Request $request, File $file = null): bool
@@ -113,7 +107,7 @@ class AutomationService
 		$this->flashBagInterface->add('info', 'Démarrage de l\'opération');
 		
 		$this->parsedCode = $automation->getParsedCode();
-				
+		
 		if ($this->cacheService->get('automation.ready_to_persist')) {
 			return true;
 		}
@@ -137,26 +131,27 @@ class AutomationService
 		
 		if ($automation->isTypeExport()) {
 			
-			$this->new('GPEXE Export');
+			$this->workbook->new('GPEXE Export');
+			$sheet = $this->workbook->getSheet();
 			
 			//headers
 			$fields = [];
 			foreach ($this->parsedCode['write'] as $write) {
 				if (array_key_exists($write['title'], $fields)) {
-					$this->sheet->setCellValue($write['to'] . $firstRow, $fields[$write['title']]['title']);
+					$sheet->setCellValue($write['to'] . $firstRow, $fields[$write['title']]['title']);
 				} elseif ($write['title'] != '') {
-					$this->sheet->setCellValue($write['to'] . $firstRow, $write['title']);
+					$sheet->setCellValue($write['to'] . $firstRow, $write['title']);
 				} elseif (array_key_exists($write['value'], $fields)) {
-					$this->sheet->setCellValue($write['to'] . $firstRow, $fields[$write['value']]['title']);
+					$sheet->setCellValue($write['to'] . $firstRow, $fields[$write['value']]['title']);
 				} else {
-					$this->sheet->setCellValue($write['to'] . $firstRow, $write['value']);
+					$sheet->setCellValue($write['to'] . $firstRow, $write['value']);
 				}
 			}
 			
 			//save
-			$fileName = $this->save($spreadsheet);
-			if ($fileName != false) {
-				$this->cacheService->set('automation.file_name', $fileName);
+			$this->workbook->save();
+			if ($this->workbook->getFilename() != false) {
+				$this->cacheService->set('automation.file_name', $this->workbook->getFilename());
 				return true;
 			} else {
 				$this->flashBagInterface->add('error', 'Erreur : écriture du fichier impossible');
@@ -165,28 +160,23 @@ class AutomationService
 
 		} elseif ($automation->isTypeImport()) {
 			
-			$spreadsheet = $this->open($file->getPathname());
-			$this->sheet = $spreadsheet->getActiveSheet();
+			$this->workbook->open($file->getPathname());
+			$sheet = $this->workbook->getSheet();
 			
 			$this->documentService->removeOrphans();
 			
 			//setting up cache
-			$row = $firstRow;
-			while ($this->sheet->getCell($this->parsedCode['main_column'] . $row)->getValue()) {
-				$row++;
+			$sheet->getRowInterator()->rewind();
+			while ($sheet->getRowInterator()->valid()) {
+				$sheet->getRowInterator()->next();
 			}
-			$this->cacheService->set('automation.count_row', max(1, $row - $firstRow));
+			$this->cacheService->set('automation.count_row', max(1, $sheet->getRowInterator()->current()->getAddress() - $firstRow));
 			
-			//set document properties
-			$spreadsheet->getProperties()
-				->setCreator('GPEXE')
-				->setTitle('GPEXE Import')
-			;
 			
 			//save
-			$fileName = $this->save($spreadsheet);
-			if ($fileName != false) {
-				$this->cacheService->set('automation.file_name', $fileName);
+			$this->workbook->save();
+			if ($this->workbook->getFilename() != false) {
+				$this->cacheService->set('automation.file_name', $this->workbook->getFilename());
 				return true;
 			} else {
 				$this->flashBagInterface->add('error', 'Erreur : ouverture du fichier impossible');
@@ -250,8 +240,8 @@ class AutomationService
 		}
 		$newBatch = false;
 				
-		$spreadsheet = $this->open($this->targetDirectory . $fileName);
-		$this->sheet = $spreadsheet->getActiveSheet();
+		$this->workbook->open($this->targetDirectory . $fileName);
+		$sheet = $this->workbook->getSheet();
 		
 		//load datas
 		$series = $this->serieRepository->getHydratedSeries($project);
@@ -325,8 +315,8 @@ class AutomationService
 		}
 		$newBatch = false;
 		
-		$spreadsheet = $this->open($this->targetDirectory . $fileName);
-		$this->sheet = $spreadsheet->getActiveSheet();
+		$this->workbook->open($this->targetDirectory . $fileName);
+		$sheet = $this->workbook->getSheet();
 		
 		//load datas
 		$series = $this->serieRepository->getHydratedSeries($project);
@@ -915,100 +905,7 @@ class AutomationService
 		}
 	}
 	
-	private function new(string $fileName)
-	{
-		
-		if ($this->cacheService->get('automation.library') == 'phpspreadsheet') {
-			$spreadsheet = new Spreadsheet();
-			$spreadsheet->getProperties()
-				->setCreator('GPEXE')
-				->setTitle($fileName)
-			;
-			$this->sheet = $spreadsheet->getActiveSheet();
-		} else {
-			$this->writer = WriterEntityFactory::createXLSXWriter();
-			$this->sheet = $this->writer->getCurrentSheet();
-		}
-		
-	}
 	
-	private function open(string $fileName)
-	{
-
-		$file = $this->targetDirectory . $fileName;
-		
-		if ($this->cacheService->get('automation.library') == 'phpspreadsheet') {
-			$this->reader = IOFactory::createReaderForFile($file);
-			$spreadsheet = $this->reader->load($file);
-			$this->sheet = $spreadsheet->getSheet(0);
-			
-			if ($this->parsedCode['type'] == 'import') {
-				$this->writer = IOFactory::createWriter($spreadsheet, "Xlsx");
-			}
-			
-		} else {
-			
-			$this->reader = ReaderEntityFactory::createReaderFromFile($file);
-			$this->reader->setShouldPreserveEmptyRows(true);
-			$this->reader->open($file);
-			foreach ($this->reader->getSheetIterator() as $sheet) {
-				if ($sheet->getIndex() === 0) {
-					$this->sheet = $sheet;
-					break;
-				}
-			}
-			
-			if ($this->parsedCode['type'] == 'import') {
-				$this->writer = WriterEntityFactory::createXLSXWriter();
-			}
-			
-		}
-		
-	}
-	
-	private function save(): string
-	{
-		if ($this->parsedCode['type'] == 'export') {
-			$filename = "GPExe Export";
-		} else {
-			$filename = "GPExe Import";
-		}
-		
-		$safeFilename = $this->slugger->slug($filename) . '.xlsx'; 
-		
-		if ($this->filesystem->exists($this->targetDirectory) == false) {
-			try {
-				$this->filesystem->mkdir($this->targetDirectory);
-			} catch (IOExceptionInterface $e) {
-				$this->flashBagInterface->add('danger', $e->getMessage());
-			}
-		}
-
-		if ($this->cacheService->get('automation.library') == 'phpspreadsheet') {
-			
-			try {
-				$this->writer->save($this->targetDirectory . $safeFilename);
-			} catch (PhpSpreadsheetWriterException $e) {
-				$this->flashBagInterface->add('danger', $e->getMessage());
-				return '';
-			}
-			$this->reader->close();
-			$this->writer->close();
-			
-			
-		} else {
-			try {
-				$this->writer->save($this->targetDirectory . $safeFilename);
-			} catch (SpoutWriterException $e) {
-				$this->flashBagInterface->add('danger', $e->getMessage());
-				return '';
-			}
-			$this->reader->close();
-			$this->writer->close();
-		}
-			
-		return $safeFilename;
-	}
 	
 	private function getCellValue(string $col, int $row)
 	{
@@ -1040,17 +937,7 @@ class AutomationService
 		
 	}
 	
-	private function toNumber(string $s): int
-	{
-		
-		$val = 0;
-		foreach (str_split($s) as $char) {
-			$val += ord(mb_strtolower($char)) - 96;
-		}
-		
-		return $val;
-		
-	}
+
 	
 }
 
