@@ -5,12 +5,15 @@ namespace App\Service\Excel;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet as PhpSpreadsheetSheet;
 use Box\Spout\Reader\XLSX\Sheet as SpoutSheet;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use Symfony\Component\BrowserKit\Request;
 
 class Sheet
 {
 	private $sheet;
 	
-	private $worbook;
+	private $workbook;
+	
+	private $rowIterator;
 	
 	public function __construct($sheet, Workbook $workbook)
 	{
@@ -20,46 +23,35 @@ class Sheet
 	
 	public function getWorkbook(): Workbook
 	{
-		return $this->worbook;
+		return $this->workbook;
 	}
 	
 	public function getRowInterator()
 	{
-		return new RowIterator($this);
-	}
-	
-	public function setCellValue(string $coordinate, $value): self
-	{
-		
-		$index = Coordinate::coordinateFromString($coordinate);
-		$rowAddress = $index[0];
-		$colAddress = $index[1];
-		
-		foreach ($this->getRowInterator() as $id => $row) {
-			if ($id == $rowAddress - 1) {
-				$row->getCell($colAddress)->setValue($value);
-				return $this;
-			}
+		if ($this->rowIterator === null) {
+			$this->rowIterator = new RowIterator($this->sheet, $this);
 		}
 		
-		return $this;
+		return $this->rowIterator;
 	}
 	
-	public function getCellValue(string $coordinate)
+	public function getRow(int $rowAddress): Row
 	{
-		
-		$index = Coordinate::coordinateFromString($coordinate);
-		$rowAddress = $index[0];
-		$colAddress = $index[1];
-		
-		foreach ($this->getRowInterator() as $id => $row) {
-			if ($id == $rowAddress - 1) {
-				return $row->getCell($colAddress)->getValue();
-			}
-		}
-		
-		return null;
+		$rowIterator = $this->getRowInterator();
+		$rowIterator->jumpTo($rowAddress);
+		return $rowIterator->current();
 	}
+	
+// 	public function getCell(string $coordinate): ?Cell
+// 	{
+// 		$index = Coordinate::coordinateFromString($coordinate);
+// 		$colAddress = $index[0];
+// 		$rowAddress = $index[1];
+// 		if ($row = $this->getRow($rowAddress)) {
+// 			return $row->getCell($colAddress);	
+// 		}
+// 	}
+
 }
 
 ?>

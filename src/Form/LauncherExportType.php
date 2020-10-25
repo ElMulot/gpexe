@@ -2,6 +2,7 @@
 
 namespace App\Form;
 
+use App\Entity\Automation;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -16,9 +17,14 @@ class LauncherExportType extends AbstractType
     	
     	if ($parsedCode = $builder->getData()->getParsedCode()) {
     		
-    		if (array_key_exists('option', $parsedCode)) {
+    		$structureExport = Automation::getStructureImport();
     		
+    		if (array_key_exists('option', $parsedCode)) {
+    			
 	    		foreach ($parsedCode['option'] as $key => $value) {
+// 	    			if ($structureExport['option'][$key])
+	    			
+	    			
 	    			switch ($value) {
 	    				case 'true':
 	    					$builder->add($key, CheckboxType::class, [

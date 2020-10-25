@@ -7,6 +7,7 @@ use Box\Spout\Writer\Common\Creator\Style\BorderBuilder;
 use Box\Spout\Common\Entity\Style\Border;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Shared\Date;
 
 
 class Cell
@@ -40,7 +41,14 @@ class Cell
 	
 	public function getValue()
 	{
-		return $this->cell->getValue();
+		switch ($this->sheet->getWorkbook()->getLibrary()) {
+			case Workbook::SPOUT:
+				return $this->cell->getValue();
+			case Workbook::PHPSPREADSHEET:
+				return $this->cell->getCalculatedValue();
+			default:
+				throw new Exception('Library not defined.');
+		}
 	}
 	
 	public function setValue($value): self
@@ -61,28 +69,27 @@ class Cell
 	
 	public function addComment(string $value): self
 	{
-		if ($this->sheet->getWorkbook()->getLibrary() === Workbook::SPOUT) {
+		switch ($this->sheet->getWorkbook()->getLibrary()) {
+			case Workbook::SPOUT:
+// 				$this->getRow()->addComment($value);
+				break;
+				
+			case Workbook::PHPSPREADSHEET:
 			
-			$commentsColumn = $this->row->getSheet()->getWorkbook()->getCommentsColumn();
-			
-			$this->row->getCell($commentsColumn)->setValue($this->row->getCell($commentsColumn)->getValue() . "\r\n" . $value);
-			
-		} else {
-			
-			$mainColumn = $this->row->getSheet()->getWorkbook()->getMainColumn();
-			
-			$comment = $this->getParent()
-				->getParent()
-				->getComment($mainColumn . $this->row->getAddress())
-			;
-			
-			$comment->getText()->createTextRun($value . "\r\n");
-			
-			$numberOfLines = max(1, substr_count($comment->getText(), "\r\n"));
-			$comment
-				->setWidth("500px")
-				->setHeight(20*$numberOfLines . "px")
-			;
+				$comment = $this->getParent()
+					->getParent()
+					->getComment($this->getAddress())
+				;
+				$comment->getText()->createTextRun($value . "\r\n");
+				$numberOfLines = max(1, substr_count($comment->getText(), "\r\n"));
+				$comment
+					->setWidth("500px")
+					->setHeight(20*$numberOfLines . "px")
+				;
+				break;
+				
+			default:
+				throw new Exception('Library not defined.');
 
 		}
 		
@@ -92,26 +99,32 @@ class Cell
 	
 	public function setBackgroundColor($color): self
 	{
-		if ($this->sheet->getWorkbook()->getLibrary() === Workbook::SPOUT) {
+		switch ($this->row->getSheet()->getWorkbook()->getLibrary()) {
+			case Workbook::SPOUT:
 			
-			$style = (new StyleBuilder())
-				->setBackgroundColor($color)
-				->build()
-			;
+				$style = (new StyleBuilder())
+					->setBackgroundColor($color)
+					->build()
+				;
+				
+				$this->cell->setStyle($style);
+				break;
 			
-			$this->cell->setStyle($style);
+			case Workbook::PHPSPREADSHEET:
 			
-		} else {
-			
-			$this->getParent()
-				->getParent()
-				->getStyle($this->getAddress())
-				->getFill()
-				->setFillType(Fill::FILL_SOLID)
-				->getStartColor()
-				->setRGB($color)
-			;
-			
+				$this->getParent()
+					->getParent()
+					->getStyle($this->getAddress())
+					->getFill()
+					->setFillType(Fill::FILL_SOLID)
+					->getStartColor()
+					->setARGB($color)
+				;
+				break;
+
+			default:
+				throw new Exception('Library not defined.');
+				
 		}
 		
 		return $this;
@@ -120,38 +133,73 @@ class Cell
 	
 	public function setBorder($color): self
 	{
-		if ($this->sheet->getWorkbook()->getLibrary() === Workbook::SPOUT) {
-			
-			$border = (new BorderBuilder())
-				->setBorderBottom($color)
-				->setBorderTop($color)
-				->setBorderRight($color)
-				->setBorderLeft($color)
-				->build()
-			;
-			
-			$style = (new StyleBuilder())
-				->setBorder($border)
-				->build()
-			;
+		switch ($this->row->getSheet()->getWorkbook()->getLibrary()) {
+			case Workbook::SPOUT:
+				$border = (new BorderBuilder())
+					->setBorderBottom($color)
+					->setBorderTop($color)
+					->setBorderRight($color)
+					->setBorderLeft($color)
+					->build()
+				;
 				
-			$this->cell->setStyle($style);
+				$style = (new StyleBuilder())
+					->setBorder($border)
+					->build()
+				;
+					
+				$this->cell->setStyle($style);
+				break;
 			
-		} else {
-			
-			$this->getParent()
-				->getParent()
-				->getStyle($this->getAddress())
-				->getBorders()
-				->getAllBorders()
-				->setBorderStyle(Border::BORDER_THIN)
-				->getColor()
-				->setRGB($color)
-			;
-			
+			case Workbook::PHPSPREADSHEET:
+				
+				$this->getParent()
+					->getParent()
+					->getStyle($this->getAddress())
+					->getBorders()
+					->getAllBorders()
+					->setBorderStyle(Border::BORDER_THIN)
+					->getColor()
+					->setARGB($color)
+				;
+				break;
+				
+			default:
+				throw new Exception('Library not defined.');
 		}
 		
 		return $this;
+		
+	}
+	
+	public function getDateTime(): ?\DateTime
+	{
+		switch ($this->row->getSheet()->getWorkbook()->getLibrary()) {
+			case Workbook::SPOUT:
+				
+				$dateFormat = $this->row->getSheet()->getWorkbook()->getDateFormat();
+				dd($this->cell->getFormat());
+// 				###
+				
+			case Workbook::PHPSPREADSHEET:
+				if (Date::isDateTime($this->cell)) {
+					return Date::excelToDateTimeObject($this->getValue());
+				} else {
+					$dateFormat = $this->row->getSheet()->getWorkbook()->getDateFormat();
+					$date = \DateTime::createFromFormat($dateFormat, $this->getValue());
+					if ($date && $date->format($dateFormat) === $this->getValue()) {
+						return $date;
+					}
+				}
+				break;
+				
+			default:
+				throw new Exception('Library not defined.');
+		}
+	}
+	
+	public static function excelToDateTimeObject($excelTimestamp, $timeZone = null)
+	{
 		
 	}
 }

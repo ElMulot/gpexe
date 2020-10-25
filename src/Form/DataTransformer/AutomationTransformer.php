@@ -20,15 +20,16 @@ class AutomationTransformer implements DataTransformerInterface
 		return $value;
 	}
 	
-	public function reverseTransform($value)
+	public function reverseTransform($value): string
 	{
-		$validatedCode = Automation::getValidatedCode($value);
-		if ($validatedCode instanceof ParseException) {
+		try {
+			$validatedCode = Automation::getValidatedCode($value);
+		} catch (ParseException $e) {
 			$failure = new TransformationFailedException();
-			$failure->setInvalidMessage($validatedCode->getMessage());
+			$failure->setInvalidMessage($e->getMessage());
 			throw $failure;
 		}
-				
+		
 		return $validatedCode;
 	}
 }

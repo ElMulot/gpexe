@@ -193,36 +193,31 @@ class Automation
 			} catch (ParseException $exception) {
 				$this->parsedCode = [];
 				$this->parseError = true;
-				return $this;
 			}
 			
-			if (($this->parsedCode['type'] ?? '') == 'import') {
-				$this->structure = self::getStructureImport();
-			} elseif (($this->parsedCode['type'] ?? '') == 'export') {
-				$this->structure = self::getStructureExport();
-			} else {
-				$this->parsedCode = [];
-				$this->parseError = true;
-				return $this;
-			}
+// 			if (($this->parsedCode['type'] ?? '') == 'import') {
+// 				$this->structure = self::getStructureImport();
+// 			} elseif (($this->parsedCode['type'] ?? '') == 'export') {
+// 				$this->structure = self::getStructureExport();
+// 			} else {
+// 				$this->parsedCode = [];
+// 				$this->parseError = true;
+// 				return $this;
+// 			}
 			
-			$this->parsedCode = self::validateStructure($this->structure, $this->parsedCode);
+// 			$this->parsedCode = self::validateStructure($this->structure, $this->parsedCode);
 			$this->parseError = false;
 		}
 		
 		return $this->parsedCode;
 	}
 	
-	public function getValidatedCode($code)
+	public function getValidatedCode($code): string
 	{
 		$code = preg_replace('/\t/', '    ', $code);
 		$code = preg_replace("/'([^'\n]*)'*\r\n/", "'$1'\r\n", $code);
 		
-		try {
-			$parsedCode = Yaml::parse($code ?? '') ?? [];
-		} catch (ParseException $exception) {
-			return $exception;
-		}
+		$parsedCode = Yaml::parse($code ?? '') ?? [];
 		
 		if (($parsedCode['type'] ?? '') == 'import') {
 			$structure = self::getStructureImport();
@@ -268,14 +263,13 @@ class Automation
 		return (string)$this->getName();
 	}
 	
-	private function getStructureImport(): array
+	public function getStructureImport(): array
 	{
 		return [
 			'type' => 'import',
 			'first_row' => '\d+',
 			'main_column' => '[A-Z]{1,2}',
 			'comments_column' => '[A-Z]{1,2}',
-			'date_format' => '[djDlSzFMmnYyaAhgGHisvu\s#;:\/\.,\-\(\)]+',
 			'exclude' => ['.+'],
 			'get_serie' => [
 				'condition' => '.+',
@@ -296,16 +290,16 @@ class Automation
 				'update_only' => 'true|false|choose',
 				'ready_to_persist' => 'true|false|choose',
 				'library' => 'spout|phpspreadsheet',
+				'date_format' => '[djDlSzFMmnYyaAhgGHisvu\s#;:\/\.,\-\(\)]+',
 			],
 		];
 	}
 	
-	private function getStructureExport(): array
+	public function getStructureExport(): array
 	{
 		return [
 			'type' => 'export',
 			'first_row' => '\d+',
-			'date_format' => '[djDlSzFMmnYyaAhgGHisvu\s#;:\/\.,\-\(\)]+',
 			'exclude' => ['.+'],
 			'write' => [
 				[
@@ -317,6 +311,7 @@ class Automation
 			],
 			'option' => [
 				'library' => 'phpspreadsheet|spout',
+				'date_format' => '[djDlSzFMmnYyaAhgGHisvu\s#;:\/\.,\-\(\)]+',
 			],
 		];
 	}

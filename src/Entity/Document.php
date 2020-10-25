@@ -310,7 +310,7 @@ class Document
     	return true;
     }
     
-    public function getCodificationValue(Codification $codification) {
+    public function getCodificationPropertyValue(Codification $codification) {
     	
     	switch ($codification->getType()) {
     		
@@ -319,7 +319,7 @@ class Document
     		case Codification::REGEX:
     			foreach ($this->getCodificationValues()->getValues() as $codificationValue) {
     				if ($codificationValue->getCodification() == $codification) {
-    					return $codificationValue;
+    					return $codificationValue->getValue();
     				}
     			}
     			break;
@@ -327,7 +327,7 @@ class Document
     		case Codification::LIST:
     			foreach ($this->getCodificationItems()->getValues() as $codificationItem) {
     				if ($codificationItem->getCodification() == $codification) {
-    					return $codificationItem;
+    					return $codificationItem->getName();
     				}
     			}
     			break;
@@ -493,7 +493,13 @@ class Document
     					}
     				}
     			} elseif (preg_match('/codification\.\w+/', $codename)) {
-    				foreach ($this->getCodificationsItems()->getValues() as $codificationItem) {
+    				foreach ($this->getSerie()->getProject()->getCodifications()->getValues() as $codification) {
+    					if ($codification->getFullCodename() == $codename) {
+    						return $this->getCodificationPropertyValue($codification);
+    					}
+    				}
+    				
+    				foreach ($this->getCodificationItems()->getValues() as $codificationItem) {
     					if ($codificationItem->getCodification()->getFullCodename() == $codename) {
     						return $codificationItem->getName();
     					}

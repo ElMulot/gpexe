@@ -2,19 +2,14 @@
 
 namespace App\Service\Excel;
 
-
+use Symfony\Component\Filesystem\Exception\IOExceptionInterface;
+use Symfony\Component\Filesystem\Filesystem;
 use Box\Spout\Reader\XLSX\Sheet as SpoutSheet;
 use Box\Spout\Reader\Common\Creator\ReaderEntityFactory;
 use Box\Spout\Writer\Common\Creator\WriterEntityFactory;
-use Box\Spout\Writer\Exception\WriterException as SpoutWriterException;
-
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet as PhpSpreadsheetSheet;
 use PhpOffice\PhpSpreadsheet\IOFactory;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx as Writer;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Writer\Exception as PhpSpreadsheetWriterException;
-
-use Symfony\Component\Filesystem\Exception\IOExceptionInterface;
 use Symfony\Component\String\Slugger\AsciiSlugger;
 
 class Workbook
@@ -22,13 +17,19 @@ class Workbook
 	const PHPSPREADSHEET	= 1;
 	const SPOUT				= 2;
 	
-	private $slugger;
+	private $fileSystem;
 	
 	private $library;
+	
+	private $firstRow;
 	
 	private $mainColumn;
 	
 	private $commentsColumn;
+	
+	private $dateFormat;
+	
+	private $readOnly;
 	
 	private $dirName;
 	
@@ -40,112 +41,160 @@ class Workbook
 	
 	private $writer;
 	
-	public function __construct(string $library, string $mainColumn, string $commentsColumn)
+	//---------------------------------------------------------------------------
+	// Method	|      Library     | Reader  | Writer
+	//---------------------------------------------------------------------------
+	// New	 	| Spout            | Defined | Defined
+	// New		| PhpSpreadsheet   | n/a     | Defined
+	// Open		| Spout            | Defined | Defined (if readOnly !== false)
+	// Open		| PhpSpreadsheet   | Defined | Defined (if readOnly !== false)
+	//---------------------------------------------------------------------------
+	
+	public function __construct(string $library, int $firstRow, $mainColumn = 'A', $commentsColumn = 'Z', string $dateFormat = 'd/m/Y')
 	{
+		$this->fileSystem = new Filesystem();
 		
-		if ($library == 'spout') {
-			$this->library = self::SPOUT;
-		} elseif ($library == 'phpspreadsheet') {
-			$this->library = self::PHPSPREADSHEET;
-		} else {
-			throw new \Exception(sprintf(
-				'Library "%s" is not supported.',
-				$library
-				));
+		if ($mainColumn === null) $mainColumn = 'A';
+		if ($commentsColumn === null) $commentsColumn = 'Z';
+		if ($dateFormat === null) $dateFormat = 'd/m/Y';
+		
+		switch ($library) {
+			case 'spout':
+				$this->library = self::SPOUT;
+				$this->commentsColumn = $commentsColumn;
+				break;
+		
+			case 'phpspreadsheet':
+				$this->library = self::PHPSPREADSHEET;
+				break;
+		
+			default:
+				throw new Exception(sprintf('Library "%s" is not supported.', $library));
 		}
 		
-		$this->mainColumn = $mainColumn;
-		$this->commentsColumn = $commentsColumn;
+		$this->firstRow = $firstRow;
+		if ($mainColumn != false) {
+			$this->mainColumn = $mainColumn;
+		}
+		$this->dateFormat = $dateFormat;
 		
 	}
 	
-	public function new(string $file)
+	public function new(string $fileName, string $dirName)
 	{
-		if ($this->library == self::SPOUT) {
-			
-			$this->writer = WriterEntityFactory::createXLSXWriter();
-			
-		} elseif ($this->library == self::PHPSPREADSHEET) {
-			
-			$this->workook = new Spreadsheet();
-			$this->workook->getProperties()
-				->setCreator('GPEXE')
-				->setTitle($fileName)
-			;
-		}
+		$slugger = new AsciiSlugger();
+		$this->fileName = $slugger->slug($fileName) . '.xlsx';
+		$this->dirName = $dirName;
+		$this->readOnly = false;
 		
-		$this->setfileName($file);
+		switch ($this->getLibrary()) {
+			case self::SPOUT:
+				$this->writer = WriterEntityFactory::createXLSXWriter();
+				$this->writer->openToFile($this->getPath());
+				$this->writer->close();
+				
+				$this->open($this->getPath());
+				break;
+			
+			case self::PHPSPREADSHEET:			
+				$this->workbook = new Spreadsheet();
+				$this->workbook->getProperties()
+					->setCreator('GPEXE')
+					->setTitle($fileName)
+				;
+				
+				$this->writer = IOFactory::createWriter($this->workbook, "Xlsx");
+				break;
+				
+			default:
+				throw new Exception('Library not defined.');
+		}
 	}
 	
 	
 	public function open(string $file, $readOnly = false)
 	{
+		$this->readOnly = $readOnly;
 		
-		if ($this->library == self::SPOUT) {
-			$this->reader = ReaderEntityFactory::createReaderFromFile($file);
-			$this->reader->setShouldPreserveEmptyRows(true);
-			$this->reader->open($file);
+		switch ($this->getLibrary()) {
+			case self::SPOUT:
+				$this->reader = ReaderEntityFactory::createReaderFromFile($file);
+				$this->reader->setShouldPreserveEmptyRows(true);
+				$this->reader->open($file);
+				
+				if ($readOnly === false) {
+					$this->writer = WriterEntityFactory::createXLSXWriter();
+					$this->writer->openToFile($file . '.tmp');
+					foreach ($this->reader->getSheetIterator() as $sheetIndex => $sheet) {
+						if ($sheetIndex !== 1) {
+							$this->writer->addNewSheetAndMakeItCurrent();
+						}
+						foreach ($sheet->getRowIterator() as $row) {
+							$this->writer->addRow($row);
+						}
+					}
+				}
+				break;
 			
-			if ($readOnly === false) {
-				$this->writer = WriterEntityFactory::createXLSXWriter();
-			}
-			
-		} elseif ($this->library == self::PHPSPREADSHEET) {
-		
-			$this->reader = IOFactory::createReaderForFile($file);
-			$this->workbook = $this->reader->load($file);
-			
-			if ($readOnly === false) {
-				$this->writer = IOFactory::createWriter($this->workbook, "Xlsx");
-			}
+			case self::PHPSPREADSHEET:
+				$this->reader = IOFactory::createReaderForFile($file);
+				$this->workbook = $this->reader->load($file);
+				
+				if ($readOnly === false) {
+					$this->writer = IOFactory::createWriter($this->workbook, "Xlsx");
+				}
+				break;
+				
+			default:
+				throw new Exception('Library not defined.');
 			
 		}
 		
-		$this->setfileName($file);
+		$this->setPath($file);
 		
 	}
 	
 	public function save(): self
 	{
 		
-		if ($this->filesystem->exists($this->dirName) == false) {
+		if ($this->fileSystem->exists($this->dirName) == false) {
 			try {
-				$this->filesystem->mkdir($this->dirName);
+				$this->fileSystem->mkdir($this->dirName);
 			} catch (IOExceptionInterface $e) {
-				$this->flashBagInterface->add('danger', $e->getMessage());
+				throw $e;
 			}
 		}
 		
-		if ($this->library == self::SPOUT) {
-			try {
-				$this->writer->save($this->getPath());
-			} catch (SpoutWriterException $e) {
-				$this->flashBagInterface->add('danger', $e->getMessage());
-				return '';
-			}
-			$this->reader->close();
-			$this->writer->close();
-		} elseif ($this->library == self::PHPSPREADSHEET) {
-			try {
-				$this->writer->save($this->getPath());
-			} catch (PhpSpreadsheetWriterException $e) {
-				$this->flashBagInterface->add('danger', $e->getMessage());
-				return '';
-			}
-			$this->reader->close();
-			$this->writer->close();
+		switch ($this->getLibrary()) {
+			case self::SPOUT:
+				if ($this->reader) {
+					$this->reader->close();
+				}
+				if ($this->writer) {
+					$this->writer->close();
+					$this->fileSystem->remove($this->getPath());
+					$this->fileSystem->rename($this->getPath() . '.tmp', $this->getPath());
+				}
+				break;
+				
+			case self::PHPSPREADSHEET:
+				if ($this->writer) {
+					$this->writer->save($this->getPath());
+				}
+				break;
+				
+			default:
+				throw new Exception('Library not defined.');
 		}
-		
 		return $this;
 		
 	}
 	
 	private function setPath(string $file): self
 	{
-		$slugger = new AsciiSlugger();
-		$pathParts = pathinfo($slugger->slug($file));
+		$pathParts = pathinfo($file);
 		
-		$this->dirName = $pathParts['dirname'];
+		$this->dirName = $pathParts['dirname'] . '/';
 		$this->fileName = $pathParts['filename'] . '.xlsx';
 		return $this;
 	}
@@ -153,6 +202,11 @@ class Workbook
 	public function getLibrary()
 	{
 		return $this->library;
+	}
+	
+	public function getFirstRow(): string
+	{
+		return $this->firstRow;
 	}
 	
 	public function getMainColumn(): string
@@ -165,6 +219,11 @@ class Workbook
 		return $this->commentsColumn;
 	}
 	
+	public function getDateFormat(): string
+	{
+		return $this->dateFormat;
+	}
+	
 	public function getFilename(): string
 	{
 		return $this->fileName;
@@ -172,51 +231,76 @@ class Workbook
 	
 	public function getPath(): string
 	{
-		return $this->dirName . '/ ' . $this->fileName;
+		return $this->dirName . $this->fileName;
 	}
 	
 	public function getSheet(?int $index = null): ?Sheet
 	{
-		if ($this->library == self::SPOUT) {
+		switch ($this->getLibrary()) {
+			case self::SPOUT:
 			
-			if ($this->reader) {
-				
-				if ($index === null) {
-					foreach ($this->reader->getSheetIterator() as $sheet) {
-						if ($sheet->isActive()) {
-							return new Sheet($sheet, $this);
-						}
-					}
-				} else {
-					foreach ($this->reader->getSheetIterator() as $sheet) {
-						if ($sheet->getIndex() == $index) {
-							if ($this->writer) {
-								$this->writer->setCurrentSheet($sheet);
+				if ($this->reader) {
+					if ($index === null) {
+						foreach ($this->reader->getSheetIterator() as $sheet) {
+							if ($sheet->isActive()) {
+								return new Sheet($sheet, $this);
 							}
+						}
+					} else {
+						foreach ($this->reader->getSheetIterator() as $sheet) {
+							if ($sheet->getIndex() == $index) {
+								if ($this->writer) {
+									$this->writer->setCurrentSheet($sheet);
+								}
+								return new Sheet($sheet, $this);
+							}
+						}
+					}
+				}
+				break;
+			
+			case self::PHPSPREADSHEET:
+			
+				if ($this->workbook) {
+					
+					if ($index === null) {
+						return new Sheet($this->workbook->getActiveSheet(), $this);
+					} else {
+						$sheet = $this->workbook->getSheet($index);
+						if ($sheet) {
 							return new Sheet($sheet, $this);
 						}
 					}
 				}
-			}
-			
-		} elseif ($this->library == self::PHPSPREADSHEET) {
-			
-			if ($this->workbook) {
+				break;
 				
-				if ($index === null) {
-					return new Sheet($this->workbook->getActiveSheet(), $this);
-				} else {
-					$sheet = $this->workbook->getSheet($index);
-					if ($sheet) {
-						return new Sheet($sheet, $this);
-					}
-				}
-			}
+			default:
+				throw new Exception('Library not defined.');
 		}
 		
 		return null;
 	}
 	
+	public function addRow($rowItem): self
+	{
+		switch ($this->getLibrary()) {
+			case self::SPOUT:
+				if ($this->writer) {
+					$this->writer->addRow($rowItem);
+				}
+				break;
+			case self::PHPSPREADSHEET:
+				break;
+			default:
+				throw new Exception('Library not defined.');
+		}
+		return $this;
+	}
+	
+	public function getReadOnly(): bool
+	{
+		return $this->readOnly;
+	}
 	
 }
 
