@@ -3,6 +3,8 @@
 namespace App\Service\Excel;
 
 use PhpOffice\PhpSpreadsheet\Worksheet\Row as PhpSpreadsheetRow;
+use Box\Spout\Common\Entity\Row as SpoutRow;
+use Box\Spout\Writer\Common\Creator\WriterEntityFactory;
 
 class RowIterator
 {
@@ -13,7 +15,7 @@ class RowIterator
 	
 	private $key;
 	
-	public function __construct($sheetItem, $sheet)
+	public function __construct($sheetItem, Sheet $sheet)
 	{
 		$this->sheetItem = $sheetItem;
 		$this->rowIterator = $sheetItem->getRowIterator();
@@ -55,9 +57,8 @@ class RowIterator
 		$rowIndex = $rowAddress - 1;
 		
 		$this->rewind();
-		while ($this->key() < $rowIndex - 1)
+		while ($this->key() < $rowIndex)
 		{
-			dd($this->key());
 			$this->next();
 		}
 	}
@@ -69,12 +70,34 @@ class RowIterator
 	
 	public function key()
 	{
-		return $this->rowIterator->key();
+		switch ($this->sheet->getWorkbook()->getLibrary()) {
+			case Workbook::SPOUT:
+				return $this->rowIterator->key() - 1;
+			case Workbook::PHPSPREADSHEET:
+				return $this->rowIterator->key();
+			default:
+				throw new Exception('Library not defined.');
+		}
 	}
 	
 	public function next()
 	{
-		$this->rowIterator->next();
+		
+		switch ($this->sheet->getWorkbook()->getLibrary()) {
+			case Workbook::SPOUT:
+// 				if ($this->rowIterator->valid() === false) {
+// 					$rowItem = WriterEntityFactory::createRowFromArray();
+					
+// 					$this->sheet->getWorkbook()->addRow($rowItem);
+// 				}
+				$this->rowIterator->next();
+				break;
+			case Workbook::PHPSPREADSHEET:
+				$this->rowIterator->next();
+				break;
+			default:
+				throw new Exception('Library not defined.');
+		}
 	}
 	
 	public function valid()
@@ -85,7 +108,10 @@ class RowIterator
 				return $this->current()->getCell($mainColumn)->isEmpty() === false && $this->rowIterator->valid();
 			case Workbook::PHPSPREADSHEET:
 				return $this->sheetItem->getCell($mainColumn . ($this->key + 1))->getCalculatedValue() != '';
-		}}
+			default:
+				throw new Exception('Library not defined.');
+		}
+	}
 }
 
 ?>

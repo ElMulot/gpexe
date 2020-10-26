@@ -40,7 +40,7 @@ class Row
 	{
 		switch ($this->sheet->getWorkbook()->getLibrary()) {
 			case Workbook::SPOUT:
-				$colIndex = Coordinate::columnIndexFromString($colAddress);
+				$colIndex = Coordinate::columnIndexFromString($colAddress) - 1;
 				if ($cell = $this->row->getCellAtIndex($colIndex)) {
 					return new Cell($cell, $colAddress, $this);
 				} elseif ($this->getSheet()->getWorkbook()->getReadOnly() === false) {
