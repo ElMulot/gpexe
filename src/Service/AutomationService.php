@@ -282,12 +282,10 @@ class AutomationService
 		//load datas
 		$series = $this->serieRepository->getHydratedSeries($project);
 		
-		$sheet->getRowInterator()->jumpTo($currentRow);
-		dd('ok');
 		foreach ($series as $serie) {
 			foreach ($serie->getDocuments() as $document) {
 				foreach ($document->getVersions() as $version) {
-					$row = $sheet->getRowInterator()->current();
+					$row = $sheet->getRow($currentRow);
 					
 // 					A faire : reprendre les versions là s'est arrêté le précédent batch
 // 					if ($row->getAddress() - $currentRow + 1 >= self::MAX_LINES_PROCESSED) {
@@ -310,7 +308,7 @@ class AutomationService
 					}
 					
 					$row->add();
-					$sheet->getRowInterator()->next();
+					$currentRow++;
 					$countProcessed++;
 					
 				}
@@ -387,10 +385,11 @@ class AutomationService
 		//load datas
 		$series = $this->serieRepository->getHydratedSeries($project);
 		
-		$sheet->getRowInterator()->jumpTo($currentRow);
-		while ($sheet->getRowInterator()->valid()) {
+		while ($row = $sheet->getRow($currentRow)) {
 			
-			$row = $sheet->getRowInterator()->current();
+			if ($row->getCell($mainColumn)->isEmpty()) {
+				break;
+			}
 			
 			if ($row->getAddress() - $currentRow + 1 >= self::MAX_LINES_PROCESSED) {
 				$newBatch = true;

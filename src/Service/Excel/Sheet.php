@@ -9,15 +9,18 @@ use Symfony\Component\BrowserKit\Request;
 
 class Sheet
 {
-	private $sheet;
+	private $_sheet;
 	
 	private $workbook;
 	
-	private $rowIterator;
+	private $_rowIterator;
 	
-	public function __construct($sheet, Workbook $workbook)
+	private $row;
+	
+	public function __construct($_sheet, Workbook $workbook)
 	{
-		$this->sheet = $sheet;
+		$this->_sheet = $_sheet;
+		$this->_rowIterator = $this->_sheet->getRowIterator();
 		$this->workbook = $workbook;
 	}
 	
@@ -26,31 +29,33 @@ class Sheet
 		return $this->workbook;
 	}
 	
-	public function getRowInterator()
+	private function getRowIteratorKey(): int
 	{
-		if ($this->rowIterator === null) {
-			$this->rowIterator = new RowIterator($this->sheet, $this);
+		switch ($this->workbook()->getLibrary()) {
+			case Workbook::SPOUT:
+				return $this->_rowIterator->key()-1;
+			case Workbook::PHPSPREADSHEET:
+				return $this->_rowIterator->key();
+			default:
+				throw new Exception('Library not defined.');
 		}
-		
-		return $this->rowIterator;
 	}
 	
 	public function getRow(int $rowAddress): Row
 	{
-		$rowIterator = $this->getRowInterator();
-		$rowIterator->jumpTo($rowAddress);
-		return $rowIterator->current();
+		if ($this->row->getAddress() == $rowAddress) {
+			return $this->row;
+		}
+		
+		if ($this->getRowIteratorKey() > $rowAddress - 1) {
+			$this->_rowIterator->rewind();
+		}
+		
+		while ($this->_rowIterator->key() != $rowAddress - 1) {
+			$this->_rowIterator->next();
+		}
+		return $this->row = new Row($this->_rowIterator->current(), $rowAddress, $this);
 	}
-	
-// 	public function getCell(string $coordinate): ?Cell
-// 	{
-// 		$index = Coordinate::coordinateFromString($coordinate);
-// 		$colAddress = $index[0];
-// 		$rowAddress = $index[1];
-// 		if ($row = $this->getRow($rowAddress)) {
-// 			return $row->getCell($colAddress);	
-// 		}
-// 	}
 
 }
 

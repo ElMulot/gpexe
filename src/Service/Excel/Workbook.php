@@ -35,7 +35,7 @@ class Workbook
 	
 	private $fileName;
 	
-	private $workbook;
+	private $_workbook;
 	
 	private $reader;
 	
@@ -97,13 +97,13 @@ class Workbook
 				break;
 			
 			case self::PHPSPREADSHEET:			
-				$this->workbook = new Spreadsheet();
-				$this->workbook->getProperties()
+				$this->_workbook = new Spreadsheet();
+				$this->_workbook->getProperties()
 					->setCreator('GPEXE')
 					->setTitle($fileName)
 				;
 				
-				$this->writer = IOFactory::createWriter($this->workbook, "Xlsx");
+				$this->writer = IOFactory::createWriter($this->_workbook, "Xlsx");
 				break;
 				
 			default:
@@ -138,10 +138,10 @@ class Workbook
 			
 			case self::PHPSPREADSHEET:
 				$this->reader = IOFactory::createReaderForFile($file);
-				$this->workbook = $this->reader->load($file);
+				$this->_workbook = $this->reader->load($file);
 				
 				if ($readOnly === false) {
-					$this->writer = IOFactory::createWriter($this->workbook, "Xlsx");
+					$this->writer = IOFactory::createWriter($this->_workbook, "Xlsx");
 				}
 				break;
 				
@@ -241,18 +241,18 @@ class Workbook
 			
 				if ($this->reader) {
 					if ($index === null) {
-						foreach ($this->reader->getSheetIterator() as $sheet) {
-							if ($sheet->isActive()) {
-								return new Sheet($sheet, $this);
+						foreach ($this->reader->getSheetIterator() as $_sheet) {
+							if ($_sheet->isActive()) {
+								return new Sheet($_sheet, $this);
 							}
 						}
 					} else {
-						foreach ($this->reader->getSheetIterator() as $sheet) {
-							if ($sheet->getIndex() == $index) {
+						foreach ($this->reader->getSheetIterator() as $_sheet) {
+							if ($_sheet->getIndex() == $index) {
 								if ($this->writer) {
-									$this->writer->setCurrentSheet($sheet);
+									$this->writer->setCurrentSheet($_sheet);
 								}
-								return new Sheet($sheet, $this);
+								return new Sheet($_sheet, $this);
 							}
 						}
 					}
@@ -261,14 +261,14 @@ class Workbook
 			
 			case self::PHPSPREADSHEET:
 			
-				if ($this->workbook) {
+				if ($this->_workbook) {
 					
 					if ($index === null) {
-						return new Sheet($this->workbook->getActiveSheet(), $this);
+						return new Sheet($this->_workbook->getActiveSheet(), $this);
 					} else {
-						$sheet = $this->workbook->getSheet($index);
+						$_sheet = $this->_workbook->getSheet($index);
 						if ($sheet) {
-							return new Sheet($sheet, $this);
+							return new Sheet($_sheet, $this);
 						}
 					}
 				}

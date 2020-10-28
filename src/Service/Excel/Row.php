@@ -12,17 +12,19 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 class Row
 {
 	
-	private $row;
-	
-	private $sheet;
+	private $_row;
 	
 	private $rowAddress;
 	
-	public function __construct($row, int $rowIndex, Sheet $sheet)
+	private $sheet;
+	
+	
+	
+	public function __construct($_row, int $rowAddress, Sheet $sheet)
 	{
-		$this->row = $row;
+		$this->_row = $_row;
 		$this->sheet = $sheet;
-		$this->rowAddress = $rowIndex + 1;
+		$this->rowAddress = $rowAddress;
 	}
 	
 	public function add(): self
@@ -40,7 +42,7 @@ class Row
 	{
 		switch ($this->sheet->getWorkbook()->getLibrary()) {
 			case Workbook::SPOUT:
-				$colIndex = Coordinate::columnIndexFromString($colAddress);
+				$colIndex = Coordinate::columnIndexFromString($colAddress) - 1;
 				if ($cell = $this->row->getCellAtIndex($colIndex)) {
 					return new Cell($cell, $colAddress, $this);
 				} elseif ($this->getSheet()->getWorkbook()->getReadOnly() === false) {
