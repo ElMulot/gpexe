@@ -7,10 +7,21 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Validator\Constraints\File;
+use App\Service\AutomationService;
 
 class LauncherImportType extends AbstractType
 {
+	
+	private $automationService;
+	
+	public function __construct(AutomationService $automationService)
+	{
+		$this->automationService = $automationService;
+	}
+	
 	public function buildForm(FormBuilderInterface $builder, array $options)
 	{
 		$builder->add('file', FileType::class, [
@@ -29,27 +40,34 @@ class LauncherImportType extends AbstractType
 	
 		if ($parsedCode = $builder->getData()->getParsedCode()) {
 			
-			if (array_key_exists('option', $parsedCode)) {
+			$scheme = $this->automationService->getImportScheme();
+			
+			if (array_key_exists('option', $scheme) && array_key_exists('option', $parsedCode)) {
 				
 				foreach ($parsedCode['option'] as $key => $value) {
-					switch ($value) {
-						case 'true':
+					
+					switch ($scheme['option'][$key]['type'] ?? null) {
+						case 'checkbox':
 							$builder->add($key, CheckboxType::class, [
 								'mapped' => false,
-								'data' => true,
-								'disabled' => true,
+								'required' => false,
+								'data' => ($value == 'true'),
 							]);
 							break;
-						case 'false':
-							$builder->add($key, CheckboxType::class, [
+						case 'list':
+							$builder->add($key, ChoiceType::class, [
 								'mapped' => false,
-								'data' => false,
-								'disabled' => true,
+								'choices' => explode('|', $scheme['option'][$key]['regex'] ?? ''),
+								'choice_label' => function ($choice, $key, $value) {
+									return $value;
+								},
+								'data' => $value,
 							]);
 							break;
-						default:
-							$builder->add($key, CheckboxType::class, [
+						case 'text':
+							$builder->add($key, TextType::class, [
 								'mapped' => false,
+								'data' => $value,
 							]);
 							break;
 					}

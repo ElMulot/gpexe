@@ -118,8 +118,9 @@ class Workbook
 		
 		switch ($this->getLibrary()) {
 			case self::SPOUT:
-				$this->reader = ReaderEntityFactory::createReaderFromFile($file);
+				$this->reader = ReaderEntityFactory::createXLSXReader();
 				$this->reader->setShouldPreserveEmptyRows(true);
+				$this->reader->setShouldFormatDates(true);
 				$this->reader->open($file);
 				
 				if ($readOnly === false) {
@@ -281,12 +282,12 @@ class Workbook
 		return null;
 	}
 	
-	public function addRow($rowItem): self
+	public function addRow($_row): self
 	{
 		switch ($this->getLibrary()) {
 			case self::SPOUT:
 				if ($this->writer) {
-					$this->writer->addRow($rowItem);
+					$this->writer->addRow($_row);
 				}
 				break;
 			case self::PHPSPREADSHEET:

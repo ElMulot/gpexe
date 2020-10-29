@@ -13,6 +13,7 @@ use App\Form\LauncherExportType;
 use App\Form\LauncherImportType;
 use App\Repository\AutomationRepository;
 use App\Service\AutomationService;
+use App\Service\ImportExportService;
 use App\Service\CacheService;
 use App\Service\FieldService;
 
@@ -25,15 +26,18 @@ class AutomationController extends AbstractController
 	
 	private $automationService;
 	
+	private $importExportService;
+	
 	private $cacheService;
 	
 	private $fieldService;
 	
-	public function __construct(TranslatorInterface $translator, AutomationRepository $automationRepository, AutomationService $automationService, CacheService $cacheService, FieldService $fieldService)
+	public function __construct(TranslatorInterface $translator, AutomationRepository $automationRepository, AutomationService $automationService, ImportExportService $importExportService, CacheService $cacheService, FieldService $fieldService)
 	{
 		$this->translator = $translator;
 		$this->automationRepository = $automationRepository;
 		$this->automationService = $automationService;
+		$this->importExportService = $importExportService;
 		$this->cacheService = $cacheService;
 		$this->fieldService = $fieldService;
 	}
@@ -64,7 +68,7 @@ class AutomationController extends AbstractController
 		}
 		
 		if ($automation->isValid()) {
-			$this->automationService->unload($automation);
+			$this->importExportService->unload($automation);
 			return $this->render('automation/dashboard.html.twig', [
 				'automation' => $automation,
 				'route_back' =>  $this->generateUrl('project_view', [
@@ -91,7 +95,7 @@ class AutomationController extends AbstractController
 		if ($automation->isTypeImport()) {											
 			
 			if ($this->cacheService->get('automation.ready_to_persist')) {			//launch import
-				$this->automationService->load($automation, $request);
+				$this->importExportService->load($automation, $request);
 				return $this->render('automation/loading.html.twig', [
 					'automation' => $automation,
 				]);
@@ -124,7 +128,7 @@ class AutomationController extends AbstractController
 					]);
 				}
 								
-				if ($this->automationService->load($automation, $request, $file) === false) {
+				if ($this->importExportService->load($automation, $request, $file) === false) {
 					$view = $form->createView();
 					return $this->render('automation/launcher.html.twig', [
 						'form' => $form->createView(),
@@ -137,7 +141,7 @@ class AutomationController extends AbstractController
 				
 			} else {																//launch export
 				
-				if ($this->automationService->load($automation, $request) === false) {
+				if ($this->importExportService->load($automation, $request) === false) {
 					$view = $form->createView();
 					return $this->render('automation/launcher.html.twig', [
 						'form' => $form->createView(),
@@ -151,7 +155,7 @@ class AutomationController extends AbstractController
 			
 		} else {
 			
-			$this->automationService->unload($automation);
+			$this->importExportService->unload($automation);
 			return $this->render('automation/launcher.html.twig', [
 				'form' => $form->createView(),
 			]);
@@ -176,7 +180,7 @@ class AutomationController extends AbstractController
 			
 			if ($this->cacheService->get('automation.ready_to_persist')) {				//launch import
 				
-				$this->automationService->unload($automation);
+				$this->importExportService->unload($automation);
 				return $this->render('automation/import.html.twig', [
 					'automation' => $automation,
 				]);
@@ -194,7 +198,7 @@ class AutomationController extends AbstractController
 		} elseif ($automation->isTypeExport()) {										//launch export
 			
 			$fileName = $this->cacheService->get('automation.file_name');
-			$this->automationService->unload($automation);
+			$this->importExportService->unload($automation);
 			return $this->render('automation/export.html.twig', [
 				'automation' => $automation,
 				'file_name' => $fileName,
@@ -223,9 +227,9 @@ class AutomationController extends AbstractController
 		if ($this->cacheService->get('automation.file_name')) {
 			
 			if ($automation->isTypeImport()) {
-				$success = $this->automationService->import($automation);
+				$success = $this->importExportService->import($automation);
 			} elseif ($automation->isTypeExport())  {
-				$success = $this->automationService->export($automation);
+				$success = $this->importExportService->export($automation);
 			}
 			
 			if ($success) {

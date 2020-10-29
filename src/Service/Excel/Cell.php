@@ -13,13 +13,13 @@ use PhpOffice\PhpSpreadsheet\Shared\Date;
 class Cell
 {
 	
-	private $cell;
+	private $_cell;
 	
 	private $row;
 	
-	public function __construct($cell, string $colAddress, Row $row)
+	public function __construct($_cell, string $colAddress, Row $row)
 	{
-		$this->cell = $cell;
+		$this->_cell = $_cell;
 		$this->row = $row;
 		$this->colAddress = $colAddress;
 	}
@@ -41,11 +41,11 @@ class Cell
 	
 	public function getValue()
 	{
-		switch ($this->sheet->getWorkbook()->getLibrary()) {
+		switch ($this->row->getSheet()->getWorkbook()->getLibrary()) {
 			case Workbook::SPOUT:
-				return $this->cell->getValue();
+				return $this->_cell->getValue();
 			case Workbook::PHPSPREADSHEET:
-				return $this->cell->getCalculatedValue();
+				return $this->_cell->getCalculatedValue();
 			default:
 				throw new Exception('Library not defined.');
 		}
@@ -53,13 +53,13 @@ class Cell
 	
 	public function setValue($value): self
 	{
-		$this->cell->setValue($value);
+		$this->_cell->setValue($value);
 		return $this;
 	}
 	
 	public function isEmpty(): bool
 	{
-		return ($this->cell->getValue() === '');
+		return ($this->_cell->getValue() === '');
 	}
 	
 	public function getRow(): Row
@@ -69,9 +69,9 @@ class Cell
 	
 	public function addComment(string $value): self
 	{
-		switch ($this->sheet->getWorkbook()->getLibrary()) {
+		switch ($this->row->getSheet()->getWorkbook()->getLibrary()) {
 			case Workbook::SPOUT:
-// 				$this->getRow()->addComment($value);
+				$this->row->addComment($value);
 				break;
 				
 			case Workbook::PHPSPREADSHEET:
@@ -107,7 +107,7 @@ class Cell
 					->build()
 				;
 				
-				$this->cell->setStyle($style);
+				$this->_cell->setStyle($style);
 				break;
 			
 			case Workbook::PHPSPREADSHEET:
@@ -148,7 +148,7 @@ class Cell
 					->build()
 				;
 					
-				$this->cell->setStyle($style);
+				$this->_cell->setStyle($style);
 				break;
 			
 			case Workbook::PHPSPREADSHEET:
@@ -176,13 +176,15 @@ class Cell
 	{
 		switch ($this->row->getSheet()->getWorkbook()->getLibrary()) {
 			case Workbook::SPOUT:
-				
 				$dateFormat = $this->row->getSheet()->getWorkbook()->getDateFormat();
-				dd($this->cell->getFormat());
-// 				###
+				$date = \DateTime::createFromFormat($dateFormat, $this->getValue());
+				if ($date && $date->format($dateFormat) === $this->getValue()) {
+					return $date;
+				}
+				break;
 				
 			case Workbook::PHPSPREADSHEET:
-				if (Date::isDateTime($this->cell)) {
+				if (Date::isDateTime($this->_cell)) {
 					return Date::excelToDateTimeObject($this->getValue());
 				} else {
 					$dateFormat = $this->row->getSheet()->getWorkbook()->getDateFormat();
@@ -196,11 +198,7 @@ class Cell
 			default:
 				throw new Exception('Library not defined.');
 		}
-	}
-	
-	public static function excelToDateTimeObject($excelTimestamp, $timeZone = null)
-	{
-		
+		return null;
 	}
 }
 
