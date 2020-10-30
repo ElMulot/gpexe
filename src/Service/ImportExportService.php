@@ -33,7 +33,7 @@ use App\Service\Excel\Workbook;
 class ImportExportService
 {
 	
-	const MAX_LINES_PROCESSED 	= 20;
+	const MAX_LINES_PROCESSED 	= 100;
 	const IGNORE_COLOR 			= 'C8C8C8';
 	const WARNING_COLOR 		= 'FFE591';
 	const ERROR_COLOR 			= 'FF9191';
@@ -113,10 +113,9 @@ class ImportExportService
 		}
 		
 		$firstRow = $this->parsedCode['first_row'];
-		$this->cacheService->set('automation.current_row', $firstRow + 1);
 		
 		$mainColumn = $this->parsedCode['main_column'] ?? null;
-		$commentColumn = $this->parsedCode['comment_column'] ?? null;
+		$commentsColumn = $this->parsedCode['comments_column'] ?? null;
 		$library = $this->cacheService->get('automation.library');
 		$dateFormat = $this->cacheService->get('automation.date_format');
 		
@@ -124,7 +123,7 @@ class ImportExportService
 			
 			//create workbook
 			try {
-				$this->workbook = new Workbook($library, $firstRow, $mainColumn, $commentColumn, $dateFormat);
+				$this->workbook = new Workbook($library, $firstRow, $mainColumn, $commentsColumn, $dateFormat);
 			} catch (Exception $e) {
 				$this->flashBagInterface->add('danger', $e->getMessage());
 				return false;
@@ -162,17 +161,23 @@ class ImportExportService
 				return false;
 			}
 			
+			$this->cacheService->set('automation.current_row', $firstRow + 1);
 			$this->cacheService->set('automation.file_name', $this->workbook->getFilename());
 			return true;
 
 		} elseif ($automation->isTypeImport()) {
 			
 			//upload file
-			$file->move($this->targetDirectory, 'GPEXE Import.xlsx');
+			try {
+				$file->move($this->targetDirectory, 'GPEXE Import.xlsx');
+			} catch (FileException $e) {
+				$this->flashBagInterface->add('danger', $e->getMessage());
+				return false;
+			}
 			
 			//open workbook
 			try {
-				$this->workbook = new Workbook($library, $firstRow, $mainColumn, $commentColumn, $dateFormat);
+				$this->workbook = new Workbook($library, $firstRow, $mainColumn, $commentsColumn, $dateFormat);
 			} catch (Exception $e) {
 				$this->flashBagInterface->add('danger', $e->getMessage());
 				return false;
@@ -190,14 +195,14 @@ class ImportExportService
 			
 			//setting up cache
 			$currentRow = $firstRow;
-			while ($row = $sheet->getRow($currentRow)) {
-				if ($row->getCell($mainColumn)->isEmpty()) {
-					break;
-				}
-				$currentRow++;
-			}
+// 			while (($row = $sheet->getRow($currentRow)) && ($currentRow < 1000)) {
+// 				if ($row->getCell($mainColumn)->isEmpty()) {
+// 					break;
+// 				}
+// 				$currentRow++;
+// 			}
 			
-			$this->cacheService->set('automation.count_row', max(1, $row->getAddress() - $firstRow - 1));
+// 			$this->cacheService->set('automation.count_row', max(1, $row->getAddress() - $firstRow - 1));
 			
 			//save
 			try {
@@ -207,6 +212,7 @@ class ImportExportService
 				return false;
 			}
 			
+			$this->cacheService->set('automation.current_row', $firstRow);
 			$this->cacheService->set('automation.file_name', $this->workbook->getFilename());
 			return true;
 			
@@ -232,7 +238,6 @@ class ImportExportService
 		} elseif ($automation->isTypeImport()) {
 			
 			$this->cacheService->delete('automation.file_name');
-			$this->cacheService->delete('automation.count_row');
 			$this->cacheService->delete('automation.count_processed');
 			$this->cacheService->delete('automation.current_row');
 			$this->cacheService->delete('automation.new_batch');
@@ -257,11 +262,11 @@ class ImportExportService
 		$project = $automation->getProject();
 		$this->parsedCode = $automation->getParsedCode();
 		
-		$library = $this->parsedCode['option']['library'];
 		$firstRow = $this->parsedCode['first_row'];
 		$mainColumn = $this->parsedCode['main_column'] ?? null;
 		$commentColumn = $this->parsedCode['comment_column'] ?? null;
-		$dateFormat = $this->parsedCode['option']['date_format'] ?? null;
+		$library = $this->cacheService->get('automation.library');
+		$dateFormat = $this->cacheService->get('automation.date_format');
 		
 		//cache
 		$fileName = $this->cacheService->get('automation.file_name');
@@ -351,11 +356,11 @@ class ImportExportService
 		$project = $automation->getProject();
 		$this->parsedCode = $automation->getParsedCode();
 		
-		$library = $this->parsedCode['option']['library'];
 		$firstRow = $this->parsedCode['first_row'];
 		$mainColumn = $this->parsedCode['main_column'] ?? null;
 		$commentColumn = $this->parsedCode['comment_column'] ?? null;
-		$dateFormat = $this->parsedCode['option']['date_format'] ?? null;
+		$library = $this->cacheService->get('automation.library');
+		$dateFormat = $this->cacheService->get('automation.date_format');
 		$matches = null;
 		
 		$defaultStatus = $this->statusRespository->getDefaultStatus($project);
@@ -368,7 +373,6 @@ class ImportExportService
 		//cache
 		$fileName = $this->cacheService->get('automation.file_name');
 		$currentRow = $this->cacheService->get('automation.current_row');
-		$countRow = $this->cacheService->get('automation.count_row') ?? 1;
 		$countProcessed = (int)$this->cacheService->get('automation.count_processed');
 		$options = [];
 		foreach (array_keys($this->parsedCode['option'] ?? []) as $key) {
@@ -383,6 +387,7 @@ class ImportExportService
 			$this->flashBagInterface->add('danger', $e->getMessage());
 			return false;
 		}
+		
 		try {
 			$this->workbook->open($this->targetDirectory . $fileName);
 		} catch (Exception $e) {
@@ -400,7 +405,7 @@ class ImportExportService
 				break;
 			}
 			
-			if ($row->getAddress() - $currentRow + 1 >= self::MAX_LINES_PROCESSED) {
+			if ($row->getAddress() - $this->cacheService->get('automation.current_row') >= self::MAX_LINES_PROCESSED) {
 				$newBatch = true;
 				break;
 			}
@@ -433,6 +438,13 @@ class ImportExportService
 							break 2;
 						}
 					}
+				}
+				
+				if ($currentDocument === null) {
+					$this->addComment('error', "Ligne exclue : document non trouvé.");
+					$this->writeComments($row);
+					$currentRow++;
+					continue;
 				}
 				
 			} else {
@@ -695,16 +707,15 @@ class ImportExportService
 		}
 		
 		$this->cacheService->set('automation.new_batch', $newBatch);
+		$this->flashBagInterface->add('info', ($currentRow - $firstRow) . ' lignes analysées');
 		
 		if ($newBatch === false) {
-			if ($countRow > self::MAX_LINES_PROCESSED) {
-				$this->flashBagInterface->add('info', '100% terminés.');
-			}
+			
 			if ($this->cacheService->get('automation.ready_to_persist')) {
 				$this->entityManager->flush();
-				$this->flashBagInterface->add('info', 'Import terminé : ' . $countProcessed . '/' . ($currentRow - $firstRow + 1) . ' lignes ont été importées');
+				$this->flashBagInterface->add('info', 'Import terminé : ' . $countProcessed . '/' . ($currentRow - $firstRow) . ' lignes ont été importées');
 			} else {
-				$this->flashBagInterface->add('info', 'Vérification terminée : ' . $countProcessed . '/' . ($currentRow - $firstRow + 1) . ' lignes peuvent être importées');
+				$this->flashBagInterface->add('info', 'Vérification terminée : ' . $countProcessed . '/' . ($currentRow - $firstRow) . ' lignes peuvent être importées');
 				try {
 					$this->workbook->save();
 				} catch (Exception $e) {
@@ -713,14 +724,14 @@ class ImportExportService
 				}
 			}
 		} else {
-			$this->flashBagInterface->add('info', round(100 * ($currentRow - $firstRow) / $countRow) . '% terminés.');
+			
+			$this->cacheService->set('automation.count_processed', $countProcessed);
+			$this->cacheService->set('automation.current_row', $currentRow);
+			
 			if ($this->cacheService->get('automation.ready_to_persist')) {
-				$this->cacheService->set('automation.count_processed', $countProcessed);
-				$this->cacheService->set('automation.current_row', $currentRow);
 				$this->entityManager->flush();
 			} else {
-				$this->cacheService->set('automation.count_processed', $countProcessed);
-				$this->cacheService->set('automation.current_row', $currentRow);
+
 				try {
 					$this->workbook->save();
 				} catch (Exception $e) {
@@ -884,6 +895,7 @@ class ImportExportService
 	
 	private function writeComments(Row $row)
 	{		
+		
 		if ($this->cacheService->get('automation.ready_to_persist') == false) {
 			$type = null;
 			foreach ($this->comments as $comment) {
@@ -931,7 +943,7 @@ class ImportExportService
 			}
 			
 			$this->comments = [];
-			$row->add();
+// 			$row->add();
 		}
 	}
 }

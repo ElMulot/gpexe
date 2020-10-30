@@ -5,9 +5,9 @@
 {% endfor %}
 
 {% if redirect == 'launch' %}
-	<a class="active" data-toggle="ajax" data-url="{{ path('automation_launch', app.request.query.all|merge({'automation': automation.id})) }}" data-target="#output"></a>
+	<a class="active" data-toggle="ajax" data-url="{{ path('automation_launch', {'automation': automation.id}) }}" data-target="#output"></a>
 {% elseif redirect == 'console' %}
-	<a class="active" data-toggle="ajax" data-url="{{ path('automation_console', app.request.query.all|merge({'automation': automation.id})) }}" data-target="#console"></a>
+	<a class="active" data-toggle="ajax" data-url="{{ path('automation_console', {'automation': automation.id}) }}" data-target="#console"></a>
 {% elseif redirect == 'completed' %}
-	<a class="active" data-toggle="ajax" data-url="{{ path('automation_completed', app.request.query.all|merge({'automation': automation.id})) }}" data-target="#output"></a>
+	<a class="active" data-toggle="ajax" data-url="{{ path('automation_completed', {'automation': automation.id}) }}" data-target="#output"></a>
 {% endif %}

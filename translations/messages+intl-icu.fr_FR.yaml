@@ -5,36 +5,51 @@ delay: >-
       }
       
 updated:
-   version: >-
-      {count, plural,
-         one   {version mise à jour}
-         other {versions mises à jour}
-      }
+    version: >-
+        {count, plural,
+            one   {Version mise à jour}
+            other {Versions mises à jour}
+        }
 
 confirm:
-   document: Confirmer la suppression
-      {count, plural,
-         one   {du document}
-         other {des documents}
-      }
-   version: Confirmer la suppression
-      {count, plural,
-         one   {de la version}
-         other {des versions}
-      }
+    automation: Confirmer la suppression du programme
+    codification: Confirmer la suppression du code
+    codificationItem: Confirmer la suppression de l'entrée
+    codificationValue: Confirmer la suppression de l'entrée
+    company: Confirmer la suppression de la société
+    document: Confirmer la suppression
+        {count, plural,
+            one   {du document}
+            other {des documents}
+        }
+    metadata: Confirmer la suppression de la métadonnée
+    metadataItem: Confirmer la suppression de l'entrée
+    metadataValue: Confirmer la suppression de l'entrée
+    profil: Confirmer la suppression du profil
+    project: Confirmer la suppression du projet
+    serie: Confirmer la suppression de la série
+    status: Confirmer la suppression du statut
+    user: Confirmer la suppression de l'utilisateur
+    version: Confirmer la suppression
+        {count, plural,
+            one   {de la version}
+            other {des versions}
+        }
+    visa: Confirmer la suppression du visa
+    vue: Confirmer la suppression de la vue
       
 deleted:
-   document: >-
-      {count, plural,
-         one   {Document supprimé}
-         other {Documents supprimés}
-      }
+    document: >-
+        {count, plural,
+            one   {Document supprimé}
+            other {Documents supprimés}
+        }
       
-   version: >-
-      {count, plural,
-         one   {Version supprimée}
-         other {Versions supprimées}
-      }
+    version: >-
+        {count, plural,
+            one   {Version supprimée}
+            other {Versions supprimées}
+        }
       
 notEmpty:
     field: 'Le champ "{field}" ne doit pas être vide'

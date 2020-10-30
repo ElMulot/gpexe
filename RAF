@@ -1,37 +1,13 @@
-Général
-	Placer language dans body et modifier le javascript								OK
-	Events sur ajax																	OK
-
 Automation :
-    Vérifier les imports															OK partiel
-    Vérifier les exports
-    Ajouter une fonction perso pour couper les chaînes
+    Vérifier les imports															OK
+    Vérifier les exports															OK
+    Ajouter une fonction perso pour couper les chaînes								
+    Vérifier l'import zone 21
+    Ajouter la date et l'auteur des visas
+    Vider le cache
 
-Contrôle d'accès :
-    Mettre à jour la bdd															OK
-    Vérifier le contrôle d'accès côté yaml											OK
-    Vérifier le contrôle d'accès côté html											OK
-
-Vue principale
-    Vérifier le bon fonctionnement des vues											OK
-    Vérifier le fonctionnement des filtres											OK
-    Enregistrer le document															Ok
-    Coloration																		OK
-    Tri dates																		OK
-    
-Avancement
-    Ajouter pages avancement
-    Ajouter propriété progress dans version
-
-Accueil et project view
-	Vérifier MAJ JS																	OK
-
-Debug:
-	Affichage n° de page à corriger													OK
-	Hauteur de la table à revoir en css. Eviter le codage javascript.				OK
-	Document::move																	OK
-	Toast																			OK
-	Vérifier nécessité Denormalize et remplace preg_match par preg_match			OK
-	Visa : vérifier comment sont sélectionner les visas (par id ou value)			OK
-	Créer requête pour lastDelivered et lastScheduled								OK
-	Problème enregistrement visa													?
+Vue principale :
+	Refonte search
+	
+Progress:
+	A faire

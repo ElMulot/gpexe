@@ -43,8 +43,8 @@ class Row
 		switch ($this->sheet->getWorkbook()->getLibrary()) {
 			case Workbook::SPOUT:
 				$colIndex = Coordinate::columnIndexFromString($colAddress) - 1;
-				if ($cell = $this->_row->getCellAtIndex($colIndex)) {
-					return new Cell($cell, $colAddress, $this);
+				if ($_cell = $this->_row->getCellAtIndex($colIndex)) {
+					return new Cell($_cell, $colAddress, $this);
 				} elseif ($this->getSheet()->getWorkbook()->getReadOnly() === false) {
 					$this->_row->setCellAtIndex(WriterEntityFactory::createCell(''), $colIndex);
 					return new Cell($this->_row->getCellAtIndex($colIndex), $colAddress, $this);
@@ -52,7 +52,7 @@ class Row
 				break;
 				
 			case Workbook::PHPSPREADSHEET:
-				return new Cell($this->_row->getWorksheet()->getCell($colAddress . $this->rowAddress), $colAddress, $this);
+				return new Cell($this->_row->getWorksheet()->getCell($colAddress . $this->getAddress()), $colAddress, $this);
 			default:
 				throw new Exception('Library not defined.');
 		}
@@ -77,8 +77,8 @@ class Row
 			
 			case Workbook::PHPSPREADSHEET:
 			
-				$this->getParent()
-					->getParent()
+				$this->_row
+					->getWorksheet()
 					->getStyle('A' . $this->getAddress() . ':Z' . $this->getAddress())
 					->getFill()
 					->setFillType(Fill::FILL_SOLID)
@@ -117,8 +117,8 @@ class Row
 			
 			case Workbook::PHPSPREADSHEET:
 			
-				$this->getParent()
-					->getParent()
+				$this->_row
+					->getWorksheet()
 					->getStyle('A' . $this->getAddress() . ':Z' . $this->getAddress())
 					->getBorders()
 					->getAllBorders()
@@ -141,17 +141,17 @@ class Row
 	{
 		switch ($this->sheet->getWorkbook()->getLibrary()) {
 			case Workbook::SPOUT:
-				$commentsColumn = $this->sheet->getWorkbook()->getCommentsColumn();
-				$this->getCell($commentsColumn)->setValue($this->getCell($commentsColumn)->getValue() . "\r\n" . $value);
+// 				$commentsColumn = $this->sheet->getWorkbook()->getCommentsColumn();
+// 				$this->getCell($commentsColumn)->setValue($this->getCell($commentsColumn)->getValue() . "\r\n" . $value);
 				break;
 				
 			case Workbook::PHPSPREADSHEET:
 				$mainColumn = $this->sheet->getWorkbook()->getMainColumn();
-				$comment = $this->getParent()
-					->getParent()
-					->getComment($mainColumn . $this->_row->getAddress())
+				$comment = $this->_row
+					->getWorksheet()
+					->getComment($mainColumn . $this->getAddress())
 				;
-				$comment->getText()->createTextRun($value . "\r\n");
+				$comment->getText()->createTextRun($value);
 				$numberOfLines = max(1, substr_count($comment->getText(), "\r\n"));
 				$comment
 					->setWidth("500px")

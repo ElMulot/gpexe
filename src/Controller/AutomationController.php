@@ -125,6 +125,7 @@ class AutomationController extends AbstractController
 					$this->addFlash('danger', 'Aucun fichier sélectionné');
 					return $this->render('automation/launcher.html.twig', [
 						'form' => $form->createView(),
+						'automation' => $automation,
 					]);
 				}
 								
@@ -132,6 +133,7 @@ class AutomationController extends AbstractController
 					$view = $form->createView();
 					return $this->render('automation/launcher.html.twig', [
 						'form' => $form->createView(),
+						'automation' => $automation,
 					]);
 				}
 				
@@ -145,6 +147,7 @@ class AutomationController extends AbstractController
 					$view = $form->createView();
 					return $this->render('automation/launcher.html.twig', [
 						'form' => $form->createView(),
+						'automation' => $automation,
 					]);
 				}
 				
@@ -158,6 +161,7 @@ class AutomationController extends AbstractController
 			$this->importExportService->unload($automation);
 			return $this->render('automation/launcher.html.twig', [
 				'form' => $form->createView(),
+				'automation' => $automation,
 			]);
 			
 		}
@@ -276,7 +280,7 @@ class AutomationController extends AbstractController
 			$entityManager->persist($automation);
 			$entityManager->flush();
 			
-			$this->addFlash('success', 'New entry created');
+			$this->addFlash('success', 'Nouveau programme créé');
 			
 			if ($request->request->get('submit') == 'save') {
 				return $this->redirectToRoute('automation_edit', [
@@ -319,7 +323,7 @@ class AutomationController extends AbstractController
 			$entityManager = $this->getDoctrine()->getManager();
 			
 			$entityManager->flush();
-			$this->addFlash('success', 'Datas updated');
+			$this->addFlash('success', 'Programme mis à jour');
 			
 			if ($request->request->get('submit') == 'save') {
 				$view = $form->createView();
@@ -360,7 +364,7 @@ class AutomationController extends AbstractController
 			$entityManager->remove($automation);
 			$entityManager->flush();
 			
-			$this->addFlash('success', 'Entry deleted');
+			$this->addFlash('success', 'Programme supprimé');
 			return $this->redirectToRoute('automation', [
 				'project' => $project->getId()
 			]);

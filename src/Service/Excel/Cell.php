@@ -4,7 +4,7 @@ namespace App\Service\Excel;
 
 use Box\Spout\Writer\Common\Creator\Style\StyleBuilder;
 use Box\Spout\Writer\Common\Creator\Style\BorderBuilder;
-use Box\Spout\Common\Entity\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
@@ -59,7 +59,7 @@ class Cell
 	
 	public function isEmpty(): bool
 	{
-		return ($this->_cell->getValue() === '');
+		return ($this->_cell->getValue() == false);
 	}
 	
 	public function getRow(): Row
@@ -71,13 +71,13 @@ class Cell
 	{
 		switch ($this->row->getSheet()->getWorkbook()->getLibrary()) {
 			case Workbook::SPOUT:
-				$this->row->addComment($value);
+// 				$this->row->addComment($value);
 				break;
 				
 			case Workbook::PHPSPREADSHEET:
 			
-				$comment = $this->getParent()
-					->getParent()
+				$comment = $this->_cell
+					->getWorksheet()
 					->getComment($this->getAddress())
 				;
 				$comment->getText()->createTextRun($value . "\r\n");
@@ -112,8 +112,8 @@ class Cell
 			
 			case Workbook::PHPSPREADSHEET:
 			
-				$this->getParent()
-					->getParent()
+				$this->_cell
+					->getWorksheet()
 					->getStyle($this->getAddress())
 					->getFill()
 					->setFillType(Fill::FILL_SOLID)
@@ -153,8 +153,8 @@ class Cell
 			
 			case Workbook::PHPSPREADSHEET:
 				
-				$this->getParent()
-					->getParent()
+				$this->_cell
+					->getWorksheet()
 					->getStyle($this->getAddress())
 					->getBorders()
 					->getAllBorders()

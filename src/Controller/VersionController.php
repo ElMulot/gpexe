@@ -78,12 +78,12 @@ class VersionController extends AbstractController
 		if ($document === null) {
 			$documents = $this->documentRepository->getDocumentsByRequest($request);
 			if ($documents == false) {
-				$this->addFlash('danger', 'None documents selected');
+				$this->addFlash('danger', $this->translator->trans('None documents selected'));
 				return $this->render('ajax/error.html.twig');
 			}
 		
 			if (count($documents) > 1) {
-				$this->addFlash('danger', 'Only one reference must be selected');
+				$this->addFlash('danger', $this->translator->trans('Only one reference must be selected'));
 				return $this->render('ajax/error.html.twig');
 			}
 			
@@ -140,7 +140,7 @@ class VersionController extends AbstractController
 			$entityManager->persist($version);
 			$entityManager->flush();
 			
-			$this->addFlash('success', 'New version created');
+			$this->addFlash('success', $this->translator->trans('New version created'));
 			return new Response();
 		} else {
 			$view = $form->createView();
@@ -156,7 +156,7 @@ class VersionController extends AbstractController
 		if ($document === null) {
 			$documents = $this->documentRepository->getDocumentsByRequest($request);
 			if ($documents == false) {
-				$this->addFlash('danger', 'None documents selected');
+				$this->addFlash('danger', $this->translator->trans('None documents selected'));
 				return $this->render('ajax/error.html.twig');
 			}
 			

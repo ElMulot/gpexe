@@ -12,12 +12,14 @@ use App\Form\ChangePasswordType;
 
 class AccountController extends AbstractController
 {
-    private $session;
-    private $passwordEncoder;
+	
+	private $session;
     
-    public function __construct(SessionInterface $session, UserPasswordEncoderInterface $passwordEncoder)
+	private $passwordEncoder;
+    
+	public function __construct(SessionInterface $session, UserPasswordEncoderInterface $passwordEncoder)
     {
-        $this->session = $session;
+    	$this->session = $session;
         $this->passwordEncoder = $passwordEncoder;
     }
     

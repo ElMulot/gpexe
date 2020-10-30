@@ -41,14 +41,14 @@ class Workbook
 	
 	private $writer;
 	
-	//---------------------------------------------------------------------------
-	// Method	|      Library     | Reader  | Writer
-	//---------------------------------------------------------------------------
-	// New	 	| Spout            | Defined | Defined
-	// New		| PhpSpreadsheet   | n/a     | Defined
-	// Open		| Spout            | Defined | Defined (if readOnly !== false)
-	// Open		| PhpSpreadsheet   | Defined | Defined (if readOnly !== false)
-	//---------------------------------------------------------------------------
+// 	---------------------------------------------------------------------------
+// 	Method	|      Library     | Reader  | Writer
+// 	---------------------------------------------------------------------------
+// 	New	 	| Spout            | Defined | Defined
+// 	New		| PhpSpreadsheet   | n/a     | Defined
+// 	Open	| Spout            | Defined | Defined (if readOnly !== false)
+// 	Open	| PhpSpreadsheet   | Defined | Defined (if readOnly !== false)
+// 	---------------------------------------------------------------------------
 	
 	public function __construct(string $library, int $firstRow, $mainColumn = 'A', $commentsColumn = 'Z', string $dateFormat = 'd/m/Y')
 	{
@@ -123,18 +123,18 @@ class Workbook
 				$this->reader->setShouldFormatDates(true);
 				$this->reader->open($file);
 				
-				if ($readOnly === false) {
-					$this->writer = WriterEntityFactory::createXLSXWriter();
-					$this->writer->openToFile($file . '.tmp');
-					foreach ($this->reader->getSheetIterator() as $sheetIndex => $sheet) {
-						if ($sheetIndex !== 1) {
-							$this->writer->addNewSheetAndMakeItCurrent();
-						}
-						foreach ($sheet->getRowIterator() as $row) {
-							$this->writer->addRow($row);
-						}
-					}
-				}
+// 				if ($readOnly === false) {
+// 					$this->writer = WriterEntityFactory::createXLSXWriter();
+// 					$this->writer->openToFile($file . '.tmp');
+// 					foreach ($this->reader->getSheetIterator() as $sheetIndex => $sheet) {
+// 						if ($sheetIndex !== 1) {
+// 							$this->writer->addNewSheetAndMakeItCurrent();
+// 						}
+// 						foreach ($sheet->getRowIterator() as $row) {
+// 							$this->writer->addRow($row);
+// 						}
+// 					}
+// 				}
 				break;
 			
 			case self::PHPSPREADSHEET:

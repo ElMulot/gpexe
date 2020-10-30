@@ -155,7 +155,7 @@ class SerieController extends AbstractController
 				$value = $form->get($metadata->getCodeName())->getData();
 				
 				if ($value === null && $metadata->getIsMandatory()) {
-					$this->addFlash('danger', 'The field  \'' . $metadata->getName() . '\' must not be empty');
+					$this->addFlash('danger', $this->translator->trans('notEmpty.field', ['field' => $metadata->getName()]));
 					$view = $form->createView();
 					return $this->render('generic/form.html.twig', [
 						'route_back' =>  $this->generateUrl('document', [

@@ -120,7 +120,7 @@ class CodificationController extends AbstractController
 			return $this->render('generic/delete.html.twig', [
 				'route_back' =>  $this->generateUrl('codification', [
 					'project' => $codification->getProject()->getId(),
-						]),
+				]),
 			    'entities' => [$codification],
             ]);
         }

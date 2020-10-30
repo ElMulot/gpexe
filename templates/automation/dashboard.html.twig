@@ -20,6 +20,7 @@
     	<div class="navbar-collapse" style="{{ block('nav_item') }}"></div>
     {% endif %}
     <div class="navbar-collapse navbar-brand justify-content-center">
+    	{{ automation.name }}
     </div>
     <div class="navbar-collapse" style="{{ block('nav_item') }}"></div>
 {% endblock %}
@@ -29,12 +30,12 @@
         <div id="output" class="col-6">
 
         </div>
-        <div class="col-6 jumbotron pt-1">
+        <div class="col-6 jumbotron pt-1 h-100">
         	<div class="d-flex justify-content-end">
             	<button id="clear" type="button" class="btn btn-sm btn-primary">Effacer</button>
             </div>
             <div id="console" class="py-3 overflow-auto h-100">
-            	<a class="active" data-toggle="ajax" data-target="#console" data-url="{{ path('automation_console', app.request.query.all|merge({'automation': automation.id})) }}"></a>
+            	<a class="active" data-toggle="ajax" data-target="#console" data-url="{{ path('automation_console', {'automation': automation.id}) }}"></a>
             </div>
 		</div>
     </div>

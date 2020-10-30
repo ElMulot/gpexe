@@ -7,34 +7,51 @@ delay: >-
 updated:
    version: >-
       {count, plural,
-         one   {version updated}
-         other {versions updated}
+         one   {Version updated}
+         other {Versions updated}
       }
 
 confirm:
-   document: Confirm deletion
-      {count, plural,
-         one   {of this document}
-         other {of these documents}
-      }
-   version: Confirm deletion
-      {count, plural,
-         one   {of this version}
-         other {of these versions}
-      }
+    automation: Confirm deletion of automation
+    codification: Confirm deletion of codification
+    codificationItem: Confirm deletion of entry
+    codificationValue: Confirm deletion of entry
+    company: Confirm deletion of company
+    document: Confirm deletion
+        {count, plural,
+            one   {of this document}
+            other {of these documents}
+        }
+    metadata: Confirm deletion of metadata
+    metadataItem: Confirm deletion of entry
+    metadataValue: Confirm deletion of entry
+    profil: Confirm deletion of profil
+    project: Confirm deletion of project
+    serie: Confirm deletion of serie
+    status: Confirm deletion of status
+    user: Confirm deletion of user
+    version: Confirm deletion
+        {count, plural,
+            one   {of this version}
+            other {of these versions}
+        }
+    visa: Confirm deletion of visa
+    vue: Confirm deletion of vue
+
+
       
 deleted:
-   document: >-
-      {count, plural,
-         one   {Document deleted}
-         other {Documents deleted}
-      }
+    document: >-
+        {count, plural,
+            one   {Document deleted}
+            other {Documents deleted}
+        }
       
-   version: >-
-      {count, plural,
-         one   {Version deleted}
-         other {Versions deleted}
-      }
+    version: >-
+        {count, plural,
+            one   {Version deleted}
+            other {Versions deleted}
+        }
       
 notEmpty:
     field: 'The field "{field}" must not be empty'

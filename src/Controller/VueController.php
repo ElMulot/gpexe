@@ -58,7 +58,7 @@ class VueController extends AbstractController
 			$entityManager->persist($vue);
 			$entityManager->flush();
 			
-			$this->addFlash('success', 'New vue created');
+			$this->addFlash('success', $this->translator->trans('New vue created'));
 			return new Response();
 		} else {
 			$view = $form->createView();
@@ -82,7 +82,7 @@ class VueController extends AbstractController
 			$entityManager = $this->getDoctrine()->getManager();
 			$entityManager->flush();
 			
-			$this->addFlash('success', 'Vue updated');
+			$this->addFlash('success', $this->translator->trans('Vue updated'));
 			return new Response();
 		} else {
 			$view = $form->createView();
@@ -104,7 +104,7 @@ class VueController extends AbstractController
 			$entityManager->remove($vue);
 			$entityManager->flush();
 			
-			$this->addFlash('success', 'Vue deleted');
+			$this->addFlash('success', $this->translator->trans('Vue deleted'));
 			return new Response();
 		} else {
 			return $this->render('ajax/delete.html.twig', [

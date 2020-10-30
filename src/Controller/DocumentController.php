@@ -261,14 +261,14 @@ class DocumentController extends AbstractController
 	{			
 		$documents = $this->documentRepository->getDocumentsByRequest($request);
 		if ($documents == false) {
-			$this->addFlash('danger', 'None documents selected');
+			$this->addFlash('danger', $this->translator->trans('None documents selected'));
 			return $this->render('ajax/error.html.twig');
 		}
 		
 		$document = $documents[0];
 		
 		if (count($documents) > 1) {
-			$this->addFlash('danger', 'Only one reference must be selected');
+			$this->addFlash('danger', $this->translator->trans('Only one reference must be selected'));
 			return $this->render('ajax/error.html.twig');
 		}
 		
@@ -319,7 +319,7 @@ class DocumentController extends AbstractController
 			$entityManager->flush();
 			
 			$request->query->remove('id');
-			$this->addFlash('success', 'Document updated');
+			$this->addFlash('success', $this->translator->trans('Document updated'));
 			return new Response();
 		} else {
 			$view = $form->createView();
@@ -336,7 +336,7 @@ class DocumentController extends AbstractController
 		$documents = $this->documentRepository->getDocumentsByRequest($request);
 		
 		if ($documents == false) {
-			$this->addFlash('danger', 'None documents selected');
+			$this->addFlash('danger', $this->translator->trans('None documents selected'));
 			return $this->render('ajax/error.html.twig');
 		}
 		
@@ -367,7 +367,7 @@ class DocumentController extends AbstractController
 			
 			$entityManager->flush();
 			
-			$this->addFlash('success', 'The document has been successfully moved');
+			$this->addFlash('success', $this->translator->trans('The document has been successfully moved'));
 			return new Response();
 		} else {
 			$view = $form->createView();
@@ -385,7 +385,7 @@ class DocumentController extends AbstractController
         $documents = $this->documentRepository->getDocumentsByRequest($request);
         
         if ($documents == false) {
-        	$this->addFlash('danger', 'None documents selected');
+        	$this->addFlash('danger', $this->translator->trans('None documents selected'));
         	return $this->render('ajax/error.html.twig');
         }
         
