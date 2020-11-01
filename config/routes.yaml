@@ -322,6 +322,16 @@ document:   #vue principale
         serie: 0
     controller: App\Controller\DocumentController::index
 
+document_fields:
+    path: /project/{project}/serie/{type}/{serie}/fields
+    requirements:
+        project: \d+
+        type: sdr|mdr
+        serie: \d+
+    defaults:
+        serie: 0
+    controller: App\Controller\DocumentController::fields
+
 document_table:
     path: /project/{project}/serie/{type}/{serie}/table
     requirements:
@@ -451,11 +461,17 @@ automation_dashboard:
         automation: \d+
     controller: App\Controller\AutomationController::dashboard
 
-automation_launch:
-    path: /project/automation/{automation}/launch
+automation_preload:
+    path: /project/automation/{automation}/preload
     requirements:
         automation: \d+
-    controller: App\Controller\AutomationController::launch
+    controller: App\Controller\AutomationController::preload
+    
+automation_load:
+    path: /project/automation/{automation}/load
+    requirements:
+        automation: \d+
+    controller: App\Controller\AutomationController::load
     
 automation_console:
     path: /project/automation/{automation}/console

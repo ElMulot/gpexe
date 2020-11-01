@@ -2,11 +2,6 @@
 
 namespace App\Service\Excel;
 
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet as PhpSpreadsheetSheet;
-use Box\Spout\Reader\XLSX\Sheet as SpoutSheet;
-use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
-use Symfony\Component\BrowserKit\Request;
-
 class Sheet
 {
 	private $_sheet;

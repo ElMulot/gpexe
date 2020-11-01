@@ -15,7 +15,9 @@ class QuickVersionType extends AbstractType
 	public function buildForm(FormBuilderInterface $builder, array $options)
     {
     	$builder->add('name', TextType::class, [
-    			'row_attr' => ['class' => 'row'],
+			'label' => 'New version',
+    		'label_attr' => ['class' => 'col-form-label col-5'],
+    		'row_attr' => ['class' => 'row'],
     	]);
     }
 

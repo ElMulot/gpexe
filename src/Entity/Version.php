@@ -474,16 +474,45 @@ class Version
 				return true;
 				
 			default:
+				
 				if (preg_match('/version\.\w+/', $codename)) {
 					foreach ($this->getDocument()->getSerie()->getProject()->getMetadatas()->getValues() as $metadata) {
 						if ($metadata->getFullCodename() == $codename) {
 							return $this->getMetadataValue($metadata);
 						}
 					}
+					
 				} elseif (preg_match('/status\.\w+/', $codename)) {
+					
 					return $this->getStatus()->getPropertyValue($codename);
+					
+				} elseif (preg_match('/visa\.(\w+)\.(\w+)/', $codename, $matches)) {
+					
+					foreach ($this->getDocument()->getSerie()->getProject()->getVisas()->getValues() as $visa) {
+						if ($visa->getCompany()->getCodename() == $matches[1]) {
+							if ($review = $this->getReviewByCompany($visa->getCompany())) {
+								switch ($matches[2]) {
+									
+									case 'value':
+										return $review->getVisa()->getName();
+										break;
+										
+									case 'username':
+										return $review->getUser()->getName();
+										break;
+										
+									case 'date':
+										return $review->getDate();
+										break;
+								}
+							}
+						}
+					}
+					
 				} else {
+					
 					return $this->getDocument()->getPropertyValue($codename);
+					
 				}
 		}
 		
@@ -582,52 +611,84 @@ class Version
 				
 			default:
 				if (preg_match('/version\.\w+/', $codename)) {
+					
 					foreach ($this->getDocument()->getSerie()->getProject()->getMetadatas()->getValues() as $metadata) {
 						if ($metadata->getFullCodename() == $codename) {
 							return $this->setMetadataValue($metadata, $value);
 						}
 					}
+					
 				} elseif (preg_match('/status\.value/', $codename)) {
+					
 					foreach ($this->getDocument()->getSerie()->getProject()->getStatuses()->getValues() as $status) {
 						if ($status->getValue() == $value) {
 							$this->setStatus($status);
 							return true;
 						}
 					}
-				} elseif (preg_match('/visa\.(\w+)/', $codename, $matches)) {
+					
+				} elseif (preg_match('/visa\.(\w+)\.(\w+)/', $codename, $matches)) {
 					
 					foreach ($this->getDocument()->getSerie()->getProject()->getVisas()->getValues() as $visa) {
-						
-						if ($visa->getCompany()->getCodename() == $matches[1] && $visa->getName() == $value) {
-							
-							if ($review = $this->getReviewByCompany($visa->getCompany())) {
-								if ($review->getVisa()->getName() != $value) {
-									$review->setVisa($visa);
-								}
-							} else {
-								$review = new Review();
+						if ($visa->getCompany()->getCodename() == $matches[1]) {
+							switch ($matches[2]) {
 								
-								if ($this->getChecker()) {
-									if ($this->getChecker()->getCompany() == $visa->getCompany()) {
-										$review->setUser($this->getChecker());
-									} else {
-										foreach ($visa->getCompany()->getUsers()->getValues() as $user) {
-											$review->setUser($user);
-											break;
+								case 'value':
+									if ($visa->getName() == $value) {
+										if ($review = $this->getReviewByCompany($visa->getCompany())) {
+											if ($review->getVisa()->getName() != $value) {
+												$review->setVisa($visa);
+												return true;
+											}
+										} else {
+											$review = new Review();
+											if ($this->getChecker()) {
+												if ($this->getChecker()->getCompany() == $visa->getCompany()) {
+													$review->setUser($this->getChecker());
+												} else {
+													foreach ($visa->getCompany()->getUsers()->getValues() as $user) {
+														$review->setUser($user);
+														break;
+													}
+												}
+											} else {
+												foreach ($visa->getCompany()->getUsers()->getValues() as $user) {
+													$review->setUser($user);
+													break;
+												}
+											}
+											
+											$review->setDate(new \DateTime('now'));
+											$review->setVisa($visa);
+											$this->addReview($review);
+											return true;
 										}
 									}
-								} else {
-									foreach ($visa->getCompany()->getUsers()->getValues() as $user) {
-										$review->setUser($user);
-										break;
+									break;
+									
+								case 'username':
+									if ($review = $this->getReviewByCompany($visa->getCompany())) {
+										if ($review->getUser()->getName() != $value) {
+											foreach ($visa->getCompany()->getUsers()->getValues() as $user) {
+												if ($user->getName() == $value) {
+													$review->setUser($user);
+													return true;
+													break;
+												}
+											}
+										}
 									}
-								}
-								
-								$review->setDate(new \DateTime('now'));
-								$review->setVisa($visa);
-								$this->addReview($review);
+									break;
+									
+								case 'date':
+									if ($review = $this->getReviewByCompany($visa->getCompany())) {
+										if ($date = \DateTime::createFromFormat('d-m-Y', $value)) {
+											$review->setDate($date);
+											return true;
+										}
+									}
+									break;
 							}
-							return true;
 							
 						}
 					}

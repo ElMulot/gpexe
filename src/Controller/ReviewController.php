@@ -26,8 +26,16 @@ class ReviewController extends AbstractController
 	
 	public function new(Request $request, Version $version, Company $company) :Response
 	{
-		if ($this->getUser()->getCompany() == $company) {
+		if ($this->getUser()->getCompany() == $company || $this->isGranted('ROLE_ADMIN')) {
 			$document = $version->getDocument();
+			
+			if ($version->getReviewByCompany($company) !== null) {
+				return $this->redirectToRoute('review' ,[
+					'version' => $version,
+					'company' => $company,
+				]);
+			}
+			
 			$review = new Review();
 			$form = $this->createForm(ReviewType::class, $review, [
 				'project' => $document->getSerie()->getProject(),
@@ -66,20 +74,19 @@ class ReviewController extends AbstractController
 				]);
 			}
 		} else {
-			return $this->render('review/index.html.twig', [
-				'review' => $review,
-				'company' => $company,
+			return $this->redirectToRoute('review' ,[
 				'version' => $version,
+				'company' => $company,
 			]);
 		}
 	}
 	
 	public function edit(Request $request, Review $review) :Response
 	{
-		$company = $review->getUser()->getCompany();
+		$company = $review->getVisa()->getCompany();
 		$version = $review->getVersion();
 		
-		if ($this->getUser()->getCompany() == $company) {
+		if ($this->getUser()->getCompany() == $company || $this->isGranted('ROLE_ADMIN')) {
 			$form = $this->createForm(ReviewType::class, $review, [
 				'project' => $version->getDocument()->getSerie()->getProject(),
 				'company' => $company,
@@ -88,6 +95,7 @@ class ReviewController extends AbstractController
 			$form->handleRequest($request);
 			
 			if ($form->isSubmitted() && $form->isValid()) {
+				
 				$review->setUser($this->getUser());
 				$review->setDate(new \DateTime);
 				$entityManager = $this->getDoctrine()->getManager();
@@ -109,10 +117,9 @@ class ReviewController extends AbstractController
 				]);
 			}
 		} else {
-			return $this->render('review/index.html.twig', [
-				'review' => $review,
-				'company' => $company,
+			return $this->redirectToRoute('review' ,[
 				'version' => $version,
+				'company' => $company,
 			]);
 		}
 	}
@@ -122,21 +129,33 @@ class ReviewController extends AbstractController
 		$company = $review->getUser()->getCompany();
 		$version = $review->getVersion();
 		
-		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
-			$entityManager = $this->getDoctrine()->getManager();
-			$entityManager->remove($review);
-			$entityManager->flush();
-			
-			return $this->render('review/index.html.twig', [
-				'review' => null,
+		if ($this->getUser()->getCompany() == $company || $this->isGranted('ROLE_ADMIN')) {
+			$form = $this->createForm(ReviewType::class, $review, [
+				'project' => $version->getDocument()->getSerie()->getProject(),
 				'company' => $company,
-				'version' => $version,
 			]);
+		
+			if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
+				$entityManager = $this->getDoctrine()->getManager();
+				$entityManager->remove($review);
+				$entityManager->flush();
+				
+				return $this->render('review/index.html.twig', [
+					'review' => null,
+					'company' => $company,
+					'version' => $version,
+				]);
+			} else {
+				return $this->render('review/delete.html.twig', [
+					'review' => $review,
+					'company' => $company,
+					'version' => $version,
+				]);
+			}
 		} else {
-			return $this->render('review/delete.html.twig', [
-				'review' => $review,
-				'company' => $company,
+			return $this->redirectToRoute('review' ,[
 				'version' => $version,
+				'company' => $company,
 			]);
 		}
 	}

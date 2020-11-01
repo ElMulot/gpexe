@@ -28,12 +28,13 @@ class LauncherImportType extends AbstractType
 			'mapped' => false,
 			'constraints' => [
 				new File([
-					'maxSize' => '5M',
+					'maxSize' => '20M',
 					'mimeTypes' => [
 						'application/vnd.ms-excel',
 						'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+						'text/html',
 					],
-					'mimeTypesMessage' => 'Please upload a valid Excel workbook',
+					'mimeTypesMessage' => 'Le fichier sélectionné n\'est pas un fichier excel valide',
 				])
 			],
 		]);

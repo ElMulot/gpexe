@@ -53,7 +53,6 @@ class FieldService
 				'title' => $this->translator->trans('Reference'),
 				'type' => Metadata::LIST,
 				'parent' => 'document',
-				'sort' => false,
 				'default_width' => 15,
 				'display' => [
 					'table' => true,
@@ -71,7 +70,6 @@ class FieldService
 				'title' => $this->translator->trans('Version'),
 				'type' => Metadata::TEXT,
 				'parent' => 'version',
-				'sort' => false,
 				'default_width' => 3,
 				'display' => [
 					'table' => true,
@@ -89,7 +87,6 @@ class FieldService
 				'title' => $this->translator->trans('Name'),
 				'type' => Metadata::TEXT,
 				'parent' => 'document',
-				'sort' => false,
 				'default_width' => 30,
 				'display' => [
 					'table' => true,
@@ -107,7 +104,6 @@ class FieldService
 				'title' => $this->translator->trans('Initial scheduled date'),
 				'type' => Metadata::DATE,
 				'parent' => 'version',
-				'sort' => true,
 				'default_width' => 8,
 				'display' => [
 					'table' => true,
@@ -125,7 +121,6 @@ class FieldService
 				'title' => $this->translator->trans('Scheduled date'),
 				'type' => Metadata::DATE,
 				'parent' => 'version',
-				'sort' => true,
 				'default_width' => 8,
 				'display' => [
 					'table' => true,
@@ -143,7 +138,6 @@ class FieldService
 				'title' => $this->translator->trans('Delivery date'),
 				'type' => Metadata::DATE,
 				'parent' => 'version',
-				'sort' => true,
 				'default_width' => 8,
 				'display' => [
 					'table' => true,
@@ -161,7 +155,6 @@ class FieldService
 				'title' => $this->translator->trans('Date'),
 				'type' => Metadata::DATE,
 				'parent' => 'version',
-				'sort' => false,
 				'default_width' => 8,
 				'display' => [
 					'table' => true,
@@ -179,7 +172,6 @@ class FieldService
 				'title' => $this->translator->trans('required'),
 				'type' => Metadata::BOOLEAN,
 				'parent' => 'version',
-				'sort' => false,
 				'default_width' => 8,
 				'display' => [
 					'table' => true,
@@ -197,7 +189,6 @@ class FieldService
 				'title' => $this->translator->trans('Writer'),
 				'type' => Metadata::LIST,
 				'parent' => 'version',
-				'sort' => true,
 				'default_width' => 10,
 				'display' => [
 					'table' => true,
@@ -215,7 +206,6 @@ class FieldService
 				'title' => $this->translator->trans('Checker'),
 				'type' => Metadata::LIST,
 				'parent' => 'version',
-				'sort' => true,
 				'default_width' => 10,
 				'display' => [
 					'table' => true,
@@ -233,7 +223,6 @@ class FieldService
 				'title' => $this->translator->trans('Approver'),
 				'type' => Metadata::LIST,
 				'parent' => 'version',
-				'sort' => true,
 				'default_width' => 10,
 				'display' => [
 					'table' => true,
@@ -251,7 +240,6 @@ class FieldService
 				'title' => $this->translator->trans('Last delivered'),
 				'type' => Metadata::BOOLEAN,
 				'parent' => 'version',
-				'sort' => false,
 				'default_width' => 10,
 				'display' => [
 					'table' => true,
@@ -269,7 +257,6 @@ class FieldService
 				'title' => $this->translator->trans('Last scheduled'),
 				'type' => Metadata::BOOLEAN,
 				'parent' => 'version',
-				'sort' => false,
 				'default_width' => 10,
 				'display' => [
 					'table' => true,
@@ -287,7 +274,6 @@ class FieldService
 				'title' => $this->translator->trans('Serie name'),
 				'type' => Metadata::LIST,
 				'parent' => 'serie',
-				'sort' => true,
 				'default_width' => 10,
 				'display' => [
 					'table' => true,
@@ -305,7 +291,6 @@ class FieldService
 				'title' => $this->translator->trans('Company'),
 				'type' => Metadata::LIST,
 				'parent' => 'serie',
-				'sort' => true,
 				'default_width' => 10,
 				'display' => [
 					'table' => true,
@@ -323,7 +308,6 @@ class FieldService
 				'title' => $this->translator->trans('Status value'),
 				'type' => Metadata::LIST,
 				'parent' => 'status',
-				'sort' => true,
 				'default_width' => 10,
 				'display' => [
 					'table' => true,
@@ -341,7 +325,6 @@ class FieldService
 				'title' => $this->translator->trans('Status type'),
 				'type' => Metadata::LIST,
 				'parent' => 'status',
-				'sort' => true,
 				'default_width' => 10,
 				'display' => [
 					'table' => true,
@@ -362,7 +345,6 @@ class FieldService
 				'title' => $codification->getName(),
 				'type' => $codification->getType(),
 				'parent' => 'codification',
-				'sort' => $codification->isList(),
 				'default_width' => 10,
 				'display' => [
 					'table' => false,
@@ -383,7 +365,6 @@ class FieldService
 				'title' => $metadata->getName(),
 				'type' => $metadata->getType(),
 				'parent' => $metadata->getParentName(),
-				'sort' => ($metadata->isDate() || $metadata->isList()),
 				'default_width' => 10,
 				'display' => [
 					'table' => true,
@@ -397,18 +378,53 @@ class FieldService
 		}
 		
 		foreach ($this->companyRepository->getCheckerCompanies($project) as $company) {
-			if (!$project->getVisasByCompany($company)->isEmpty()) {
-				$fields['visa.' . $company->getCodename()] = [
+			if ($project->getVisasByCompany($company)->isEmpty() === false) {
+				$fields['visa.' . $company->getCodename() . '.value'] = [
 					'full_id' =>'visa_' . $company->getId(),
 					'id' => $company->getId(),
-					'codename' => 'visa.' . $company->getCodename(),
+					'codename' => 'visa.' . $company->getCodename() . '.value',
 					'title' => $this->translator->trans('Visa') . ' ' . $company->getName(),
 					'type' => Metadata::LIST,
 					'parent' => 'visa',
-					'sort' => true,
 					'default_width' => 10,
 					'display' => [
 						'table' => true,
+						'automation' => true
+					],
+					'permissions' => [
+						'read' => true,
+						'write' => true
+					],
+				];
+				
+				$fields['visa.' . $company->getCodename() . '.username'] = [
+					'full_id' =>'',
+					'id' => '',
+					'codename' => 'visa.' . $company->getCodename() . '.username',
+					'title' => '',
+					'type' => Metadata::LIST,
+					'parent' => 'visa',
+					'default_width' => 0,
+					'display' => [
+						'table' => false,
+						'automation' => true
+					],
+					'permissions' => [
+						'read' => true,
+						'write' => true
+					],
+				];
+				
+				$fields['visa.' . $company->getCodename() . '.date'] = [
+					'full_id' =>'',
+					'id' => '',
+					'codename' => 'visa.' . $company->getCodename() . '.date',
+					'title' => '',
+					'type' => Metadata::LIST,
+					'parent' => 'visa',
+					'default_width' => 0,
+					'display' => [
+						'table' => false,
 						'automation' => true
 					],
 					'permissions' => [
@@ -422,292 +438,208 @@ class FieldService
 		return $fields;
 	}
 	
-	public function getFieldsWithForms(Project $project, array $series): array
+	public function getFieldsForJs(Project $project, array $series): array
 	{
 		$fields = $this->getFields($project);
 		$writers = $this->userRepository->getUsersBySeries($series);
 		$checkers = $this->userRepository->getCheckers($project);
 		
+		$element = [];
 		foreach ($this->codificationRepository->getCodifications($project) as $codification) {
-			if ($codification->isList()) {
-				$codificationControls[] = 
-					[
-						'full_id' 				=> $codification->getFullDomId(),
-						'title' 				=> $codification->getName(),
-						'multiple'				=> true,
-						'choices' 				=> $codification->getCodificationItems(),
-						'choice_label' 			=> 'value',
-					]
-				;
-			}
-		}
-		
-		$fields['document.reference']['form'] = $this->formFactory->createBuilder(SelectType::class, null,
-			[
-				'controls' => $codificationControls,
-			])
-			->getForm()
-			->createView()
-		;
-		
-		$fields['version.isRequired']['form'] = $this->formFactory->createBuilder(SelectType::class, null,
-			[
-				'controls' => [
-					[
-						'full_id' => 'version_is_required',
-						'title' => $this->translator->trans('required'),
-						'multiple' => false,
-						'choices' => [
-							'Yes' => '1',
-							'No' => '0',
-						],
-					],
-				],
-			])
-			->getForm()
-			->createView()
-		;
-		
-		$fields['version.writer']['form'] = $this->formFactory->createBuilder(SelectType::class, null,
-			[
-				'controls' => [
-					[
-						'full_id' => 'version_writer',
-						'title' => $this->translator->trans('Writer'),
-						'multiple' => true,
-						'choices' => $writers,
-						'choice_label' => 'name',
-					],
-				],
-			])
-			->getForm()
-			->createView()
-		;
-		
-		$fields['version.checker']['form'] = $this->formFactory->createBuilder(SelectType::class, null,
-			[
-				'controls' => [
-					[
-						'full_id' => 'version_checker',
-						'title' => $this->translator->trans('Checker'),
-						'multiple' => true,
-						'choices' => $checkers,
-						'choice_label' => 'name',
-					],
-				],
-			])
-			->getForm()
-			->createView()
-		;
-		
-		$fields['version.approver']['form'] = $this->formFactory->createBuilder(SelectType::class, null,
-			[
-				'controls' => [
-					[
-						'full_id' => 'version_approver',
-						'title' => $this->translator->trans('Approver'),
-						'multiple' => true,
-						'choices' => $checkers,
-						'choice_label' => 'name',
-					],
-				],
-			])
-			->getForm()
-			->createView()
-		;
-		
-		$fields['version.lastDelivered']['form'] = $this->formFactory->createBuilder(SelectType::class, null,
-			[
-				'controls' => [
-					[
-						'full_id' => 'version_last_delivered',
-						'title' => $this->translator->trans('Last delivered'),
-						'multiple' => false,
-						'choices' => [
-							'Yes' => '1',
-							'No' => '0',
-						],
-					],
-				],
-			])
-			->getForm()
-			->createView()
-		;
-		
-		$fields['version.lastScheduled']['form'] = $this->formFactory->createBuilder(SelectType::class, null,
-			[
-				'controls' => [
-					[
-						'full_id' => 'version_last_scheduled',
-						'title' => $this->translator->trans('Last scheduled'),
-						'multiple' => false,
-						'choices' => [
-							'Yes' => '1',
-							'No' => '0',
-						],
-					],
-				],
-			])
-			->getForm()
-			->createView()
-		;
 			
-		$fields['serie.name']['form'] = $this->formFactory->createBuilder(SelectType::class, null,
-			[
-				'controls' => [
-					[
-						'full_id' => 'serie_name',
-						'title' => $this->translator->trans('Serie name'),
-						'multiple' => true,
-						'choices' => $series,
-						'choice_label' => 'name',
-					],
-				],
-			])
-			->getForm()
-			->createView()
-		;
-		
-		$fields['serie.company']['form'] = $this->formFactory->createBuilder(SelectType::class, null,
-			[
-				'controls' => [
-					[
-						'full_id' => 'serie_company',
-						'title' => $this->translator->trans('Company'),
-						'multiple' => true,
-						'choices' => $this->companyRepository->getCompaniesByProject($project),
-						'choice_label' => 'name',
-					],
-				],
-			])
-			->getForm()
-			->createView()
-		;
-		
-		$fields['status.value']['form'] = $this->formFactory->createBuilder(SelectType::class, null,
-			[
-				'controls' => [
-					[
-						'full_id' => 'status_value',
-						'title' => $this->translator->trans('Status value'),
-						'multiple' => true,
-						'choices' => $this->statusRepository->getStatuses($project),
-						'choice_label' => 'value',
-					],
-				],
-			])
-			->getForm()
-			->createView()
-		;
-		
-		$fields['status.type']['form'] = $this->formFactory->createBuilder(SelectType::class, null,
-			[
-				'controls' => [
-					[
-						'full_id' => 'status_type',
-						'title' => $this->translator->trans('Status type'),
-						'multiple' => true,
-						'choices' => [
-							$this->translator->trans('Information') => Status::INFORMATION,
-							$this->translator->trans('Review') => Status::REVIEW,
-							$this->translator->trans('Cancel') => Status::CANCEL,
-							$this->translator->trans('As built') => Status::AS_BUILT,
-						],
-					],
-				],
-			])
-			->getForm()
-			->createView()
-		;
-		
-		foreach ($this->codificationRepository->getCodifications($project) as $codification) {
+			$element = [
+				'full_id' 		=> $codification->getFullDomId(),
+				'title' 		=> $codification->getName(),
+			];
 			
 			switch ($codification->getType()) {
 				
 				case Codification::LIST:
-					$fields[$codification->getFullCodename()]['form'] = $this->formFactory->createBuilder(SelectType::class, null,
-						[
-							'controls' => [
-								[
-									'full_id' => $codification->getFullDomId(),
-									'title' => $codification->getName(),
-									'multiple' => true,
-									'choices' => $codification->getCodificationItems(),
-									'choice_label' => 'value',
-								],
-							],
-						])
-						->getForm()
-						->createView()
-					;
-					
+					$choices = [];
+					foreach ($codification->getCodificationItems()->getValues() as $codificationItem) {
+						$choices[$codificationItem->getName()] = $codificationItem->getValue();
+					}
+					$element['filter'] = [
+						'type'			=> Metadata::LIST,
+						'choices' 		=> $choices,
+					];
+					$element['sort'] = false;
 					break;
+					
+				case Codification::REGEX:
+					$element['filter'] = [
+						'type'			=> Metadata::TEXT,
+					];
+					$element['sort'] = false;
+					break;
+					
 			}
+			$fields['document.reference']['elements'][] = $element;
 		}
+		
+		$fields['document.name']['elements'][] = [
+			'full_id' 	=> 'document_name',
+			'title' 	=> $this->translator->trans('Name'),
+			'sort'		=> true,
+			'filter' 	=> [		
+				'type'		=> Metadata::LIST,
+				'choices' 	=> $writers,
+			],
+		];
+		
+		$fields['version.initialScheduledDate']['elements'][] = [
+			'full_id' 	=> 'version_initial_scheduled_date',
+			'title' 	=> $this->translator->trans('Initial scheduled date'),
+			'sort'		=> true,
+			'filter'	=> [
+				'type'		=> Metadata::DATE,
+			],
+		];
+		
+		$fields['version.scheduledDate']['elements'][] = [
+			'full_id' 	=> 'version_scheduled_date',
+			'title' 	=> $this->translator->trans('Scheduled date'),
+			'sort'		=> true,
+			'filter'	=> [
+				'type'		=> Metadata::DATE,
+			]
+		];
+		
+		$fields['version.deliveryDate']['elements'][] = [
+			'full_id' 	=> 'version_delivery_date',
+			'title' 	=> $this->translator->trans('Delivery date'),
+			'sort'		=> true,
+			'filter'	=> [
+				'type'		=> Metadata::DATE,
+			]
+		];
+		
+		$fields['version.isRequired']['elements'][] = [
+			'full_id' 	=> 'version_is_required',
+			'title' 	=> $this->translator->trans('Required'),
+			'sort'		=> true,
+			'filter'	=> [
+				'type'		=> Metadata::BOOLEAN,
+			]
+		];
+		
+		$fields['version.writer']['elements'][] = [
+			'full_id' 	=> 'version_writer',
+			'title' 	=> $this->translator->trans('Writer'),
+			'sort'		=> true,
+			'filter'	=> [
+				'type'		=> Metadata::LIST,
+				'choices' 	=> $writers,
+			]
+		];
+		
+		$fields['version.checker']['elements'][] = [
+			'full_id' 	=> 'version_checker',
+			'title' 	=> $this->translator->trans('Checker'),
+			'sort'		=> true,
+			'filter'	=> [
+				'type'		=> Metadata::LIST,
+				'choices' 	=> $checkers,
+			]
+		];
+		
+		$fields['version.approver']['elements'][] = [
+			'full_id' 	=> 'version_approver',
+			'title' 	=> $this->translator->trans('Approver'),
+			'sort'		=> true,
+			'filter'	=> [
+				'type'		=> Metadata::LIST,
+				'choices' 	=> $checkers,
+			]
+		];
+		
+		$fields['serie.name']['elements'][] = [
+			'full_id' 	=> 'serie_name',
+			'title' 	=> $this->translator->trans('Serie name'),
+			'sort'		=> true,
+			'filter'	=> [
+				'type'		=> Metadata::LIST,
+				'choices' 	=> $series,
+			]
+		];
+		
+		$fields['serie.company']['elements'][] = [
+			'full_id' 	=> 'serie_company',
+			'title' 	=> $this->translator->trans('Company'),
+			'sort'		=> true,
+			'filter'	=> [
+				'type'		=> Metadata::LIST,
+				'choices' 	=> $this->companyRepository->getCompaniesByProject($project),
+			]
+		];
+		
+		$fields['status.value']['elements'][] = [
+			'full_id' 	=> 'status_value',
+			'title' 	=> $this->translator->trans('Status value'),
+			'sort'		=> true,
+			'filter'	=> [
+				'type'		=> Metadata::LIST,
+				'choices' 	=> $this->statusRepository->getStatuses($project),
+			]
+		];
+		
+		$fields['status.type']['elements'][] = [
+			'full_id' 	=> 'status_type',
+			'title' 	=> $this->translator->trans('Status type'),
+			'sort'		=> true,
+			'filter'	=> [
+				'type'		=> Metadata::LIST,
+				'choices' => [
+					$this->translator->trans('Information') 	=> Status::INFORMATION,
+					$this->translator->trans('Review') 			=> Status::REVIEW,
+					$this->translator->trans('Cancel') 			=> Status::CANCEL,
+					$this->translator->trans('As built') 		=> Status::AS_BUILT,
+				],
+			]
+		];
 		
 		foreach ($this->metadataRepository->getMetadatas($project) as $metadata) {
 			
 			switch ($metadata->getType()) {
-				
+
 				case Metadata::BOOLEAN:
-					$fields[$metadata->getFullCodename()]['form'] = $this->formFactory->createBuilder(SelectType::class, null,
-						[
-							'controls' => [
-								[
-									'full_id' => $metadata->getFullDomId(),
-									'title' => $metadata->getName(),
-									'multiple' => false,
-									'choices' => [
-										'Yes' => '1',
-										'No' => '0',
-									],
-								],
-							],
-						])
-						->getForm()
-						->createView()
-					;
-					
+				case Metadata::TEXT:
+				case Metadata::DATE:
+					$fields[$metadata->getFullCodename()]['elements'][] = [
+						'full_id' 	=> $metadata->getFullDomId(),
+						'title' 	=> $metadata->getName(),
+						'sort'		=> true,
+						'filter'	=> [
+							'type'		=> $metadata->getType(),
+						]
+					];
 					break;
 					
 				case Metadata::LIST:
-					$fields[$metadata->getFullCodename()]['form'] = $this->formFactory->createBuilder(SelectType::class, null,
-						[
-							'controls' => [
-								[
-									'full_id' => $metadata->getFullDomId(),
-									'title' => $metadata->getName(),
-									'multiple' => true,
-									'choices' => $metadata->getMetadataItems(),
-									'choice_label' => 'value',
-									],
-								],
-							])
-							->getForm()
-							->createView()
-						;
-					
+					$fields[$metadata->getFullCodename()]['elements'][] = [
+						'full_id' 	=> $metadata->getFullDomId(),
+						'title' 	=> $metadata->getName(),
+						'sort'		=> true,
+						'filter'	=> [
+							'type'		=> Metadata::LIST,
+							'choices' 	=> $metadata->getMetadataItems(),
+						]
+					];
 					break;
 			}
 		}
 		
 		foreach ($this->companyRepository->getCheckerCompanies($project) as $checkerCompany) {
-			if (!$project->getVisasByCompany($checkerCompany)->isEmpty()) {
-				$fields['visa.' . $checkerCompany->getCodename()]['form'] = $this->formFactory->createBuilder(SelectType::class, null,
-					[
-						'controls' => [
-							[
-								'full_id' => 'visa_' . $checkerCompany->getId(),
-								'title' => $this->translator->trans('Visa') . ' ' . $checkerCompany->getName(),
-								'multiple' => true,
-								'choices' => $project->getVisasByCompany($checkerCompany),
-								'choice_label' => 'name',
-							],
-						],
-					])
-					->getForm()
-					->createView()
-				;
+			if ($project->getVisasByCompany($checkerCompany)->isEmpty() === false) {
+				$fields['visa.' . $checkerCompany->getCodename() . '.value']['elements'][] = [
+					'full_id' 	=> 'visa_' . $checkerCompany->getId(),
+					'title' 	=> $this->translator->trans('Visa') . ' ' . $checkerCompany->getName(),
+					'sort'		=> true,
+					'filter'	=> [
+						'type'		=> Metadata::LIST,
+						'choices' 	=> $project->getVisasByCompany($checkerCompany),
+					]
+				];
 			}
 		}
 		

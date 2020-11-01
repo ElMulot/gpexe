@@ -67,6 +67,8 @@ class AutomationController extends AbstractController
 			return $this->redirectToRoute('project');
 		}
 		
+		$this->container->get('session')->getFlashBag()->clear();
+		
 		if ($automation->isValid()) {
 			$this->importExportService->unload($automation);
 			return $this->render('automation/dashboard.html.twig', [
@@ -83,22 +85,25 @@ class AutomationController extends AbstractController
 		}
 	}
 	
-	public function launch(Request $request, Automation $automation): Response
+	public function preload(Request $request, Automation $automation): Response
 	{
-		
 		$project = $automation->getProject();
 		if ($this->isGranted('ROLE_ADMIN') === false &&
 			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
 			return $this->redirectToRoute('project');
 		}
-		
-		if ($automation->isTypeImport()) {											
+			
+		if ($automation->isTypeImport()) {
 			
 			if ($this->cacheService->get('automation.ready_to_persist')) {			//launch import
-				$this->importExportService->load($automation, $request);
-				return $this->render('automation/loading.html.twig', [
-					'automation' => $automation,
-				]);
+				if ($this->importExportService->preload($automation, $request)) {
+					return $this->render('automation/preload.html.twig', [
+						'automation' => $automation,
+					]);
+				} else {
+					$this->addFlash('danger', 'Erreur interne');
+					$form = $this->createForm(LauncherImportType::class, $automation);
+				}
 			} else {																//check import
 				$form = $this->createForm(LauncherImportType::class, $automation);
 			}
@@ -111,8 +116,6 @@ class AutomationController extends AbstractController
 			]);
 		}
 		
-		//$firstRow = $request->query->get('first_row') ?? 0;
-		
 		$form->handleRequest($request);
 		
 		if ($form->isSubmitted() && $form->isValid()) {
@@ -123,47 +126,79 @@ class AutomationController extends AbstractController
 				
 				if ($file === null) {
 					$this->addFlash('danger', 'Aucun fichier sélectionné');
-					return $this->render('automation/launcher.html.twig', [
-						'form' => $form->createView(),
+				} elseif ($this->importExportService->preload($automation, $request, $file)) {
+					return $this->render('automation/preload.html.twig', [
 						'automation' => $automation,
 					]);
+				} else {
+					$this->addFlash('danger', 'Erreur interne');
 				}
-								
-				if ($this->importExportService->load($automation, $request, $file) === false) {
-					$view = $form->createView();
-					return $this->render('automation/launcher.html.twig', [
-						'form' => $form->createView(),
-						'automation' => $automation,
-					]);
-				}
-				
-				return $this->render('automation/loading.html.twig', [
-					'automation' => $automation,
-				]);
 				
 			} else {																//launch export
 				
-				if ($this->importExportService->load($automation, $request) === false) {
-					$view = $form->createView();
-					return $this->render('automation/launcher.html.twig', [
-						'form' => $form->createView(),
+				if ($this->importExportService->preload($automation, $request)) {				
+					return $this->render('automation/preload.html.twig', [
 						'automation' => $automation,
+					]);
+				} else {
+					$this->addFlash('danger', 'Erreur interne');
+				}
+			}
+			
+		}
+			
+		$this->importExportService->unload($automation);
+		return $this->render('automation/launcher.html.twig', [
+			'form' => $form->createView(),
+			'automation' => $automation,
+		]);
+			
+	}
+	
+	public function load(Automation $automation): Response
+	{
+		
+		$project = $automation->getProject();
+		if ($this->isGranted('ROLE_ADMIN') === false &&
+			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
+			return $this->redirectToRoute('project');
+		}
+		
+		if ($automation->isTypeImport()) {											
+			
+			if ($this->cacheService->get('automation.ready_to_persist')) {			//launch import
+				$this->importExportService->load($automation);
+				return $this->render('automation/load.html.twig', [
+					'automation' => $automation,
+				]);
+			} else {														//check import
+				if ($this->importExportService->load($automation) === false) {
+					$this->importExportService->unload($automation);
+					return $this->redirectToRoute('automation_preload', [
+						'automation' => $automation->getId(),
 					]);
 				}
 				
-				return $this->render('automation/loading.html.twig', [
+				return $this->render('automation/load.html.twig', [
 					'automation' => $automation,
 				]);
 			}
+		} elseif ($automation->isTypeExport()) {									//launch export
+			if ($this->importExportService->load($automation) === false) {
+				$this->importExportService->unload($automation);
+				return $this->redirectToRoute('automation_preload', [
+					'automation' => $automation->getId(),
+				]);
+			}
 			
-		} else {
-			
-			$this->importExportService->unload($automation);
-			return $this->render('automation/launcher.html.twig', [
-				'form' => $form->createView(),
+			return $this->render('automation/load.html.twig', [
 				'automation' => $automation,
 			]);
-			
+		} else {
+			$this->importExportService->unload($automation);
+			return $this->redirectToRoute('automation_preload', [
+				'automation' => $automation->getId(),
+			]);
 		}
 	}
 	
@@ -190,22 +225,22 @@ class AutomationController extends AbstractController
 				]);
 			} else {																	//check import
 				
-				$fileName = $this->cacheService->get('automation.file_name');
+				$filePath = $this->cacheService->get('automation.file_path');
 				$this->cacheService->set('automation.ready_to_persist', true);
 				return $this->render('automation/check.html.twig', [
 					'automation' => $automation,
-					'file_name' => $fileName,
+					'file_path' => $filePath,
 				]);
 				
 			}
 			
 		} elseif ($automation->isTypeExport()) {										//launch export
 			
-			$fileName = $this->cacheService->get('automation.file_name');
+			$filePath = $this->cacheService->get('automation.file_path');
 			$this->importExportService->unload($automation);
 			return $this->render('automation/export.html.twig', [
 				'automation' => $automation,
-				'file_name' => $fileName,
+				'file_path' => $filePath,
 			]);
 			
 		} else {
@@ -226,29 +261,28 @@ class AutomationController extends AbstractController
 			return $this->redirectToRoute('project');
 		}
 		
-		$redirect = '';
-		
-		if ($this->cacheService->get('automation.file_name')) {
-			
-			if ($automation->isTypeImport()) {
-				$success = $this->importExportService->import($automation);
-			} elseif ($automation->isTypeExport())  {
-				$success = $this->importExportService->export($automation);
-			}
-			
-			if ($success) {
-				if ($this->cacheService->get('automation.new_batch')) {
-					$redirect = 'console';
-				} else {
-					$redirect = 'completed';
+		switch ($this->cacheService->get('automation.state')) {
+			case 'new_batch':
+				if ($automation->isTypeImport()) {
+					$success = $this->importExportService->import($automation);
+				} elseif ($automation->isTypeExport())  {
+					$success = $this->importExportService->export($automation);
 				}
-			} else {
-				$this->addFlash('danger', 'Erreur interne');
-				$redirect = 'launch';
-			}
+				
+				if ($success) {
+					$redirect = $this->cacheService->get('automation.state');
+				} else {
+					$this->addFlash('danger', 'Erreur interne');
+					$redirect = 'preload';
+				}
+				break;
 			
-		} else {
-			$redirect = 'launch';
+			case 'load':
+				$redirect = 'load';
+				break;
+				
+			default:
+				$redirect = 'preload';
 		}
 		
 		return $this->render('automation/console.html.twig', [

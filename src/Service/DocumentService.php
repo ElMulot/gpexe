@@ -2,10 +2,9 @@
 
 namespace App\Service;
 
-use Symfony\Contracts\Translation\TranslatorInterface;
-use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\Document;
 use App\Repository\DocumentRepository;
+use Doctrine\ORM\EntityManagerInterface;
 
 class DocumentService
 {

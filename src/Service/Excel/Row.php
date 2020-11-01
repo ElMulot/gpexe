@@ -2,11 +2,12 @@
 
 namespace App\Service\Excel;
 
-use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
-use Box\Spout\Writer\Common\Creator\WriterEntityFactory;
-use Box\Spout\Writer\Common\Creator\Style\StyleBuilder;
-use Box\Spout\Writer\Common\Creator\Style\BorderBuilder;
 use Box\Spout\Common\Entity\Style\Border;
+use Box\Spout\Common\Entity\Cell as SpoutCell;
+use Box\Spout\Writer\Common\Creator\WriterEntityFactory;
+use Box\Spout\Writer\Common\Creator\Style\BorderBuilder;
+use Box\Spout\Writer\Common\Creator\Style\StyleBuilder;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 
 class Row
@@ -48,6 +49,8 @@ class Row
 				} elseif ($this->getSheet()->getWorkbook()->getReadOnly() === false) {
 					$this->_row->setCellAtIndex(WriterEntityFactory::createCell(''), $colIndex);
 					return new Cell($this->_row->getCellAtIndex($colIndex), $colAddress, $this);
+				} else {
+					return new Cell(new SpoutCell(''), $colAddress, $this);
 				}
 				break;
 				

@@ -75,19 +75,17 @@ class DocumentController extends AbstractController
 		}
 		
 		if ($serie === null) {
+			$company = null;
 			if ($this->getUser()->getCompany()->isMainContractor() === false) {
 				return $this->redirectToRoute('project');
 			}
-			$company = null;
 			$series = $this->serieRepository->getSeriesByType($project, $type);
-			$fields = $this->fieldService->getFieldsWithForms($project, $series);
 		} else {
+			$company = $serie->getCompany();
 			if ($this->getUser()->getCompany()->isMainContractor() === false && $this->getUser()->getCompany() !== $serie->getCompany()) {
 				return $this->redirectToRoute('project');
 			}
-			$company = $serie->getCompany();
 			$series = $this->serieRepository->getSeriesByCompany($project, $company);
-			$fields = $this->fieldService->getFieldsWithForms($project, $series);
 		}
 		
 		return $this->render('document/index.html.twig', [
@@ -96,10 +94,26 @@ class DocumentController extends AbstractController
 			'type' => $type,
 			'currentCompany' => $company,
 			'series' => $series,
-			'fields' => $fields,
 			'route_back' =>  $this->generateUrl('project_view', [
 				'project' => $project->getId(),
 			]),
+		]);
+	}
+	
+	public function fields(Project $project, string $type, Serie $serie = null): Response
+	{
+		if ($serie === null) {
+			$company = null;
+			$series = $this->serieRepository->getSeriesByType($project, $type);
+			$fields = $this->fieldService->getFieldsForJs($project, $series);
+		} else {
+			$company = $serie->getCompany();
+			$series = $this->serieRepository->getSeriesByCompany($project, $company);
+			$fields = $this->fieldService->getFieldsForJs($project, $series);
+		}
+		return new JsonResponse([
+			'series' => $series,
+			'fields' => $fields,
 		]);
 	}
 	

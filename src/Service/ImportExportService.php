@@ -2,33 +2,24 @@
 
 namespace App\Service;
 
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
-use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
-use Symfony\Component\Security\Core\Security;
-use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
-use Symfony\Component\ExpressionLanguage\SyntaxError;
-use Symfony\Component\Cache\Adapter\PhpArrayAdapter;
-use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\Automation;
 use App\Entity\Document;
 use App\Entity\Serie;
 use App\Entity\Version;
-use App\Service\PhpSpreadsheetFilters\ChunkFilter;
-use App\Service\PhpSpreadsheetFilters\MainColumnFilter;
-use App\Service\Excel\Row;
-use App\Service\Excel\Cell;
-use App\Service\Excel\Exception;
-use App\Repository\SerieRepository;
 use App\Repository\DocumentRepository;
-use App\Repository\VersionRepository;
+use App\Repository\SerieRepository;
 use App\Repository\StatusRepository;
-use Symfony\Component\BrowserKit\Response;
-use App\Entity\MetadataItem;
-use Symfony\Component\Cache\Adapter\FilesystemAdapter;
+use App\Repository\VersionRepository;
+use App\Service\Excel\Exception;
+use App\Service\Excel\Row;
+use App\Service\Excel\Workbook;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
-use App\Service\Excel\Workbook;
+use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
+use Symfony\Component\Security\Core\Security;
+use Symfony\Component\Stopwatch\Stopwatch;
 
 class ImportExportService
 {
@@ -60,8 +51,6 @@ class ImportExportService
 	
 	private $security;
 	
-	private $expressionLanguage;
-	
 	private $filesystem;
 	
 	private $targetDirectory;
@@ -71,6 +60,8 @@ class ImportExportService
 	private $parsedCode;
 	
 	private $workbook;
+	
+	private $stopWatch;
 
 	public function __construct(FlashBagInterface $flashBagInterface, EntityManagerInterface $entityManager, SerieRepository $serieRepository, DocumentRepository $documentRepository, VersionRepository $versionRepository, StatusRepository $statusRespository, CacheService $cacheService, DocumentService $documentService, FieldService $fieldService, Security $security, string $targetDirectory)
 	{
@@ -84,24 +75,27 @@ class ImportExportService
 		$this->documentService = $documentService;
 		$this->fieldService = $fieldService;
 		$this->security = $security;
-		$this->expressionLanguage = new ExpressionLanguage();
 		$this->targetDirectory = $targetDirectory;
 		$this->comments = [];
+		$this->stopWatch = new Stopwatch();
 	}
 	
-	public function load(Automation $automation, Request $request, File $file = null): bool
+	public function preload(Automation $automation, Request $request, File $file = null): bool
 	{
 		
 		$this->flashBagInterface->add('info', 'Démarrage de l\'opération');
 		
+		$this->parsedCode = $automation->getParsedCode();
+		$options = $this->parsedCode['option'] ?? [];
+		$firstRow = $this->parsedCode['first_row'];
+		
 		if ($this->cacheService->get('automation.ready_to_persist')) {
+			$this->cacheService->set('automation.current_row', $firstRow);
+			$this->cacheService->set('automation.state', 'new_batch');
 			return true;
 		}
 		
-		$this->parsedCode = $automation->getParsedCode();
-		
 		//setting up cache
-		$options = $this->parsedCode['option'] ?? [];
 		foreach ($options as $key => $option) {
 			if ($automation->isTypeExport()) {
 				$option = $request->request->get('launcher_export')[$key] ?? false;
@@ -111,6 +105,27 @@ class ImportExportService
 				$this->cacheService->set('automation.' . $key, $option);
 			}
 		}
+		
+		if ($file !== null) {
+			
+			//upload file
+			try {
+				$file = $file->move($this->targetDirectory, 'GPEXE Import.' . $file->getClientOriginalExtension());
+			} catch (FileException $e) {
+				$this->flashBagInterface->add('danger', $e->getMessage());
+				return false;
+			}
+			$this->cacheService->set('automation.file_path', $file->getPathname());
+		}
+		
+		$this->cacheService->set('automation.state', 'load');
+		return true;
+	}
+	
+	public function load(Automation $automation): bool
+	{
+		
+		$this->parsedCode = $automation->getParsedCode();
 		
 		$firstRow = $this->parsedCode['first_row'];
 		
@@ -162,18 +177,13 @@ class ImportExportService
 			}
 			
 			$this->cacheService->set('automation.current_row', $firstRow + 1);
-			$this->cacheService->set('automation.file_name', $this->workbook->getFilename());
+			$this->cacheService->set('automation.file_path', $this->workbook->getPath());
+			$this->cacheService->set('automation.state', 'new_batch');
 			return true;
 
 		} elseif ($automation->isTypeImport()) {
 			
-			//upload file
-			try {
-				$file->move($this->targetDirectory, 'GPEXE Import.xlsx');
-			} catch (FileException $e) {
-				$this->flashBagInterface->add('danger', $e->getMessage());
-				return false;
-			}
+			$readyToPersist = $this->cacheService->get('automation.ready_to_persist');
 			
 			//open workbook
 			try {
@@ -182,8 +192,9 @@ class ImportExportService
 				$this->flashBagInterface->add('danger', $e->getMessage());
 				return false;
 			}
+			
 			try {
-				$this->workbook->open($this->targetDirectory . 'GPEXE Import.xlsx');
+				$this->workbook->open($this->cacheService->get('automation.file_path'), $readyToPersist);
 			} catch (Exception $e) {
 				$this->flashBagInterface->add('danger', $e->getMessage());
 				return false;
@@ -194,9 +205,9 @@ class ImportExportService
 			$this->documentService->removeOrphans();
 			
 			//setting up cache
-			$currentRow = $firstRow;
+// 			$currentRow = $firstRow;
 // 			while (($row = $sheet->getRow($currentRow)) && ($currentRow < 1000)) {
-// 				if ($row->getCell($mainColumn)->isEmpty()) {
+// 				if ($row->getCell($this->workbook->getMainColumn())->isEmpty()) {
 // 					break;
 // 				}
 // 				$currentRow++;
@@ -213,7 +224,8 @@ class ImportExportService
 			}
 			
 			$this->cacheService->set('automation.current_row', $firstRow);
-			$this->cacheService->set('automation.file_name', $this->workbook->getFilename());
+			$this->cacheService->set('automation.file_path', $this->workbook->getPath());
+			$this->cacheService->set('automation.state', 'new_batch');
 			return true;
 			
 		} else {
@@ -227,25 +239,25 @@ class ImportExportService
 	public function unload(Automation $automation): bool
 	{
 		
+		$this->cacheService->delete('automation.state');
+		$this->cacheService->delete('automation.library');
+		$this->cacheService->delete('automation.date_format');
+		$this->cacheService->delete('automation.current_row');
+		$this->cacheService->delete('automation.file_path');
+		$this->cacheService->delete('automation.count_processed');
+		
+		$options = $this->parsedCode['option'] ?? [];
+		foreach (array_keys($options) as $key) {
+			$this->cacheService->delete('automation.' . $key);
+		}
+		
 		if ($automation->isTypeExport()) {
 			
-			$this->cacheService->delete('automation.file_name');
-			$this->cacheService->delete('automation.count_processed');
-			$this->cacheService->delete('automation.current_row');
-			$this->cacheService->delete('automation.new_batch');
 			return true;
 			
 		} elseif ($automation->isTypeImport()) {
 			
-			$this->cacheService->delete('automation.file_name');
-			$this->cacheService->delete('automation.count_processed');
-			$this->cacheService->delete('automation.current_row');
-			$this->cacheService->delete('automation.new_batch');
 			$this->cacheService->delete('automation.ready_to_persist');
-			$options = $this->parsedCode['option'] ?? [];
-			foreach ($options as $key => $option) {
-				$this->cacheService->delete('automation.' . $key);
-			}
 			return true;
 			
 		} else {
@@ -259,6 +271,8 @@ class ImportExportService
 	
 	public function export(Automation $automation): bool
 	{
+		$this->stopWatch->start('export');
+		
 		$project = $automation->getProject();
 		$this->parsedCode = $automation->getParsedCode();
 		
@@ -269,9 +283,10 @@ class ImportExportService
 		$dateFormat = $this->cacheService->get('automation.date_format');
 		
 		//cache
-		$fileName = $this->cacheService->get('automation.file_name');
+		$filePath = $this->cacheService->get('automation.file_path');
 		$currentRow = $this->cacheService->get('automation.current_row');
 		$countProcessed = (int)$this->cacheService->get('automation.count_processed');
+		
 		$options = [];
 		foreach (array_keys($this->parsedCode['option'] ?? []) as $key) {
 			$options[$key] = $this->cacheService->get('automation.' . $key);
@@ -286,7 +301,7 @@ class ImportExportService
 			return false;
 		}
 		try {
-			$this->workbook->open($this->targetDirectory . $fileName);
+			$this->workbook->open($filePath);
 		} catch (Exception $e) {
 			$this->flashBagInterface->add('danger', $e->getMessage());
 			return false;
@@ -329,13 +344,15 @@ class ImportExportService
 			}
 		}
 		
-		//update cache
-		$this->cacheService->set('automation.new_batch', $newBatch);
+		$event = $this->stopWatch->stop('export');
 		
+		//update cache
 		if ($newBatch === false) {
-			$this->flashBagInterface->add('success', 'Export réussi. ' . ($row->getAddress() - $firstRow - 1) . '/' .  $countProcessed . ' lignes exportées');
+			$this->cacheService->set('automation.state', 'completed');
+			$this->flashBagInterface->add('success', 'Export réussi. ' . ($row->getAddress() - $firstRow - 1) . '/' .  $countProcessed . ' lignes exportées (' . $event->getDuration()/1000 . ' s; ' . $event->getMemory()/1048576 . ' Mo)');
 		} else {
-			$this->flashBagInterface->add('success', ($row->getAddress() - $firstRow - 1) . '/' .  $countProcessed . ' lignes exportées');
+			$this->cacheService->set('automation.state', 'new_batch');
+			$this->flashBagInterface->add('success', ($row->getAddress() - $firstRow - 1) . '/' .  $countProcessed . ' lignes exportées (' . $event->getDuration()/1000 . ' s; ' . $event->getMemory()/1048576 . ' Mo)');
 			$this->cacheService->set('automation.count_processed', $countProcessed);
 			$this->cacheService->set('automation.current_row', $row->getAddress() + 1);
 		}
@@ -353,6 +370,7 @@ class ImportExportService
 	public function import(Automation $automation): bool
 	{
 		
+		$this->stopWatch->start('import');
 		$project = $automation->getProject();
 		$this->parsedCode = $automation->getParsedCode();
 		
@@ -360,7 +378,7 @@ class ImportExportService
 		$mainColumn = $this->parsedCode['main_column'] ?? null;
 		$commentColumn = $this->parsedCode['comment_column'] ?? null;
 		$library = $this->cacheService->get('automation.library');
-		$dateFormat = $this->cacheService->get('automation.date_format');
+		$readyToPersist = $this->cacheService->get('automation.ready_to_persist');
 		$matches = null;
 		
 		$defaultStatus = $this->statusRespository->getDefaultStatus($project);
@@ -369,9 +387,9 @@ class ImportExportService
 			return false;
 		}
 		
-		
 		//cache
-		$fileName = $this->cacheService->get('automation.file_name');
+		$filePath = $this->cacheService->get('automation.file_path');
+		$dateFormat = $this->cacheService->get('automation.date_format');
 		$currentRow = $this->cacheService->get('automation.current_row');
 		$countProcessed = (int)$this->cacheService->get('automation.count_processed');
 		$options = [];
@@ -389,7 +407,7 @@ class ImportExportService
 		}
 		
 		try {
-			$this->workbook->open($this->targetDirectory . $fileName);
+			$this->workbook->open($filePath, $readyToPersist);
 		} catch (Exception $e) {
 			$this->flashBagInterface->add('danger', $e->getMessage());
 			return false;
@@ -398,10 +416,11 @@ class ImportExportService
 		
 		//load datas
 		$series = $this->serieRepository->getHydratedSeries($project);
+// 		$series = [];
 		
 		while ($row = $sheet->getRow($currentRow)) {
 			
-			if ($row->getCell($mainColumn)->isEmpty()) {
+			if ($row->getCell($this->workbook->getMainColumn())->isEmpty()) {
 				break;
 			}
 			
@@ -513,7 +532,7 @@ class ImportExportService
 				
 				foreach ($this->parsedCode['get_document']['then'] as $then) {
 					
-					if (preg_match('/(?:\(([^()]+)\)\?)*\[(\w+.\w+)\]\s*\=\s*(.+)/', $then, $matches) === 1) {
+					if (preg_match('/(?:\(([^()]+)\)\?)*\[(\w+[.\w+]+)\]\s*\=\s*(.+)/', $then, $matches) === 1) {
 						
 						if ($matches[1] && $this->compare($matches[1], $currentDocument, $row) === false) {
 							$this->addComment('valid', "Condition '{$matches[1]}' non validée.");
@@ -535,7 +554,7 @@ class ImportExportService
 				
 				foreach ($this->parsedCode['get_document']['else'] as $else) {
 					
-					if (preg_match('/(?:\(([^()]+)\)\?)*\[(\w+.\w+)\]\s*\=\s*(.+)/', $else, $matches) === 1) {
+					if (preg_match('/(?:\(([^()]+)\)\?)*\[(\w+[.\w+]+)\]\s*\=\s*(.+)/', $else, $matches) === 1) {
 						
 						if ($matches[1] && $this->compare($matches[1], null, $row) === false) {
 							$this->addComment('valid', "Condition '{$matches[1]}' non validée.");
@@ -598,7 +617,7 @@ class ImportExportService
 					
 					foreach ($this->parsedCode['get_version']['then'] as $then) {
 						
-						if (preg_match('/(?:\(([^()]+)\)\?)*\[(\w+.\w+)\]\s*\=\s*(.+)/', $then, $matches) === 1) {
+						if (preg_match('/(?:\(([^()]+)\)\?)*\[(\w+[.\w+]+)\]\s*\=\s*(.+)/', $then, $matches) === 1) {
 							
 							if ($matches[1] && $this->compare($matches[1], $currentVersion, $row) === false) {
 								$this->addComment('valid', "Condition '{$matches[1]}' non validée.");
@@ -621,7 +640,7 @@ class ImportExportService
 					
 					foreach ($this->parsedCode['get_version']['else'] as $else) {
 						
-						if (preg_match('/(?:\(([^()]+)\)\?)*\[(\w+.\w+)\]\s*\=\s*(.+)/', $else, $matches) === 1) {
+						if (preg_match('/(?:\(([^()]+)\)\?)*\[(\w+[.\w+]+)\]\s*\=\s*(.+)/', $else, $matches) === 1) {
 							
 							if ($matches[1] && $this->compare($matches[1], null, $row) === false) {
 								$this->addComment('valid', "Condition '{$matches[1]}' non validée.");
@@ -706,16 +725,18 @@ class ImportExportService
 			$currentRow++;
 		}
 		
-		$this->cacheService->set('automation.new_batch', $newBatch);
-		$this->flashBagInterface->add('info', ($currentRow - $firstRow) . ' lignes analysées');
+		$event = $this->stopWatch->stop('import');
+		$this->flashBagInterface->add('info', ($currentRow - $firstRow) . ' lignes analysées (' . $event->getDuration()/1000 . ' s; ' . $event->getMemory()/1048576 . ' Mo)');
 		
 		if ($newBatch === false) {
 			
+			$this->cacheService->set('automation.state', 'completed');
+			
 			if ($this->cacheService->get('automation.ready_to_persist')) {
 				$this->entityManager->flush();
-				$this->flashBagInterface->add('info', 'Import terminé : ' . $countProcessed . '/' . ($currentRow - $firstRow) . ' lignes ont été importées');
+				$this->flashBagInterface->add('success', 'Import terminé : ' . $countProcessed . '/' . ($currentRow - $firstRow) . ' lignes ont été importées');
 			} else {
-				$this->flashBagInterface->add('info', 'Vérification terminée : ' . $countProcessed . '/' . ($currentRow - $firstRow) . ' lignes peuvent être importées');
+				$this->flashBagInterface->add('success', 'Vérification terminée : ' . $countProcessed . '/' . ($currentRow - $firstRow) . ' lignes peuvent être importées');
 				try {
 					$this->workbook->save();
 				} catch (Exception $e) {
@@ -725,6 +746,7 @@ class ImportExportService
 			}
 		} else {
 			
+			$this->cacheService->set('automation.state', 'new_batch');
 			$this->cacheService->set('automation.count_processed', $countProcessed);
 			$this->cacheService->set('automation.current_row', $currentRow);
 			
@@ -762,13 +784,13 @@ class ImportExportService
 				
 				if ($isRegex) {
 					
-					$expression = preg_replace_callback('/\[(\w+\.\w+)\]/', function($matches) use ($entity) {
+					$expression = preg_replace_callback('/\[(\w+[.\w+]+)\]/', function($matches) use ($entity) {
 						return preg_quote($entity->getPropertyValueToString($matches[1]));
 					}, $expression);
 					
 				} else {
 				
-					$expression = preg_replace_callback('/\[(\w+\.\w+)\]/', function($matches) use ($entity) {
+					$expression = preg_replace_callback('/\[(\w+[.\w+]+)\]/', function($matches) use ($entity) {
 						return '"' . $entity->getPropertyValueToString($matches[1]) . '"';
 					}, $expression);
 					
@@ -789,7 +811,7 @@ class ImportExportService
 					
 					$expression = preg_replace_callback('/\[([A-Z]{1,2})\]/', function($matches) use ($row) {
 						$cell = $row->getCell($matches[1]);
-						if ($date = $this->getDateTime($cell)) {
+						if ($date = $cell->getDateTime()) {
 							return preg_quote($date->format('d-m-Y'));
 						} else {
 							return preg_quote($cell->getValue());
@@ -810,9 +832,6 @@ class ImportExportService
 				}
 			}
 			
-			//replace username
-			$expression = preg_replace('/(\[username\])/', $this->security->getUser(), $expression);
-			
 // 			$this->flashBagInterface->add('info', 'avant evaluation : ' . $expression);
 // 			dd($entity);
 		}
@@ -826,13 +845,7 @@ class ImportExportService
 		if ($expression == false) return false;
 		
 		$expression = $this->prepare($expression, $entity, false, $row);
-			
-		try {
-			return $this->expressionLanguage->evaluate($expression);
-		} catch (SyntaxError $e) {
-			$this->flashBagInterface->add('danger', $e->getMessage());
-			return false;
-		}
+		return $this->evaluate($expression);
 		
 	}
 	
@@ -846,36 +859,53 @@ class ImportExportService
 		$matches = [];
 		if (preg_match('/(.+)\s+get\s+\"(\/\S*\/)\"/', $expression, $matches) === 1) {
 			
-			try {
-				$subExpr = $this->expressionLanguage->evaluate($matches[1]);
-			} catch (SyntaxError $e) {
-				$this->flashBagInterface->add('danger', $e->getMessage());
-				return "";
-			}
-			
+			$subExpr = $this->evaluate($matches[1]);
 			$pattern = $matches[2];
 			
 			if (preg_match($pattern, $subExpr, $matches) === 1) {
 				return $matches[1];
 			} else {
-				return "";
+				return '';
 			}
 			
 		} else {
 			
-			try {
-				return $this->expressionLanguage->evaluate($expression);
-			} catch (SyntaxError $e) {
-				$this->flashBagInterface->add('danger', $e->getMessage());
-				return "";
-			}
+			return (string)$this->evaluate($expression);
 			
 		}
 		
 	}
 	
+	private function evaluate($expression)
+	{
+// 		try {
+// 			return $this->expressionLanguage->evaluate($expression);
+// 		} catch (SyntaxError $e) {
+// 			$this->flashBagInterface->add('danger', $e->getMessage());
+// 			return false;
+// 		}
+		
+		$expression = str_replace('$', '', $expression);
+		$expression = str_replace(' & ', ' && ', $expression);
+		$expression = str_replace(' | ', ' || ', $expression);
+		$expression = str_replace('user.name', $this->security->getUser(), $expression);
+		$matches = [];
+		
+		if (preg_match('/^"([^"]+)"\s(matches)\s"([^"]+)/', $expression, $matches) === 1) {
+			$expression = "preg_match('{$matches[3]}', \"{$matches[1]}\")";			
+		}
+		
+		try {
+			return eval('return ' . $expression . ';');
+		} catch (\ParseError $e) {
+			$this->flashBagInterface->add('danger', $e->getMessage() . " :\n" . $expression);
+			return false;
+		}
+	}
+	
 	private function getCol($expression): ?string
 	{
+		$matches = [];
 		if (preg_match('/\[([A-Z]{1,2})\]/', $expression, $matches) === 1) {
 			return $matches[1];
 		}

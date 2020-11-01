@@ -67,7 +67,7 @@ App\Entity\Project:
 App\Entity\Review:
     constraints:
         - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity:
-            fields: ['user', 'version']
+            fields: ['visa', 'version']
 
 App\Entity\Serie:
     constraints:

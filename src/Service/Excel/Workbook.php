@@ -2,14 +2,12 @@
 
 namespace App\Service\Excel;
 
-use Symfony\Component\Filesystem\Exception\IOExceptionInterface;
-use Symfony\Component\Filesystem\Filesystem;
-use Box\Spout\Reader\XLSX\Sheet as SpoutSheet;
 use Box\Spout\Reader\Common\Creator\ReaderEntityFactory;
 use Box\Spout\Writer\Common\Creator\WriterEntityFactory;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet as PhpSpreadsheetSheet;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Filesystem\Exception\IOExceptionInterface;
 use Symfony\Component\String\Slugger\AsciiSlugger;
 
 class Workbook
@@ -35,6 +33,8 @@ class Workbook
 	
 	private $fileName;
 	
+	private $extensionName;
+	
 	private $_workbook;
 	
 	private $reader;
@@ -54,9 +54,9 @@ class Workbook
 	{
 		$this->fileSystem = new Filesystem();
 		
-		if ($mainColumn === null) $mainColumn = 'A';
-		if ($commentsColumn === null) $commentsColumn = 'Z';
-		if ($dateFormat === null) $dateFormat = 'd/m/Y';
+		if ($mainColumn == false) $mainColumn = 'A';
+		if ($commentsColumn == false) $commentsColumn = 'Z';
+		if ($dateFormat == false) $dateFormat = 'd/m/Y';
 		
 		switch ($library) {
 			case 'spout':
@@ -73,23 +73,30 @@ class Workbook
 		}
 		
 		$this->firstRow = $firstRow;
-		if ($mainColumn != false) {
-			$this->mainColumn = $mainColumn;
-		}
+		$this->mainColumn = $mainColumn;
 		$this->dateFormat = $dateFormat;
 		
 	}
 	
-	public function new(string $fileName, string $dirName)
+	public function new(string $fileName, string $dirName, string $extensionName = '.xlsx')
 	{
 		$slugger = new AsciiSlugger();
-		$this->fileName = $slugger->slug($fileName) . '.xlsx';
+		
 		$this->dirName = $dirName;
+		$this->fileName = $slugger->slug($fileName);
+		$this->extensionName = $extensionName;
+		
 		$this->readOnly = false;
 		
 		switch ($this->getLibrary()) {
 			case self::SPOUT:
-				$this->writer = WriterEntityFactory::createXLSXWriter();
+				switch ($this->extensionName) {
+					case '.xlsx':
+						$this->writer = WriterEntityFactory::createXLSXWriter();
+						break;
+					default:
+						throw new Exception('Extension not supported.');
+				}
 				$this->writer->openToFile($this->getPath());
 				$this->writer->close();
 				
@@ -103,7 +110,14 @@ class Workbook
 					->setTitle($fileName)
 				;
 				
-				$this->writer = IOFactory::createWriter($this->_workbook, "Xlsx");
+				switch ($this->extensionName) {
+					case '.xlsx':
+						$this->writer = IOFactory::createWriter($this->_workbook, "Xlsx");
+						break;
+					default:
+						throw new Exception('Extension not supported.');
+				}
+				
 				break;
 				
 			default:
@@ -115,26 +129,38 @@ class Workbook
 	public function open(string $file, $readOnly = false)
 	{
 		$this->readOnly = $readOnly;
+		$this->setPath($file);
 		
 		switch ($this->getLibrary()) {
 			case self::SPOUT:
-				$this->reader = ReaderEntityFactory::createXLSXReader();
+				switch ($this->extensionName) {
+					case '.xlsx':
+						$this->reader = ReaderEntityFactory::createXLSXReader();
+						break;
+					case '.csv':
+						$this->reader = ReaderEntityFactory::createCSVReader();
+						$this->reader->setFieldDelimiter(";");
+						break;
+					default:
+						throw new Exception('Extension not supported.');
+				}
+				
 				$this->reader->setShouldPreserveEmptyRows(true);
-				$this->reader->setShouldFormatDates(true);
+				$this->reader->setShouldFormatDates(false);
 				$this->reader->open($file);
 				
-// 				if ($readOnly === false) {
-// 					$this->writer = WriterEntityFactory::createXLSXWriter();
-// 					$this->writer->openToFile($file . '.tmp');
-// 					foreach ($this->reader->getSheetIterator() as $sheetIndex => $sheet) {
-// 						if ($sheetIndex !== 1) {
-// 							$this->writer->addNewSheetAndMakeItCurrent();
-// 						}
-// 						foreach ($sheet->getRowIterator() as $row) {
-// 							$this->writer->addRow($row);
-// 						}
-// 					}
-// 				}
+				if ($readOnly === false) {
+					$this->writer = WriterEntityFactory::createXLSXWriter();
+					$this->writer->openToFile($file . '.tmp');
+					foreach ($this->reader->getSheetIterator() as $sheetIndex => $sheet) {
+						if ($sheetIndex !== 1) {
+							$this->writer->addNewSheetAndMakeItCurrent();
+						}
+						foreach ($sheet->getRowIterator() as $row) {
+							$this->writer->addRow($row);
+						}
+					}
+				}
 				break;
 			
 			case self::PHPSPREADSHEET:
@@ -142,7 +168,17 @@ class Workbook
 				$this->_workbook = $this->reader->load($file);
 				
 				if ($readOnly === false) {
-					$this->writer = IOFactory::createWriter($this->_workbook, "Xlsx");
+					switch ($this->extensionName) {
+						case '.xlsx':
+							$this->writer = IOFactory::createWriter($this->_workbook, "Xlsx");
+							break;
+						case '.csv':
+							$this->writer = IOFactory::createWriter($this->_workbook, "Csv");
+							break;
+						default:
+							throw new Exception('Extension not supported.');
+					}
+					
 				}
 				break;
 				
@@ -150,8 +186,6 @@ class Workbook
 				throw new Exception('Library not defined.');
 			
 		}
-		
-		$this->setPath($file);
 		
 	}
 	
@@ -196,7 +230,8 @@ class Workbook
 		$pathParts = pathinfo($file);
 		
 		$this->dirName = $pathParts['dirname'] . '/';
-		$this->fileName = $pathParts['filename'] . '.xlsx';
+		$this->fileName = $pathParts['filename'];
+		$this->extensionName = '.' . $pathParts['extension'];
 		return $this;
 	}
 
@@ -230,9 +265,14 @@ class Workbook
 		return $this->fileName;
 	}
 	
+	public function getExtension(): string
+	{
+		return $this->extensionName;
+	}
+	
 	public function getPath(): string
 	{
-		return $this->dirName . $this->fileName;
+		return $this->dirName . $this->fileName . $this->extensionName;
 	}
 	
 	public function getSheet(?int $index = null): ?Sheet
@@ -268,7 +308,7 @@ class Workbook
 						return new Sheet($this->_workbook->getActiveSheet(), $this);
 					} else {
 						$_sheet = $this->_workbook->getSheet($index);
-						if ($sheet) {
+						if ($_sheet) {
 							return new Sheet($_sheet, $this);
 						}
 					}

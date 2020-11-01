@@ -6,6 +6,8 @@
 		"message-documentation": "",
 		"AnotherMetadata": "Translation file for locale fr_FR"
 	},
+	"yes": "Oui",
+	"no": "Non",
 	"noneSelected": "Aucun sélectionné",
 	"multipleSeparator": " ",
 	"selectAll": "Sectionner tout",

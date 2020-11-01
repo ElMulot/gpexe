@@ -2,12 +2,12 @@
 
 namespace App\Service\Excel;
 
-use Box\Spout\Writer\Common\Creator\Style\StyleBuilder;
 use Box\Spout\Writer\Common\Creator\Style\BorderBuilder;
-use PhpOffice\PhpSpreadsheet\Style\Border;
+use Box\Spout\Writer\Common\Creator\Style\StyleBuilder;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
-use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
 
 
 class Cell
@@ -43,7 +43,12 @@ class Cell
 	{
 		switch ($this->row->getSheet()->getWorkbook()->getLibrary()) {
 			case Workbook::SPOUT:
-				return $this->_cell->getValue();
+				if ($this->_cell->getValue() instanceof \DateTime) {
+					$dateFormat = $this->row->getSheet()->getWorkbook()->getDateFormat();
+					return $this->_cell->getValue()->format($dateFormat);
+				} else {
+					return $this->_cell->getValue();
+				}
 			case Workbook::PHPSPREADSHEET:
 				return $this->_cell->getCalculatedValue();
 			default:
@@ -176,10 +181,15 @@ class Cell
 	{
 		switch ($this->row->getSheet()->getWorkbook()->getLibrary()) {
 			case Workbook::SPOUT:
-				$dateFormat = $this->row->getSheet()->getWorkbook()->getDateFormat();
-				$date = \DateTime::createFromFormat($dateFormat, $this->getValue());
-				if ($date && $date->format($dateFormat) === $this->getValue()) {
-					return $date;
+				if ($this->_cell->getValue() instanceof \DateTime) {
+					return $this->_cell->getValue();
+				} else {
+					
+					$dateFormat = $this->row->getSheet()->getWorkbook()->getDateFormat();
+					$date = \DateTime::createFromFormat($dateFormat, $this->_cell->getValue());
+					if ($date && $date->format($dateFormat) === $this->_cell->getValue()) {
+						return $date;
+					}
 				}
 				break;
 				

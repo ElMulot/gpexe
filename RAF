@@ -1,13 +1,16 @@
 Automation :
     Vérifier les imports															OK
     Vérifier les exports															OK
-    Ajouter une fonction perso pour couper les chaînes								
-    Vérifier l'import zone 21
-    Ajouter la date et l'auteur des visas
-    Vider le cache
+    Ajouter une fonction perso pour couper les chaînes								OK
+    Vérifier l'import zone 21														OK
+    Ajouter la date et l'auteur des visas											OK
+    Vider le cache																	OK
 
 Vue principale :
 	Refonte search
 	
 Progress:
 	A faire
+
+Home:
+	Revoir les listes pour les docs à produire et à vérifier

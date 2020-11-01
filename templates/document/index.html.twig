@@ -129,31 +129,23 @@
     	</div>
     </div>
     
-    <div id="table_container" class="table-responsive">
+    <div id="table_container" class="table-responsive" data-url="{{ path('document_fields', app.request.attributes.get('_route_params')) }}">
     	<div id="spinner">
     	</div>
         <table id="table" class="table table-sm" data-url="{{ path('document_table', app.request.attributes.get('_route_params')) }}" style="display: none;">
-            <thead>
-                <tr>
-        			<th id="checkbox">
-                		<div class="btn-group custom-control custom-checkbox btn btn-sm btn-primary rounded-0">
-                			<input type="checkbox" id="check_all" class="custom-control-input" unchecked="unchecked">
-                			<label class="custom-control-label mx-1" for="check_all"></label>
-                		</div>
-        			</th>
-        			{% for field in fields %}
-    					{% if field.display.table and field.permissions.read %}
-        					<th id="{{ field.full_id }}" data-type="{{ field.type }}" data-title="{{ field.title }}" data-sort="{% if field.sort %}true{% else %}false{% endif %}" data-default_width="{{ field.default_width }}">
-        						{% if field.form is defined %}
-            						{% form_theme field.form with ['form/select.html.twig'] only %}	
-        					        {{ form(field.form) }}
-                                {% endif %}
-        					</th>
-        				{% endif %}
-        			{% endfor %}
-                    <th id="detail"></th>
-        		</tr>
-            </thead>
+        
+{#             <thead>#}
+{#                 <tr>#}
+{#         			<th id="checkbox">#}
+{#                 		<div class="btn-group custom-control custom-checkbox btn btn-sm btn-primary rounded-0">#}
+{#                 			<input type="checkbox" id="check_all" class="custom-control-input" unchecked="unchecked">#}
+{#                 			<label class="custom-control-label mx-1" for="check_all"></label>#}
+{#                 		</div>#}
+{#         			</th>#}
+        			
+{#                     <th id="detail"></th>#}
+{#         		</tr>#}
+{#             </thead>#}
             <tbody>
             
         	</tbody>
@@ -167,7 +159,7 @@
 
 {% block vues %}
     <div class="row p-2">
-    	<div id ="vues" class="col px-2" data-toggle="ajax" data-url="{{ path('vue', {'project': project.id}) }}">
+    	<div id ="vues" class="col px-2" data-url="{{ path('vue', {'project': project.id}) }}">
     	
     	</div>
     	<div class="col-auto">
