@@ -7,10 +7,10 @@ use App\Entity\Document;
 use App\Entity\Project;
 use App\Entity\Review;
 use App\Entity\Serie;
-use App\Entity\User;
 use App\Entity\Version;
 use App\Service\RepositoryService;
 use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 /**
  * @method Serie|null find($id, $lockMode = null, $lockVersion = null)
@@ -20,9 +20,13 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class SerieRepository extends RepositoryService
 {
-	public function __construct(ManagerRegistry $registry)
+	
+	private $router;
+	
+	public function __construct(ManagerRegistry $registry, UrlGeneratorInterface $router)
 	{
 		parent::__construct($registry, Serie::class);
+		$this->router = $router;
 	}
 	
 	/**
@@ -171,45 +175,114 @@ class SerieRepository extends RepositoryService
 		return $series;
 	}
 	
-	/**
-	 * @return Serie[]
-	 */
-	public function getSeriesByCompany(Project $project, Company $company)
-	{
-		$qb = $this->newQb('s');
-		return $qb
-			->andWhere($qb->eq('s.project', $project))
-			->andWhere($qb->eq('s.company', $company))
-			->addOrderBy('s.name')
-			->getQuery()
-			->getResult()
-		;
-	}
+// 	/**
+// 	 * @return Serie[]
+// 	 */
+// 	public function getSeriesByType(Project $project, string $type)
+// 	{
+// 		switch ($type) {
+// 			case 'sdr':
+// 				$qb = $this->newQb('s');
+// 				return $qb
+// 				->innerJoin('s.company', 'c')
+// 				->andWhere($qb->in('c.type', [Company::SUB_CONTRACTOR, Company::SUPPLIER]))
+// 				->getQuery()
+// 				->getResult()
+// 				;
+// 			case 'mdr':
+// 				$qb = $this->newQb('s');
+// 				return $qb
+// 				->innerJoin('s.company', 'c')
+// 				->andWhere($qb->eq('c.type', Company::MAIN_CONTRACTOR))
+// 				->getQuery()
+// 				->getResult()
+// 				;
+// 			default:
+// 				return null;
+// 		}
+// 	}
+	
+// 	/**
+// 	 * @return Serie[]
+// 	 */
+// 	public function getSeriesByCompany(Project $project, Company $company)
+// 	{
+// 		$qb = $this->newQb('s');
+// 		return $qb
+// 			->andWhere($qb->eq('s.project', $project))
+// 			->andWhere($qb->eq('s.company', $company))
+// 			->addOrderBy('s.name')
+// 			->getQuery()
+// 			->getResult()
+// 		;
+// 	}
 	
 	/**
 	 * @return Serie[]
 	 */
-	public function getSeriesByType(Project $project, string $type)
+	public function getSeriesArrayByType(Project $project, string $type)
 	{
 		switch ($type) {
 			case 'sdr':
 				$qb = $this->newQb('s');
 				return $qb
+					->select('s.id, s.name, s.type')
 					->innerJoin('s.company', 'c')
 					->andWhere($qb->in('c.type', [Company::SUB_CONTRACTOR, Company::SUPPLIER]))
+					->addOrderBy('s.name')
 					->getQuery()
-					->getResult()
+					->getArrayResult()
 				;
 			case 'mdr':
 				$qb = $this->newQb('s');
 				return $qb
+					->selet('s.id, s.name, s.type')
 					->innerJoin('s.company', 'c')
 					->andWhere($qb->eq('c.type', Company::MAIN_CONTRACTOR))
+					->addOrderBy('s.name')
 					->getQuery()
-					->getResult()
+					->getArrayResult()
 				;
 			default:
 				return null;
 		}
 	}
+	
+	/**
+	 * @return Serie[]
+	 */
+	public function getSeriesArrayByCompany(Project $project, Company $company)
+	{
+		$qb = $this->newQb('s');
+		$series = $qb
+			->select('s.id, s.name, c.type AS company_type')
+			->innerJoin('s.company', 'c')
+			->andWhere($qb->eq('s.project', $project))
+			->andWhere($qb->eq('s.company', $company))
+			->addOrderBy('s.name')
+			->getQuery()
+			->getArrayResult()
+		;
+		
+		foreach ($series as &$serie) {
+			switch ($serie['company_type']) {
+				case Company::SUB_CONTRACTOR:
+				case Company::SUPPLIER:
+					$serie['type'] = 'sdr';
+				case Company::MAIN_CONTRACTOR:
+					$serie['type'] = 'mdr';
+			}
+			unset($serie['company_type']);
+			
+			$serie['edit_url'] = $this->router->generate('serie_edit', [
+				'serie' => $serie['id']
+			]);	
+			$serie['delete_url'] = $this->router->generate('serie_delete', [
+				'serie' => $serie['id']
+			]);
+		}
+		
+		return $series;
+	}
+	
 }

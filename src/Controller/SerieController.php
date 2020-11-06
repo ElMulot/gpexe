@@ -34,7 +34,7 @@ class SerieController extends AbstractController
 			return $this->redirectToRoute('project');
 		}
 		
-		$series = $this->serieRepository->getSeriesByCompany($project, $company);
+		$series = $this->serieRepository->getSeriesArrayByCompany($project, $company);
 		if (empty($series)) {
 			return $this->redirectToRoute('project_view', [
 				'project' => $project->getId(),
@@ -58,7 +58,7 @@ class SerieController extends AbstractController
 			return $this->redirectToRoute('project');
 		}
 		
-		$series = $this->serieRepository->getSeriesByCompany($project, $company);
+		$series = $this->serieRepository->getSeriesArrayByCompany($project, $company);
 		if (empty($series)) {
 			return $this->redirectToRoute('serie_new', [
 				'project' => $project->getId(),

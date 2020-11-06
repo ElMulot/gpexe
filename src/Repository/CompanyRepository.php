@@ -34,22 +34,6 @@ class CompanyRepository extends RepositoryService
     	;
     }
     
-    /**
-     * @return Company[]
-     */
-    public function getCompaniesByProject(Project $project)
-    {
-    	$qb = $this->newQb('c');
-    	
-	    return $qb->innerJoin('c.users', 'u')
-	    	->innerJoin('u.projects', 'p')
-	    	->andWhere($qb->eq('p.id', $project->getId()))
-	    	->addOrderBy('c.name')
-	    	->getQuery()
-	    	->getResult()
-    	;
-    }
-    
     
     /**
      * @return Company[]
@@ -108,6 +92,24 @@ class CompanyRepository extends RepositoryService
 	    	->addOrderBy('c.name')
 	    	->getQuery()
 	    	->getResult()
+    	;
+    }
+    
+    
+    /**
+     * @return Company[]
+     */
+    public function getCompaniesArrayByProject(Project $project)
+    {
+    	$qb = $this->newQb('c');
+    	
+    	return $qb->select('c.id', 'c.name')
+    	->innerJoin('c.users', 'u')
+    	->innerJoin('u.projects', 'p')
+    	->andWhere($qb->eq('p.id', $project->getId()))
+    	->addOrderBy('c.name')
+    	->getQuery()
+    	->getArrayResult()
     	;
     }
 }

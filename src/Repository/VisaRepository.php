@@ -51,4 +51,21 @@ class VisaRepository extends RepositoryService
 	    	->getResult()
     	;
     }
+    
+    /**
+     * @return Visa[]
+     *
+     */
+    public function getVisasArrayByCompany(Project $project, Company $company)
+    {
+    	$qb = $this->newQB('v');
+    	return $qb
+    		->select('v.id, v.name')
+	    	->andWhere($qb->eq('v.project', $project))
+	    	->andWhere($qb->eq('v.company', $company))
+	    	->addOrderBy('v.name')
+	    	->getQuery()
+	    	->getResult()
+    	;
+    }
 }

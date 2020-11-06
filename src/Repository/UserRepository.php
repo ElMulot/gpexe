@@ -84,16 +84,35 @@ class UserRepository extends RepositoryService implements PasswordUpgraderInterf
     /**
      * @return User[]
      */
-    public function getUsersBySeries(array $series)
+    public function getUsersArrayBySeries(array $series)
     {
     	if ($series == false) {
     		return [];
     	}
     	$qb = $this->newQB('u');
     	return $qb
+    		->select('u.id, u.name')
 	    	->innerJoin('u.projects', 'p')
 	    	->innerJoin('p.series', 's')
 	    	->andWhere($qb->in('s.id', $series))
+	    	->addOrderBy('u.name')
+	    	->getQuery()
+	    	->getResult()
+    	;
+    }
+    
+    /**
+     * @return User[]
+     */
+    public function getCheckersArrayBySeries(Project $project)
+    {
+    	$qb = $this->newQB('u');
+    	return $qb
+    	->select('u.id, u.name')
+	    	->innerJoin('u.company', 'c')
+	    	->innerJoin('u.projects', 'p')
+	    	->andWhere($qb->eq('p.id', $project))
+	    	->andWhere($qb->in('c.type', [Company::MAIN_CONTRACTOR, Company::CHECKER]))
 	    	->addOrderBy('u.name')
 	    	->getQuery()
 	    	->getResult()

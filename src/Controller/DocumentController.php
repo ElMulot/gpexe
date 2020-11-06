@@ -79,13 +79,13 @@ class DocumentController extends AbstractController
 			if ($this->getUser()->getCompany()->isMainContractor() === false) {
 				return $this->redirectToRoute('project');
 			}
-			$series = $this->serieRepository->getSeriesByType($project, $type);
+			$series = $this->serieRepository->getSeriesArrayByType($project, $type);
 		} else {
 			$company = $serie->getCompany();
 			if ($this->getUser()->getCompany()->isMainContractor() === false && $this->getUser()->getCompany() !== $serie->getCompany()) {
 				return $this->redirectToRoute('project');
 			}
-			$series = $this->serieRepository->getSeriesByCompany($project, $company);
+			$series = $this->serieRepository->getSeriesArrayByCompany($project, $company);
 		}
 		
 		return $this->render('document/index.html.twig', [
@@ -104,11 +104,11 @@ class DocumentController extends AbstractController
 	{
 		if ($serie === null) {
 			$company = null;
-			$series = $this->serieRepository->getSeriesByType($project, $type);
+			$series = $this->serieRepository->getSeriesArrayByType($project, $type);
 			$fields = $this->fieldService->getFieldsForJs($project, $series);
 		} else {
 			$company = $serie->getCompany();
-			$series = $this->serieRepository->getSeriesByCompany($project, $company);
+			$series = $this->serieRepository->getSeriesArrayByCompany($project, $company);
 			$fields = $this->fieldService->getFieldsForJs($project, $series);
 		}
 		return new JsonResponse([
@@ -136,7 +136,7 @@ class DocumentController extends AbstractController
 			if ($this->getUser()->getCompany()->isMainContractor() === false) {
 				throw $this->createAccessDeniedException();
 			}
-			$series = $this->serieRepository->getSeriesByType($project, $type);
+			$series = $this->serieRepository->getSeriesArrayByType($project, $type);
 		} else {
 			if ($this->getUser()->getCompany()->isMainContractor() === false && $this->getUser()->getCompany() !== $serie->getCompany()) {
 				throw $this->createAccessDeniedException();

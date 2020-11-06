@@ -80,4 +80,20 @@ class StatusRepository extends RepositoryService
 	    	->getSingleResult()
     	;
     }
+    
+    /**
+     * @return Status[]
+     *
+     */
+    public function getStatusesArray(Project $project)
+    {
+    	$qb = $this->newQb('s');
+    	return $qb
+	    	->select('s.id, s.name')
+	    	->andWhere($qb->eq('s.project', $project))
+	    	->addOrderBy('s.name')
+	    	->getQuery()
+	    	->getArrayResult()
+    	;
+    }
 }

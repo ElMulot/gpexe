@@ -33,4 +33,19 @@ class MetadataItemRepository extends RepositoryService
 	    	->getResult()
     	;
     }
+    
+    /**
+     * @return MetadataItem[]
+     *
+     */
+    public function getMetadataItemArray(Metadata $metadata)
+    {
+    	$qb = $this->newQb('m');
+    	return $qb
+    		->select('m.id, m.value')
+	    	->andWhere($qb->eq('m.metadata', $metadata))
+	    	->getQuery()
+	    	->getResult()
+    	;
+    }
 }

@@ -30,8 +30,6 @@ class VersionRepository extends RepositoryService
 	
 	private $router;
 	
-	private $fields;
-	
 	public function __construct(ManagerRegistry $registry, UrlGeneratorInterface $router)
 	{
 		parent::__construct($registry, Version::class);
@@ -298,7 +296,7 @@ class VersionRepository extends RepositoryService
 					
 					case (preg_match('/metadata_(\d+)/', $name, $result) === 1):
 							
-						foreach ($this->fields as $field) {
+						foreach ($fields as $field) {
 							
 							$id = $result[1];
 							
@@ -570,7 +568,6 @@ class VersionRepository extends RepositoryService
 	private function getCoreQB($codifications, $fields, $series, $request): QueryBuilderService
 	{
 		
-		$this->fields = $fields;
 		$codificationQuery = [];
 		$subQuery = [];
 		
@@ -605,7 +602,7 @@ class VersionRepository extends RepositoryService
 				
 			}
 			
-			foreach ($this->fields as $field) {
+			foreach ($fields as $field) {
 				
 				if (array_key_exists($field['full_id'], $request->query->all('filter'))) {
 					

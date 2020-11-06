@@ -11,9 +11,11 @@ use App\Entity\Status;
 use App\Form\SelectType;
 use App\Repository\CompanyRepository;
 use App\Repository\CodificationRepository;
+use App\Repository\MetadataItemRepository;
 use App\Repository\MetadataRepository;
 use App\Repository\StatusRepository;
 use App\Repository\UserRepository;
+use App\Repository\VisaRepository;
 
 class FieldService
 {
@@ -28,21 +30,42 @@ class FieldService
 	
 	private $metadataRepository;
 	
+	private $metadataItemRepository;
+	
 	private $statusRepository;
 	
 	private $userRepository;
 	
-	public function __construct(TranslatorInterface $translator, FormFactoryInterface $formFactory, CompanyRepository $companyRepository, CodificationRepository $codificationRepository, MetadataRepository $metadataRepository, StatusRepository $statusRepository, UserRepository $userRepository)
+	private $visaRepository;
+	
+	public function __construct(TranslatorInterface $translator, FormFactoryInterface $formFactory, CompanyRepository $companyRepository, CodificationRepository $codificationRepository, MetadataRepository $metadataRepository, MetadataItemRepository $metadataItemRepository, StatusRepository $statusRepository, UserRepository $userRepository, VisaRepository $visaRepository)
 	{
 		$this->translator = $translator;
 		$this->formFactory = $formFactory;
 		$this->companyRepository = $companyRepository;
 		$this->codificationRepository = $codificationRepository;
 		$this->metadataRepository = $metadataRepository;
+		$this->metadataItemRepository = $metadataItemRepository;
 		$this->statusRepository = $statusRepository;
 		$this->userRepository = $userRepository;
+		$this->visaRepository = $visaRepository;
 	}
-
+	
+	//---------------------------
+	// Usage of fields properties
+	//---------------------------
+	//
+	// id: 				document_table (versionRepository)
+	// full_id:			document_table (versionRepository, js)
+	// codename: 		automation
+	// title:			document_table (js)
+	// type:			document_table (versionRepository, js)
+	// parent:			document_table (versionRepository)
+	// default_width:	alert
+	// display:			document_table
+	// permissions:		document_table
+	// elements:		document_table (js)
+	
 	public function getFields($project): array
 	{
 		$fields = [
@@ -441,8 +464,8 @@ class FieldService
 	public function getFieldsForJs(Project $project, array $series): array
 	{
 		$fields = $this->getFields($project);
-		$writers = $this->userRepository->getUsersBySeries($series);
-		$checkers = $this->userRepository->getCheckers($project);
+		$writers = $this->userRepository->getUsersArrayBySeries($series);
+		$checkers = $this->userRepository->getCheckersArrayBySeries($project);
 		
 		$element = [];
 		foreach ($this->codificationRepository->getCodifications($project) as $codification) {
@@ -450,6 +473,7 @@ class FieldService
 			$element = [
 				'full_id' 		=> $codification->getFullDomId(),
 				'title' 		=> $codification->getName(),
+				'sort'			=> false,
 			];
 			
 			switch ($codification->getType()) {
@@ -457,20 +481,18 @@ class FieldService
 				case Codification::LIST:
 					$choices = [];
 					foreach ($codification->getCodificationItems()->getValues() as $codificationItem) {
-						$choices[$codificationItem->getName()] = $codificationItem->getValue();
+						$choices[$codificationItem->getId()] = $codificationItem->getValue();
 					}
 					$element['filter'] = [
 						'type'			=> Metadata::LIST,
 						'choices' 		=> $choices,
 					];
-					$element['sort'] = false;
 					break;
 					
 				case Codification::REGEX:
 					$element['filter'] = [
 						'type'			=> Metadata::TEXT,
 					];
-					$element['sort'] = false;
 					break;
 					
 			}
@@ -482,8 +504,7 @@ class FieldService
 			'title' 	=> $this->translator->trans('Name'),
 			'sort'		=> true,
 			'filter' 	=> [		
-				'type'		=> Metadata::LIST,
-				'choices' 	=> $writers,
+				'type'		=> Metadata::TEXT,
 			],
 		];
 		
@@ -569,7 +590,7 @@ class FieldService
 			'sort'		=> true,
 			'filter'	=> [
 				'type'		=> Metadata::LIST,
-				'choices' 	=> $this->companyRepository->getCompaniesByProject($project),
+				'choices' 	=> $this->companyRepository->getCompaniesArrayByProject($project),
 			]
 		];
 		
@@ -579,7 +600,7 @@ class FieldService
 			'sort'		=> true,
 			'filter'	=> [
 				'type'		=> Metadata::LIST,
-				'choices' 	=> $this->statusRepository->getStatuses($project),
+				'choices' 	=> $this->statusRepository->getStatusesArray($project),
 			]
 		];
 		
@@ -590,10 +611,10 @@ class FieldService
 			'filter'	=> [
 				'type'		=> Metadata::LIST,
 				'choices' => [
-					$this->translator->trans('Information') 	=> Status::INFORMATION,
-					$this->translator->trans('Review') 			=> Status::REVIEW,
-					$this->translator->trans('Cancel') 			=> Status::CANCEL,
-					$this->translator->trans('As built') 		=> Status::AS_BUILT,
+					Status::INFORMATION	=> $this->translator->trans('Information'),
+					Status::REVIEW		=> $this->translator->trans('Review'),
+					Status::CANCEL		=> $this->translator->trans('Cancel'),
+					Status::AS_BUILT	=> $this->translator->trans('As built'),
 				],
 			]
 		];
@@ -622,7 +643,7 @@ class FieldService
 						'sort'		=> true,
 						'filter'	=> [
 							'type'		=> Metadata::LIST,
-							'choices' 	=> $metadata->getMetadataItems(),
+							'choices' 	=> $this->metadataItemRepository->getMetadataItemArray($metadata),
 						]
 					];
 					break;
@@ -637,7 +658,7 @@ class FieldService
 					'sort'		=> true,
 					'filter'	=> [
 						'type'		=> Metadata::LIST,
-						'choices' 	=> $project->getVisasByCompany($checkerCompany),
+						'choices' 	=> $this->visaRepository->getVisasArrayByCompany($project, $checkerCompany),
 					]
 				];
 			}
