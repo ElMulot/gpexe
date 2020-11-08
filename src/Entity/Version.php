@@ -638,8 +638,8 @@ class Version
 										if ($review = $this->getReviewByCompany($visa->getCompany())) {
 											if ($review->getVisa()->getName() != $value) {
 												$review->setVisa($visa);
-												return true;
 											}
+											return true;
 										} else {
 											$review = new Review();
 											if ($this->getChecker()) {

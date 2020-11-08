@@ -22,8 +22,8 @@
 
 {% block content %}
 	<div class="jumbotron w-100">
-		{% for key, item in items %}
-			<div class="card">
+		{% for key, item in items|reverse %}
+			<div class="card mb-3">
 				<div class="card-header">
 					<a class="w-100 text-left text-white" data-toggle="collapse" data-target="#collapse_{{ key }}" aria-expanded="true">
               			Version {{ item.version}} - {{ item.date }}

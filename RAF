@@ -7,10 +7,11 @@ Automation :
     Vider le cache																	OK
 
 Vue principale :
-	Refonte search
+	Refonte search																	OK
 	
 Progress:
 	A faire
 
 Home:
-	Revoir les listes pour les docs à produire et à vérifier
+	Revoir les listes pour les docs à produire et à vérifier						OK
+	Créer une fonction perso pour dql DATE_DIFF prenant en compte les jours ouvrés

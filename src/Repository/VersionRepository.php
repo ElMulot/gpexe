@@ -30,10 +30,13 @@ class VersionRepository extends RepositoryService
 	
 	private $router;
 	
-	public function __construct(ManagerRegistry $registry, UrlGeneratorInterface $router)
+	private $visaRepository;
+	
+	public function __construct(ManagerRegistry $registry, UrlGeneratorInterface $router, VisaRepository $visaRepository)
 	{
 		parent::__construct($registry, Version::class);
 		$this->router = $router;
+		$this->visaRepository = $visaRepository;
 	}
 	
 	public function getVersionsCount($codifications, $fields, $series, $request=null): int
@@ -166,7 +169,7 @@ class VersionRepository extends RepositoryService
 			
 			$display = array_keys($request->query->all('display') ?? []);
 			
-			if (array_search('document_reference', $display) !== false || $request->query->get('search') || preg_grep('/codification_(\d+)/', $display)) {
+			if (array_search('document_reference', $display) !== false || preg_grep('/codification_(\d+)/', $display)) {
 				
 				foreach ($codifications as $codification) {
 					
@@ -175,24 +178,24 @@ class VersionRepository extends RepositoryService
 					switch ($codification->getType()) {
 						case Codification::REGEX:
 							$qb->addNestedSelect(
-							$this->newQB()
-							->select("c{$id}.value")
-							->from(Document::class, "d{$id}")
-							->innerJoin("d{$id}.codificationValues", "c{$id}")
-							->where("c{$id}.codification = {$id}")
-							->andWhere("d{$id}.id = document.id"),
-							"codification_{$id}"
+								$this->newQB()
+									->select("c{$id}.value")
+									->from(Document::class, "d{$id}")
+									->innerJoin("d{$id}.codificationValues", "c{$id}")
+									->where("c{$id}.codification = {$id}")
+									->andWhere("d{$id}.id = document.id"),
+								"codification_{$id}"
 							);
 							break;
 						case Codification::LIST:
 							$qb->addNestedSelect(
-							$this->newQB()
-							->select("c{$id}.value")
-							->from(Document::class, "d{$id}")
-							->innerJoin("d{$id}.codificationItems", "c{$id}")
-							->where("c{$id}.codification = {$id}")
-							->andWhere("d{$id}.id = document.id"),
-							"codification_{$id}"
+								$this->newQB()
+									->select("c{$id}.value")
+									->from(Document::class, "d{$id}")
+									->innerJoin("d{$id}.codificationItems", "c{$id}")
+									->where("c{$id}.codification = {$id}")
+									->andWhere("d{$id}.id = document.id"),
+								"codification_{$id}"
 							);
 							break;
 					}
@@ -298,9 +301,9 @@ class VersionRepository extends RepositoryService
 							
 						foreach ($fields as $field) {
 							
-							$id = $result[1];
-							
-							if ($field['id'] == $id) {
+							if ($name == $field['id']) {
+								
+								$id = $result[1];
 								
 								switch ($field['parent']) {
 									case 'serie':
@@ -369,7 +372,7 @@ class VersionRepository extends RepositoryService
 		
 		$results = $qb->getQuery()->getArrayResult();
 		
-		if (array_search('document_reference', $display) !== false || $request->query->get('search')) {
+		if (array_search('document_reference', $display) !== false) {
 			
 			foreach ($results as &$result) {
 				
@@ -398,7 +401,7 @@ class VersionRepository extends RepositoryService
 		}
 		
 		
-		if (array_search('document_reference', $display) !== false || $request->query->get('search') || preg_grep('/codification_(\d+)/', $display)) {
+		if (array_search('document_reference', $display) !== false || preg_grep('/codification_(\d+)/', $display)) {
 			
 			foreach ($results as &$result) {
 				
@@ -415,19 +418,19 @@ class VersionRepository extends RepositoryService
 			
 		}
 		
-		if ($search = $request->query->get('search')) {
+// 		if ($search = $request->query->get('search')) {
 
-			$search = preg_replace('/(\*+)/', '.', $search);
+// 			$search = preg_replace('/(\*+)/', '.', $search);
 			
-			foreach ($results as $key => $result) {
-				if (preg_match('/' . $search . '/', $result['document_reference']) === 0) {
-					unset($results[$key]);
-				}
-			}
+// 			foreach ($results as $key => $result) {
+// 				if (preg_match('/' . $search . '/', $result['document_reference']) === 0) {
+// 					unset($results[$key]);
+// 				}
+// 			}
 			
-			$results = array_values($results);
+// 			$results = array_values($results);
 			
-		}
+// 		}
 		
 		foreach ($results as &$result) {
 			$result['detailUrl'] = $this->router->generate('document_detail', [
@@ -522,7 +525,7 @@ class VersionRepository extends RepositoryService
 		;
 		
 		$qb = $this->newQB('v');
-		return $qb->select('s.id AS serieId, s.name AS serieName, c.type AS companyType, v.isRequired, count(v.id) AS count, MIN(DATE_DIFF(v.scheduledDate, CURRENT_DATE())) AS min')
+		return $qb->select('s.id AS serieId, s.name AS serieName, c.type AS companyType, v.isRequired, count(v.id) AS count, MIN(DATE_DIFF_WD(v.scheduledDate, CURRENT_DATE())) AS min')
 			->innerJoin('v.document', 'd')
 			->innerJoin('d.serie', 's')
 			->innerJoin('s.company', 'c')
@@ -550,11 +553,11 @@ class VersionRepository extends RepositoryService
 		;
 		
 		$qb = $this->newQB('v');
-		return $qb->select('s.id AS serieId, s.name AS serieName, c.type AS companyType, v.isRequired, count(d.id) AS count, MAX(DATE_DIFF(CURRENT_DATE(), v.deliveryDate)) AS max')
+		return $qb->select('s.id AS serieId, s.name AS serieName, c.type AS companyType, v.isRequired, count(d.id) AS count, MAX(DATE_DIFF_WD(CURRENT_DATE(), v.deliveryDate)) AS max')
 			->innerJoin('v.document', 'd')
 			->innerJoin('d.serie', 's')
 			->innerJoin('s.company', 'c')
-			->leftJoin('v.reviews', 'r')
+			->leftJoin('v.reviews', 'r', Join::WITH, $qb->in('r.visa', $this->visaRepository->getVisasByCompany($project, $user->getCompany())))
 			->andWhere($qb->eq('s.project', $project))
 			->andWhere($qb->in('c.type', [Company::MAIN_CONTRACTOR, Company::SUB_CONTRACTOR, Company::SUPPLIER]))
 			->andWhere($qb->isNull('r.user'))
@@ -604,22 +607,12 @@ class VersionRepository extends RepositoryService
 			
 			foreach ($fields as $field) {
 				
-				if (array_key_exists($field['full_id'], $request->query->all('filter'))) {
+				if (array_key_exists($field['id'], $request->query->all('filter'))) {
 					
-					$value = $request->query->all('filter')[$field['full_id']];
-					switch ($field['full_id']) {
-						case 'serie_name':
-							$qb->andWhere($qb->in('serie.id', $value));
-							break;
-							
-						case 'serie_company':
-							$subQb = $this->newQB();
-							$subQb
-								->select('s.id')
-								->from(Serie::class, 's')
-								->where($subQb->in('s.company', $value));
-							
-							$qb->andWhere($qb->in('serie.id', $subQb->getQuery()->getArrayResult()));
+					$value = $request->query->all('filter')[$field['id']];
+					switch ($field['id']) {
+						case 'document_name':
+							$qb->andWhere($qb->like('document.name', $this->likeStatement($value)));
 							break;
 							
 						case 'version_initial_scheduled_date':
@@ -671,6 +664,20 @@ class VersionRepository extends RepositoryService
 							$qb->andWhere($qb->in('version.approver', $value));
 							break;
 							
+						case 'serie_name':
+							$qb->andWhere($qb->in('serie.id', $value));
+							break;
+							
+						case 'serie_company':
+							$subQb = $this->newQB();
+							$subQb
+							->select('s.id')
+							->from(Serie::class, 's')
+							->where($subQb->in('s.company', $value));
+							
+							$qb->andWhere($qb->in('serie.id', $subQb->getQuery()->getArrayResult()));
+							break;
+							
 						case 'status_value':
 							$subQb = $this->newQB('v');
 							$subQb->innerJoin('v.status', 's')
@@ -687,12 +694,13 @@ class VersionRepository extends RepositoryService
 							$qb->andWhere($qb->in('version.id', $subQb->getQuery()->getArrayResult()));
 							break;
 						
-						case (preg_match('/codification_(\d+)/', $field['full_id'], $result) === 1):
+						case (preg_match('/codification_(\d+)/', $field['id'], $result) === 1):
 							
-							$id = $field['id'];
+							$id = $result[1];
 							
 							switch ($field['type']) {
-									
+
+								
 								case Codification::LIST:
 									$subQb = $this->newQB()
 										->select('d.id')
@@ -701,6 +709,13 @@ class VersionRepository extends RepositoryService
 									;
 									break;
 									
+								case Codification::REGEX:
+									$subQb = $this->newQB()
+										->select('d.id')
+										->from(Document::class, 'd')
+										->innerJoin('d.codificationValues', 'c')
+									;
+									break;
 							}
 							
 							switch ($field['type']) {
@@ -712,14 +727,21 @@ class VersionRepository extends RepositoryService
 									;
 									break;
 									
+								case Codification::REGEX:
+									$subQb = $this->newQB()
+										->where($subQb->eq('c.codification', $id))
+										->andWhere($subQb->like('c.value', $this->likeStatement($value)))
+									;
+									break;
+									
 							}
 							
 							$qb->andWhere($qb->in("document.id", $subQb->getQuery()->getArrayResult()));
 							break;
 							
-						case (preg_match('/metadata_(\d+)/', $field['full_id'], $result) === 1):
+						case (preg_match('/metadata_(\d+)/', $field['id'], $result) === 1):
 							
-							$id = $field['id'];
+							$id = $result[1];
 							
 							switch ($field['parent']) {
 								case 'serie':
@@ -736,6 +758,7 @@ class VersionRepository extends RepositoryService
 							switch ($field['type']) {
 								
 								case Metadata::BOOLEAN:
+								case Metadata::TEXT:
 								case Metadata::DATE:
 									$subQb = $this->newQB()
 										->select('p.id')
@@ -773,6 +796,15 @@ class VersionRepository extends RepositoryService
 									}
 									break;
 									
+								case Metadata::TEXT:
+									
+									$subQb
+										->where($subQb->eq('m.metadata', $id))
+										->andWhere($subQb->like('m.value', $this->likeStatement($value)))
+									;
+									
+									break;
+									
 								case Metadata::DATE:
 									
 									foreach ($value as $v) {
@@ -808,9 +840,9 @@ class VersionRepository extends RepositoryService
 							$qb->andWhere($qb->in("{$field['parent']}.id", $subQb->getQuery()->getArrayResult()));
 							break;
 							
-						case (preg_match('/visa_(\d+)/', $field['full_id'], $result) === 1):
+						case (preg_match('/visa_(\d+)/', $field['id'], $result) === 1):
 							
-							$id = $field['id'];
+							$id = $result[1];
 							
 							$subQb = $this->newQB('version');
 							$subQb->innerJoin('version.reviews', 'r')
@@ -859,9 +891,9 @@ class VersionRepository extends RepositoryService
 		return $qb;
 	}
 	
-	public function test()
+	private function likeStatement(string $value): string
 	{
-
+		return str_replace('%%', '%', '%' . str_replace('*', '%', $value) . '%');
 		
 	}
 	

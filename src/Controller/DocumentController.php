@@ -79,13 +79,11 @@ class DocumentController extends AbstractController
 			if ($this->getUser()->getCompany()->isMainContractor() === false) {
 				return $this->redirectToRoute('project');
 			}
-			$series = $this->serieRepository->getSeriesArrayByType($project, $type);
 		} else {
 			$company = $serie->getCompany();
 			if ($this->getUser()->getCompany()->isMainContractor() === false && $this->getUser()->getCompany() !== $serie->getCompany()) {
 				return $this->redirectToRoute('project');
 			}
-			$series = $this->serieRepository->getSeriesArrayByCompany($project, $company);
 		}
 		
 		return $this->render('document/index.html.twig', [
@@ -93,7 +91,6 @@ class DocumentController extends AbstractController
 			'currentSerie' => $serie,
 			'type' => $type,
 			'currentCompany' => $company,
-			'series' => $series,
 			'route_back' =>  $this->generateUrl('project_view', [
 				'project' => $project->getId(),
 			]),
@@ -137,11 +134,13 @@ class DocumentController extends AbstractController
 				throw $this->createAccessDeniedException();
 			}
 			$series = $this->serieRepository->getSeriesArrayByType($project, $type);
+			$serieId = 0;
 		} else {
 			if ($this->getUser()->getCompany()->isMainContractor() === false && $this->getUser()->getCompany() !== $serie->getCompany()) {
 				throw $this->createAccessDeniedException();
 			}
 			$series = [$serie];
+			$serieId = $serie->getId();
 		}
 		
 		$codifications = $this->codificationRepository->getCodifications($project);
@@ -175,6 +174,7 @@ class DocumentController extends AbstractController
 			'datas' => $versions,
 			'pageMax' => $pageMax,
 			'query' => $request->query->all(),
+			'serie' => $serieId,
 			'flash' =>$this->get('session')->getFlashBag()->all(),
 		]);
 		
@@ -279,7 +279,7 @@ class DocumentController extends AbstractController
 			return $this->render('ajax/error.html.twig');
 		}
 		
-		$document = $documents[0];
+		$document = reset($documents);
 		
 		if (count($documents) > 1) {
 			$this->addFlash('danger', $this->translator->trans('Only one reference must be selected'));
@@ -354,7 +354,7 @@ class DocumentController extends AbstractController
 			return $this->render('ajax/error.html.twig');
 		}
 		
-		$document = $documents[0];
+		$document = reset($documents);
 		$currentSerie = $document->getSerie();
 		$project = $currentSerie->getProject();
 		$series = $project->getSeries();
@@ -403,7 +403,7 @@ class DocumentController extends AbstractController
         	return $this->render('ajax/error.html.twig');
         }
         
-        $document = $documents[0];
+        $document = reset($documents);
         $project = $document->getSerie()->getProject();
         
         if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {

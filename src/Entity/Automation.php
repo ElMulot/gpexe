@@ -194,18 +194,6 @@ class Automation
 				$this->parsedCode = [];
 				$this->parseError = true;
 			}
-			
-// 			if (($this->parsedCode['type'] ?? '') == 'import') {
-// 				$this->structure = self::getStructureImport();
-// 			} elseif (($this->parsedCode['type'] ?? '') == 'export') {
-// 				$this->structure = self::getStructureExport();
-// 			} else {
-// 				$this->parsedCode = [];
-// 				$this->parseError = true;
-// 				return $this;
-// 			}
-			
-// 			$this->parsedCode = self::validateStructure($this->structure, $this->parsedCode);
 			$this->parseError = false;
 		}
 		
@@ -220,6 +208,15 @@ class Automation
 		return $this->parseError === false;
 	}
 	
+	public function isTypeExport(): ?bool
+	{
+		if ($this->isValid()) {
+			return ($this->parsedCode['type'] ?? '') == 'export';
+		} else {
+			return null;
+		}
+	}
+	
 	public function isTypeImport(): ?bool
 	{
 		if ($this->isValid()) {
@@ -228,11 +225,11 @@ class Automation
 			return null;
 		}
 	}
-	
-	public function isTypeExport(): ?bool
+
+	public function isTypeProgress(): ?bool
 	{
 		if ($this->isValid()) {
-			return ($this->parsedCode['type'] ?? '') == 'export';
+			return ($this->parsedCode['type'] ?? '') == 'progress';
 		} else {
 			return null;
 		}

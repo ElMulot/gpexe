@@ -171,89 +171,94 @@ function setup(datas) {
 		.attr('for', 'check_all')
 	;	
 	
+	gpexe.series = datas.series;
+	
 	for (let i in datas.fields) {
 		
 		field = datas.fields[i];
 		
-		let header = {
-			full_id: field.full_id,
-			title: field.title,
-			default_width: field.default_width,
-			hasSort: (field.elements && field.elements.some(v => v.sort === true)),
-			hasFilter: (field.elements && field.elements.some(v => v.filter)),
-			elements: [],
-		}
+		if (field.display.table) {
 		
-		$.each(field.elements, function (j, element) {
-			
-			e = {
-				full_id: element.full_id,
-				title: element.title,
-				sort: element.sort,
-			};
-			
-			if (element.filter) {
-				
-				switch (element.filter.type) {
-					case type.bool:
-						var c = [
-							{
-								text: $.i18n('notApplicable'),
-								value: -1,
-							},
-							{
-								text: $.i18n('Yes'),
-								value: 1,
-							},
-							{
-								text: $.i18n('No'),
-								value: 0,
-							}
-						];
-						break;
-
-					case type.list:
-						var c = [
-							{
-								text: $.i18n('selectAll'),
-								value: -1,
-							}
-						];
-						
-						$.each(element.filter.choices, function (key, value) {
-							if (typeof value === 'object') {
-								c.push({
-									text: value.name || value.value,
-									value: value.id,
-								});
-							} else {
-								c.push({
-									text: value,
-									value: key,
-								});
-							}
-						});
-				}
-				
-				e.filter = {
-					type: element.filter.type,
-					choices: c,
-				};
+			let header = {
+				id: field.id,
+				title: field.title,
+				type: field.type,
+				defaultWidth: field.default_width,
+				hasSort: (field.elements && field.elements.some(v => v.sort === true)),
+				hasFilter: (field.elements && field.elements.some(v => v.filter)),
+				elements: [],
 			}
 			
-			header.elements.push(e);
-		});
+			$.each(field.elements, function (j, element) {
+				
+				e = {
+					id: element.id,
+					title: element.title,
+					sort: element.sort,
+				};
+				
+				if (element.filter) {
+					
+					switch (element.filter.type) {
+						case type.bool:
+							var c = [
+								{
+									text: $.i18n('notApplicable'),
+									value: -1,
+								},
+								{
+									text: $.i18n('Yes'),
+									value: 1,
+								},
+								{
+									text: $.i18n('No'),
+									value: 0,
+								}
+							];
+							break;
+	
+						case type.list:
+							var c = [
+								{
+									text: $.i18n('selectAll'),
+									value: -1,
+								}
+							];
+							
+							$.each(element.filter.choices, function (key, value) {
+								if (typeof value === 'object') {
+									c.push({
+										text: value.name || value.value,
+										value: value.id,
+									});
+								} else {
+									c.push({
+										text: value,
+										value: key,
+									});
+								}
+							});
+					}
+					
+					e.filter = {
+						type: element.filter.type,
+						choices: c,
+					};
+				}
+				
+				header.elements.push(e);
+			});
 		
-		gpexe.headers.push(header);
+			gpexe.headers.push(header);
+		
+		}
 		
 	}
-	
-	console.log(gpexe.headers);
 	
 	for (let header of gpexe.headers) {
 		
 		header.th = tr.append(create.th).children().last()
-			.css('width', field.default_width + 'em')
+			.css('width', header.defaultWidth + 'em')
 		;
 				
 		if (header.hasSort || header.hasFilter) {
@@ -280,13 +285,13 @@ function setup(datas) {
 				.on('click', function() {
 					if (header.hasFilter) {
 						for (element of header.elements) {
-							if (urlSearch.get('sortAsc') == element.full_id) {
+							if (urlSearch.get('sortAsc') == element.id) {
 								urlSearch.delete('sortAsc');
-								urlSearch.set('sortDesc', element.full_id);
+								urlSearch.set('sortDesc', element.id);
 							}
-							if (urlSearch.get('sortDesc') == element.full_id) {
+							if (urlSearch.get('sortDesc') == element.id) {
 								urlSearch.delete('sortDesc');
-								urlSearch.set('sortAsc', element.full_id);
+								urlSearch.set('sortAsc', element.id);
 							}
 						}
 						urlSearch.delete('vue');
@@ -300,7 +305,7 @@ function setup(datas) {
 				.addClass('px-0')
 				.css('width', '3em')
 				.attr('type', 'button')
-				.attr('id', 'b_' + field.full_id)
+				.attr('id', 'b_' + header.id)
 				.attr('data-toggle', 'dropdown')
 				.attr('data-display', 'static')
 				.attr('aria-haspopup', true)
@@ -310,7 +315,7 @@ function setup(datas) {
 			//dropDown menu
 			header.divDropdownMenu = divDropdownGroup.append(create.div).children().last()
 				.addClass('dropdown-menu dropdown-menu-left')
-				.attr('aria-labelledby', 'b_' + field.full_id)
+				.attr('aria-labelledby', 'b_' + header.id)
 				.append(create.div).children().last()
 					.addClass('d-flex flex-row')
 			;
@@ -378,13 +383,13 @@ function setup(datas) {
 		if (element.sort) {
 			divButtons.append(create.smallButton).children().last()
 				.append(global.icon.arrowUp)
-				.addClass((urlSearch.get('sortDesc') == element.full_id)?'px-2 btn-outline-primary bg-dark text-white':'px-2 btn-primary')
+				.addClass((urlSearch.get('sortDesc') == element.id)?'px-2 btn-outline-primary bg-dark text-white':'px-2 btn-primary')
 				.on('click', function() {
 					urlSearch.delete('sortAsc');
-					if (urlSearch.get('sortDesc') == element.full_id) {
+					if (urlSearch.get('sortDesc') == element.id) {
 						urlSearch.delete('sortDesc');
 					} else {
-						urlSearch.set('sortDesc', element.full_id);
+						urlSearch.set('sortDesc', element.id);
 					}
 					
 					element.filter.divFilter.trigger('click');
@@ -404,19 +409,36 @@ function setup(datas) {
 				case type.date:
 					
 					element.filter.divFilter.on('click', function() {
-						urlSearch.delete('filter[' + element.full_id + '][]');
+						urlSearch.delete('filter[' + element.id + '][]');
 						if (element.filter.chxInf.is(':checked') && (result = /^≥\s(\d{2}-\d{2}-\d{4})/.exec(element.filter.inputInf.val()))) {
-							urlSearch.append('filter[' + element.full_id + '][]', '>' + result[1]);
+							urlSearch.append('filter[' + element.id + '][]', '>' + result[1]);
 						}
 						
 						if (element.filter.chxSup.is(':checked') && (result = /^≤\s(\d{2}-\d{2}-\d{4})/.exec(element.filter.inputSup.val()))) {
-							urlSearch.append('filter[' + element.full_id + '][]', '<' + result[1]);
+							urlSearch.append('filter[' + element.id + '][]', '<' + result[1]);
 						}
 						
 						if (element.filter.chxHighlight.is(':checked')) {
-							urlSearch.set('highlight', element.full_id);
-						} else if (urlSearch.get('highlight').toString() == element.full_id) {
+							urlSearch.set('highlight', element.id);
+						} else if (urlSearch.get('highlight').toString() == element.id) {
 							urlSearch.delete('highlight');
+						}
+						
+						header.btnDropdown.dropdown('hide');
+						urlSearch.delete('vue');
+						urlSearch.fetch();
+					});	
+					break;
+					
+				case type.text:
+					
+					element.filter.divFilter.on('click', function() {
+						urlSearch.delete('filter[' + element.id + ']');
+						
+						var searchValue = element.inputSearch.val().toLowerCase()
+						
+						if (searchValue != '') {
+							urlSearch.set('filter[' + element.id + ']', searchValue);
 						}
 						
 						header.btnDropdown.dropdown('hide');
@@ -428,11 +450,11 @@ function setup(datas) {
 				case type.list:
 					
 					element.filter.divFilter.on('click', function() {
-						urlSearch.delete('filter[' + element.full_id + '][]');
+						urlSearch.delete('filter[' + element.id + '][]');
 						if (element.filter.choices[0].chx.is(':checked') === false) {
 							for (let choice of element.filter.choices) {
 								if (choice.chx.is(':checked')) {
-									urlSearch.append('filter[' + element.full_id + '][]', choice.value);
+									urlSearch.append('filter[' + element.id + '][]', choice.value);
 								}
 							}
 						}
@@ -447,13 +469,13 @@ function setup(datas) {
 		if (element.sort) {
 			divButtons.append(create.smallButton).children().last()
 				.append(global.icon.arrowDown)
-				.addClass((urlSearch.get('sortAsc') == element.full_id)?'px-2 btn-outline-primary bg-dark text-white':'px-2 btn-primary')
+				.addClass((urlSearch.get('sortAsc') == element.id)?'px-2 btn-outline-primary bg-dark text-white':'px-2 btn-primary')
 				.on('click', function() {
 					urlSearch.delete('sortDesc');
-					if (urlSearch.get('sortAsc') == element.full_id) {
+					if (urlSearch.get('sortAsc') == element.id) {
 						urlSearch.delete('sortAsc');
 					} else {
-						urlSearch.set('sortAsc', element.full_id);
+						urlSearch.set('sortAsc', element.id);
 					}
 
 					element.filter.divFilter.trigger('click');
@@ -479,22 +501,22 @@ function setup(datas) {
 						;
 						
 						choice.chx = choice.div.append(create.checkbox).children().last()
-							.attr('id', element.full_id + '_' + choice.value);
+							.attr('id', element.id + '_' + choice.value);
 						
 						choice.div.append(create.label).children().last()
-							.attr('for', element.full_id + '_' + choice.value)
+							.attr('for', element.id + '_' + choice.value)
 							.text(choice.text)
 						;
 						
 						if (choice.value == -1) {
 							
 							choice.chx
-								.attr('checked', !urlSearch.get('filter[' + element.full_id + ']'))
+								.attr('checked', !urlSearch.get('filter[' + element.id + ']'))
 								.on('click', function() {
 									for (let choice of element.filter.choices) {	
 										choice.chx.prop('checked', false);
 									}
-									urlSearch.delete('filter[' + element.full_id + ']');
+									urlSearch.delete('filter[' + element.id + ']');
 									
 									header.btnDropdown.dropdown('hide');
 									urlSearch.delete('vue');
@@ -505,20 +527,11 @@ function setup(datas) {
 						} else {
 							
 							choice.chx
-								.attr('checked', urlSearch.get('filter[' + element.full_id + ']').includes(choice.value))
+								.attr('checked', urlSearch.get('filter[' + element.id + ']').has(choice.value))
 								.on('click', function() {
 									
 									element.filter.find('input').not(this).prop('checked', false);
-									urlSearch.set('filter[' + element.full_id + ']', choice.value);
-									
-//											urlSearch.delete(element.full_id);
-//											if (element.filter.choices[0].chx.is(':checked') === false) {
-//												for (let choice of element.filter.choices) {
-//													if (choice.chx.is(':checked')) {
-//														urlSearch.append('filter[' + element.full_id + ']', choice.value);
-//													}
-//												}
-//											}
+									urlSearch.set('filter[' + element.id + ']', choice.value);
 									
 									header.btnDropdown.dropdown('hide');
 									urlSearch.delete('vue');
@@ -533,23 +546,51 @@ function setup(datas) {
 					
 				case type.text:
 					
+					let divSearch = element.divContent.append(create.div).children().last()
+						.addClass('input-group input-group-sm p-2')
+					;
+					
+					element.inputSearch = divSearch.append(create.input).children().last()
+						.val(urlSearch.get('filter[' + element.id + ']'))
+						.on('keypress', function(e) {
+							if (e.which == 13) {
+								element.filter.divFilter.trigger('click');
+							}
+						})
+					;
+					
+					let div = divSearch.append(create.div).children().last()
+						.addClass('input-group-append')
+					;
+					
+					let a = div.append(create.a).children().last()
+						.attr('type', 'button')
+						.addClass('btn btn-light border-left-0 border text-primary')
+					;
+					a.append(create.span).children().last()
+						.html('&times;')
+						.on('click', function() {
+							element.inputSearch.val('');
+							element.filter.divFilter.trigger('click');
+						})
+					;
 					break;
 				
 				case type.date:
 					
-					if ((result = />(\d{2}-\d{2}-\d{4})/.exec(urlSearch.get('filter[' + element.full_id + '][]').toString())) !== null) {
+					if ((result = />(\d{2}-\d{2}-\d{4})/.exec(urlSearch.get('filter[' + element.id + '][]').toString())) !== null) {
 						var valueInf = result[1];
 					} else {
 						var valueInf = '';
 					}
 					
-					if ((result = /<(\d{2}-\d{2}-\d{4})/.exec(urlSearch.get('filter[' + element.full_id + '][]').toString())) !== null) {
+					if ((result = /<(\d{2}-\d{2}-\d{4})/.exec(urlSearch.get('filter[' + element.id + '][]').toString())) !== null) {
 						var valueSup = result[1];
 					} else {
 						var valueSup = '';
 					}
 					
-					let highlight = (urlSearch.get('highlight').toString() == element.full_id);
+					let highlight = (urlSearch.get('highlight').toString() == element.id);
 					
 					element.filter.divList = element.divContent.append(create.div).children().last()
 						.addClass('px-2 overflow-auto ' + ((element.filter.type === type.list)?'pt-3':'pt-1'))
@@ -561,7 +602,7 @@ function setup(datas) {
 					;
 					
 					element.filter.chxInf = element.filter.divInf.append(create.checkbox).children().last()
-						.attr('id', element.full_id + '_inf')
+						.attr('id', element.id + '_inf')
 						.attr('checked', valueInf != '')
 						.on('change', function() {
 							let checked = $(this).is(':checked');
@@ -577,7 +618,7 @@ function setup(datas) {
 					;
 					
 					element.filter.labelInf = element.filter.divInf.append(create.label).children().last()
-						.attr('for', element.full_id + '_inf')
+						.attr('for', element.id + '_inf')
 					;
 					
 					element.filter.inputInf = element.filter.labelInf.append(create.input).children().last()
@@ -599,7 +640,7 @@ function setup(datas) {
 					;
 					
 					element.filter.chxSup = element.filter.divSup.append(create.checkbox).children().last()
-						.attr('id', element.full_id + '_sup')
+						.attr('id', element.id + '_sup')
 						.attr('checked', valueSup != '')
 						.on('change', function() {
 							let checked = $(this).is(':checked');
@@ -615,7 +656,7 @@ function setup(datas) {
 					;
 					
 					element.filter.labelSup = element.filter.divSup.append(create.label).children().last()
-						.attr('for', element.full_id + '_sup')
+						.attr('for', element.id + '_sup')
 					;
 					
 					element.filter.inputSup = element.filter.labelSup.append(create.input).children().last()
@@ -637,14 +678,14 @@ function setup(datas) {
 					;
 					
 					element.filter.chxHighlight = element.filter.divHighlight.append(create.checkbox).children().last()
-						.attr('id', element.full_id + '_highlight')
+						.attr('id', element.id + '_highlight')
 						.attr('name', 'highlight')
-						.val(element.full_id)
+						.val(element.id)
 						.attr('checked', highlight)
 					;
 					
 					element.filter.divHighlight.append(create.label).children().last()
-						.attr('for', element.full_id + '_highlight')
+						.attr('for', element.id + '_highlight')
 						.text($.i18n('highlight'))
 					;
 					
@@ -653,13 +694,15 @@ function setup(datas) {
 				
 				case type.list:
 					
-					let divSearch = element.divContent.append(create.div).children().last()
-						.addClass('text-center border-bottom border-dark p-2')
+					divSearch = element.divContent.append(create.div).children().last()
+						.addClass('input-group input-group-sm border-bottom border-dark p-2')
 					;
 					
-					divSearch.append(create.input).children().last()
+					element.inputSearch = divSearch.append(create.input).children().last()
 						.on('keypress', function(e) {
-							element.filter.divFilter.trigger('click');
+							if (e.which == 13) {
+								element.filter.divFilter.trigger('click');
+							}
 						})
 						.on('input', function() {
 							var searchValue = $(this).val().toLowerCase()
@@ -684,6 +727,21 @@ function setup(datas) {
 						})
 					;
 					
+					div = divSearch.append(create.div).children().last()
+						.addClass('input-group-append')
+					;
+					
+					a = div.append(create.a).children().last()
+						.attr('type', 'button')
+						.addClass('btn btn-light border-left-0 border text-primary')
+					;
+					a.append(create.span).children().last()
+						.html('&times;')
+						.on('click', function() {
+							element.inputSearch.val('');
+							element.inputSearch.trigger('input');
+						})
+					;
 					
 					element.filter.divList = element.divContent.append(create.div).children().last()
 						.addClass('px-2 overflow-auto ' + ((element.filter.type === type.list)?'pt-3':'pt-1'))
@@ -697,10 +755,11 @@ function setup(datas) {
 						;
 						
 						choice.chx = choice.div.append(create.checkbox).children().last()
-							.attr('id', element.full_id + '_' + choice.value);
+							.attr('id', element.id + '_' + choice.value)
+						;
 						
 						choice.div.append(create.label).children().last()
-							.attr('for', element.full_id + '_' + choice.value)
+							.attr('for', element.id + '_' + choice.value)
 							.text(choice.text)
 						;
 						
@@ -717,9 +776,8 @@ function setup(datas) {
 							
 						} else {
 							
-
 							choice.chx
-								.attr('checked', urlSearch.get('filter[' + element.full_id + '][]').includes(choice.value))
+								.attr('checked', urlSearch.get('filter[' + element.id + '][]').has(choice.value))
 								.on('click', function() {
 									
 									let checked = false;
@@ -732,7 +790,7 @@ function setup(datas) {
 											unchecked = true;
 										}
 									}
-									console.log(element.filter);
+									
 									if (checked && unchecked) {
 										element.filter.choices[0].chx.prop('indeterminate', true);
 									} else {
@@ -755,10 +813,27 @@ function setup(datas) {
 
 
 //---------------
-// fillDisplay
+// fillSeriesPannel
 //---------------
 
-function fillDisplay() {
+function fillSeriesPannel() {
+	
+	for (let serie of gpexe.series) {
+		serie.btn = $('#series').append(create.a).children().last()
+			.attr('role', 'button')
+			.addClass('btn btn-primary m-1')
+			.attr('href', serie.url)
+			.text(serie.name)
+		;
+	}
+	
+}
+
+//---------------
+//fillDisplayPannel
+//---------------
+
+function fillDisplayPannel() {
 	
 	let divCol = $('#display_panel').append(create.div).children().last()
 		.addClass('row py-2')
@@ -774,13 +849,13 @@ function fillDisplay() {
 				
 				header.chxDisplay.prop('checked', !header.chxDisplay.is(':checked'));
 				
-				let display = urlSearch.get('display[' + header.full_id + ']');
+				let display = urlSearch.get('display[' + header.id + ']');
 				
-				urlSearch.delete('display[' + header.full_id + ']');
+				urlSearch.delete('display[' + header.id + ']');
 				
 				if (header.chxDisplay.is(':checked')) {
 					if (display == false) {
-						urlSearch.append('display[' + header.full_id + ']', header.defaultWidth);
+						urlSearch.append('display[' + header.id + ']', header.defaultWidth);
 					}
 				}
 				urlSearch.delete('vue');
@@ -794,59 +869,48 @@ function fillDisplay() {
 		;
 		
 		header.chxDisplay = div.append(create.checkbox).children().last()
-			.attr('id', 'h_' + header.full_id)
+			.attr('id', 'h_' + header.id)
 			.on('change click', function() {
 				return false;
 			})
 		;
 		
 		div.append(create.label).children().last()
-			.attr('for', 'h_' + header.full_id)
+			.attr('for', 'h_' + header.id)
 			.text(header.title)
 		;
 		
 		
 	}
 	
-}	
+}
 
 var urlSearch = new UrlSearch();
 
+(function( jQuery )
+		{
+			/**
+			 * @memberOf jQuery
+			 */
+			jQuery.wikiText = function( text )
+			{
+				var banana = 3;
+
+				apple = 4;
+
+				//...
+			};
+
+			/**
+			 * @memberOf jQuery.fn
+			 */
+			jQuery.fn.wikiText = function( text )
+			{
+				return this.html( jQuery.wikiText( text ) );
+			};
+		})( jQuery );
+
 $(document).ready(function() {
-	
-	//---------------------
-	// Search form
-	//---------------------
-	
-	$('#search_panel input').on('keypress', function(e) {
-		
-		if (e.which == 13) {
-			$('#search_panel button').trigger('click');
-		}
-		return true;
-		
-	});
-	
-	$('#search_panel button').on('click', function() {
-		
-		urlSearch.set('search', $('#search_panel input').val());
-		urlSearch.delete('vue');
-		urlSearch.fetch();
-		
-		return true;
-		
-	});
-	
-	$('#search_panel a').on('click', function() {
-		
-		if (urlSearch.has('search')) {
-			urlSearch.delete('search');
-			$('#search_panel input').val('');
-			urlSearch.fetch();
-		}
-		return true;
-		
-	});
 
 	//---------------------
 	// Menu display
@@ -953,8 +1017,8 @@ $(document).ready(function() {
 	$('#table_container').on('ajax.completed', function(e, result, textStatus, jqXHR) {
 		
 		e.stopImmediatePropagation();
-		//setup display pannel
-		fillDisplay();
+		fillSeriesPannel();
+		fillDisplayPannel();
 		
 		//setup url
 		urlSearch.setFromUrl(window.location.search);
@@ -1071,11 +1135,22 @@ $(document).ready(function() {
 			}
 		});
 		
+		//series
+		for (let serie of gpexe.series) {
+			if (result.serie && serie.id == result.serie) {
+				serie.btn.removeClass('btn-primary');
+				serie.btn.addClass('btn-outline-primary');
+			} else {
+				serie.btn.removeClass('btn-outline-primary');
+				serie.btn.addClass('btn-primary');
+			}
+		}
+		
 		for (let header of gpexe.headers) {
 			
 			//display
 			
-			if (display = result.query.display[header.full_id]) {
+			if (display = result.query.display[header.id]) {
 
 				header.aDisplay.addClass('btn-outline-primary');
 				header.aDisplay.removeClass('btn-primary');
@@ -1095,11 +1170,11 @@ $(document).ready(function() {
 					
 					for (element of header.elements) {
 						
-						if (urlSearch.get('sortAsc') == element.full_id) {
+						if (urlSearch.get('sortAsc') == element.id) {
 							header.isSortedAsc = true;
 						}
 						
-						if (urlSearch.get('sortDesc') == element.full_id) {
+						if (urlSearch.get('sortDesc') == element.id) {
 							header.isSortedDesc = true;
 						}
 					}
@@ -1112,14 +1187,15 @@ $(document).ready(function() {
 						if (element.filter) {
 							switch (element.filter.type) {
 								case type.bool:
-									if (urlSearch.has('filter[' + element.full_id + ']')) {
+								case type.text:
+									if (urlSearch.has('filter[' + element.id + ']')) {
 										header.isFiltered = true;
 									}
 									break;
 									
 								case type.date:
 								case type.list:
-									if (urlSearch.has('filter[' + element.full_id + '][]')) {
+									if (urlSearch.has('filter[' + element.id + '][]')) {
 										header.isFiltered = true;
 									}
 									break;
@@ -1143,7 +1219,6 @@ $(document).ready(function() {
 				header.aDisplay.addClass('btn-primary');
 				header.aDisplay.removeClass('btn-outline-primary');
 				header.chxDisplay.prop('checked', false);
-//				header.col.hide();
 				header.th.hide();
 			}
 			
@@ -1171,7 +1246,7 @@ $(document).ready(function() {
 			
 			for (let header of gpexe.headers) {
 				
-				value = data[header.full_id];
+				value = data[header.id];
 				
 				if (value !== undefined) {
 					
@@ -1207,7 +1282,7 @@ $(document).ready(function() {
 					
 					//highlight
 					
-					if (urlSearch.get('highlight') == header.full_id) {
+					if (urlSearch.get('highlight') == header.id) {
 						if (value.toDate() !== null) {
 							if (value.toDate() < new Date()) {
 								tr.addClass('highlight-late');
@@ -1223,7 +1298,6 @@ $(document).ready(function() {
 					
 				} else {
 					
-//					header.col.hide();
 					header.th.hide();
 					
 				}

@@ -225,27 +225,40 @@ class SerieRepository extends RepositoryService
 		switch ($type) {
 			case 'sdr':
 				$qb = $this->newQb('s');
-				return $qb
-					->select('s.id, s.name, s.type')
+				$series = $qb
+					->select('s.id, s.name, c.type')
 					->innerJoin('s.company', 'c')
 					->andWhere($qb->in('c.type', [Company::SUB_CONTRACTOR, Company::SUPPLIER]))
 					->addOrderBy('s.name')
 					->getQuery()
 					->getArrayResult()
 				;
+				break;
 			case 'mdr':
 				$qb = $this->newQb('s');
-				return $qb
-					->selet('s.id, s.name, s.type')
+				$series = $qb
+					->select('s.id, s.name, c.type')
 					->innerJoin('s.company', 'c')
 					->andWhere($qb->eq('c.type', Company::MAIN_CONTRACTOR))
 					->addOrderBy('s.name')
 					->getQuery()
 					->getArrayResult()
 				;
+				break;
 			default:
-				return null;
+				$series = [];
 		}
+		
+		foreach ($series as &$serie) {
+			$serie['type'] = $type;
+			$serie['url'] = $this->router->generate('document', [
+				'project' => $project->getId(),
+				'type' => $type,
+				'serie' => $serie['id'],
+			]);
+		}
+		
+		return $series;
 	}
 	
 	/**
@@ -274,12 +287,11 @@ class SerieRepository extends RepositoryService
 			}
 			unset($serie['company_type']);
 			
-			$serie['edit_url'] = $this->router->generate('serie_edit', [
-				'serie' => $serie['id']
+			$serie['url'] = $this->router->generate('document', [
+				'project' => $project->getId(),
+				'type' => $serie['type'],
+				'serie' => $serie['id'],
 			]);	
-			$serie['delete_url'] = $this->router->generate('serie_delete', [
-				'serie' => $serie['id']
-			]);
 		}
 		
 		return $series;

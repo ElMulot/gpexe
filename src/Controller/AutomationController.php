@@ -226,10 +226,12 @@ class AutomationController extends AbstractController
 			} else {																	//check import
 				
 				$filePath = $this->cacheService->get('automation.file_path');
+				$pathParts = pathinfo($filePath);
+				
 				$this->cacheService->set('automation.ready_to_persist', true);
 				return $this->render('automation/check.html.twig', [
 					'automation' => $automation,
-					'file_path' => $filePath,
+					'file_path' => $this->getParameter('uploads_directory') . '/' . $pathParts['basename'],
 				]);
 				
 			}

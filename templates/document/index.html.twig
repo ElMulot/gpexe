@@ -69,13 +69,8 @@
             	<a class="nav-link active" id="vues-tab" data-toggle="tab" href="#vues_panel" role="tab" aria-controls="vues_panel" aria-selected="true">{% trans %}Vues{% endtrans %}</a>
             </li>
             <li class="nav-item">
-            	<a class="nav-link" id="search-tab" data-toggle="tab" href="#search_panel" role="tab" aria-controls="search_panel" aria-selected="false">{% trans %}Search{% endtrans %}</a>
+            	<a class="nav-link" id="series-tab" data-toggle="tab" href="#series_panel" role="tab" aria-controls="series_panel" aria-selected="false">{% trans %}Series{% endtrans %}</a>
             </li>
-            {% if currentCompany is not null %}
-                <li class="nav-item">
-                	<a class="nav-link" id="series-tab" data-toggle="tab" href="#series_panel" role="tab" aria-controls="series_panel" aria-selected="false">{% trans %}Series{% endtrans %}</a>
-                </li>
-			{% endif %}
             <li class="nav-item">
             	<a class="nav-link" id="display-tab" data-toggle="tab" href="#display_panel" role="tab" aria-controls="display_panel" aria-selected="false">{% trans %}Display{% endtrans %}</a>
             </li>
@@ -84,14 +79,9 @@
 			<div class="tab-pane fade show active" id="vues_panel" role="tabpanel" aria-labelledby="vues-tab">
     			{{ block('vues') }}
         	</div>
-			<div class="tab-pane fade" id="search_panel" role="tabpanel" aria-labelledby="search-tab">
-				{{ block('search') }}
+			<div class="tab-pane fade" id="series_panel" role="tabpanel" aria-labelledby="series-tab">
+				{{ block('series') }}
 			</div>
-			{% if currentCompany is not null %}
-    			<div class="tab-pane fade" id="series_panel" role="tabpanel" aria-labelledby="series-tab">
-    				{{ block('series') }}
-    			</div>
-			{% endif %}
 			<div class="tab-pane fade" id="display_panel" role="tabpanel" aria-labelledby="display-tab">
     			{{ block('display') }}
         	</div>
@@ -168,47 +158,17 @@
     </div>
 {% endblock %}
 
-{% block search %}
-    <div class="row pt-2">
-    	<label class="col-form-label col-form-label col-1" for="query">{% trans %}Query{% endtrans %}</label>
-    	<div class="col-auto">
-        	<div class="input-group input-group-sm">
-        		<input class="form-control form-control-sm" type="text">
-    			<div class="input-group-append">
-    				<a type="button" class="btn btn-light border-left-0 border text-primary">
-                        <span>&times;</span>
-                    </a>
-    			</div>
-			</div>
-    		<small class="form-text text-muted">{% trans %}Symbol{% endtrans %} {{ project.splitter }} {% trans %}must be used as splitter{% endtrans %}</small>
-    		<small class="form-text text-muted">{% trans %}The wild-card{% endtrans %} * {% trans %}can be used in place of one or several parameter{% endtrans %}</small>
-    	</div>
-		<div class="col-1">
-        	<button type="button" class="btn-primary btn">{% trans %}Filter{% endtrans %}</button>
-        </div>
-	</div>
-{% endblock %}
-
 {% block series %}
-    {% if currentCompany is not null %}
-        <div class="row p-2">
-        	<div class="col px-2">
-            	{% for serie in series %}
-            		{% if currentSerie == serie %}
-            			{% set class="btn btn-outline-primary m-1" %}
-            		{% else %}
-            			{% set class="btn btn-primary m-1" %}
-            		{% endif %}
-            		<a class="{{ class }}" href="{{ path('document', {'project': project.id, 'type': serie.type, 'serie': serie.id}) }}" role="button">{{ serie.name }}</a>
-            	{% endfor %}
+    <div class="row p-2">
+    	<div id="series" class="col px-2">
+    	
+    	</div>
+    	{% if currentCompany is not null and is_granted('ROLE_CONTROLLER') and app.user in project.users %}
+        	<div class="col-auto">
+        		<a class="btn btn-primary m-1" href="{{ path('serie', {'project': project.id, 'company': currentCompany.id}) }}" role="button">{% trans %}Manage series{% endtrans %}</a>
         	</div>
-        	{% if is_granted('ROLE_CONTROLLER') and app.user in project.users %}
-            	<div class="col-auto">
-            		<a class="btn btn-primary m-1" href="{{ path('serie', {'project': project.id, 'company': currentCompany.id}) }}" role="button">{% trans %}Manage series{% endtrans %}</a>
-            	</div>
-        	{% endif %}
-        </div>
-	{% endif %}
+    	{% endif %}
+    </div>
 {% endblock %}
 
 {% block display %}

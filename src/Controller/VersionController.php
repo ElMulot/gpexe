@@ -87,7 +87,7 @@ class VersionController extends AbstractController
 				return $this->render('ajax/error.html.twig');
 			}
 			
-			$document = $documents[0];
+			$document = reset($documents);
 		}
 		
 		$serie = $document->getSerie();
@@ -160,7 +160,7 @@ class VersionController extends AbstractController
 				return $this->render('ajax/error.html.twig');
 			}
 			
-			$document = $documents[0];
+			$document = reset($documents);
 		}
 		
 		$serie = $document->getSerie();
@@ -268,7 +268,7 @@ class VersionController extends AbstractController
             return $this->redirectToRoute('project');
         }
         
-        $document = $documents[0];
+        $document = reset($documents);
         $project = $document->getSerie()->getProject();
         $versions = $this->versionRepository->getVersions($request);
 	    

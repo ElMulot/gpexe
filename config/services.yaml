@@ -4,10 +4,10 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices/configuration.html#application-related-configuration
 parameters:
-    uploads_directory: '/uploads'
+    uploads_directory: 'uploads'
     webmaster: 'Nicolas VEDEL'
-    app_version: 0.1.3
-    app_date: 15-10-2020
+    app_version: 0.2
+    app_date: 08-11-2020
 
 services:
     # default configuration for services in *this* file
@@ -62,7 +62,7 @@ services:
     
     App\Service\ImportExportService:
         arguments:
-            $targetDirectory: '%kernel.project_dir%/public%uploads_directory%/'
+            $targetDirectory: '%kernel.project_dir%/public/%uploads_directory%/'
             
     App\Service\RepositoryService:
         autowire: false

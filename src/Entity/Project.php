@@ -53,6 +53,11 @@ class Project
     private $checkWarningLimit;
     
     /**
+     * @ORM\Column(type="integer")
+     */
+    private $checkDangerLimit;
+    
+    /**
      * @ORM\ManyToMany(targetEntity=User::class, inversedBy="projects")
      */
     private $users;
@@ -177,6 +182,18 @@ class Project
     public function setCheckWarningLimit(int $checkWarningLimit): self
     {
     	$this->checkWarningLimit = $checkWarningLimit;
+    	
+    	return $this;
+    }
+    
+    public function getCheckDangerLimit(): ?int
+    {
+    	return $this->checkDangerLimit;
+    }
+    
+    public function setCheckDangerLimit(int $checkDangerLimit): self
+    {
+    	$this->checkDangerLimit = $checkDangerLimit;
     	
     	return $this;
     }

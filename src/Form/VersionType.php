@@ -44,14 +44,14 @@ class VersionType extends AbstractType
 		$versions = $options['versions'];
 		
 		if ($versions) {
-			$serie = $versions[0]->getDocument()->getSerie();
+			$serie = reset($versions)->getDocument()->getSerie();
 		} else {
 			$serie = $options['serie'];
 		}
 		
 		if (count($versions) == 1) {
 			$this->builder->add('name', TextType::class, [
-				'data' => $versions[0]->getName(),
+				'data' => reset($versions)->getName(),
 			]);
 		} elseif ($versions == false) {
 			$this->builder->add('name', TextType::class);
@@ -117,7 +117,7 @@ class VersionType extends AbstractType
 			$multiple = $this->checkMultiple($versions, $codename);
 		}
 		
-		$version = $versions[0] ?? null;
+		$version = reset($versions) ?? null;
 		
 		switch ($type) {
 			

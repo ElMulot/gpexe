@@ -57,6 +57,13 @@ class QueryBuilderService extends QueryBuilder
 		return $this->expr()->notIn($field, '?' . $this->uid);
 	}
 	
+	public function like($field, $parameter): Expr\Comparison
+	{
+		$this->uid++;
+		$this->setParameter($this->uid, $parameter);
+		return $this->expr()->like($field, '?' . $this->uid);
+	}
+	
 	public function lt($field, $parameter): Expr\Comparison
 	{
 		$this->uid++;

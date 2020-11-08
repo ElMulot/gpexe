@@ -156,9 +156,10 @@ class Workbook
 						if ($sheetIndex !== 1) {
 							$this->writer->addNewSheetAndMakeItCurrent();
 						}
-						foreach ($sheet->getRowIterator() as $row) {
-							$this->writer->addRow($row);
-						}
+// 						This feature not work with dates in cell due to a dysfunction of box/spout
+// 						foreach ($sheet->getRowIterator() as $row) {
+// 							$this->writer->addRow($row);
+// 						}
 					}
 				}
 				break;

@@ -43,7 +43,7 @@ class ProjectController extends AbstractController
 			
 			if (sizeof($projects) == 1) {
 				return $this->redirectToRoute('project_view', [
-					'project' => $projects[0]->getId(),
+					'project' => reset($projects)->getId(),
 				]);
 			}
 			

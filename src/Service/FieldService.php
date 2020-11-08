@@ -55,8 +55,7 @@ class FieldService
 	// Usage of fields properties
 	//---------------------------
 	//
-	// id: 				document_table (versionRepository)
-	// full_id:			document_table (versionRepository, js)
+	// id: 				document_table (versionRepository, js)
 	// codename: 		automation
 	// title:			document_table (js)
 	// type:			document_table (versionRepository, js)
@@ -70,8 +69,7 @@ class FieldService
 	{
 		$fields = [
 			'document.reference' => [
-				'full_id' =>'document_reference',
-				'id' => 'reference',
+				'id' =>'document_reference',
 				'codename' => 'document.reference',
 				'title' => $this->translator->trans('Reference'),
 				'type' => Metadata::LIST,
@@ -87,8 +85,7 @@ class FieldService
 				],
 			],
 			'version.name' => [
-				'full_id' =>'version_name',
-				'id' => 'name',
+				'id' =>'version_name',
 				'codename' => 'version.name',
 				'title' => $this->translator->trans('Version'),
 				'type' => Metadata::TEXT,
@@ -104,8 +101,7 @@ class FieldService
 				],
 			],
 			'document.name' => [
-				'full_id' =>'document_name',
-				'id' => 'name',
+				'id' =>'document_name',
 				'codename' => 'document.name',
 				'title' => $this->translator->trans('Name'),
 				'type' => Metadata::TEXT,
@@ -121,8 +117,7 @@ class FieldService
 				],
 			],
 			'version.initialScheduledDate' => [
-				'full_id' =>'version_initial_scheduled_date',
-				'id' => 'initial_scheduled_date',
+				'id' =>'version_initial_scheduled_date',
 				'codename' => 'version.initialScheduledDate',
 				'title' => $this->translator->trans('Initial scheduled date'),
 				'type' => Metadata::DATE,
@@ -138,8 +133,7 @@ class FieldService
 				],
 			],
 			'version.scheduledDate' => [
-				'full_id' =>'version_scheduled_date',
-				'id' => 'scheduled_date',
+				'id' =>'version_scheduled_date',
 				'codename' => 'version.scheduledDate',
 				'title' => $this->translator->trans('Scheduled date'),
 				'type' => Metadata::DATE,
@@ -155,8 +149,7 @@ class FieldService
 				],
 			],
 			'version.deliveryDate' => [
-				'full_id' =>'version_delivery_date',
-				'id' => 'delivery_date',
+				'id' =>'version_delivery_date',
 				'codename' => 'version.deliveryDate',
 				'title' => $this->translator->trans('Delivery date'),
 				'type' => Metadata::DATE,
@@ -172,8 +165,7 @@ class FieldService
 				],
 			],
 			'version.date' => [
-				'full_id' =>'version_date',
-				'id' => 'date',
+				'id' =>'version_date',
 				'codename' => 'version.date',
 				'title' => $this->translator->trans('Date'),
 				'type' => Metadata::DATE,
@@ -189,8 +181,7 @@ class FieldService
 				],
 			],
 			'version.isRequired' => [
-				'full_id' =>'version_is_required',
-				'id' => 'is_required',
+				'id' =>'version_is_required',
 				'codename' => 'version.isRequired',
 				'title' => $this->translator->trans('required'),
 				'type' => Metadata::BOOLEAN,
@@ -206,8 +197,7 @@ class FieldService
 				],
 			],
 			'version.writer' => [
-				'full_id' =>'version_writer',
-				'id' => 'writer',
+				'id' =>'version_writer',
 				'codename' => 'version.writer',
 				'title' => $this->translator->trans('Writer'),
 				'type' => Metadata::LIST,
@@ -223,8 +213,7 @@ class FieldService
 				],
 			],
 			'version.checker' => [
-				'full_id' =>'version_checker',
-				'id' => 'checker',
+				'id' =>'version_checker',
 				'codename' => 'version.checker',
 				'title' => $this->translator->trans('Checker'),
 				'type' => Metadata::LIST,
@@ -240,8 +229,7 @@ class FieldService
 				],
 			],
 			'version.approver' => [
-				'full_id' =>'version_approver',
-				'id' => 'approver',
+				'id' =>'version_approver',
 				'codename' => 'version.approver',
 				'title' => $this->translator->trans('Approver'),
 				'type' => Metadata::LIST,
@@ -257,8 +245,7 @@ class FieldService
 				],
 			],
 			'version.lastDelivered' => [
-				'full_id' =>'version_last_delivered',
-				'id' => 'last_delivered',
+				'id' =>'version_last_delivered',
 				'codename' => 'version.lastDelivered',
 				'title' => $this->translator->trans('Last delivered'),
 				'type' => Metadata::BOOLEAN,
@@ -274,8 +261,7 @@ class FieldService
 				],
 			],
 			'version.lastScheduled' => [
-				'full_id' =>'version_last_scheduled',
-				'id' => 'last_scheduled',
+				'id' =>'version_last_scheduled',
 				'codename' => 'version.lastScheduled',
 				'title' => $this->translator->trans('Last scheduled'),
 				'type' => Metadata::BOOLEAN,
@@ -291,8 +277,7 @@ class FieldService
 				],
 			],
 			'serie.name' => [
-				'full_id' =>'serie_name',
-				'id' => 'name',
+				'id' =>'serie_name',
 				'codename' => 'serie.name',
 				'title' => $this->translator->trans('Serie name'),
 				'type' => Metadata::LIST,
@@ -308,8 +293,7 @@ class FieldService
 				],
 			],
 			'serie.company' => [
-				'full_id' =>'serie_company',
-				'id' => 'company',
+				'id' =>'serie_company',
 				'codename' => 'serie.company',
 				'title' => $this->translator->trans('Company'),
 				'type' => Metadata::LIST,
@@ -325,8 +309,7 @@ class FieldService
 				],
 			],
 			'status.value' => [
-				'full_id' =>'status_value',
-				'id' => 'value',
+				'id' =>'status_value',
 				'codename' => 'status.value',
 				'title' => $this->translator->trans('Status value'),
 				'type' => Metadata::LIST,
@@ -342,8 +325,7 @@ class FieldService
 				],
 			],
 			'status.type' => [
-				'full_id' =>'status_type',
-				'id' => 'type',
+				'id' =>'status_type',
 				'codename' => 'status.type',
 				'title' => $this->translator->trans('Status type'),
 				'type' => Metadata::LIST,
@@ -362,8 +344,7 @@ class FieldService
 		
 		foreach ($this->codificationRepository->getCodifications($project) as $codification) {
 			$fields[$codification->getFullCodename()] = [
-				'full_id' =>$codification->getFullDomId(),
-				'id' => $codification->getId(),
+				'id' =>$codification->getFullDomId(),
 				'codename' => $codification->getFullCodename(),
 				'title' => $codification->getName(),
 				'type' => $codification->getType(),
@@ -382,8 +363,7 @@ class FieldService
 		
 		foreach ($this->metadataRepository->getMetadatas($project) as $metadata) {
 			$fields[$metadata->getFullCodename()] = [
-				'full_id' =>$metadata->getFullDomId(),
-				'id' => $metadata->getId(),
+				'id' =>$metadata->getFullDomId(),
 				'codename' => $metadata->getFullCodename(),
 				'title' => $metadata->getName(),
 				'type' => $metadata->getType(),
@@ -403,8 +383,7 @@ class FieldService
 		foreach ($this->companyRepository->getCheckerCompanies($project) as $company) {
 			if ($project->getVisasByCompany($company)->isEmpty() === false) {
 				$fields['visa.' . $company->getCodename() . '.value'] = [
-					'full_id' =>'visa_' . $company->getId(),
-					'id' => $company->getId(),
+					'id' =>'visa_' . $company->getId(),
 					'codename' => 'visa.' . $company->getCodename() . '.value',
 					'title' => $this->translator->trans('Visa') . ' ' . $company->getName(),
 					'type' => Metadata::LIST,
@@ -421,8 +400,7 @@ class FieldService
 				];
 				
 				$fields['visa.' . $company->getCodename() . '.username'] = [
-					'full_id' =>'',
-					'id' => '',
+					'id' =>'',
 					'codename' => 'visa.' . $company->getCodename() . '.username',
 					'title' => '',
 					'type' => Metadata::LIST,
@@ -439,8 +417,7 @@ class FieldService
 				];
 				
 				$fields['visa.' . $company->getCodename() . '.date'] = [
-					'full_id' =>'',
-					'id' => '',
+					'id' =>'',
 					'codename' => 'visa.' . $company->getCodename() . '.date',
 					'title' => '',
 					'type' => Metadata::LIST,
@@ -471,7 +448,7 @@ class FieldService
 		foreach ($this->codificationRepository->getCodifications($project) as $codification) {
 			
 			$element = [
-				'full_id' 		=> $codification->getFullDomId(),
+				'id' 		=> $codification->getFullDomId(),
 				'title' 		=> $codification->getName(),
 				'sort'			=> false,
 			];
@@ -500,7 +477,7 @@ class FieldService
 		}
 		
 		$fields['document.name']['elements'][] = [
-			'full_id' 	=> 'document_name',
+			'id' 	=> 'document_name',
 			'title' 	=> $this->translator->trans('Name'),
 			'sort'		=> true,
 			'filter' 	=> [		
@@ -509,7 +486,7 @@ class FieldService
 		];
 		
 		$fields['version.initialScheduledDate']['elements'][] = [
-			'full_id' 	=> 'version_initial_scheduled_date',
+			'id' 	=> 'version_initial_scheduled_date',
 			'title' 	=> $this->translator->trans('Initial scheduled date'),
 			'sort'		=> true,
 			'filter'	=> [
@@ -518,7 +495,7 @@ class FieldService
 		];
 		
 		$fields['version.scheduledDate']['elements'][] = [
-			'full_id' 	=> 'version_scheduled_date',
+			'id' 	=> 'version_scheduled_date',
 			'title' 	=> $this->translator->trans('Scheduled date'),
 			'sort'		=> true,
 			'filter'	=> [
@@ -527,7 +504,7 @@ class FieldService
 		];
 		
 		$fields['version.deliveryDate']['elements'][] = [
-			'full_id' 	=> 'version_delivery_date',
+			'id' 	=> 'version_delivery_date',
 			'title' 	=> $this->translator->trans('Delivery date'),
 			'sort'		=> true,
 			'filter'	=> [
@@ -536,7 +513,7 @@ class FieldService
 		];
 		
 		$fields['version.isRequired']['elements'][] = [
-			'full_id' 	=> 'version_is_required',
+			'id' 	=> 'version_is_required',
 			'title' 	=> $this->translator->trans('Required'),
 			'sort'		=> true,
 			'filter'	=> [
@@ -545,7 +522,7 @@ class FieldService
 		];
 		
 		$fields['version.writer']['elements'][] = [
-			'full_id' 	=> 'version_writer',
+			'id' 	=> 'version_writer',
 			'title' 	=> $this->translator->trans('Writer'),
 			'sort'		=> true,
 			'filter'	=> [
@@ -555,7 +532,7 @@ class FieldService
 		];
 		
 		$fields['version.checker']['elements'][] = [
-			'full_id' 	=> 'version_checker',
+			'id' 	=> 'version_checker',
 			'title' 	=> $this->translator->trans('Checker'),
 			'sort'		=> true,
 			'filter'	=> [
@@ -565,7 +542,7 @@ class FieldService
 		];
 		
 		$fields['version.approver']['elements'][] = [
-			'full_id' 	=> 'version_approver',
+			'id' 	=> 'version_approver',
 			'title' 	=> $this->translator->trans('Approver'),
 			'sort'		=> true,
 			'filter'	=> [
@@ -575,7 +552,7 @@ class FieldService
 		];
 		
 		$fields['serie.name']['elements'][] = [
-			'full_id' 	=> 'serie_name',
+			'id' 	=> 'serie_name',
 			'title' 	=> $this->translator->trans('Serie name'),
 			'sort'		=> true,
 			'filter'	=> [
@@ -585,7 +562,7 @@ class FieldService
 		];
 		
 		$fields['serie.company']['elements'][] = [
-			'full_id' 	=> 'serie_company',
+			'id' 	=> 'serie_company',
 			'title' 	=> $this->translator->trans('Company'),
 			'sort'		=> true,
 			'filter'	=> [
@@ -595,7 +572,7 @@ class FieldService
 		];
 		
 		$fields['status.value']['elements'][] = [
-			'full_id' 	=> 'status_value',
+			'id' 	=> 'status_value',
 			'title' 	=> $this->translator->trans('Status value'),
 			'sort'		=> true,
 			'filter'	=> [
@@ -605,7 +582,7 @@ class FieldService
 		];
 		
 		$fields['status.type']['elements'][] = [
-			'full_id' 	=> 'status_type',
+			'id' 	=> 'status_type',
 			'title' 	=> $this->translator->trans('Status type'),
 			'sort'		=> true,
 			'filter'	=> [
@@ -627,7 +604,7 @@ class FieldService
 				case Metadata::TEXT:
 				case Metadata::DATE:
 					$fields[$metadata->getFullCodename()]['elements'][] = [
-						'full_id' 	=> $metadata->getFullDomId(),
+						'id' 	=> $metadata->getFullDomId(),
 						'title' 	=> $metadata->getName(),
 						'sort'		=> true,
 						'filter'	=> [
@@ -638,7 +615,7 @@ class FieldService
 					
 				case Metadata::LIST:
 					$fields[$metadata->getFullCodename()]['elements'][] = [
-						'full_id' 	=> $metadata->getFullDomId(),
+						'id' 	=> $metadata->getFullDomId(),
 						'title' 	=> $metadata->getName(),
 						'sort'		=> true,
 						'filter'	=> [
@@ -653,7 +630,7 @@ class FieldService
 		foreach ($this->companyRepository->getCheckerCompanies($project) as $checkerCompany) {
 			if ($project->getVisasByCompany($checkerCompany)->isEmpty() === false) {
 				$fields['visa.' . $checkerCompany->getCodename() . '.value']['elements'][] = [
-					'full_id' 	=> 'visa_' . $checkerCompany->getId(),
+					'id' 	=> 'visa_' . $checkerCompany->getId(),
 					'title' 	=> $this->translator->trans('Visa') . ' ' . $checkerCompany->getName(),
 					'sort'		=> true,
 					'filter'	=> [

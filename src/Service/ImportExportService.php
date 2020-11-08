@@ -24,7 +24,7 @@ use Symfony\Component\Stopwatch\Stopwatch;
 class ImportExportService
 {
 	
-	const MAX_LINES_PROCESSED 	= 100;
+	const MAX_LINES_PROCESSED 	= 1000;
 	const IGNORE_COLOR 			= 'C8C8C8';
 	const WARNING_COLOR 		= 'FFE591';
 	const ERROR_COLOR 			= 'FF9191';

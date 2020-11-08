@@ -1,15 +1,31 @@
 
 {% set prod_delayed  = prod_alerts|filter(v => v.min < 0) %}
-{% set prod_danger   = prod_alerts|filter(v => v.min < project.prodDangerLimit and v <=0) %}
-{% set prod_warning  = prod_alerts|filter(v => v.min >= project.prodDangerLimit and v.min < project.prodWarningLimit) %}
+{% set prod_danger   = prod_alerts|filter(v => v.min <= project.prodDangerLimit and v >=0) %}
+{% set prod_warning  = prod_alerts|filter(v => v.min < project.prodWarningLimit and v.min > project.prodDangerLimit) %}
 {% set prod_info     = prod_alerts|filter(v => v.min >= project.prodWarningLimit) %}
-{% set check_danger  = check_alerts|filter(v => v.max > project.checkWarningLimit) %}
-{% set check_warning = check_alerts|filter(v => v.max <= project.checkWarningLimit and v.max > 0) %}
-{% set check_info    = check_alerts|filter(v => v.max <= 0) %}
+{% set check_danger  = check_alerts|filter(v => v.max > project.checkDangerLimit) %}
+{% set check_warning = check_alerts|filter(v => v.max <= project.checkDangerLimit and v.max > project.checkWarningLimit) %}
+{% set check_info    = check_alerts|filter(v => v.max <= project.checkWarningLimit) %}
 
+{% if prod_delayed %}
+	<div class="alert alert-danger row w-100">
+		<div class="mb-2">{% trans %}alert.prod.delayed{% endtrans %} :</div>
+		{% for alert in prod_delayed %}
+			{% set type = (alert.companyType is constant('App\\Entity\\Company::MAIN_CONTRACTOR'))?'mdr':'sdr' %}
+			<div class="col-6 p-1">
+				<a class="btn btn-sm btn-primary d-flex text-decoration-none w-75" href="{{ path('document', prod_settings|merge({'project': project.id, 'type': type, 'serie': alert.serieId})) }}">
+					<div class="text-left">{{ alert.serieName }}</div>
+					<div class="ml-auto">
+						<span class="badge badge-light">{{ alert.count }}</span>
+					</div>
+				</a>
+			</div>
+		{% endfor %}
+	</div>
+{% endif %}
 {% if prod_danger %}
 	<div class="alert alert-danger row w-100">
-		<div class="mb-2">{% trans %}Some documents to be produced are very late{% endtrans %} :</div>
+		<div class="mb-2">{% trans with {'%count%': project.prodDangerLimit} %}alert.prod.danger{% endtrans %} :</div>
 		{% for alert in prod_danger %}
 			{% set type = (alert.companyType is constant('App\\Entity\\Company::MAIN_CONTRACTOR'))?'mdr':'sdr' %}
 			<div class="col-6 p-1">
@@ -25,7 +41,7 @@
 {% endif %}
 {% if prod_warning %}
 	<div class="alert alert-warning row w-100">
-		<div class="col-12 mb-2">{% trans %}Some documents to be produced are late{% endtrans %} :</div>
+		<div class="col-12 mb-2">{% trans with {'%count%': project.prodWarningLimit} %}alert.prod.warning{% endtrans %} :</div>
 		{% for alert in prod_warning %}
 			{% set type = (alert.companyType is constant('App\\Entity\\Company::MAIN_CONTRACTOR'))?'mdr':'sdr' %}
 			<div class="col-6 p-1">
@@ -41,7 +57,7 @@
 {% endif %}
 {% if prod_info %}
 	<div class="alert alert-info row w-100">
-		<div class="col-12 mb-2">{% trans %}Some documents must be produce in the next 15 days{% endtrans %} :</div>
+		<div class="col-12 mb-2">{% trans with {'%count%': project.prodWarningLimit} %}alert.prod.info{% endtrans %} :</div>
 		{% for alert in prod_info %}
 			{% set type = (alert.companyType is constant('App\\Entity\\Company::MAIN_CONTRACTOR'))?'mdr':'sdr' %}
 			<div class="col-6 p-1">
@@ -57,7 +73,7 @@
 {% endif %}
 {% if check_danger %}
 	<div class="alert alert-danger row w-100">
-		<div class="col-12 mb-2">{% trans %}Some documents to be checked are very late{% endtrans %} :</div>
+		<div class="col-12 mb-2">{% trans %}alert.check.danger{% endtrans %} :</div>
 		{% for alert in check_danger %}
 			{% set type = (alert.companyType is constant('App\\Entity\\Company::MAIN_CONTRACTOR'))?'mdr':'sdr' %}
 			<div class="col-6 p-1">
@@ -74,7 +90,7 @@
 
 {% if check_warning %}
 	<div class="alert alert-warning row w-100">
-		<div class="col-12 mb-2">{% trans %}Some documents to be checked are late{% endtrans %} :</div>
+		<div class="col-12 mb-2">{% trans %}alert.check.warning{% endtrans %} :</div>
 		{% for alert in check_warning %}
 			{% set type = (alert.companyType is constant('App\\Entity\\Company::MAIN_CONTRACTOR'))?'mdr':'sdr' %}
 			<div class="col-6 p-1">
@@ -90,7 +106,7 @@
 {% endif %}
 {% if check_info %}
 	<div class="alert alert-info row w-100">
-		<div class="col-12 mb-2">{% trans %}Some documents must be checked in the next 15 days{% endtrans %} :</div>
+		<div class="col-12 mb-2">{% trans with {'%count%': project.checkWarningLimit} %}alert.check.info{% endtrans %} :</div>
 		{% for alert in check_info %}
 			{% set type = (alert.companyType is constant('App\\Entity\\Company::MAIN_CONTRACTOR'))?'mdr':'sdr' %}
 			<div class="col-6 p-1">
@@ -105,7 +121,7 @@
 	</div>
 {% endif %}
 
-{% if prod_danger is empty and prod_warning is empty and prod_info is empty and check_danger is empty and check_warning is empty and check_info is empty %}
+{% if prod_delayed is empty and prod_danger is empty and prod_warning is empty and prod_info is empty and check_danger is empty and check_warning is empty and check_info is empty %}
 	<p class="m-0">
 		{% trans %}Nothing to do on that project{% endtrans %}.
 	</p>

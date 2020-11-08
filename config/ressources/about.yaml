@@ -21,4 +21,16 @@
     date: 15/10/2020
     changes:
         - Désormais, il est possible de créer une version après apposition d'un visa avec observations
-        - Corrections de bugs suite mail M. Barnouin
+        - Corrections de bugs suite mail M. Barnouin*
+- 
+    version: 0.2
+    date: 08/11/2020
+    changes:
+        - Intégration de la librairie box/spout pour les imports/export Excel
+        - Modification de la création d'une nouvelle version après apposition d'un visa
+        - Suppression de l'onglet "Rechercher" dans le panneau principal et ajout d'une recherche texte sur chaque colonne
+        - Les modifications en masse sont de nouveau possibles
+        - Corrections du bug sur l'écran d'accueil
+        - Ajouts de photos en arrière plan sur la page de login
+        - Correction de bugs
+        

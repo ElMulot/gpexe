@@ -23,5 +23,7 @@ doctrine:
         dql:
             datetime_functions:
                 STR_TO_DATE: DoctrineExtensions\Query\Mysql\StrToDate
+                DATE_DIFF_WD: App\DQL\DateDiffWD
             string_functions:
                 IF: DoctrineExtensions\Query\Mysql\IfElse
+                

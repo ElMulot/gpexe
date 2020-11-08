@@ -27,4 +27,3 @@ $(document).ready(function() {
 	    cm.setCursor(fromCursor);
 	});
 });
-

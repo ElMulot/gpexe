@@ -65,10 +65,11 @@ class SerieController extends AbstractController
 				'company' => $company->getId(),
 			]);
 		} else {
+			
 			return $this->redirectToRoute('document', [
 				'project' => $project->getId(),
-				'type' => $series[0]->getType(),
-				'serie' => $series[0]->getId(),
+				'type' => reset($series)['type'],
+				'serie' => reset($series)['id'],
 			]);
 		}
 	}

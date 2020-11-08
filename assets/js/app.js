@@ -33,6 +33,10 @@ Date.prototype.addDays = function(days) {
     return date;
 }
 
+Array.prototype.has = function(value) {
+	return this.some(v => String(v) === String(value))
+}
+
 $.fn.exist = function () {
 	return this.length !== 0 && this;
 }

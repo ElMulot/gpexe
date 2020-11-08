@@ -89,7 +89,7 @@ class StatusRepository extends RepositoryService
     {
     	$qb = $this->newQb('s');
     	return $qb
-	    	->select('s.id, s.name')
+	    	->select('s.id, s.value')
 	    	->andWhere($qb->eq('s.project', $project))
 	    	->addOrderBy('s.name')
 	    	->getQuery()

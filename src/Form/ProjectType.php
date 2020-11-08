@@ -25,13 +25,16 @@ class ProjectType extends AbstractType
             	'help' => 'Number of working days allowed to produce a new revision of a document.'
             ])
             ->add('prodWarningLimit', IntegerType::class, [
-            	'help' => 'Number of working days delay before showing the line in orange in the dashboard and the documents list for documents to be produced.'
+            	'help' => 'Number of working days delay before showing the line in orange in the dashboard and in the documents list for documents to be produced.'
             ])
             ->add('prodDangerLimit', IntegerType::class, [
-            	'help' => 'Number of working days delay before showing the line in red in the dashboard and the documents list for documents to be produced.'
+            	'help' => 'Number of working days delay before showing the line in red in the dashboard and in the documents list for documents to be produced.'
             ])
             ->add('checkWarningLimit', IntegerType::class, [
-            	'help' => 'Number of working days delay before showing the line in red in the dashboard and the documents list for documents to be checked.'
+            	'help' => 'Number of working days delay before showing the line in orange in the dashboard and in the documents list for documents to be checked.'
+            ])
+            ->add('checkDangerLimit', IntegerType::class, [
+            	'help' => 'Number of working days delay before showing the line in red in the dashboard and in the documents list for documents to be checked.'
             ])
             ->add('users')
         ;

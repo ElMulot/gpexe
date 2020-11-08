@@ -7,8 +7,8 @@ delay: >-
 updated:
     version: >-
         {count, plural,
-            one   {Version mise à jour}
-            other {Versions mises à jour}
+            one   {Révision mise à jour}
+            other {Révisions mises à jour}
         }
 
 confirm:
@@ -32,8 +32,8 @@ confirm:
     user: Confirmer la suppression de l'utilisateur
     version: Confirmer la suppression
         {count, plural,
-            one   {de la version}
-            other {des versions}
+            one   {de la révision}
+            other {des révisions}
         }
     visa: Confirmer la suppression du visa
     vue: Confirmer la suppression de la vue
@@ -47,8 +47,8 @@ deleted:
       
     version: >-
         {count, plural,
-            one   {Version supprimée}
-            other {Versions supprimées}
+            one   {Révision supprimée}
+            other {Révisions supprimées}
         }
       
 notEmpty:
@@ -56,3 +56,30 @@ notEmpty:
 
 alreadyExist:
     reference: 'La référence "{reference}" existe déjà'
+
+alert:
+    prod:
+        delayed: Certains documents devant être produits sont en retard
+        danger: >-
+            {count, plural,
+                one   {Certains documents doivent être produits dans # jour}
+                other {Certains documents doivent être produits dans les # jours}
+            }
+        warning: >-
+            {count, plural,
+                one   {Certains documents doivent être produits dans # jour}
+                other {Certains documents doivent être produits dans les # jours}
+            }
+        info: >-
+            {count, plural,
+                one   {Certains documents sont à produire dans plus de # jour}
+                other {Certains documents sont à produire dans plus de # jours}
+            }
+    check:
+        danger: Certains documents devant être vérifiés sont très en retard
+        warning: Certains documents devant être vérifiés sont en retard
+        info: >-
+            {count, plural,
+                one   {Certains documents sont à vérifier dans # jour}
+                other {Certains documents sont à vérifier dans les # jours}
+            }
