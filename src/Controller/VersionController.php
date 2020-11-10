@@ -186,8 +186,6 @@ class VersionController extends AbstractController
 		
 		$form->handleRequest($request);
 		
-		dump($request, $form);
-		
 		if ($form->isSubmitted() && $form->isValid()) {
 			
 			$entityManager = $this->getDoctrine()->getManager();

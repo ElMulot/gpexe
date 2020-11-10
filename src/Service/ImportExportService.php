@@ -886,8 +886,8 @@ class ImportExportService
 // 		}
 		
 		$expression = str_replace('$', '', $expression);
-		$expression = str_replace(' & ', ' && ', $expression);
-		$expression = str_replace(' | ', ' || ', $expression);
+		$expression = str_replace(' and ', ' && ', $expression);
+		$expression = str_replace(' or ', ' || ', $expression);
 		$expression = str_replace('user.name', $this->security->getUser(), $expression);
 		$matches = [];
 		
@@ -909,6 +909,7 @@ class ImportExportService
 		if (preg_match('/\[([A-Z]{1,2})\]/', $expression, $matches) === 1) {
 			return $matches[1];
 		}
+		return null;
 	}
 	
 	private function addComment($type, $text, $col = null)

@@ -220,6 +220,23 @@ class SerieRepository extends RepositoryService
 	/**
 	 * @return Serie[]
 	 */
+	public function getSeriesByCompany(Project $project, Company $company)
+	{
+		$qb = $this->newQb('s');
+		return $qb
+			->innerJoin('s.company', 'c')
+			->andWhere($qb->eq('s.project', $project))
+			->andWhere($qb->eq('s.company', $company))
+			->addOrderBy('s.name')
+			->getQuery()
+			->getResult()
+		;
+	}	
+	
+	
+	/**
+	 * @return Serie[]
+	 */
 	public function getSeriesArrayByType(Project $project, string $type)
 	{
 		switch ($type) {

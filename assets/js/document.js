@@ -164,6 +164,12 @@ function setup(datas) {
 	gpexe.chxCheckall = div.append(create.checkbox).children().last()
 		.attr('id', 'check_all')
 		.attr('unchecked', 'unchecked')
+		.on('click', function() {
+			 $('tbody').find('input[type="checkbox"]').each(function() {
+				$(this).prop('checked', $('#check_all').is(':checked'));
+			});
+			 urlSearch.lineChecked();
+		});
 	;
 	
 	div.append(create.label).children().last()
@@ -957,17 +963,6 @@ $(document).ready(function() {
 	});
 	
 	//---------------------
-	// Check all checkboxes
-	//---------------------
-	
-	$('#check_all').on('click', function() {
-		$('tbody').find('input[type="checkbox"]').each(function() {
-			$(this).prop('checked', $('#check_all').is(':checked'));
-		});
-		urlSearch.lineChecked();
-	});
-	
-	//---------------------
 	// Jquery Resizable Columns
 	//---------------------
 	
@@ -1415,39 +1410,44 @@ $(document).ready(function() {
 		
 		$('#toast').empty();
 		
-		for (const label in result.flash) {
+		for (let label of Object.keys(result.flash)) {
 			
-			let div = $('#toast').append(create.div).children().last()
-				.addClass('alert alert-' + label + ' d-flex px-3')
+			let divToast = $('#toast').append(create.div).children().last()
+				.addClass('toast')
 				.attr('role', 'alert')
 				.attr('data-delay', 5000)
 				.attr('aria-live', 'assertive')
 				.attr('aria-atomic', true)
 			;
 			
-			div.append(create.div).children().last()
-				.addClass('align-self-center')
-				.append(global.icon[label]);
+			let divContainer = divToast.append(create.div).children().last()
+				.addClass('alert alert-' + label + ' d-flex px-3 m-0')
+			;
 			
-			let body = div.append(create.ul).children().last()
+			divContainer.append(create.div).children().last()
+				.addClass('align-self-center')
+				.append(global.icon[label])
+			;
+			
+			let ulBody = divContainer.append(create.ul).children().last()
 				.addClass('justify-content-center flex-fill')
 			;
 			
-			div.append(create.div).children().last()
+			divContainer.append(create.div).children().last()
 				.addClass('justify-content-end')
 				.append(global.icon.close);
 			
 			if (result.flash[label].length > 1) {
 				for (let message of result.flash[label]) {
-					body.append(create.li).children().last()
+					ulBody.append(create.li).children().last()
 						.text(message)
 					;
 				}
 			} else {
-				body.text(result.flash[label][0]);
+				ulBody.text(result.flash[label][0]);
 			}
 			
-			div.toast('show');
+			divToast.toast('show');
 		}
 		
 		urlSearch.lineChecked();

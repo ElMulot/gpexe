@@ -125,7 +125,7 @@ class FieldService
 				'default_width' => 8,
 				'display' => [
 					'table' => true,
-					'automation' => true
+					'automation' => false
 				],
 				'permissions' => [
 					'read' => true,
@@ -141,7 +141,7 @@ class FieldService
 				'default_width' => 8,
 				'display' => [
 					'table' => true,
-					'automation' => true
+					'automation' => false
 				],
 				'permissions' => [
 					'read' => true,
@@ -157,7 +157,7 @@ class FieldService
 				'default_width' => 8,
 				'display' => [
 					'table' => true,
-					'automation' => true
+					'automation' => false
 				],
 				'permissions' => [
 					'read' => true,
