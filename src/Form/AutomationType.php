@@ -32,7 +32,7 @@ class AutomationType extends AbstractType
 	    	->add('enabled', CheckboxType::class, [
 	    		'required' => false,
 	    		'label_attr' => [
-	    			'class' => 'col-2',
+	    			'class' => 'col-form-label col-2',
 	    		],
 	    		'attr' => [
 	    			'class' => 'col-1 mt-2',

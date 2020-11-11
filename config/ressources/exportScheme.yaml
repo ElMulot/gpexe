@@ -3,6 +3,7 @@ type:
 
 first_row:
     regex: '\d+'
+    default: 1
 
 exclude:
     -

@@ -58,10 +58,11 @@ class SerieRepository extends RepositoryService
 			->innerJoin('serie.company', 'company')
 			->innerJoin('serie.project', 'project')
 			->andWhere($qb->eq('serie.project', $project))
+			->andWhere($qb->eq('serie.id', '29'))
 			->getQuery()
 			->getResult()
 		;
-		
+			
 		$this->newQB()
 			->select('PARTIAL project.{id}, visa, company')
 			->from(Project::class, 'project')
@@ -70,7 +71,7 @@ class SerieRepository extends RepositoryService
 			->getQuery()
 			->getResult()
 		;
-		
+			return $series;
 		$this->newQB()
 			->select('PARTIAL serie.{id}, serieMetadataItem, metadata1')
 			->from(Serie::class, 'serie')

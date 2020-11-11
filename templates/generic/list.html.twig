@@ -1,5 +1,15 @@
 {% extends 'layout.html.twig' %}
 
+{% set entity_name = class|short_name %}
+{% set headers = headers(class) %}
+{% dump(headers) %}
+{% set display_list = false %}
+{% for entity in entities %}
+	{% if attribute(entity, 'isList') is defined and attribute(entity, 'isList') == "True" %}
+		{% set display_list = true %}
+	{% endif %}
+{% endfor %}
+    		
 {% block nav %}
     {% if route_back is defined %}
         <div class="navbar-collapse" style="{{ block('nav_item') }}">
@@ -7,6 +17,9 @@
         		{% if route_back is defined %}
             		<li class="nav-item" style="{{ block('nav_item') }}">
             			<a class="nav-link" href="{{ route_back }}">{% trans %}Back{% endtrans %}</a>
+            		</li>
+            		<li class="nav-item" style="{{ block('nav_item') }}">
+            			<a class="nav-link" href="{{ path(entity_name ~ '_new', app.request.attributes.get('_route_params')) }}">{% trans %}New{% endtrans %}</a>
             		</li>
         		{% endif %}
         	</ul>
@@ -21,64 +34,54 @@
 {% endblock %}
 
 {% block content %}
-    {% set headers = headers(class) %}
-    <table class="table table-responsive-xl">
+    <table class="table">
     	<thead>
     		<tr class="text-center">
     			{% for header in headers %}
     				<th>{{ header|trans }}</th>
     			{% endfor %}
-    			{% if attribute(entities|first, 'isList') is defined %}
-    				<th></th>
+    			{% if display_list %}
+    				<th style="width: 10rem;"></th>
     			{%  endif %}
-    			<th></th>
-    			<th></th>
+    			<th style="width: 10rem;"></th>
+    			<th style="width: 10rem;"></th>
     		</tr>
     	</thead>
     	<tbody>
-    		{% set entity_name = class|short_name %}
-    		
-    		{% set display_list = false %}
-    		{% for entity in entities %}
-    			{% if attribute(entity, 'isList') is defined and attribute(entity, 'isList') == "True" %}
-    				{% set display_list = true %}
-    			{% endif %}
-    		{% endfor %}
-    		
     		{% for entity in entities %}
         		<tr>
         			{% for key, header in headers %}
             			{% set value = attribute(entity, key) %}
             			{% if value is same as (false) %}
-            				<td class="col-xl-auto text-center">{% trans %}False{% endtrans %}</td>
+            				<td class="col-auto text-center">{% trans %}False{% endtrans %}</td>
             			{% elseif value is same as (true) %}
-            				<td class="col-xl-auto text-center">{% trans %}True{% endtrans %}</td>
+            				<td class="col-auto text-center">{% trans %}True{% endtrans %}</td>
             			{% elseif value.timezone is defined and value.nonExistingProperty is not defined %}
-            				<td class="col-xl-auto text-center">{{ value|date('d-m-Y') }}</td>
+            				<td class="col-auto text-center">{{ value|date('d-m-Y') }}</td>
             			{% elseif value matches '/^\\d/' %}
-                			<td class="col-xl-auto text-center">{{ value }}</td>
+                			<td class="col-auto text-center">{{ value }}</td>
             			{% else %}
-            				<td class="col-xl-auto text-left">{{ value|truncate(30, false, "...") }}</td>
+            				<td class="col-auto text-left">{{ value|truncate(30, false, "...") }}</td>
             			{% endif %}
         			{% endfor %}
         			{% if display_list %}
     	                {% if attribute(entity, 'isList') is defined and attribute(entity, 'isList') == "True" %}
-                			<td style="width: 200px;">
+                			<td>
                 			    <a class="btn-secondary btn w-100 text-nowrap" href="{{ path(entity_name ~ '_item', {(entity_name): entity.id}) }}">
                 			        {% trans %}List{% endtrans %}
                 				</a>
                 			</td>
             	        {% else %}
-                			<td style="width: 200px;">
+                			<td>
                 			</td>
                 		{% endif %}
             	    {% endif %}
-        			<td style="width: 200px;">
+        			<td>
         				<a class="btn-success btn w-100 text-nowrap" href="{{ path(entity_name ~ '_edit', {(entity_name): entity.id}) }}">
         				    {% trans %}Edit{% endtrans %}
         				</a>
         			</td>
-        			<td style="width: 200px;">
+        			<td>
         				<a class="btn-danger btn w-100 text-nowrap" href="{{ path(entity_name ~ '_delete', {(entity_name): entity.id}) }}">
         				    {% trans %}Delete{% endtrans %}
         				</a>
@@ -91,12 +94,6 @@
     		{% endfor %}
     	</tbody>
     </table>
-    
-    <div class="text-center p-5">
-    	<a class="btn-primary btn text-nowrap" style="width: 300px;" href="{{ path(entity_name ~ '_new', app.request.attributes.get('_route_params')) }}">
-    	    {% trans %}New{% endtrans %}
-    	</a>
-    </div>
 {% endblock %}
 
 {% block text_alignment %}

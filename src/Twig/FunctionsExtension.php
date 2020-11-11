@@ -2,34 +2,23 @@
 
 namespace App\Twig;
 
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\PropertyAccess\PropertyAccess;
+use Symfony\Component\PropertyInfo\PropertyInfoExtractor;
 use Symfony\Component\PropertyInfo\Extractor\PhpDocExtractor;
 use Symfony\Component\PropertyInfo\Extractor\ReflectionExtractor;
-use Symfony\Component\PropertyInfo\PropertyInfoExtractor;
-use Symfony\Component\PropertyAccess\PropertyAccess;
-
-use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
-use Doctrine\Common\Collections\ArrayCollection;
+use Twig\Extension\AbstractExtension;
+use Symfony\Bridge\Doctrine\PropertyInfo\DoctrineExtractor;
 
 class FunctionsExtension extends AbstractExtension
 {
-    private $propertyInfo;
+	
+    private $doctrineExtractor;
     
-    private $propertyAccessor;
-    
-    public function __construct()
+    public function __construct(EntityManagerInterface $entityManager)
     {
-        $phpDocExtractor = new PhpDocExtractor();
-        $reflectionExtractor = new ReflectionExtractor();
-        
-        $listExtractors = [$reflectionExtractor];
-        $typeExtractors = [$phpDocExtractor, $reflectionExtractor];
-        $descriptionExtractors = [$phpDocExtractor];
-        $accessExtractors = [$reflectionExtractor];
-        $propertyInitializableExtractors = [$reflectionExtractor];
-        $this->propertyInfo = new PropertyInfoExtractor($listExtractors, $typeExtractors, $descriptionExtractors, $accessExtractors, $propertyInitializableExtractors);
-        
-        $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
+    	$this->doctrineExtractor = new DoctrineExtractor($entityManager);
     }
     
     public function getFunctions()
@@ -54,16 +43,16 @@ class FunctionsExtension extends AbstractExtension
 	private function getProperties($class)
 	{
 		$propertiesName = [];
-
-		$properties = $this->propertyInfo->getProperties($class);
 		
-		foreach ($properties as $key => $property) {
-			if (($this->propertyInfo->isReadable($class, $property) && $this->propertyInfo->isWritable($class, $property)) || $property == 'id') {
-				$type = $this->propertyInfo->getTypes($class, $property);
-
-				if ($type[0]->isCollection() == false && $type[0]->getClassName() != ArrayCollection::class) $propertiesName[] = $property;
-            }
+		$properties = $this->doctrineExtractor->getProperties($class);
+		
+		foreach ($properties as $property) {
+			$type = $this->doctrineExtractor->getTypes($class, $property);
+			if ($type[0]->isCollection() === false) {
+				$propertiesName[] = $property;
+			}
         }
+        
         return $propertiesName;
     }
 }

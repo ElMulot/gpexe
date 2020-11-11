@@ -2,7 +2,7 @@
 
 {% block body %}
     <div class="d-flex justify-content-center p-5">
-    	<div class="jumbotron col-xl-5">
+    	<div class="jumbotron col-5">
     		<form method="POST" action="{{ app.request.uri }}">
     			{% if entities|length == 1 %}
     				<p>{{ ('confirm.' ~ entities|first|short_name)|trans({'count':entities|length}) }} : {{ entities|first }}</p>

@@ -10,7 +10,7 @@ class LocaleSubscriber implements EventSubscriberInterface
 {
     private $defaultLocale;
 
-    public function __construct($defaultLocale = 'en')
+    public function __construct(string $defaultLocale = 'fr_FR')
     {
         $this->defaultLocale = $defaultLocale;
     }
@@ -21,7 +21,7 @@ class LocaleSubscriber implements EventSubscriberInterface
         if (!$request->hasPreviousSession()) {
             return;
         }
-
+        
         // try to see if the locale has been set as a _locale routing parameter
         if ($locale = $request->attributes->get('_locale')) {
             $request->getSession()->set('_locale', $locale);

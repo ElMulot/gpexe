@@ -12,7 +12,7 @@ use Symfony\Component\Finder\Finder;
 class SecurityController extends AbstractController
 {
 	
-	protected $imgDir;
+	private $imgDir;
 	
 	public function __construct(KernelInterface $kernel)
 	{
@@ -27,6 +27,7 @@ class SecurityController extends AbstractController
         
         // get the login error if there is one
         $error = $authenticationUtils->getLastAuthenticationError();
+        // last username entered by the user
         $lastUsername = $authenticationUtils->getLastUsername();
         
         $finder = new Finder();

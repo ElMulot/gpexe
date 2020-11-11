@@ -16,6 +16,9 @@ use App\Service\AutomationService;
 use App\Service\ImportExportService;
 use App\Service\CacheService;
 use App\Service\FieldService;
+use Symfony\Component\Security\Core\Authorization\Voter\AuthenticatedVoter;
+use Symfony\Component\Validator\Mapping\AutoMappingStrategy;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 
 class AutomationController extends AbstractController
@@ -69,19 +72,31 @@ class AutomationController extends AbstractController
 		
 		$this->container->get('session')->getFlashBag()->clear();
 		
-		if ($automation->isValid()) {
-			$this->importExportService->unload($automation);
-			return $this->render('automation/dashboard.html.twig', [
-				'automation' => $automation,
-				'route_back' =>  $this->generateUrl('project_view', [
+		switch ($automation->getType()) {
+			
+			case Automation::EXPORT:
+			case Automation::IMPORT:
+				$this->importExportService->unload($automation);
+				return $this->render('automation/dashboard.html.twig', [
+					'automation' => $automation,
+					'route_back' =>  $this->generateUrl('project_view', [
+						'project' => $project->getId(),
+					]),
+				]);
+				
+			case Automation::PROGRESS:
+				return $this->render('automation/progress.html.twig', [
+					'automation' => $automation,
+					'route_back' =>  $this->generateUrl('project_view', [
+						'project' => $project->getId(),
+					]),
+				]);
+				
+			default:
+				$this->addFlash('danger', 'Programme invalide');
+				return $this->redirectToRoute('project_view', [
 					'project' => $project->getId(),
-				]),
-			]);
-		} else {
-			$this->addFlash('danger', 'Programme invalide');
-			return $this->redirectToRoute('project_view', [
-				'project' => $project->getId(),
-			]);
+				]);
 		}
 	}
 	
@@ -93,61 +108,64 @@ class AutomationController extends AbstractController
 			return $this->redirectToRoute('project');
 		}
 			
-		if ($automation->isTypeImport()) {
+		switch ($automation->getType()) {
 			
-			if ($this->cacheService->get('automation.ready_to_persist')) {			//launch import
-				if ($this->importExportService->preload($automation, $request)) {
-					return $this->render('automation/preload.html.twig', [
-						'automation' => $automation,
-					]);
-				} else {
-					$this->addFlash('danger', 'Erreur interne');
+			case Automation::EXPORT:													//launch export
+				$form = $this->createForm(LauncherExportType::class, $automation);
+				break;
+				
+			case Automation::IMPORT:
+				if ($this->cacheService->get('automation.ready_to_persist')) {			//launch import
+					if ($this->importExportService->preload($automation, $request)) {
+						return $this->render('automation/preload.html.twig', [
+							'automation' => $automation,
+						]);
+					} else {
+						$this->addFlash('danger', 'Erreur interne');
+						$form = $this->createForm(LauncherImportType::class, $automation);
+					}
+				} else {																//check import
 					$form = $this->createForm(LauncherImportType::class, $automation);
 				}
-			} else {																//check import
-				$form = $this->createForm(LauncherImportType::class, $automation);
-			}
-		} elseif ($automation->isTypeExport()) {									//launch export
-			$form = $this->createForm(LauncherExportType::class, $automation);
-		} else {
-			$this->addFlash('danger', 'Programme invalide');
-			return $this->redirectToRoute('project_view', [
-				'project' => $project->getId(),
-			]);
+				break;
+				
+			default:																	//error
+				$this->addFlash('danger', 'Programme invalide');
+				return $this->render('automation/error.html.twig');
+				
 		}
 		
 		$form->handleRequest($request);
 		
 		if ($form->isSubmitted() && $form->isValid()) {
 			
-			if ($automation->isTypeImport()) { 										//check import
+			switch ($automation->getType()) {
 				
-				$file = $form->get('file')->getData();
+				case Automation::EXPORT:													//launch export
+					if ($this->importExportService->preload($automation, $request)) {
+						return $this->render('automation/preload.html.twig', [
+							'automation' => $automation,
+						]);
+					} else {
+						$this->addFlash('danger', 'Erreur interne');
+					}
+					break;
 				
-				if ($file === null) {
-					$this->addFlash('danger', 'Aucun fichier sélectionné');
-				} elseif ($this->importExportService->preload($automation, $request, $file)) {
-					return $this->render('automation/preload.html.twig', [
-						'automation' => $automation,
-					]);
-				} else {
-					$this->addFlash('danger', 'Erreur interne');
-				}
-				
-			} else {																//launch export
-				
-				if ($this->importExportService->preload($automation, $request)) {				
-					return $this->render('automation/preload.html.twig', [
-						'automation' => $automation,
-					]);
-				} else {
-					$this->addFlash('danger', 'Erreur interne');
-				}
+				case Automation::IMPORT:													//check import
+					$file = $form->get('file')->getData();
+					if ($file === null) {
+						$this->addFlash('danger', 'Aucun fichier sélectionné');
+					} elseif ($this->importExportService->preload($automation, $request, $file)) {
+						return $this->render('automation/preload.html.twig', [
+							'automation' => $automation,
+						]);
+					} else {
+						$this->addFlash('danger', 'Erreur interne');
+					}
+					break;
 			}
-			
 		}
 			
-		$this->importExportService->unload($automation);
 		return $this->render('automation/launcher.html.twig', [
 			'form' => $form->createView(),
 			'automation' => $automation,
@@ -164,41 +182,53 @@ class AutomationController extends AbstractController
 			return $this->redirectToRoute('project');
 		}
 		
-		if ($automation->isTypeImport()) {											
+		switch ($automation->getType()) {
 			
-			if ($this->cacheService->get('automation.ready_to_persist')) {			//launch import
-				$this->importExportService->load($automation);
-				return $this->render('automation/load.html.twig', [
-					'automation' => $automation,
-				]);
-			} else {														//check import
+			case Automation::EXPORT:													//launch export
 				if ($this->importExportService->load($automation) === false) {
 					$this->importExportService->unload($automation);
 					return $this->redirectToRoute('automation_preload', [
 						'automation' => $automation->getId(),
 					]);
 				}
-				
 				return $this->render('automation/load.html.twig', [
 					'automation' => $automation,
 				]);
-			}
-		} elseif ($automation->isTypeExport()) {									//launch export
-			if ($this->importExportService->load($automation) === false) {
+				
+			
+			case Automation::IMPORT:
+				if ($this->cacheService->get('automation.ready_to_persist')) {			//launch import
+					$this->importExportService->load($automation);
+					return $this->render('automation/load.html.twig', [
+						'automation' => $automation,
+					]);
+				} else {																//check import
+					if ($this->importExportService->load($automation) === false) {
+						$this->importExportService->unload($automation);
+						return $this->redirectToRoute('automation_preload', [
+							'automation' => $automation->getId(),
+						]);
+					}
+					
+					return $this->render('automation/load.html.twig', [
+						'automation' => $automation,
+					]);
+				}
+			
+			case Automation::PROGRESS:
+				if ($this->importExportService->load($automation) === false) {
+					$this->addFlash('danger', 'Erreur interne');
+					return $this->render('automation/error.html.twig');
+				}
+				return new JsonResponse([
+					'current_progress' => $this->importExportService->progress($automation),
+				]);
+				
+			default:
 				$this->importExportService->unload($automation);
 				return $this->redirectToRoute('automation_preload', [
 					'automation' => $automation->getId(),
 				]);
-			}
-			
-			return $this->render('automation/load.html.twig', [
-				'automation' => $automation,
-			]);
-		} else {
-			$this->importExportService->unload($automation);
-			return $this->redirectToRoute('automation_preload', [
-				'automation' => $automation->getId(),
-			]);
 		}
 	}
 	

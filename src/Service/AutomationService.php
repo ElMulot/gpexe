@@ -21,17 +21,28 @@ class AutomationService
 		
 		$parsedCode = Yaml::parse($code ?? '') ?? [];
 		
-		if (($parsedCode['type'] ?? '') == 'import') {
-			$structure = self::getImportScheme();
-		} elseif (($parsedCode['type'] ?? '') == 'export') {
-			$structure = self::getExportScheme();
-		} else {
-			return '';
+		switch ($parsedCode['type'] ?? '') {
+			case 'export':
+				$structure = self::getExportScheme();
+				break;
+			case 'import':
+				$structure = self::getImportScheme();
+				break;
+			case 'progress':
+				$structure = self::getProgressScheme();
+				break;
+			default:
+				return '';
 		}
 		
 		$parsedCode = self::validateStructure($structure, $parsedCode);
 		
-		return Yaml::dump($parsedCode, 3);
+		return Yaml::dump($parsedCode, 10, 4);
+	}
+	
+	public function getExportScheme(): array
+	{
+		return Yaml::parseFile($this->ressourcesDirectory . 'exportScheme.yaml');
 	}
 	
 	public function getImportScheme(): array
@@ -39,9 +50,9 @@ class AutomationService
 		return Yaml::parseFile($this->ressourcesDirectory . 'importScheme.yaml');
 	}
 
-	public function getExportScheme(): array
+	public function getProgressScheme(): array
 	{
-		return Yaml::parseFile($this->ressourcesDirectory . 'exportScheme.yaml');
+		return Yaml::parseFile($this->ressourcesDirectory . 'progressScheme.yaml');
 	}
 	
 	private function validateStructure($structure, $parsedCode = '')

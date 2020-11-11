@@ -1,0 +1,20 @@
+type: 
+    default: 'progress'
+
+exclude:
+    -
+        regex: '.+'
+   
+rules:
+    -
+        conditions:
+            -
+                regex: '.+'
+        count:
+            regex: '\d+'
+        value:
+            regex: '\d+'
+
+option:
+    frequency:
+        regex: '\d+'

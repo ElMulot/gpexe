@@ -384,6 +384,19 @@ class Document
     	return false;
     }
     
+    public function getVersionsCount(): int
+    {
+    	$count = 0;
+    	
+    	foreach ($this->getVersions()->getValues() as $version) {
+    		if ($version->getIsRequired() === false && $version->getStatus()->getIsCancel() === false) {
+    			$count++;
+    		}
+    	}
+    	
+    	return $count;
+    }
+    
     public function getMetadataValue(Metadata $metadata) {
     	
     	switch ($metadata->getType()) {
@@ -485,6 +498,8 @@ class Document
     		case 'document.reference':
     			return $this->getReference();
     			break;
+    		case 'document.versionsCount':
+    			return $this->getVersionsCount();
     		default:
     			if (preg_match('/document\.\w+/', $codename)) {
     				foreach ($this->getSerie()->getProject()->getMetadatas()->getValues() as $metadata) {

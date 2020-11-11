@@ -52,7 +52,7 @@ class LoginFormAuthenticator extends AbstractFormLoginAuthenticator implements P
             'csrf_token' => $request->request->get('_csrf_token'),
         ];
         $request->getSession()->set(Security::LAST_USERNAME, $credentials['email']);
-
+        
         return $credentials;
     }
 
@@ -69,7 +69,7 @@ class LoginFormAuthenticator extends AbstractFormLoginAuthenticator implements P
             // fail authentication with a custom error
             throw new CustomUserMessageAuthenticationException('Invalid credentials.');
         }
-
+		
         return $user;
     }
 

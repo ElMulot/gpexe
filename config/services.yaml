@@ -53,8 +53,17 @@ services:
                 name: 'doctrine.event_listener'
                 event: 'onFlush'
 
+#    App\EventListener\LogoutListener:
+#        tags:
+#            -
+#                name: 'kernel.event_subscriber'
+#                dispatcher: 'security.event_dispatcher.main'
+
     App\EventSubscriber\LocaleSubscriber:
         arguments: ['%kernel.default_locale%']
+        
+#    App\EventSubscriber\UserLocaleSubscriber:
+#        arguments: ['%kernel.default_locale%']
  
     App\Service\AutomationService:
         arguments:

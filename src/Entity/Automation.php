@@ -13,6 +13,11 @@ use App\Repository\AutomationRepository;
  */
 class Automation
 {
+	
+	const EXPORT	= 'export';
+	const IMPORT	= 'import';
+	const PROGRESS	= 'progress';
+
 	/**
 	 * @ORM\Id()
 	 * @ORM\GeneratedValue()
@@ -208,31 +213,27 @@ class Automation
 		return $this->parseError === false;
 	}
 	
-	public function isTypeExport(): ?bool
+	public function getType(): ?string
 	{
 		if ($this->isValid()) {
-			return ($this->parsedCode['type'] ?? '') == 'export';
-		} else {
-			return null;
+			return $this->parsedCode['type'] ?? null;
 		}
+		return null;
 	}
 	
-	public function isTypeImport(): ?bool
+	public function isTypeExport(): bool
 	{
-		if ($this->isValid()) {
-			return ($this->parsedCode['type'] ?? '') == 'import';
-		} else {
-			return null;
-		}
+		return $this->getType() ?? '' == 'export';
+	}
+	
+	public function isTypeImport(): bool
+	{
+		return $this->getType() ?? '' == 'import';
 	}
 
-	public function isTypeProgress(): ?bool
+	public function isTypeProgress(): bool
 	{
-		if ($this->isValid()) {
-			return ($this->parsedCode['type'] ?? '') == 'progress';
-		} else {
-			return null;
-		}
+		return $this->getType() ?? '' == 'progress';
 	}
 	
 	public function __toString(): string

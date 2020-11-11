@@ -340,6 +340,22 @@ class FieldService
 					'write' => true
 				],
 			],
+			'document.versionsCount' => [
+				'id' =>'',
+				'codename' => 'document.versionsCount',
+				'title' => '',
+				'type' => Metadata::TEXT,
+				'parent' => 'document',
+				'default_width' => 0,
+				'display' => [
+					'table' => false,
+					'automation' => true
+				],
+				'permissions' => [
+					'read' => true,
+					'write' => false
+				],
+			],
 		];
 		
 		foreach ($this->codificationRepository->getCodifications($project) as $codification) {

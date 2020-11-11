@@ -531,14 +531,10 @@ function setup(datas) {
 							;
 							
 						} else {
-							
 							choice.chx
-								.attr('checked', urlSearch.get('filter[' + element.id + ']').has(choice.value))
+								.attr('checked', parseInt(urlSearch.get('filter[' + element.id + ']')) === choice.value)
 								.on('click', function() {
-									
-									element.filter.find('input').not(this).prop('checked', false);
 									urlSearch.set('filter[' + element.id + ']', choice.value);
-									
 									header.btnDropdown.dropdown('hide');
 									urlSearch.delete('vue');
 									urlSearch.fetch();

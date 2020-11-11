@@ -14,10 +14,6 @@ class DebugSuscriber implements EventSubscriberInterface
 	
 	public function onKernelResponse(ResponseEvent $event)
 	{
-// 		if (!$this->getKernel()->isDebug()) {
-// 			return;
-// 		}
-		
 		$request = $event->getRequest();
 		if (!$request->isXmlHttpRequest()) {
 			return;

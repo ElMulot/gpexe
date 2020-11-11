@@ -3,12 +3,15 @@ type:
 
 first_row:
     regex: '\d+'
+    default: 1
     
 main_column:
     regex: '[A-Z]{1,2}'
+    default: 'A'
     
 comments_column:
     regex: '[A-Z]{1,2}'
+    default: 'Z'
 
 exclude:
     -

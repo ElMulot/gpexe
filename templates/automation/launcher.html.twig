@@ -1,11 +1,13 @@
+{% if form is defined %}
 {% form_theme form 'ajax/layout.html.twig' %}
 
 {{ form(form) }}
+{% endif %}
 
 <div class="d-flex justify-content-center">
 	<button type="submit" form="form_ajax" class="btn btn-primary w-25" data-toggle="ajax" data-url="{{ app.request.uri }}" data-target="#output">Lancer</button>
 </div>
-
+    
 {% if app.session.flashBag.peekAll() is not empty %}
 	<a class="active" data-toggle="ajax" data-target="#console" data-url="{{ path('automation_console', {'automation': automation.id}) }}"></a>
 {% endif %}
