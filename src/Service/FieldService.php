@@ -183,7 +183,7 @@ class FieldService
 			'version.isRequired' => [
 				'id' =>'version_is_required',
 				'codename' => 'version.isRequired',
-				'title' => $this->translator->trans('required'),
+				'title' => $this->translator->trans('Required'),
 				'type' => Metadata::BOOLEAN,
 				'parent' => 'version',
 				'default_width' => 8,

@@ -250,9 +250,13 @@ class ImportExportService
 			case Automation::PROGRESS:
 				
 				//sort rules by value descending order
-				
-				foreach ($this->parsedCode['rules'])
-				
+				usort($this->parsedCode['rules'], function ($a, $b) {
+					if ($a['value'] == $b['value']) {
+						return 0;
+					} else {
+						return ($a['value'] > $b['value'])?-1:1;
+					}
+				});
 				return true;
 				
 			default:
@@ -348,7 +352,7 @@ class ImportExportService
 					
 					//exclude
 					foreach ($this->parsedCode['exclude'] as $exclude) {
-						if ($exclude && $this->compare($exclude, $version)) {
+						if ($this->compare($exclude, $version)) {
 							$countProcessed++;
 							continue 2;
 						}
@@ -455,7 +459,7 @@ class ImportExportService
 			
 			//exclude
 			foreach ($this->parsedCode['exclude'] as $exclude) {
-				if ($this->compare($exclude, null, $row) && $exclude != '') {
+				if ($this->compare($exclude, null, $row)) {
 					$row->setBackgroundColor(self::IGNORE_COLOR);
 					$this->addComment('ignore', "Ligne exclue via l'instruction 'Exclude'.");
 					$this->writeComments($row);
@@ -804,38 +808,37 @@ class ImportExportService
 			foreach ($serie->getDocuments() as $document) {
 				
 				foreach ($document->getVersions() as $version) {
+					
 					foreach ($this->parsedCode['exclude'] as $exclude) {
-						if ($exclude && $this->compare($exclude, $version)) {
-							
+						if ($this->compare($exclude, $version)) {
 							continue 2;
 						}
 					}
-					$countProcessed ++;
-				}
-				
-				foreach ($this->parsedCode['rules'] as $rule) {
+
+					$countProcessed++;
+					$countValidated = [];
 					
-					$countValidated = 0;
-					
-					foreach ($document->getVersions() as $version) {
+					foreach ($this->parsedCode['rules'] as $key => $rule) {
 						
 						foreach ($rule['conditions'] as $condition) {
-							if ($this->compare($condition, $version) === false) {
+							if ($condition && $this->compare($condition, $version) === false) {
 								continue 2;
 							}
 						}
 						
-						$countValidated++;
-						if ($countValidated >= $rule['count']) {
+						$countValidated[$key] = $countValidated[$key] ?? 0 + 1;
+						
+						if ($countValidated[$key] >= $rule['count']) {
 							$progress[$serie->getId()] += $rule['value'];
 							break 2;
 						}
 					}
+					
 				}
+
 			}
 			
 			if ($countProcessed > 0) {
-				dd($progress[$serie->getId()]);
 				$progress[$serie->getId()] /= $countProcessed;
 			} else {
 				$progress[$serie->getId()] = 0;

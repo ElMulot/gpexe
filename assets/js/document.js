@@ -414,60 +414,86 @@ function setup(datas) {
 				
 				case type.date:
 					
-					element.filter.divFilter.on('click', function() {
-						urlSearch.delete('filter[' + element.id + '][]');
-						if (element.filter.chxInf.is(':checked') && (result = /^≥\s(\d{2}-\d{2}-\d{4})/.exec(element.filter.inputInf.val()))) {
-							urlSearch.append('filter[' + element.id + '][]', '>' + result[1]);
-						}
-						
-						if (element.filter.chxSup.is(':checked') && (result = /^≤\s(\d{2}-\d{2}-\d{4})/.exec(element.filter.inputSup.val()))) {
-							urlSearch.append('filter[' + element.id + '][]', '<' + result[1]);
-						}
-						
-						if (element.filter.chxHighlight.is(':checked')) {
-							urlSearch.set('highlight', element.id);
-						} else if (urlSearch.get('highlight').toString() == element.id) {
-							urlSearch.delete('highlight');
-						}
-						
-						header.btnDropdown.dropdown('hide');
-						urlSearch.delete('vue');
-						urlSearch.fetch();
-					});	
+					element.filter.divFilter
+						.on('filter.update', function() {
+							urlSearch.delete('filter[' + element.id + '][]');
+							if (element.filter.chxInf.is(':checked') && (result = /^≥\s(\d{2}-\d{2}-\d{4})/.exec(element.filter.inputInf.val()))) {
+								urlSearch.append('filter[' + element.id + '][]', '>' + result[1]);
+							}
+							
+							if (element.filter.chxSup.is(':checked') && (result = /^≤\s(\d{2}-\d{2}-\d{4})/.exec(element.filter.inputSup.val()))) {
+								urlSearch.append('filter[' + element.id + '][]', '<' + result[1]);
+							}
+							
+							if (element.filter.chxHighlight.is(':checked')) {
+								urlSearch.set('highlight', element.id);
+							} else if (urlSearch.get('highlight').toString() == element.id) {
+								urlSearch.delete('highlight');
+							}
+						})
+						.on('click', function() {
+							for (let element of header.elements) {
+								if (element.filter) {
+									element.filter.divFilter.trigger('filter.update');
+								}
+							}
+							header.btnDropdown.dropdown('hide');
+							urlSearch.delete('vue');
+							urlSearch.fetch();
+						})
+					;	
 					break;
 					
 				case type.text:
 					
-					element.filter.divFilter.on('click', function() {
-						urlSearch.delete('filter[' + element.id + ']');
-						
-						var searchValue = element.inputSearch.val().toLowerCase()
-						
-						if (searchValue != '') {
-							urlSearch.set('filter[' + element.id + ']', searchValue);
-						}
-						
-						header.btnDropdown.dropdown('hide');
-						urlSearch.delete('vue');
-						urlSearch.fetch();
-					});	
+					element.filter.divFilter
+						.on('filter.update', function() {
+							urlSearch.delete('filter[' + element.id + ']');
+							
+							var searchValue = element.inputSearch.val().toLowerCase()
+							
+							if (searchValue != '') {
+								urlSearch.set('filter[' + element.id + ']', searchValue);
+							}
+						})
+						.on('click', function() {
+							for (let element of header.elements) {
+								if (element.filter) {
+									element.filter.divFilter.trigger('filter.update');
+								}
+							}
+							header.btnDropdown.dropdown('hide');
+							urlSearch.delete('vue');
+							urlSearch.fetch();
+						})
+					;	
 					break;
 					
 				case type.list:
 					
-					element.filter.divFilter.on('click', function() {
-						urlSearch.delete('filter[' + element.id + '][]');
-						if (element.filter.choices[0].chx.is(':checked') === false) {
-							for (let choice of element.filter.choices) {
-								if (choice.chx.is(':checked')) {
-									urlSearch.append('filter[' + element.id + '][]', choice.value);
+					element.filter.divFilter
+						.on('filter.update', function() {
+							urlSearch.delete('filter[' + element.id + '][]');
+							if (element.filter.choices[0].chx.is(':checked') === false) {
+								for (let choice of element.filter.choices) {
+									if (choice.chx.is(':checked')) {
+										urlSearch.append('filter[' + element.id + '][]', choice.value);
+									}
 								}
 							}
-						}
-						header.btnDropdown.dropdown('hide');
-						urlSearch.delete('vue');
-						urlSearch.fetch();
-					});
+						})
+						.on('click', function() {
+							for (let element of header.elements) {
+								if (element.filter) {
+									element.filter.divFilter.trigger('filter.update');
+								}
+							}
+							header.btnDropdown.dropdown('hide');
+							urlSearch.delete('vue');
+							urlSearch.fetch();
+						})
+						
+					;
 					break;
 			}
 		}			
@@ -531,10 +557,14 @@ function setup(datas) {
 							;
 							
 						} else {
+							
 							choice.chx
 								.attr('checked', parseInt(urlSearch.get('filter[' + element.id + ']')) === choice.value)
 								.on('click', function() {
+									
+									element.filter.find('input').not(this).prop('checked', false);
 									urlSearch.set('filter[' + element.id + ']', choice.value);
+									
 									header.btnDropdown.dropdown('hide');
 									urlSearch.delete('vue');
 									urlSearch.fetch();
@@ -888,29 +918,6 @@ function fillDisplayPannel() {
 }
 
 var urlSearch = new UrlSearch();
-
-(function( jQuery )
-		{
-			/**
-			 * @memberOf jQuery
-			 */
-			jQuery.wikiText = function( text )
-			{
-				var banana = 3;
-
-				apple = 4;
-
-				//...
-			};
-
-			/**
-			 * @memberOf jQuery.fn
-			 */
-			jQuery.fn.wikiText = function( text )
-			{
-				return this.html( jQuery.wikiText( text ) );
-			};
-		})( jQuery );
 
 $(document).ready(function() {
 
