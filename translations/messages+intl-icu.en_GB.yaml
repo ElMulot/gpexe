@@ -12,7 +12,7 @@ updated:
       }
 
 confirm:
-    automation: Confirm deletion of automation
+    program: Confirm deletion of program
     codification: Confirm deletion of codification
     codificationItem: Confirm deletion of entry
     codificationValue: Confirm deletion of entry

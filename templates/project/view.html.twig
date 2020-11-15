@@ -26,7 +26,8 @@
     					<a class="dropdown-item" href="{{ path('metadata', {'project': project.id}) }}">{% trans %}Metadatas{% endtrans %}</a>
     					<a class="dropdown-item" href="{{ path('status', {'project': project.id}) }}">{% trans %}Statuses{% endtrans %}</a>
     					<a class="dropdown-item" href="{{ path('visa', {'project': project.id}) }}">{% trans %}Visas{% endtrans %}</a>
-    					<a class="dropdown-item" href="{{ path('automation', {'project': project.id}) }}">{% trans %}Automation{% endtrans %}</a>
+    					<a class="dropdown-item" href="{{ path('program', {'project': project.id}) }}">{% trans %}Program{% endtrans %}</a>
+    					<a class="dropdown-item" href="{{ path('automation', {'project': project.id}) }}">{% trans %}Automations{% endtrans %}</a>
     				</div>
     			</li>
     		{% endif %}
@@ -37,12 +38,12 @@
 	</div>
 	<div class="navbar-collapse">
 		<ul class="navbar-nav ml-auto">
-			<li id="automation_menu" class="nav-item dropdown" style="{{ block('nav_item') }}">
-			    {% if automations is not empty %}
-    				<a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{% trans %}Automations{% endtrans %}</a>
+			<li id="program_menu" class="nav-item dropdown" style="{{ block('nav_item') }}">
+			    {% if programs is not empty %}
+    				<a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{% trans %}Programs{% endtrans %}</a>
     				<div class="dropdown-menu" style="{{ block('nav_item') }}">
-    					{% for automation in automations %}
-    						<a class="dropdown-item" href="{{ path('automation_dashboard', {'automation': automation.id}) }}">{{ automation.name }}</a>
+    					{% for program in programs %}
+    						<a class="dropdown-item" href="{{ path('program_dashboard', {'program': program.id}) }}">{{ program.name }}</a>
     					{% endfor %}
     				</div>
 			    {% endif %}

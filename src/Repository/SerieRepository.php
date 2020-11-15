@@ -42,6 +42,21 @@ class SerieRepository extends RepositoryService
 		;
 	}
 	
+	/**
+	 * @return Serie[]
+	 */
+	public function getSeriesArray(Project $project)
+	{
+		$qb = $this->newQb('s');
+		return $qb
+			->join('s.company', 'c')
+			->andWhere($qb->eq('s.project', $project))
+			->addOrderBy('c.type')
+			->getQuery()
+			->getArrayResult()
+		;
+	}
+	
 	
 	/**
 	 * @return Serie[]
@@ -58,7 +73,7 @@ class SerieRepository extends RepositoryService
 			->innerJoin('serie.company', 'company')
 			->innerJoin('serie.project', 'project')
 			->andWhere($qb->eq('serie.project', $project))
-			->andWhere($qb->eq('serie.id', '29'))
+// 			->andWhere($qb->eq('serie.id', '29'))
 			->getQuery()
 			->getResult()
 		;
@@ -176,48 +191,6 @@ class SerieRepository extends RepositoryService
 		return $series;
 	}
 	
-// 	/**
-// 	 * @return Serie[]
-// 	 */
-// 	public function getSeriesByType(Project $project, string $type)
-// 	{
-// 		switch ($type) {
-// 			case 'sdr':
-// 				$qb = $this->newQb('s');
-// 				return $qb
-// 				->innerJoin('s.company', 'c')
-// 				->andWhere($qb->in('c.type', [Company::SUB_CONTRACTOR, Company::SUPPLIER]))
-// 				->getQuery()
-// 				->getResult()
-// 				;
-// 			case 'mdr':
-// 				$qb = $this->newQb('s');
-// 				return $qb
-// 				->innerJoin('s.company', 'c')
-// 				->andWhere($qb->eq('c.type', Company::MAIN_CONTRACTOR))
-// 				->getQuery()
-// 				->getResult()
-// 				;
-// 			default:
-// 				return null;
-// 		}
-// 	}
-	
-// 	/**
-// 	 * @return Serie[]
-// 	 */
-// 	public function getSeriesByCompany(Project $project, Company $company)
-// 	{
-// 		$qb = $this->newQb('s');
-// 		return $qb
-// 			->andWhere($qb->eq('s.project', $project))
-// 			->andWhere($qb->eq('s.company', $company))
-// 			->addOrderBy('s.name')
-// 			->getQuery()
-// 			->getResult()
-// 		;
-// 	}
-	
 	/**
 	 * @return Serie[]
 	 */
@@ -225,10 +198,11 @@ class SerieRepository extends RepositoryService
 	{
 		$qb = $this->newQb('s');
 		return $qb
+			->select('s.id, s.name, c.type')
 			->innerJoin('s.company', 'c')
 			->andWhere($qb->eq('s.project', $project))
 			->andWhere($qb->eq('s.company', $company))
-			->addOrderBy('s.name')
+			->addOrderBy('c.type, s.name')
 			->getQuery()
 			->getResult()
 		;
@@ -244,7 +218,7 @@ class SerieRepository extends RepositoryService
 			case 'sdr':
 				$qb = $this->newQb('s');
 				$series = $qb
-					->select('s.id, s.name, c.type')
+					->select('s.id, s.name')
 					->innerJoin('s.company', 'c')
 					->andWhere($qb->in('c.type', [Company::SUB_CONTRACTOR, Company::SUPPLIER]))
 					->addOrderBy('s.name')
@@ -255,7 +229,7 @@ class SerieRepository extends RepositoryService
 			case 'mdr':
 				$qb = $this->newQb('s');
 				$series = $qb
-					->select('s.id, s.name, c.type')
+					->select('s.id, s.name')
 					->innerJoin('s.company', 'c')
 					->andWhere($qb->eq('c.type', Company::MAIN_CONTRACTOR))
 					->addOrderBy('s.name')

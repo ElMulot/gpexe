@@ -65,11 +65,11 @@ services:
 #    App\EventSubscriber\UserLocaleSubscriber:
 #        arguments: ['%kernel.default_locale%']
  
-    App\Service\AutomationService:
+    App\Service\ParseService:
         arguments:
             $ressourcesDirectory: '%kernel.project_dir%/config/ressources/'       
     
-    App\Service\ImportExportService:
+    App\Service\ProgramService:
         arguments:
             $targetDirectory: '%kernel.project_dir%/public/%uploads_directory%/'
             

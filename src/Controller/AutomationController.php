@@ -2,341 +2,44 @@
 
 namespace App\Controller;
 
+use App\Entity\Automation;
+use App\Entity\Program;
+use App\Entity\Project;
+use App\Form\AutomationType;
+use App\Repository\AutomationRepository;
+use App\Service\ProgramService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Contracts\Translation\TranslatorInterface;
-use App\Entity\Project;
-use App\Entity\Automation;
-use App\Form\AutomationType;
-use App\Form\LauncherExportType;
-use App\Form\LauncherImportType;
-use App\Repository\AutomationRepository;
-use App\Service\AutomationService;
-use App\Service\ImportExportService;
-use App\Service\CacheService;
-use App\Service\FieldService;
-use Symfony\Component\Security\Core\Authorization\Voter\AuthenticatedVoter;
-use Symfony\Component\Validator\Mapping\AutoMappingStrategy;
-use Symfony\Component\HttpFoundation\JsonResponse;
-
+use App\Repository\ProgramRepository;
 
 class AutomationController extends AbstractController
 {
+	
 	private $translator;
 	
 	private $automationRepository;
 	
-	private $automationService;
+	private $programService;
 	
-	private $importExportService;
-	
-	private $cacheService;
-	
-	private $fieldService;
-	
-	public function __construct(TranslatorInterface $translator, AutomationRepository $automationRepository, AutomationService $automationService, ImportExportService $importExportService, CacheService $cacheService, FieldService $fieldService)
+	public function __construct(TranslatorInterface $translator, AutomationRepository $automationRepository, ProgramService $programService)
 	{
 		$this->translator = $translator;
 		$this->automationRepository = $automationRepository;
-		$this->automationService = $automationService;
-		$this->importExportService = $importExportService;
-		$this->cacheService = $cacheService;
-		$this->fieldService = $fieldService;
+		$this->programService = $programService;
 	}
 	
 	public function index(Project $project): Response
 	{
-		if ($this->isGranted('ROLE_ADMIN') === false &&
-			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
-			return $this->redirectToRoute('project');
-		}
-		
-		return $this->render('generic/list.html.twig', [
-			'header' => $this->translator->trans('Automations for') . ' : ' . $project->getName(),
-			'route_back' =>  $this->generateUrl('project_view', [
-				'project' => $project->getId(),
-			]),
-			'class' => Automation::class,
-			'entities' => $this->automationRepository->getAutomations($project),
+		return $this->render('automation/index.html.twig', [
+			'project' => $project,
+			'automations' => $this->automationRepository->getAutomations($project),
 		]);
 	}
 	
-	public function dashboard(Automation $automation): Response
+	public function edit(Request $request, Automation $automation): Response
 	{
-		$project = $automation->getProject();
-		if ($this->isGranted('ROLE_ADMIN') === false &&
-			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
-			return $this->redirectToRoute('project');
-		}
-		
-		$this->container->get('session')->getFlashBag()->clear();
-		
-		switch ($automation->getType()) {
-			
-			case Automation::EXPORT:
-			case Automation::IMPORT:
-				$this->importExportService->unload($automation);
-				return $this->render('automation/dashboard.html.twig', [
-					'automation' => $automation,
-					'route_back' =>  $this->generateUrl('project_view', [
-						'project' => $project->getId(),
-					]),
-				]);
-				
-			case Automation::PROGRESS:
-				return $this->render('automation/progress.html.twig', [
-					'automation' => $automation,
-					'route_back' =>  $this->generateUrl('project_view', [
-						'project' => $project->getId(),
-					]),
-				]);
-				
-			default:
-				$this->addFlash('danger', 'Programme invalide');
-				return $this->redirectToRoute('project_view', [
-					'project' => $project->getId(),
-				]);
-		}
-	}
-	
-	public function preload(Request $request, Automation $automation): Response
-	{
-		$project = $automation->getProject();
-		if ($this->isGranted('ROLE_ADMIN') === false &&
-			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
-			return $this->redirectToRoute('project');
-		}
-			
-		switch ($automation->getType()) {
-			
-			case Automation::EXPORT:													//launch export
-				$form = $this->createForm(LauncherExportType::class, $automation);
-				break;
-				
-			case Automation::IMPORT:
-				if ($this->cacheService->get('automation.ready_to_persist')) {			//launch import
-					if ($this->importExportService->preload($automation, $request)) {
-						return $this->render('automation/preload.html.twig', [
-							'automation' => $automation,
-						]);
-					} else {
-						$this->addFlash('danger', 'Erreur interne');
-						$form = $this->createForm(LauncherImportType::class, $automation);
-					}
-				} else {																//check import
-					$form = $this->createForm(LauncherImportType::class, $automation);
-				}
-				break;
-				
-			default:																	//error
-				$this->addFlash('danger', 'Programme invalide');
-				return $this->render('automation/error.html.twig');
-				
-		}
-		
-		$form->handleRequest($request);
-		
-		if ($form->isSubmitted() && $form->isValid()) {
-			
-			switch ($automation->getType()) {
-				
-				case Automation::EXPORT:													//launch export
-					if ($this->importExportService->preload($automation, $request)) {
-						return $this->render('automation/preload.html.twig', [
-							'automation' => $automation,
-						]);
-					} else {
-						$this->addFlash('danger', 'Erreur interne');
-					}
-					break;
-				
-				case Automation::IMPORT:													//check import
-					$file = $form->get('file')->getData();
-					if ($file === null) {
-						$this->addFlash('danger', 'Aucun fichier sélectionné');
-					} elseif ($this->importExportService->preload($automation, $request, $file)) {
-						return $this->render('automation/preload.html.twig', [
-							'automation' => $automation,
-						]);
-					} else {
-						$this->addFlash('danger', 'Erreur interne');
-					}
-					break;
-			}
-		}
-			
-		return $this->render('automation/launcher.html.twig', [
-			'form' => $form->createView(),
-			'automation' => $automation,
-		]);
-			
-	}
-	
-	public function load(Automation $automation): Response
-	{
-		
-		$project = $automation->getProject();
-		if ($this->isGranted('ROLE_ADMIN') === false &&
-			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
-			return $this->redirectToRoute('project');
-		}
-		
-		switch ($automation->getType()) {
-			
-			case Automation::EXPORT:													//launch export
-				if ($this->importExportService->load($automation) === false) {
-					$this->importExportService->unload($automation);
-					return $this->redirectToRoute('automation_preload', [
-						'automation' => $automation->getId(),
-					]);
-				}
-				return $this->render('automation/load.html.twig', [
-					'automation' => $automation,
-				]);
-				
-			
-			case Automation::IMPORT:
-				if ($this->cacheService->get('automation.ready_to_persist')) {			//launch import
-					$this->importExportService->load($automation);
-					return $this->render('automation/load.html.twig', [
-						'automation' => $automation,
-					]);
-				} else {																//check import
-					if ($this->importExportService->load($automation) === false) {
-						$this->importExportService->unload($automation);
-						return $this->redirectToRoute('automation_preload', [
-							'automation' => $automation->getId(),
-						]);
-					}
-					
-					return $this->render('automation/load.html.twig', [
-						'automation' => $automation,
-					]);
-				}
-			
-			case Automation::PROGRESS:
-				if ($this->importExportService->load($automation) === false) {
-					$this->addFlash('danger', 'Erreur interne');
-					return $this->render('automation/error.html.twig');
-				}
-				return new JsonResponse([
-					'current_progress' => $this->importExportService->progress($automation),
-				]);
-				
-			default:
-				$this->importExportService->unload($automation);
-				return $this->redirectToRoute('automation_preload', [
-					'automation' => $automation->getId(),
-				]);
-		}
-	}
-	
-	public function completed(Request $request, Automation $automation): Response
-	{
-		$project = $automation->getProject();
-		if ($this->isGranted('ROLE_ADMIN') === false &&
-			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
-			return $this->redirectToRoute('project');
-		}
-		
-		if ($this->isGranted('ROLE_ADMIN') === false &&
-			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
-			return $this->redirectToRoute('project');
-		}
-		
-		if ($automation->isTypeImport()) {
-			
-			if ($this->cacheService->get('automation.ready_to_persist')) {				//launch import
-				
-				$this->importExportService->unload($automation);
-				return $this->render('automation/import.html.twig', [
-					'automation' => $automation,
-				]);
-			} else {																	//check import
-				
-				$filePath = $this->cacheService->get('automation.file_path');
-				$pathParts = pathinfo($filePath);
-				
-				$this->cacheService->set('automation.ready_to_persist', true);
-				return $this->render('automation/check.html.twig', [
-					'automation' => $automation,
-					'file_path' => $this->getParameter('uploads_directory') . '/' . $pathParts['basename'],
-				]);
-				
-			}
-			
-		} elseif ($automation->isTypeExport()) {										//launch export
-			
-			$filePath = $this->cacheService->get('automation.file_path');
-			$this->importExportService->unload($automation);
-			return $this->render('automation/export.html.twig', [
-				'automation' => $automation,
-				'file_path' => $filePath,
-			]);
-			
-		} else {
-			
-			$this->addFlash('danger', 'Programme invalide');
-			return $this->redirectToRoute('project_view', [
-				'project' => $project->getId(),
-			]);
-			
-		}
-	}
-	
-	public function console(Request $request, Automation $automation): Response
-	{
-		$project = $automation->getProject();
-		if ($this->isGranted('ROLE_ADMIN') === false &&
-			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
-			return $this->redirectToRoute('project');
-		}
-		
-		switch ($this->cacheService->get('automation.state')) {
-			case 'new_batch':
-				if ($automation->isTypeImport()) {
-					$success = $this->importExportService->import($automation);
-				} elseif ($automation->isTypeExport())  {
-					$success = $this->importExportService->export($automation);
-				}
-				
-				if ($success) {
-					$redirect = $this->cacheService->get('automation.state');
-				} else {
-					$this->addFlash('danger', 'Erreur interne');
-					$redirect = 'preload';
-				}
-				break;
-			
-			case 'load':
-				$redirect = 'load';
-				break;
-				
-			default:
-				$redirect = 'preload';
-		}
-		
-		return $this->render('automation/console.html.twig', [
-			'automation' => $automation,
-			'redirect' => $redirect,
-		]);
-		
-	}
-	
-	public function new(Request $request, Project $project): Response
-	{
-		if ($this->isGranted('ROLE_ADMIN') === false &&
-			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
-			return $this->redirectToRoute('project');
-		}
-		
-		$automation = new Automation();
-		$automation->setProject($project);
-		$automation->setEnabled(true);
-		$automation->setCreatedBy($this->getUser());
-		
-		$fields = $this->fieldService->getFields($project);
 		$form = $this->createForm(AutomationType::class, $automation);
 		$form->handleRequest($request);
 		
@@ -346,103 +49,45 @@ class AutomationController extends AbstractController
 			$entityManager->persist($automation);
 			$entityManager->flush();
 			
-			$this->addFlash('success', 'Nouveau programme créé');
-			
-			if ($request->request->get('submit') == 'save') {
-				return $this->redirectToRoute('automation_edit', [
-					'automation' => $automation->getId(),
-				]);
-			} else {
-				return $this->redirectToRoute('automation', [
-					'project' => $project->getId()
-				]);
-			}
-		} else {
-			$view = $form->createView();
-			return $this->render('automation/form.html.twig', [
-				'route_back' =>  $this->generateUrl('automation', [
-					'project' => $project->getId(),
-				]),
-				'form' => $view,
-				'fields' => $fields,
-			]);
-		}
-	}
-	
-	public function edit(Request $request, Automation $automation): Response
-	{
-		$project = $automation->getProject();
-		if ($this->isGranted('ROLE_ADMIN') === false &&
-			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
-			return $this->redirectToRoute('project');
-		}
-		
-		$fields = $this->fieldService->getFields($project);
-		$form = $this->createForm(AutomationType::class, $automation);
-		
-		$form->handleRequest($request);
-		
-		if ($form->isSubmitted() && $form->isValid()) {
-			
-			$automation->setLastModifiedBy($this->getUser());
-			
-			$entityManager = $this->getDoctrine()->getManager();
-			
-			$entityManager->flush();
-			$this->addFlash('success', 'Programme mis à jour');
-			
-			if ($request->request->get('submit') == 'save') {
-				$view = $form->createView();
-				return $this->render('automation/form.html.twig', [
-					'route_back' =>  $this->generateUrl('automation', [
-						'project' => $project->getId(),
-					]),
-					'form' => $view,
-					'fields' => $fields,
-				]);
-			} else {
-				return $this->redirectToRoute('automation', [
-					'project' => $project->getId()
-				]);
-			}
-		} else {
-			$view = $form->createView();
-			return $this->render('automation/form.html.twig', [
-				'route_back' =>  $this->generateUrl('automation', [
-					'project' => $project->getId(),
-				]),
-				'form' => $view,
-				'fields' => $fields,
-			]);
-		}
-	}
-	
-	public function delete(Request $request, Automation $automation): Response
-	{
-		$project = $automation->getProject();
-		if ($this->isGranted('ROLE_ADMIN') === false &&
-			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
-			return $this->redirectToRoute('project');
-		}
-		
-		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
-			$entityManager = $this->getDoctrine()->getManager();
-			$entityManager->remove($automation);
-			$entityManager->flush();
-			
-			$this->addFlash('success', 'Programme supprimé');
+			$this->addFlash('success', 'Datas updated');
 			return $this->redirectToRoute('automation', [
-				'project' => $project->getId()
+				'project' => $automation->getProject()->getId(),
 			]);
 		} else {
-			return $this->render('generic/delete.html.twig', [
-				'route_back' =>  $this->generateUrl('automation', [
-					'project' => $project->getId(),
+			$view = $form->createView();
+			return $this->render('generic/form.html.twig', [
+				'route_back' => $this->generateUrl('automation', [
+					'project' => $automation->getProject()->getId(),
 				]),
-				'entities' => [$automation],
+				'form' => $view
 			]);
 		}
+	}
+	
+	public function cron(): Response
+	{
+		$entityManager = $this->getDoctrine()->getManager();
+		$automations = $this->automationRepository->getAutomationsToRun();
 		
+		foreach ($automations as $automation) {
+			switch ($automation->getRoute()) {
+				case ProgramService::class . '::automation':
+					
+					$program = $this->getDoctrine()->getRepository(Program::class)->find($automation->getParameters()['program'] ?? 0);					
+					if ($program === null) {
+						continue;
+					}
+					
+					if (call_user_func_array(array($this->programService, 'automation'), [$program])) {
+						$automation->setNextRun($automation->getLastRun()->add(new \DateInterval('P' . $program->getParsedCode('option')['frequency'] . 'D')));
+						$automation->setLastRun(new \DateTime('now'));
+						$entityManager->persist($automation);
+					}
+					break;
+			}
+		}
 		
+		$entityManager->flush();
+		return new Response();
 	}
 }

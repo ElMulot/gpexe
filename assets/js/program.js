@@ -1,7 +1,7 @@
 const $ = require('jquery');
 const CodeMirror = require('codemirror');
 require('codemirror/mode/yaml/yaml');
-require('../css/automation.scss');
+require('../css/program.scss');
 
 $(document).ready(function() {
 	var cm = CodeMirror.fromTextArea($('textarea').get(0), {

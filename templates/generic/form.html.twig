@@ -1,26 +1,34 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
-    <div class="d-flex justify-content-center p-5">
-    	<div class="jumbotron col-7">
-    		{% for label, messages in app.flashes %}
-        		{% for message in messages %}
-            		<div class="row justify-content-center">
-            			<div class="alert alert-{{ label }} w-100">{{ message|trans }}.</div>
-            		</div>
-        		{% endfor %}
-    		{% endfor %}
-    		{{ form(form) }}
-    		<div class="row mt-5">
-    				{% if route_back is defined %}
-        				<div class="col-6 text-right">
-        					<a class="btn-secondary btn w-75" href="{{ route_back }}">{% trans %}Cancel{% endtrans %}</a>
-        				</div>
-    				{% endif %}
-    			<div class="col-6 text-left">
-    				<button type="submit" form="form" class="btn-primary btn w-75">{% trans %}Save{% endtrans %}</button>
+	<div class="d-flex justify-content-center p-5">
+		<div class="jumbotron col-7">
+			{% for label, messages in app.flashes %}
+				{% for message in messages %}
+					<div class="row justify-content-center">
+						<div class="alert alert-{{ label }} w-100">{{ message|trans }}.</div>
+					</div>
+				{% endfor %}
+			{% endfor %}
+			{{ form(form) }}
+			
+			{% if route_back is defined %}
+				<div class="row mt-5">
+					<div class="col-6 text-right">
+						<a class="btn-secondary btn w-75" href="{{ route_back }}">{% trans %}Cancel{% endtrans %}</a>
+					</div>
+					<div class="col-6 text-left">
+						<button type="submit" form="form" class="btn-primary btn w-75">{% trans %}Save{% endtrans %}</button>
+					</div>
+				</div>
+			{% else %}
+    			<div class="row mt-5 justify-content-center">
+    				<div class="col-6">
+    					<button type="submit" form="form" class="btn-primary btn w-75">{% trans %}Save{% endtrans %}</button>
+    				</div>
     			</div>
-    		</div>
-    	</div>
-    </div>
+			{% endif %}
+			
+		</div>
+	</div>
 {% endblock %}

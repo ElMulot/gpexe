@@ -1,4 +1,4 @@
-App\Entity\Automation:
+App\Entity\Program:
     constraints:
         - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity:
             fields: ['name', 'project']
@@ -64,9 +64,6 @@ App\Entity\MetadataItem:
     constraints:
         - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity:
             fields: ['value', 'metadata']
-    properties:
-        name:
-            - Regex: '/^[A-zÀ-ú \-&]+$/'
 
 App\Entity\Profil:
     constraints:

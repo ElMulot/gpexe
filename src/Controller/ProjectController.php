@@ -9,7 +9,7 @@ use App\Entity\Company;
 use App\Entity\Project;
 use App\Repository\CompanyRepository;
 use App\Repository\ProjectRepository;
-use App\Repository\AutomationRepository;
+use App\Repository\ProgramRepository;
 use App\Form\ProjectType;
 
 class ProjectController extends AbstractController
@@ -21,14 +21,14 @@ class ProjectController extends AbstractController
 	
 	private $projectRepository;
 	
-	private $automationRepository;
+	private $programRepository;
 	
-	public function __construct(SessionInterface $session, CompanyRepository $companyRepository, ProjectRepository $projectRepository, AutomationRepository $automationRepository)
+	public function __construct(SessionInterface $session, CompanyRepository $companyRepository, ProjectRepository $projectRepository, ProgramRepository $programRepository)
 	{
 		$this->session = $session;
 		$this->companyRepository = $companyRepository;
 		$this->projectRepository = $projectRepository;
-		$this->automationRepository = $automationRepository;
+		$this->programRepository = $programRepository;
 	}
 
 	public function index(): Response
@@ -74,10 +74,10 @@ class ProjectController extends AbstractController
 			
 		}
 		
-		$automations = [];
+		$programs = [];
 		if ($this->isGranted('ROLE_ADMIN') ||
 			$this->isGranted('ROLE_CONTROLLER') && $this->getUser()->getCompany()->isMainContractor()) {
-				$automations = $this->automationRepository->getEnabledAutomations($project);
+				$programs = $this->programRepository->getEnabledPrograms($project);
 		}
 		
 		if ($this->isGranted('ROLE_ADMIN') === false) {
@@ -88,7 +88,7 @@ class ProjectController extends AbstractController
 					'project' => $project,
 					'main_contractors' => $mainContractors,
 					'sub_contractors' => $subContractors,
-					'automations' => $automations,
+					'programs' => $programs,
 					'route_back' => $this->generateUrl('home'),
 				]);
 			}
@@ -98,7 +98,7 @@ class ProjectController extends AbstractController
 			'project' => $project,
 			'main_contractors' => $mainContractors,
 			'sub_contractors' => $subContractors,
-			'automations' => $automations,
+			'programs' => $programs,
 			'route_back' => $this->generateUrl('project'),
 		]);
 	}

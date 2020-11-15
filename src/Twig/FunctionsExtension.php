@@ -14,30 +14,30 @@ use Symfony\Bridge\Doctrine\PropertyInfo\DoctrineExtractor;
 class FunctionsExtension extends AbstractExtension
 {
 	
-    private $doctrineExtractor;
-    
-    public function __construct(EntityManagerInterface $entityManager)
-    {
-    	$this->doctrineExtractor = new DoctrineExtractor($entityManager);
-    }
-    
-    public function getFunctions()
-    {
-        return [
-            new TwigFunction('headers', [$this, 'getHeaders']),
-        ];
-    }
-    
-    public function getHeaders($class)
-    {
-        $headers = [];
-        
-        $properties = $this->getProperties($class);
-        
-        foreach ($properties as $property) {
-        	$headers[$property] = ucfirst(strtolower(preg_replace("#([A-Z])#", ' $1', $property)));
-        }
-        return $headers;
+	private $doctrineExtractor;
+	
+	public function __construct(EntityManagerInterface $entityManager)
+	{
+		$this->doctrineExtractor = new DoctrineExtractor($entityManager);
+	}
+	
+	public function getFunctions()
+	{
+		return [
+			new TwigFunction('headers', [$this, 'getHeaders']),
+		];
+	}
+	
+	public function getHeaders($class)
+	{
+		$headers = [];
+		
+		$properties = $this->doctrineExtractor->getProperties($class);
+		
+		foreach ($properties as $property) {
+			$headers[$property] = ucfirst(strtolower(preg_replace("#([A-Z])#", ' $1', $property)));
+		}
+		return $headers;
 	}
 
 	private function getProperties($class)
@@ -51,10 +51,10 @@ class FunctionsExtension extends AbstractExtension
 			if ($type[0]->isCollection() === false) {
 				$propertiesName[] = $property;
 			}
-        }
-        
-        return $propertiesName;
-    }
+		}
+		
+		return $propertiesName;
+	}
 }
 
 ?>

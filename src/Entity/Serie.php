@@ -51,11 +51,17 @@ class Serie
      */
     private $documents;
 
+    /**
+     * @ORM\OneToMany(targetEntity=Progress::class, mappedBy="serie", orphanRemoval=true)
+     */
+    private $progress;
+
     public function __construct()
     {
     	$this->metadataItems = new ArrayCollection();
     	$this->metadataValues = new ArrayCollection();
     	$this->documents = new ArrayCollection();
+     $this->progress = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -180,6 +186,36 @@ class Serie
         }
 
         return $this;
+    }
+    
+    /**
+     * @return Collection|Progress[]
+     */
+    public function getProgress(): Collection
+    {
+    	return $this->progress;
+    }
+    
+    public function addProgress(Progress $progress): self
+    {
+    	if (!$this->progress->contains($progress)) {
+    		$this->progress[] = $progress;
+    		$progress->setSerie($this);
+    	}
+    	
+    	return $this;
+    }
+    
+    public function removeProgress(Progress $progress): self
+    {
+    	if ($this->progress->removeElement($progress)) {
+    		// set the owning side to null (unless already changed)
+    		if ($progress->getSerie() === $this) {
+    			$progress->setSerie(null);
+    		}
+    	}
+    	
+    	return $this;
     }
     
     public function belongToMDR(): bool

@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Automation;
+use App\Entity\Program;
 use App\Entity\Project;
 use App\Service\RepositoryService;
 use Doctrine\Persistence\ManagerRegistry;
@@ -19,7 +20,7 @@ class AutomationRepository extends RepositoryService
     {
         parent::__construct($registry, Automation::class);
     }
-    
+
     /**
      * @return Automation[]
      *
@@ -28,7 +29,7 @@ class AutomationRepository extends RepositoryService
     {
     	$qb = $this->newQB('a');
     	return $qb
-	    	->andWhere($qb->eq('a.project', $project))
+    		->andWhere($qb->eq('a.project', $project))
 	    	->getQuery()
 	    	->getResult()
     	;
@@ -38,14 +39,36 @@ class AutomationRepository extends RepositoryService
      * @return Automation[]
      *
      */
-    public function getEnabledAutomations(Project $project)
+    public function getAutomationsToRun()
     {
     	$qb = $this->newQB('a');
     	return $qb
-	    	->andWhere($qb->eq('a.project', $project))
 	    	->andWhere($qb->eq('a.enabled', true))
+	    	->andWhere($qb->lte('a.nextRun', new \DateTime('now')))
 	    	->getQuery()
-    		->getResult()
+	    	->getResult()
     	;
+    }
+    
+    /**
+     * @return Automation[]
+     *
+     */
+    public function getAutomationByRouteAndByParameters(string $route, array $parameters)
+    {
+    	$qb = $this->newQB('a');
+    	$automations = $qb
+	    	->andWhere($qb->eq('a.route', $route))
+	    	->getQuery()
+	    	->getResult()
+    	;
+    	
+    	foreach ($automations as $automation) {
+    		if ($automation->getParameters() == $parameters) {
+    			return $automation;
+    		}
+    	}
+    	
+    	return null;
     }
 }

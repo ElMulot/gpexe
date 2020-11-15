@@ -12,7 +12,7 @@ updated:
         }
 
 confirm:
-    automation: Confirmer la suppression du programme
+    program: Confirmer la suppression du programme
     codification: Confirmer la suppression du code
     codificationItem: Confirmer la suppression de l'entrée
     codificationValue: Confirmer la suppression de l'entrée

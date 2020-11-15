@@ -10,7 +10,7 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20201109152902 extends AbstractMigration
+final class Version20201115113145 extends AbstractMigration
 {
     public function getDescription() : string
     {
@@ -20,14 +20,14 @@ final class Version20201109152902 extends AbstractMigration
     public function up(Schema $schema) : void
     {
         // this up() migration is auto-generated, please modify it to your needs
-        $this->addSql('ALTER TABLE project ADD check_danger_limit INT NOT NULL');
-        $this->addSql('ALTER TABLE vue CHANGE value value JSON NOT NULL');
+        $this->addSql('ALTER TABLE automation ADD last_run DATETIME DEFAULT NULL, ADD next_run DATETIME DEFAULT NULL, DROP date');
+        $this->addSql('ALTER TABLE program CHANGE type type SMALLINT DEFAULT NULL');
     }
 
     public function down(Schema $schema) : void
     {
         // this down() migration is auto-generated, please modify it to your needs
-        $this->addSql('ALTER TABLE project DROP check_danger_limit');
-        $this->addSql('ALTER TABLE vue CHANGE value value TEXT CHARACTER SET utf8mb4 NOT NULL COLLATE `utf8mb4_unicode_ci`');
+        $this->addSql('ALTER TABLE automation ADD date DATE NOT NULL, DROP last_run, DROP next_run');
+        $this->addSql('ALTER TABLE program CHANGE type type SMALLINT NOT NULL');
     }
 }

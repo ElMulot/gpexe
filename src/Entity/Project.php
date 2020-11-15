@@ -93,9 +93,9 @@ class Project
     private $vues;
 
     /**
-     * @ORM\OneToMany(targetEntity=Automation::class, mappedBy="project", orphanRemoval=true)
+     * @ORM\OneToMany(targetEntity=Program::class, mappedBy="project", orphanRemoval=true)
      */
-    private $automations;
+    private $programs;
 
     public function __construct()
     {
@@ -106,7 +106,7 @@ class Project
         $this->visas = new ArrayCollection();
         $this->series = new ArrayCollection();
         $this->vues = new ArrayCollection();
-        $this->automations = new ArrayCollection();
+        $this->programs = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -431,30 +431,30 @@ class Project
     
     
     /**
-     * @return Collection|Automation[]
+     * @return Collection|Program[]
      */
-    public function getAutomations(): Collection
+    public function getPrograms(): Collection
     {
-    	return $this->automations;
+    	return $this->programs;
     }
     
-    public function addAutomation(Automation $automation): self
+    public function addProgram(Program $program): self
     {
-    	if (!$this->automations->contains($automation)) {
-    		$this->automations[] = $automation;
-    		$automation->setProject($this);
+    	if (!$this->programs->contains($program)) {
+    		$this->programs[] = $program;
+    		$program->setProject($this);
     	}
     	
     	return $this;
     }
     
-    public function removeAutomation(Automation $automation): self
+    public function removeProgram(Program $program): self
     {
-    	if ($this->automations->contains($automation)) {
-    		$this->automations->removeElement($automation);
+    	if ($this->programs->contains($program)) {
+    		$this->programs->removeElement($program);
     		// set the owning side to null (unless already changed)
-    		if ($automation->getProject() === $this) {
-    			$automation->setProject(null);
+    		if ($program->getProject() === $this) {
+    			$program->setProject(null);
     		}
     	}
     	

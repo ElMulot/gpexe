@@ -186,12 +186,18 @@ New vue created: Nouvelle vue créée
 Vue updated: Vue mise à jour
 Vue deleted: Vue supprimée
 
-#Automations
-Automation: Automatisation
-Automations: Automatisations
-Automations for: Automatisations pour
+#Programs
+Program: Programme
+Programs: Programmes
+Programs for: Programmes pour
 Read: Lecture
 Write: Ecriture
+
+#Automations
+Automations: Tâches automatisées
+Enabled: Activée
+Last run: Dernière exécution
+Next run: Prochaine exécution
 
 #Alert
 Some documents to be produced are very late: Certains documents à produire sont très en retard

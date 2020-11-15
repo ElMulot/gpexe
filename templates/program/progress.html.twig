@@ -1,0 +1,52 @@
+{% extends 'layout.html.twig' %}
+
+{% block stylesheets %}
+    {{ encore_entry_link_tags('dashboard') }}
+    {{ parent() }}
+{% endblock %}
+
+{% block nav %}
+    <div class="navbar-collapse" style="{{ block('nav_item') }}">
+    	<ul class="navbar-nav mr-auto ">
+    		<li class="nav-item" style="{{ block('nav_item') }}">
+    			<a class="nav-link" href="{{ route_back }}">{% trans %}Back{% endtrans %}</a>
+    		</li>
+    	</ul>
+    </div>
+    <div class="navbar-collapse navbar-brand justify-content-center">
+    	{{ program.name }}
+    </div>
+    <div class="navbar-collapse" style="{{ block('nav_item') }}"></div>
+    <a class="active" data-toggle="ajax" data-url="{{ path('program_load', {'program': program.id}) }}" data-target="#chart_container" style="display: none;"></a>
+{% endblock %}
+
+{% block content %}
+	<nav class="align-self-start px-5">
+    	<div class="nav nav-tabs" role="tablist">
+    		<a class="nav-item nav-link active" id="chart-tab" data-toggle="tab" href="#chart_nav" role="tab" aria-controls="chart_nav" aria-selected="true">Chart</a>
+    		<a class="nav-item nav-link" id="table-tab" data-toggle="tab" href="#table_nav" role="tab" aria-controls="table_nav" aria-selected="false">Table</a>
+    	</div>
+	</nav>
+    <div class="tab-content mw-100">
+        <div class="tab-pane fade show active" id="chart_nav" role="tabpanel" aria-labelledby="chart-tab">
+            <div id="chart_container">
+                <canvas id="chart">
+                	
+                </canvas>
+            </div>
+        </div>
+        <div class="tab-pane fade px-2" id="table_nav" role="tabpanel" aria-labelledby="table-tab">
+            <div id="table_container" class="table-responsive">
+            	<table id="table" class="table">
+            	
+            	</table>
+            </div>
+        </div>
+
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ encore_entry_script_tags('dashboard') }}
+    {{ parent() }}
+{% endblock %}

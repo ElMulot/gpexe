@@ -4,7 +4,7 @@ namespace App\Service;
 
 use Symfony\Component\Yaml\Yaml;
 
-class AutomationService
+class ParseService
 {
 	
 	private $ressourcesDirectory;

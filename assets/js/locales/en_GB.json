@@ -23,5 +23,6 @@
 	"all": "All",
 	"fromDate": "From date",
 	"toDate": "To date",
-	"highlight": "Highlight"
+	"highlight": "Highlight",
+	"date": "Date"
 }

@@ -17,3 +17,32 @@ main {
 	height:100%;
 	margin: 0 !important;
 }
+
+#table th {
+	writing-mode: vertical-rl;
+	text-orientation: sideways-right;
+	-moz-transform: rotate(180deg);  /* FF3.5+ */
+	-o-transform: rotate(180deg);  /* Opera 10.5 */
+	-webkit-transform: rotate(180deg);  /* Saf3.1+, Chrome */
+	filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=2);  /* IE6,IE7 */
+	-ms-filter: "progid:DXImageTransform.Microsoft.BasicImage(rotation=2)"; /* IE8 */
+	position: relative;
+	min-width: 3rem;
+	vertical-align: top;
+}
+
+#chart_container {
+	position: relative;
+    width: 90vw;
+	height: 100%;
+	height: -webkit-calc(100% - 10rem);
+	height: -moz-calc(100% - 10rem);
+	height: calc(100% - 10rem);
+}
+#chart {
+    width: 90vw;
+	height: 100%;
+	height: -webkit-calc(100% - 10rem);
+	height: -moz-calc(100% - 10rem);
+	height: calc(100% - 10rem);
+}

@@ -449,60 +449,76 @@ vue_delete:
         vue: \d+
     controller: App\Controller\VueController::delete
 
+program:
+    path: /project/{project}/program
+    requirements:
+        project: \d+
+    controller: App\Controller\ProgramController::index
+
+program_dashboard:
+    path: /project/program/{program}/dashboard
+    requirements:
+        program: \d+
+    controller: App\Controller\ProgramController::dashboard
+
+program_preload:
+    path: /project/program/{program}/preload
+    requirements:
+        program: \d+
+    controller: App\Controller\ProgramController::preload
+    
+program_load:
+    path: /project/program/{program}/load
+    requirements:
+        program: \d+
+    controller: App\Controller\ProgramController::load
+    
+program_console:
+    path: /project/program/{program}/console
+    requirements:
+        program: \d+
+    controller: App\Controller\ProgramController::console
+
+program_completed:
+    path: /project/program/{program}/completed
+    requirements:
+        program: \d+
+    controller: App\Controller\ProgramController::completed
+    
+program_new:
+    path: /project/{project}/program/new
+    requirements:
+        project: \d+
+    controller: App\Controller\ProgramController::new
+
+program_edit:
+    path: /project/program/{program}/edit
+    requirements:
+        program: \d+
+    controller: App\Controller\ProgramController::edit
+
+program_delete:
+    path: /project/program/{program}/delete
+    methods: GET|DELETE
+    requirements:
+        program: \d+
+    controller: App\Controller\ProgramController::delete
+
 automation:
     path: /project/{project}/automation
     requirements:
         project: \d+
     controller: App\Controller\AutomationController::index
 
-automation_dashboard:
-    path: /project/automation/{automation}/dashboard
-    requirements:
-        automation: \d+
-    controller: App\Controller\AutomationController::dashboard
-
-automation_preload:
-    path: /project/automation/{automation}/preload
-    requirements:
-        automation: \d+
-    controller: App\Controller\AutomationController::preload
-    
-automation_load:
-    path: /project/automation/{automation}/load
-    requirements:
-        automation: \d+
-    controller: App\Controller\AutomationController::load
-    
-automation_console:
-    path: /project/automation/{automation}/console
-    requirements:
-        automation: \d+
-    controller: App\Controller\AutomationController::console
-
-automation_completed:
-    path: /project/automation/{automation}/completed
-    requirements:
-        automation: \d+
-    controller: App\Controller\AutomationController::completed
-    
-automation_new:
-    path: /project/{project}/automation/new
-    requirements:
-        project: \d+
-    controller: App\Controller\AutomationController::new
-
 automation_edit:
     path: /project/automation/{automation}/edit
     requirements:
         automation: \d+
     controller: App\Controller\AutomationController::edit
-
-automation_delete:
-    path: /project/automation/{automation}/delete
-    methods: GET|DELETE
-    requirements:
-        automation: \d+
-    controller: App\Controller\AutomationController::delete
+    
+automation_cron:
+    path: /automation/cron
+    controller: App\Controller\AutomationController::cron
 
 log:
     path: /log

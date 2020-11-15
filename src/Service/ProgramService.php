@@ -2,10 +2,11 @@
 
 namespace App\Service;
 
-use App\Entity\Automation;
+use App\Entity\Program;
 use App\Entity\Document;
 use App\Entity\Serie;
 use App\Entity\Version;
+use App\Entity\Progress;
 use App\Repository\DocumentRepository;
 use App\Repository\SerieRepository;
 use App\Repository\StatusRepository;
@@ -21,7 +22,7 @@ use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Stopwatch\Stopwatch;
 
-class ImportExportService
+class ProgramService
 {
 	
 	const MAX_LINES_PROCESSED 	= 1000;
@@ -35,17 +36,17 @@ class ImportExportService
 	
 	private $entityManager;
 	
-	private $serieRepository;
-	
 	private $documentRepository;
 	
-	private $versionRepository;
+	private $serieRepository;
 	
 	private $statusRespository;
 	
-	private $documentService;
+	private $versionRepository;
 	
 	private $cacheService;
+	
+	private $documentService;
 	
 	private $fieldService;
 	
@@ -63,14 +64,14 @@ class ImportExportService
 	
 	private $stopWatch;
 
-	public function __construct(FlashBagInterface $flashBagInterface, EntityManagerInterface $entityManager, SerieRepository $serieRepository, DocumentRepository $documentRepository, VersionRepository $versionRepository, StatusRepository $statusRespository, CacheService $cacheService, DocumentService $documentService, FieldService $fieldService, Security $security, string $targetDirectory)
+	public function __construct(FlashBagInterface $flashBagInterface, EntityManagerInterface $entityManager, DocumentRepository $documentRepository, SerieRepository $serieRepository, StatusRepository $statusRespository, VersionRepository $versionRepository, CacheService $cacheService, DocumentService $documentService, FieldService $fieldService, Security $security, string $targetDirectory)
 	{
 		$this->flashBagInterface = $flashBagInterface;
 		$this->entityManager = $entityManager;
-		$this->serieRepository = $serieRepository;
 		$this->documentRepository = $documentRepository;
-		$this->versionRepository = $versionRepository;
+		$this->serieRepository = $serieRepository;
 		$this->statusRespository = $statusRespository;
+		$this->versionRepository = $versionRepository;
 		$this->cacheService = $cacheService;
 		$this->documentService = $documentService;
 		$this->fieldService = $fieldService;
@@ -80,37 +81,37 @@ class ImportExportService
 		$this->stopWatch = new Stopwatch();
 	}
 	
-	public function preload(Automation $automation, Request $request, File $file = null): bool
+	public function preload(Program $program, Request $request, File $file = null): bool
 	{
 		
 		$this->flashBagInterface->add('info', 'Démarrage de l\'opération');
-		$this->parsedCode = $automation->getParsedCode();
+		$this->parsedCode = $program->getParsedCode();
 		
 		//setting up cache
 		
 		$options = $this->parsedCode['option'] ?? [];
 		foreach ($options as $key => $option) {
-			switch ($automation->getType()) {
+			switch ($program->getType()) {
 				
-				case Automation::EXPORT:
+				case Program::EXPORT:
 					$option = $request->request->get('launcher_export')[$key] ?? false;
-					$this->cacheService->set('automation.' . $key, $option);
+					$this->cacheService->set('program.' . $key, $option);
 					break;
 					
-				case Automation::IMPORT:
+				case Program::IMPORT:
 					$firstRow = $this->parsedCode['first_row'];
 					
-					if ($this->cacheService->get('automation.ready_to_persist')) {
-						$this->cacheService->set('automation.current_row', $firstRow);
-						$this->cacheService->set('automation.state', 'new_batch');
+					if ($this->cacheService->get('program.ready_to_persist')) {
+						$this->cacheService->set('program.current_row', $firstRow);
+						$this->cacheService->set('program.state', 'new_batch');
 						return true;
 					}
 					
 					$option = $request->request->get('launcher_import')[$key] ?? false;
-					$this->cacheService->set('automation.' . $key, $option);
+					$this->cacheService->set('program.' . $key, $option);
 					break;
 				
-				case Automation::PROGRESS:
+				case Program::PROGRESS:
 					return true;
 					
 				default:
@@ -128,26 +129,26 @@ class ImportExportService
 				$this->flashBagInterface->add('danger', $e->getMessage());
 				return false;
 			}
-			$this->cacheService->set('automation.file_path', $file->getPathname());
+			$this->cacheService->set('program.file_path', $file->getPathname());
 		}
 		
-		$this->cacheService->set('automation.state', 'load');
+		$this->cacheService->set('program.state', 'load');
 		return true;
 	}
 	
-	public function load(Automation $automation): bool
+	public function load(Program $program): bool
 	{
 		
-		$this->parsedCode = $automation->getParsedCode();
+		$this->parsedCode = $program->getParsedCode();
 		
-		switch ($automation->getType()) {
+		switch ($program->getType()) {
 			
-			case Automation::EXPORT:
+			case Program::EXPORT:
 				$firstRow = $this->parsedCode['first_row'];
 				$mainColumn = null;
 				$commentsColumn = null;
-				$library = $this->cacheService->get('automation.library');
-				$dateFormat = $this->cacheService->get('automation.date_format');
+				$library = $this->cacheService->get('program.library');
+				$dateFormat = $this->cacheService->get('program.date_format');
 				
 				//create workbook
 				try {
@@ -189,20 +190,20 @@ class ImportExportService
 					return false;
 				}
 				
-				$this->cacheService->set('automation.current_row', $firstRow + 1);
-				$this->cacheService->set('automation.file_path', $this->workbook->getPath());
-				$this->cacheService->set('automation.state', 'new_batch');
+				$this->cacheService->set('program.current_row', $firstRow + 1);
+				$this->cacheService->set('program.file_path', $this->workbook->getPath());
+				$this->cacheService->set('program.state', 'new_batch');
 				return true;
 
-			case Automation::IMPORT:
+			case Program::IMPORT:
 				
 				$firstRow = $this->parsedCode['first_row'];
 				$mainColumn = $this->parsedCode['main_column'];
 				$commentsColumn = $this->parsedCode['comments_column'];
-				$library = $this->cacheService->get('automation.library');
-				$dateFormat = $this->cacheService->get('automation.date_format');
+				$library = $this->cacheService->get('program.library');
+				$dateFormat = $this->cacheService->get('program.date_format');
 				
-				$readyToPersist = $this->cacheService->get('automation.ready_to_persist');
+				$readyToPersist = $this->cacheService->get('program.ready_to_persist');
 				
 				//open workbook
 				try {
@@ -213,7 +214,7 @@ class ImportExportService
 				}
 				
 				try {
-					$this->workbook->open($this->cacheService->get('automation.file_path'), $readyToPersist);
+					$this->workbook->open($this->cacheService->get('program.file_path'), $readyToPersist);
 				} catch (Exception $e) {
 					$this->flashBagInterface->add('danger', $e->getMessage());
 					return false;
@@ -232,7 +233,7 @@ class ImportExportService
 	// 				$currentRow++;
 	// 			}
 				
-	// 			$this->cacheService->set('automation.count_row', max(1, $row->getAddress() - $firstRow - 1));
+	// 			$this->cacheService->set('program.count_row', max(1, $row->getAddress() - $firstRow - 1));
 				
 				//save
 				try {
@@ -242,12 +243,12 @@ class ImportExportService
 					return false;
 				}
 				
-				$this->cacheService->set('automation.current_row', $firstRow);
-				$this->cacheService->set('automation.file_path', $this->workbook->getPath());
-				$this->cacheService->set('automation.state', 'new_batch');
+				$this->cacheService->set('program.current_row', $firstRow);
+				$this->cacheService->set('program.file_path', $this->workbook->getPath());
+				$this->cacheService->set('program.state', 'new_batch');
 				return true;
 			
-			case Automation::PROGRESS:
+			case Program::PROGRESS:
 				
 				//sort rules by value descending order
 				usort($this->parsedCode['rules'], function ($a, $b) {
@@ -266,29 +267,29 @@ class ImportExportService
 		}
 	}
 	
-	public function unload(Automation $automation): bool
+	public function unload(Program $program): bool
 	{
 		
-		$this->cacheService->delete('automation.state');
-		$this->cacheService->delete('automation.library');
-		$this->cacheService->delete('automation.date_format');
-		$this->cacheService->delete('automation.current_row');
-		$this->cacheService->delete('automation.file_path');
-		$this->cacheService->delete('automation.count_processed');
+		$this->cacheService->delete('program.state');
+		$this->cacheService->delete('program.library');
+		$this->cacheService->delete('program.date_format');
+		$this->cacheService->delete('program.current_row');
+		$this->cacheService->delete('program.file_path');
+		$this->cacheService->delete('program.count_processed');
 		
 		$options = $this->parsedCode['option'] ?? [];
 		foreach (array_keys($options) as $key) {
-			$this->cacheService->delete('automation.' . $key);
+			$this->cacheService->delete('program.' . $key);
 		}
 		
-		switch ($automation->getType()) {
+		switch ($program->getType()) {
 			
-			case Automation::EXPORT:
+			case Program::EXPORT:
 				return true;
 			
-			case Automation::IMPORT:
+			case Program::IMPORT:
 			
-				$this->cacheService->delete('automation.ready_to_persist');
+				$this->cacheService->delete('program.ready_to_persist');
 				return true;
 			
 			default:
@@ -297,27 +298,27 @@ class ImportExportService
 		}
 	}
 	
-	public function export(Automation $automation): bool
+	public function export(Program $program): bool
 	{
 		$this->stopWatch->start('export');
 		
-		$project = $automation->getProject();
-		$this->parsedCode = $automation->getParsedCode();
+		$project = $program->getProject();
+		$this->parsedCode = $program->getParsedCode();
 		
 		$firstRow = $this->parsedCode['first_row'];
 		$mainColumn = $this->parsedCode['main_column'] ?? null;
 		$commentColumn = $this->parsedCode['comment_column'] ?? null;
-		$library = $this->cacheService->get('automation.library');
-		$dateFormat = $this->cacheService->get('automation.date_format');
+		$library = $this->cacheService->get('program.library');
+		$dateFormat = $this->cacheService->get('program.date_format');
 		
 		//cache
-		$filePath = $this->cacheService->get('automation.file_path');
-		$currentRow = $this->cacheService->get('automation.current_row');
-		$countProcessed = (int)$this->cacheService->get('automation.count_processed');
+		$filePath = $this->cacheService->get('program.file_path');
+		$currentRow = $this->cacheService->get('program.current_row');
+		$countProcessed = (int)$this->cacheService->get('program.count_processed');
 		
 		$options = [];
 		foreach (array_keys($this->parsedCode['option'] ?? []) as $key) {
-			$options[$key] = $this->cacheService->get('automation.' . $key);
+			$options[$key] = $this->cacheService->get('program.' . $key);
 		}
 		$newBatch = false;
 		
@@ -376,13 +377,13 @@ class ImportExportService
 		
 		//update cache
 		if ($newBatch === false) {
-			$this->cacheService->set('automation.state', 'completed');
+			$this->cacheService->set('program.state', 'completed');
 			$this->flashBagInterface->add('success', 'Export réussi. ' . ($row->getAddress() - $firstRow - 1) . '/' .  $countProcessed . ' lignes exportées (' . $event->getDuration()/1000 . ' s; ' . $event->getMemory()/1048576 . ' Mo)');
 		} else {
-			$this->cacheService->set('automation.state', 'new_batch');
+			$this->cacheService->set('program.state', 'new_batch');
 			$this->flashBagInterface->add('success', ($row->getAddress() - $firstRow - 1) . '/' .  $countProcessed . ' lignes exportées (' . $event->getDuration()/1000 . ' s; ' . $event->getMemory()/1048576 . ' Mo)');
-			$this->cacheService->set('automation.count_processed', $countProcessed);
-			$this->cacheService->set('automation.current_row', $row->getAddress() + 1);
+			$this->cacheService->set('program.count_processed', $countProcessed);
+			$this->cacheService->set('program.current_row', $row->getAddress() + 1);
 		}
 		
 		try {
@@ -395,18 +396,18 @@ class ImportExportService
 		return true;
 	}
 	
-	public function import(Automation $automation): bool
+	public function import(Program $program): bool
 	{
 		
 		$this->stopWatch->start('import');
-		$project = $automation->getProject();
-		$this->parsedCode = $automation->getParsedCode();
+		$project = $program->getProject();
+		$this->parsedCode = $program->getParsedCode();
 		
 		$firstRow = $this->parsedCode['first_row'];
 		$mainColumn = $this->parsedCode['main_column'] ?? null;
 		$commentColumn = $this->parsedCode['comment_column'] ?? null;
-		$library = $this->cacheService->get('automation.library');
-		$readyToPersist = $this->cacheService->get('automation.ready_to_persist');
+		$library = $this->cacheService->get('program.library');
+		$readyToPersist = $this->cacheService->get('program.ready_to_persist');
 		$matches = null;
 		
 		$defaultStatus = $this->statusRespository->getDefaultStatus($project);
@@ -416,13 +417,13 @@ class ImportExportService
 		}
 		
 		//cache
-		$filePath = $this->cacheService->get('automation.file_path');
-		$dateFormat = $this->cacheService->get('automation.date_format');
-		$currentRow = $this->cacheService->get('automation.current_row');
-		$countProcessed = (int)$this->cacheService->get('automation.count_processed');
+		$filePath = $this->cacheService->get('program.file_path');
+		$dateFormat = $this->cacheService->get('program.date_format');
+		$currentRow = $this->cacheService->get('program.current_row');
+		$countProcessed = (int)$this->cacheService->get('program.count_processed');
 		$options = [];
 		foreach (array_keys($this->parsedCode['option'] ?? []) as $key) {
-			$options[$key] = $this->cacheService->get('automation.' . $key);
+			$options[$key] = $this->cacheService->get('program.' . $key);
 		}
 		$newBatch = false;
 		
@@ -452,7 +453,7 @@ class ImportExportService
 				break;
 			}
 			
-			if ($row->getAddress() - $this->cacheService->get('automation.current_row') >= self::MAX_LINES_PROCESSED) {
+			if ($row->getAddress() - $this->cacheService->get('program.current_row') >= self::MAX_LINES_PROCESSED) {
 				$newBatch = true;
 				break;
 			}
@@ -626,7 +627,7 @@ class ImportExportService
 				$this->writeComments($row);
 				$currentRow++;
 				continue;
-			} elseif ($this->cacheService->get('automation.ready_to_persist')) {
+			} elseif ($this->cacheService->get('program.ready_to_persist')) {
 				$this->entityManager->persist($currentDocument);
 			}
 			
@@ -740,7 +741,7 @@ class ImportExportService
 				$this->writeComments($row);
 				$currentRow++;
 				continue;
-			} elseif ($this->cacheService->get('automation.ready_to_persist')) {
+			} elseif ($this->cacheService->get('program.ready_to_persist')) {
 				$this->entityManager->persist($currentVersion);
 			}
 			
@@ -754,9 +755,9 @@ class ImportExportService
 		
 		if ($newBatch === false) {
 			
-			$this->cacheService->set('automation.state', 'completed');
+			$this->cacheService->set('program.state', 'completed');
 			
-			if ($this->cacheService->get('automation.ready_to_persist')) {
+			if ($this->cacheService->get('program.ready_to_persist')) {
 				$this->entityManager->flush();
 				$this->flashBagInterface->add('success', 'Import terminé : ' . $countProcessed . '/' . ($currentRow - $firstRow) . ' lignes ont été importées');
 			} else {
@@ -770,11 +771,11 @@ class ImportExportService
 			}
 		} else {
 			
-			$this->cacheService->set('automation.state', 'new_batch');
-			$this->cacheService->set('automation.count_processed', $countProcessed);
-			$this->cacheService->set('automation.current_row', $currentRow);
+			$this->cacheService->set('program.state', 'new_batch');
+			$this->cacheService->set('program.count_processed', $countProcessed);
+			$this->cacheService->set('program.current_row', $currentRow);
 			
-			if ($this->cacheService->get('automation.ready_to_persist')) {
+			if ($this->cacheService->get('program.ready_to_persist')) {
 				$this->entityManager->flush();
 			} else {
 
@@ -790,10 +791,10 @@ class ImportExportService
 		return true;
 	}
 	
-	public function progress(Automation $automation): array
+	public function progress(Program $program): array
 	{
 		
-		$project = $automation->getProject();
+		$project = $program->getProject();
 		$progress = [];
 		
 		//load datas
@@ -846,6 +847,40 @@ class ImportExportService
 		}
 		
 		return $progress;
+	}
+	
+	public function automation(Program $program): bool
+	{
+		switch ($program->getType()) {
+			
+			case Program::PROGRESS:
+				if ($this->load($program) === false) {
+					return false;
+				}
+				
+				$project = $program->getProject();
+				$series = $this->serieRepository->getSeries($project);
+				$values = $this->progress($program);
+				foreach ($values as $serieId => $value) {
+					foreach ($series as $serie) {
+						if ($serie->getId() == $serieId) {
+							$progress = new Progress();
+							$progress->setValue($value);
+							$progress->setSerie($serie);
+							$progress->setProgram($program);
+							$this->entityManager->persist($progress);
+							break;
+						}
+					}
+				}
+				
+				$this->entityManager->flush();
+				return true;
+				
+			default:
+				return false;
+				
+		}
 	}
 	
 	private function prepare(string $expression, $entity, bool $isRegex=false, Row $row = null): string
@@ -1000,7 +1035,7 @@ class ImportExportService
 	private function addComment($type, $text, $col = null)
 	{
 		
-		if ($this->cacheService->get('automation.ready_to_persist') == false) {
+		if ($this->cacheService->get('program.ready_to_persist') == false) {
 			$this->comments[] = [
 				'type' => $type,
 				'text' => $text,
@@ -1012,7 +1047,7 @@ class ImportExportService
 	private function writeComments(Row $row)
 	{		
 		
-		if ($this->cacheService->get('automation.ready_to_persist') == false) {
+		if ($this->cacheService->get('program.ready_to_persist') == false) {
 			$type = null;
 			foreach ($this->comments as $comment) {
 				if ($type === null) {

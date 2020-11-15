@@ -5,17 +5,17 @@ namespace App\Form\DataTransformer;
 use Symfony\Component\Form\DataTransformerInterface;
 use Symfony\Component\Form\Exception\TransformationFailedException;
 use Symfony\Component\Yaml\Exception\ParseException;
-use App\Service\AutomationService;
+use App\Service\ParseService;
 
 
-class AutomationTransformer implements DataTransformerInterface
+class ProgramTransformer implements DataTransformerInterface
 {
 	
-	private $automationService;
+	private $parseService;
 	
-	public function __construct(AutomationService $automationService)
+	public function __construct(ParseService $parseService)
 	{
-		$this->automationService = $automationService;
+		$this->parseService = $parseService;
 	}
 	
 	public function transform($value)
@@ -30,7 +30,7 @@ class AutomationTransformer implements DataTransformerInterface
 	public function reverseTransform($value): string
 	{
 		try {
-			$validatedCode = $this->automationService->getValidatedCode($value);
+			$validatedCode = $this->parseService->getValidatedCode($value);
 		} catch (ParseException $e) {
 			$failure = new TransformationFailedException();
 			$failure->setInvalidMessage($e->getMessage());

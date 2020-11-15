@@ -1,0 +1,46 @@
+{% extends 'layout.html.twig' %}
+    		
+{% block nav %}
+    <div class="navbar-collapse" style="{{ block('nav_item') }}">
+    	<ul class="navbar-nav mr-auto ">
+    		<li class="nav-item" style="{{ block('nav_item') }}">
+    			<a class="nav-link" href="{{ path('project_view', {'project': project.id}) }}">{% trans %}Back{% endtrans %}</a>
+    		</li>
+    	</ul>
+    </div>
+    <div class="navbar-collapse navbar-brand justify-content-center">
+        {% trans %}Automations{% endtrans %}
+    </div>
+    <div class="navbar-collapse" style="{{ block('nav_item') }}"></div>
+{% endblock %}
+
+{% block content %}
+    <table class="table">
+    	<thead>
+    		<tr class="text-center">
+    			<th>{% trans %}Enabled{% endtrans %}</th>
+    			<th>{% trans %}Last run{% endtrans %}</th>
+    			<th>{% trans %}Next run{% endtrans %}</th>
+    			<th style="width: 10rem;"></th>
+    		</tr>
+    	</thead>
+    	<tbody>
+    		{% for automation in automations %}
+        		<tr>
+        			<td class="text-center">{{ (automation.enabled ? 'Yes' : 'No')|trans }}</td>
+        			<td class="text-center">{{ automation.lastRun is empty ? '--' : automation.lastRun|date('d-m-Y') }}</td>
+        			<td class="text-center">{{ automation.nextRun is empty ? '--' : automation.nextRun|date('d-m-Y') }}</td>
+        			<td>
+        				<a class="btn-success btn w-100 text-nowrap" href="{{ path('automation_edit', {'automation': automation.id}) }}">
+        				    {% trans %}Edit{% endtrans %}
+        				</a>
+        			</td>
+        		</tr>
+    		{% else %}
+        		<tr>
+        			<td>{% trans %}Empty list{% endtrans %}</td>
+        		</tr>
+    		{% endfor %}
+    	</tbody>
+    </table>
+{% endblock %}

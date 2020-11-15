@@ -56,7 +56,7 @@ class FieldService
 	//---------------------------
 	//
 	// id: 				document_table (versionRepository, js)
-	// codename: 		automation
+	// codename: 		program
 	// title:			document_table (js)
 	// type:			document_table (versionRepository, js)
 	// parent:			document_table (versionRepository)
@@ -77,7 +77,7 @@ class FieldService
 				'default_width' => 15,
 				'display' => [
 					'table' => true,
-					'automation' => true
+					'program' => true
 				],
 				'permissions' => [
 					'read' => true,
@@ -93,7 +93,7 @@ class FieldService
 				'default_width' => 3,
 				'display' => [
 					'table' => true,
-					'automation' => true
+					'program' => true
 				],
 				'permissions' => [
 					'read' => true,
@@ -109,7 +109,7 @@ class FieldService
 				'default_width' => 30,
 				'display' => [
 					'table' => true,
-					'automation' => true
+					'program' => true
 				],
 				'permissions' => [
 					'read' => true,
@@ -125,7 +125,7 @@ class FieldService
 				'default_width' => 8,
 				'display' => [
 					'table' => true,
-					'automation' => false
+					'program' => false
 				],
 				'permissions' => [
 					'read' => true,
@@ -141,7 +141,7 @@ class FieldService
 				'default_width' => 8,
 				'display' => [
 					'table' => true,
-					'automation' => false
+					'program' => false
 				],
 				'permissions' => [
 					'read' => true,
@@ -157,7 +157,7 @@ class FieldService
 				'default_width' => 8,
 				'display' => [
 					'table' => true,
-					'automation' => false
+					'program' => false
 				],
 				'permissions' => [
 					'read' => true,
@@ -173,7 +173,7 @@ class FieldService
 				'default_width' => 8,
 				'display' => [
 					'table' => true,
-					'automation' => true
+					'program' => true
 				],
 				'permissions' => [
 					'read' => false,
@@ -189,7 +189,7 @@ class FieldService
 				'default_width' => 8,
 				'display' => [
 					'table' => true,
-					'automation' => true
+					'program' => true
 				],
 				'permissions' => [
 					'read' => true,
@@ -205,7 +205,7 @@ class FieldService
 				'default_width' => 10,
 				'display' => [
 					'table' => true,
-					'automation' => true
+					'program' => true
 				],
 				'permissions' => [
 					'read' => true,
@@ -221,7 +221,7 @@ class FieldService
 				'default_width' => 10,
 				'display' => [
 					'table' => true,
-					'automation' => true
+					'program' => true
 				],
 				'permissions' => [
 					'read' => true,
@@ -237,7 +237,7 @@ class FieldService
 				'default_width' => 10,
 				'display' => [
 					'table' => true,
-					'automation' => true
+					'program' => true
 				],
 				'permissions' => [
 					'read' => true,
@@ -253,7 +253,7 @@ class FieldService
 				'default_width' => 10,
 				'display' => [
 					'table' => true,
-					'automation' => true
+					'program' => true
 				],
 				'permissions' => [
 					'read' => true,
@@ -269,7 +269,7 @@ class FieldService
 				'default_width' => 10,
 				'display' => [
 					'table' => true,
-					'automation' => true
+					'program' => true
 				],
 				'permissions' => [
 					'read' => true,
@@ -285,7 +285,7 @@ class FieldService
 				'default_width' => 10,
 				'display' => [
 					'table' => true,
-					'automation' => true
+					'program' => true
 				],
 				'permissions' => [
 					'read' => true,
@@ -301,7 +301,7 @@ class FieldService
 				'default_width' => 10,
 				'display' => [
 					'table' => true,
-					'automation' => true
+					'program' => true
 				],
 				'permissions' => [
 					'read' => true,
@@ -317,7 +317,7 @@ class FieldService
 				'default_width' => 10,
 				'display' => [
 					'table' => true,
-					'automation' => true
+					'program' => true
 				],
 				'permissions' => [
 					'read' => true,
@@ -333,7 +333,7 @@ class FieldService
 				'default_width' => 10,
 				'display' => [
 					'table' => true,
-					'automation' => true
+					'program' => true
 				],
 				'permissions' => [
 					'read' => true,
@@ -349,7 +349,7 @@ class FieldService
 				'default_width' => 0,
 				'display' => [
 					'table' => false,
-					'automation' => true
+					'program' => true
 				],
 				'permissions' => [
 					'read' => true,
@@ -368,7 +368,7 @@ class FieldService
 				'default_width' => 10,
 				'display' => [
 					'table' => false,
-					'automation' => true
+					'program' => true
 				],
 				'permissions' => [
 					'read' => ($codification->isRegex() || $codification->isList()),
@@ -387,7 +387,7 @@ class FieldService
 				'default_width' => 10,
 				'display' => [
 					'table' => true,
-					'automation' => true
+					'program' => true
 				],
 				'permissions' => [
 					'read' => true,
@@ -407,7 +407,7 @@ class FieldService
 					'default_width' => 10,
 					'display' => [
 						'table' => true,
-						'automation' => true
+						'program' => true
 					],
 					'permissions' => [
 						'read' => true,
@@ -424,7 +424,7 @@ class FieldService
 					'default_width' => 0,
 					'display' => [
 						'table' => false,
-						'automation' => true
+						'program' => true
 					],
 					'permissions' => [
 						'read' => true,
@@ -441,7 +441,7 @@ class FieldService
 					'default_width' => 0,
 					'display' => [
 						'table' => false,
-						'automation' => true
+						'program' => true
 					],
 					'permissions' => [
 						'read' => true,
