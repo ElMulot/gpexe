@@ -17,6 +17,7 @@ use App\Entity\Status;
 use App\Entity\User;
 use App\Entity\Version;
 use App\Entity\Review;
+use Symfony\Component\Stopwatch\Stopwatch;
 
 
 /**
@@ -861,6 +862,8 @@ class VersionRepository extends RepositoryService
 			
 			if (array_key_exists('version_last_scheduled', $request->query->all('display'))) {
 				
+
+				
 				$subQb = $this->newQB('v1');
 				$subQb->select('v1.id, v1.deliveryDate, v2.id AS v2i, v2.scheduledDate AS v2d')
 	 				->leftJoin(Version::class, 'v2', Join::WITH, 'v1.document = v2.document AND v1.scheduledDate <= v2.scheduledDate AND v1.name < v2.name')
@@ -870,24 +873,33 @@ class VersionRepository extends RepositoryService
 				;
 	
 				$qb->andWhere($qb->in('version.id', $subQb->getQuery()->getArrayResult()));
+
+				
 				
 			}
 			
 			if (array_key_exists('version_last_delivered', $request->query->all('display'))) {
 				
-				$subQb = $this->newQB('v1');
-				$subQb->select('v1.id, v1.deliveryDate, v2.id AS v2i, v2.deliveryDate AS v2d')
-					->leftJoin(Version::class, 'v2', Join::WITH, 'v1.document = v2.document AND v1.deliveryDate <= v2.deliveryDate AND v1.name < v2.name')
-					->where($subQb->isNull('v2.deliveryDate'))
-					->andWhere($subQb->eq('v1.isRequired', false))
-					->addGroupBy('v1.document')
-				;
+// 				$s = new Stopwatch();
+// 				$s->start('a');
 				
-				$qb->andWhere($qb->in('version.id', $subQb->getQuery()->getArrayResult()));
+				$qb->leftJoin(Version::class, 'v2', Join::WITH, 'version.document = v2.document AND version.deliveryDate <= v2.deliveryDate AND version.name < v2.name')
+					->andWhere($subQb->isNull('v2.deliveryDate'))
+					->addGroupBy('version.document');
 				
+// 				$subQb = $this->newQB('v1');
+// 				$subQb->select('v1.id, v1.deliveryDate, v2.id AS v2i, v2.deliveryDate AS v2d')
+// 					->leftJoin(Version::class, 'v2', Join::WITH, 'v1.document = v2.document AND v1.deliveryDate <= v2.deliveryDate AND v1.name < v2.name')
+// 					->where($subQb->isNull('v2.deliveryDate'))
+// 					->andWhere($subQb->eq('v1.isRequired', false))
+// 					->addGroupBy('v1.document')
+// 				;
+				
+// 				$qb->andWhere($qb->in('version.id', $subQb->getQuery()->getArrayResult()));
+// 				dd($s->stop('a')->getPeriods());
 			}
 		}
-		
+				
 		return $qb;
 	}
 	

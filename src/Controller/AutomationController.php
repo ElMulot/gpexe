@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Automation;
 use App\Entity\Program;
+use App\Entity\Progress;
 use App\Entity\Project;
 use App\Form\AutomationType;
 use App\Repository\AutomationRepository;
@@ -78,9 +79,17 @@ class AutomationController extends AbstractController
 						continue;
 					}
 					
+					$this->getDoctrine()->getRepository(Progress::class)->deleteProgressByProgramAndByDate($program, $automation->getNextRun());
+					
+					$interval = new \DateInterval('P' . $program->getParsedCode('option')['frequency'] . 'D');
+					
 					if (call_user_func_array(array($this->programService, 'automation'), [$program])) {
-						$automation->setNextRun($automation->getLastRun()->add(new \DateInterval('P' . $program->getParsedCode('option')['frequency'] . 'D')));
+						
 						$automation->setLastRun(new \DateTime('now'));
+						$nextRun = clone $automation->getNextRun();
+						while ($nextRun < (new \DateTime('now'))->add($interval)) {
+							$automation->setNextRun($nextRun->add($interval));
+						}
 						$entityManager->persist($automation);
 					}
 					break;

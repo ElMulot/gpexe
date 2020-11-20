@@ -43,7 +43,7 @@ class Automation
 	private $parameters = [];
 	
 	/**
-	 * @ORM\ManyToOne(targetEntity=Project::class)
+	 * @ORM\ManyToOne(targetEntity=Project::class, cascade={"persist"})
 	 * @ORM\JoinColumn(nullable=false)
 	 */
 	private $project;

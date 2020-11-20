@@ -33,16 +33,7 @@ main {
 
 #chart_container {
 	position: relative;
-    width: 90vw;
-	height: 100%;
-	height: -webkit-calc(100% - 10rem);
-	height: -moz-calc(100% - 10rem);
-	height: calc(100% - 10rem);
-}
-#chart {
-    width: 90vw;
-	height: 100%;
-	height: -webkit-calc(100% - 10rem);
-	height: -moz-calc(100% - 10rem);
-	height: calc(100% - 10rem);
+	top: 2rem;
+	margin: auto;
+	width: 90vw;
 }

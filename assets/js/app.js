@@ -41,6 +41,10 @@ $.fn.exist = function () {
 	return this.length !== 0 && this;
 }
 
+global.remToPx = function (i) {
+	return i * parseFloat(getComputedStyle(document.documentElement).fontSize);
+}
+
 global.create = {
 	div: function() {
 		return $(document.createElement('div'))

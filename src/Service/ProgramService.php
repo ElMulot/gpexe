@@ -37,7 +37,7 @@ class ProgramService
 	private $entityManager;
 	
 	private $documentRepository;
-	
+		
 	private $serieRepository;
 	
 	private $statusRespository;
@@ -799,7 +799,7 @@ class ProgramService
 		
 		//load datas
 		$series = $this->serieRepository->getHydratedSeries($project);
-		
+// 		dd($series[0]->getDocuments()[0]->getVersions());
 		foreach ($series as $serie) {
 			
 			$countProcessed = 0;
@@ -874,7 +874,6 @@ class ProgramService
 					}
 				}
 				
-				$this->entityManager->flush();
 				return true;
 				
 			default:

@@ -2,6 +2,18 @@ const $ = require('jquery');
 const Chart = require('chart.js');
 require('../css/dashboard.scss');
 
+var chartColors = [
+	'#4dc9f6',
+	'#f67019',
+	'#f53794',
+	'#537bc4',
+	'#acc236',
+	'#166a8f',
+	'#00a950',
+	'#58595b',
+	'#8549ba'
+];
+
 $(document).ready(function() {
 	
 	$('#console').on('ajax.beforeSend', function(e, jqXHR, settings) {
@@ -26,10 +38,10 @@ $(document).ready(function() {
 		$('#console').empty();
 	});
 	
-	$('#chart_container').on('ajax.success', function(e, result, textStatus, jqXHR) {
+	$('#spinner').on('ajax.success', function(e, result, textStatus, jqXHR) {
 		
 		e.stopPropagation();
-//		$('#chart_container').empty();
+		$('#spinner').empty();
 		
 		let dates = [(new Date).format()];
 		let dataSets = [];
@@ -60,9 +72,14 @@ $(document).ready(function() {
 					.text('--')
 				;
 			} else {
+				let color = chartColors[Math.floor(Math.random() * chartColors.length)];
 				dataSets.push({
-					'label': serie.name,
-					'data': [(new Date).format(), progress],
+					label: serie.name,
+					borderColor: color,
+					backgroundColor: color,
+					borderWidth: 1,
+					fill: false,
+					data: [progress],
 				});
 				
 				tr.append(create.td).children().last()
@@ -94,19 +111,21 @@ $(document).ready(function() {
 						.text('--')
 					;
 				} else {
-					for (dataSet of dataSets) {
-						if (dataSet.label == serie.name) {
-							dataSet.data = [date, progress];
-						}
-					}
-					
 					tr.append(create.td).children().last()
 						.text(progress)
 					;
 				}
+				
+				for (dataSet of dataSets) {
+					if (dataSet.label == serie.name) {
+						dataSet.data.push(progress);
+					}
+				}
 			}
+			
 		}
 		
+		$('#chart_container').css('height', ($(window).height() - remToPx(10)) + 'px');
 		Chart.defaults.global.defaultFontColor = 'white';
 		
 		let chart = new Chart('chart', {
@@ -116,16 +135,32 @@ $(document).ready(function() {
 				datasets: dataSets,
 			},
 			options: {
-				'responsive': true,
-				'maintainAspectRatio': true,
-				'aspectRatio': 2,
+				responsive: true,
+				maintainAspectRatio: false,
+				onResize: function() {
+					$('#chart_container').css('height', ($(window).height() - remToPx(10)) + 'px');
+				},
+				scales: {
+					xAxes: [{
+						ticks: {
+							reverse: true
+						}
+					}],
+					yAxes: [{
+						ticks: {
+							min: 0,
+							max: 100
+						}
+					}]
+				}
 			},
 		});
+		
 		
 		function getCurentProgress(serieId) {
 			for (let id in result.current_progress) {
 				if (id == serieId) {
-					return result.current_progress[id];
+					return Math.round(result.current_progress[id]);
 				}
 			}
 			return null;
@@ -135,7 +170,7 @@ $(document).ready(function() {
 			for (let progress of result.progress) {
 				if (progress.date instanceof Object) {
 					if (progress.serieId == serieId && new Date(progress.date.date).format() == date) {
-						return progress.value;
+						return Math.round(progress.value);
 					}
 				}
 			}

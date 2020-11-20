@@ -8,10 +8,13 @@ Automation :
 
 Vue principale :
 	Refonte search																	OK
+	Revoir le tri "dernière version". Peut être créer une function DQL perso
+	Bug visa javascript
 	
 Progress:
-	A faire
+	A faire																			A finir
+	
 
 Home:
 	Revoir les listes pour les docs à produire et à vérifier						OK
-	Créer une fonction perso pour dql DATE_DIFF prenant en compte les jours ouvrés
+	Créer une fonction perso pour dql DATE_DIFF prenant en compte les jours ouvrés	OK

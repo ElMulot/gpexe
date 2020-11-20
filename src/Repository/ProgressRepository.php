@@ -35,4 +35,22 @@ class ProgressRepository extends RepositoryService
 	    	->getArrayResult()
     	;
     }
+    
+    /**
+     * @return Progress[]
+     *
+     */
+    public function deleteProgressByProgramAndByDate(Program $program, \DateTime $date)
+    {
+    	
+    	$qb = $this->newQB();
+    	return $qb
+    		->delete($this->getEntityName(), 'p')
+	    	->andWhere($qb->eq('p.program', $program))
+    		->andWhere($qb->gte('p.date', $date))
+	    	->getQuery()
+    		->execute()
+	    ;
+    }
+    
 }

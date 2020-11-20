@@ -10,7 +10,7 @@ App\Entity\Codification:
         - App\Validator\Constraints\CodificationWithoutSplitter: ~
     properties:
         name:
-            - Regex: '/^[A-zÀ-ú \-&]+$/'
+            - Regex: '/^[^$"'']+$/'
         codename:
             - Regex: '/^\w+$/'
 
@@ -20,7 +20,7 @@ App\Entity\CodificationItem:
             fields: ['value', 'codification']
     properties:
         name:
-            - Regex: '/^[A-zÀ-ú \-&]+$/'
+            - Regex: '/^[^$"'']+$/'
 
 App\Entity\Company:
     constraints:
@@ -28,14 +28,14 @@ App\Entity\Company:
         - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity: codename
     properties:
         name:
-            - Regex: '/^[A-zÀ-ú \-&]+$/'
+            - Regex: '/^[^$"'']+$/'
         codename:
             - Regex: '/^\w+$/'
 
 App\Entity\Document:
     properties:
         name:
-            - Regex: '/^[A-zÀ-ú \-&]+$/'
+            - Regex: '/^[^$"'']+$/'
 
 App\Entity\Metadata:
     constraints:
@@ -43,7 +43,7 @@ App\Entity\Metadata:
             fields: ['codename', 'project']
     properties:
         name:
-            - Regex: '/^[A-zÀ-ú \-&]+$/'
+            - Regex: '/^[^$"'']+$/'
         codename:
           - Regex: '/^\w+$/'
           - NotEqualTo: 'name'
@@ -70,14 +70,14 @@ App\Entity\Profil:
         - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity: name
     properties:
         name:
-            - Regex: '/^[A-zÀ-ú \-&]+$/'
+            - Regex: '/^[^$"'']+$/'
 
 App\Entity\Project:
     constraints:
         - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity: name
     properties:
         name:
-            - Regex: '/^[A-zÀ-ú \-&]+$/'
+            - Regex: '/^[^$"'']+$/'
 
 App\Entity\Review:
     constraints:
@@ -90,7 +90,7 @@ App\Entity\Serie:
             fields: ['name', 'project']
     properties:
         name:
-            - Regex: '/^[A-zÀ-ú \-&]+$/'
+            - Regex: '/^[^$"'']+$/'
 
 App\Entity\Status:
     constraints:
@@ -98,7 +98,7 @@ App\Entity\Status:
             fields: ['name', 'project']
     properties:
         name:
-            - Regex: '/^[A-zÀ-ú \-&]+$/'
+            - Regex: '/^[^$"'']+$/'
 
 App\Entity\User:
     constraints:
@@ -106,7 +106,7 @@ App\Entity\User:
     properties:
         email: [Email: ~]
         name:
-            - Regex: '/^[A-zÀ-ú \-&]+$/'
+            - Regex: '/^[^$"'']+$/'
 
 
 App\Entity\Version:
@@ -123,4 +123,4 @@ App\Entity\Visa:
             fields: ['name', 'company', 'project']
     properties:
         name:
-            - Regex: '/^[A-zÀ-ú \-&]+$/'
+            - Regex: '/^[^$"'']+$/'

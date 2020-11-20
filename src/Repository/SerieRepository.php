@@ -86,7 +86,7 @@ class SerieRepository extends RepositoryService
 			->getQuery()
 			->getResult()
 		;
-			return $series;
+		
 		$this->newQB()
 			->select('PARTIAL serie.{id}, serieMetadataItem, metadata1')
 			->from(Serie::class, 'serie')
@@ -156,7 +156,7 @@ class SerieRepository extends RepositoryService
 		$this->newQB()
 			->select('PARTIAL version.{id}, review')
 			->from(Version::class, 'version')
-			->innerJoin('version.reviews', 'review')
+			->leftJoin('version.reviews', 'review')
 			->getQuery()
 			->getResult()
 		;

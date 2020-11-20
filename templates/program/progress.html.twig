@@ -17,7 +17,7 @@
     	{{ program.name }}
     </div>
     <div class="navbar-collapse" style="{{ block('nav_item') }}"></div>
-    <a class="active" data-toggle="ajax" data-url="{{ path('program_load', {'program': program.id}) }}" data-target="#chart_container" style="display: none;"></a>
+    <a class="active" data-toggle="ajax" data-url="{{ path('program_load', {'program': program.id}) }}" data-target="#spinner" style="display: none;"></a>
 {% endblock %}
 
 {% block content %}
@@ -28,6 +28,8 @@
     	</div>
 	</nav>
     <div class="tab-content mw-100">
+    	<div id="spinner">
+    	</div>
         <div class="tab-pane fade show active" id="chart_nav" role="tabpanel" aria-labelledby="chart-tab">
             <div id="chart_container">
                 <canvas id="chart">

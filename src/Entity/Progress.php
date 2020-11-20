@@ -34,7 +34,7 @@ class Progress
 	private $serie;
 
 	/**
-	 * @ORM\ManyToOne(targetEntity=Program::class)
+	 * @ORM\ManyToOne(targetEntity=Program::class, cascade={"persist"})
 	 * @ORM\JoinColumn(nullable=false)
 	 */
 	private $program;
