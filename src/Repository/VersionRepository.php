@@ -10,13 +10,12 @@ use App\Service\QueryBuilderService;
 use App\Entity\Codification;
 use App\Entity\Metadata;
 use App\Entity\Project;
-use App\Entity\Serie;
 use App\Entity\Company;
 use App\Entity\Document;
 use App\Entity\Status;
 use App\Entity\User;
 use App\Entity\Version;
-use App\Entity\Review;
+use App\Entity\Visa;
 use Symfony\Component\Stopwatch\Stopwatch;
 
 
@@ -40,13 +39,13 @@ class VersionRepository extends RepositoryService
 		$this->visaRepository = $visaRepository;
 	}
 	
-	public function getVersionsCount($codifications, $fields, $series, $request=null): int
+	public function getVersionsCount($codifications, $fields, $series, $project, $request=null): int
 	{
 		
-		$qb = $this->getCoreQB($codifications, $fields, $series, $request);
+		$qb = $this->getCoreQB($codifications, $fields, $series, $project, $request);
 		
 		return $qb
-			->select($qb->expr()->count('version.id'))
+			->select($qb->count('version.id'))
 			->getQuery()
 			->getSingleScalarResult()
 		;
@@ -59,7 +58,7 @@ class VersionRepository extends RepositoryService
 	public function getVersionsArray($codifications, $fields, $series, $project, $request=null): array
 	{
 		
-		$qb = $this->getCoreQB($codifications, $fields, $series, $request);
+		$qb = $this->getCoreQB($codifications, $fields, $series, $project, $request);
 		
 		if ($request->query) {
 			
@@ -71,61 +70,54 @@ class VersionRepository extends RepositoryService
 					case 'version_name':
 						$qb->addOrderBy('version.name', $order);
 						break;
+						
 					case 'document_name':
 						$qb->addOrderBy('document.name', $order);
 						break;
+						
 					case 'version_initial_scheduled_date':
 						$qb->addOrderBy('version.initialScheduledDate', $order);
 						break;
 					case 'version_scheduled_date':
 						$qb->addOrderBy('version.scheduledDate', $order);
 						break;
+						
 					case 'version_delivery_date':
 						$qb->addOrderBy('version.deliveryDate', $order);
 						break;
+						
 					case 'version_writer':
-						$qb->addNestedSelect(
-							$this->newQB()
-								->select('writer.name')
-								->from(User::class, 'writer')
-								->where('writer.id = version.writer'),
-							'writer_name'
-						);
-						$qb->addOrderBy('writer_name', $order);
+						if ($qb->hasAlias('writer') === false) {
+							$qb->leftJoin('version.writer', 'writer');
+						}
+						$qb->addOrderBy('writer.name', $order);
 						break;
+						
 					case 'version_checker':
-						$qb->addNestedSelect(
-							$this->newQB()
-								->select('checker.name')
-								->from(User::class, 'checker')
-								->where('checker.id = version.checker'),
-							'checker_name'
-						);
-						$qb->addOrderBy('checker_name', $order);
+						if ($qb->hasAlias('checker') === false) {
+							$qb->leftJoin('version.checker', 'checker');
+						}
+						$qb->addOrderBy('checker.name', $order);
 						break;
+						
 					case 'version_approver':
-						$qb->addNestedSelect(
-							$this->newQB()
-								->select('approver.name')
-								->from(User::class, 'approver')
-								->where('approver.id = version.checker'),
-							'approver_name'
-						);
-						$qb->addOrderBy('version_approver', $order);
+						if ($qb->hasAlias('approver') === false) {
+							$qb->leftJoin('approver.checker', 'approver');
+						}
+						$qb->addOrderBy('approver.name', $order);
 						break;
+						
 					case 'serie_name':
 						$qb->addOrderBy('serie.name', $order);
 						break;
+						
 					case 'serie_company':
-						$qb->addNestedSelect(
-							$this->newQB()
-								->select('company2.name')
-								->from(Company::class, 'company2')
-								->where('company2.id = serie.company'),
-							'company_name'
-						);
-						$qb->addOrderBy('company_name', $order);
+						if ($qb->hasAlias('company') === false) {
+							$qb->leftJoin('serie.company', 'company');
+						}
+						$qb->addSelect('company.name', $order);
 						break;
+						
 					case 'status_name':
 						$qb->addNestedSelect(
 							$this->newQB()
@@ -136,25 +128,19 @@ class VersionRepository extends RepositoryService
 						);
 						$qb->addOrderBy('status_name', $order);
 						break;
+						
 					case 'status_value':
-						$qb->addNestedSelect(
-						$this->newQB()
-								->select('status3.value')
-								->from(Status::class, 'status2')
-								->where('status3.id = version.status'),
-							'status_value'
-						);
-						$qb->addOrderBy('status_value', $order);
+						if ($qb->hasAlias('status') === false) {
+							$qb->leftJoin('version.status', 'status');
+						}
+						$qb->addOrderBy('status.value', $order);
 						break;
+						
 					case 'status_type':
-						$qb->addNestedSelect(
-						$this->newQB()
-								->select('status4.type')
-								->from(Status::class, 'status4')
-								->where('status4.id = version.status'),
-							'status_type'
-						);
-						$qb->addOrderBy('status_type', $order);
+						if ($qb->hasAlias('status') === false) {
+							$qb->leftJoin('version.status', 'status');
+						}
+						$qb->addOrderBy('status.type', $order);
 						break;
 				}
 			}
@@ -172,33 +158,29 @@ class VersionRepository extends RepositoryService
 			
 			if (array_search('document_reference', $display) !== false || preg_grep('/codification_(\d+)/', $display)) {
 				
-				foreach ($codifications as $codification) {
+				foreach ($fields as $field) {
 					
-					$id = $codification->getId();
-					
-					switch ($codification->getType()) {
-						case Codification::REGEX:
-							$qb->addNestedSelect(
-								$this->newQB()
-									->select("c{$id}.value")
-									->from(Document::class, "d{$id}")
-									->innerJoin("d{$id}.codificationValues", "c{$id}")
-									->where("c{$id}.codification = {$id}")
-									->andWhere("d{$id}.id = document.id"),
-								"codification_{$id}"
-							);
-							break;
-						case Codification::LIST:
-							$qb->addNestedSelect(
-								$this->newQB()
-									->select("c{$id}.value")
-									->from(Document::class, "d{$id}")
-									->innerJoin("d{$id}.codificationItems", "c{$id}")
-									->where("c{$id}.codification = {$id}")
-									->andWhere("d{$id}.id = document.id"),
-								"codification_{$id}"
-							);
-							break;
+					if (preg_match('/codification_(\d+)/', $field['id'], $result) === 1) {
+						
+						$id = $result[1];
+						
+						switch ($field['type']) {
+							
+							case Codification::LIST:
+								if ($qb->hasAlias($field['id'] . '_') === false) {
+									$qb->innerJoin('document.codificationItems', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.codification', $id));
+								}
+								$qb->addSelect("{$field['id']}_.value AS {$field['id']}");
+								break;
+								
+							case Codification::REGEX:
+								if ($qb->hasAlias($field['id']. '_') === false) {
+									$qb->innerJoin('document.codificationValues', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.codification', $id));
+								}
+								$qb->addSelect("{$field['id']}_.value AS {$field['id']}");
+								break;
+						}
+						
 					}
 				}
 				
@@ -235,33 +217,24 @@ class VersionRepository extends RepositoryService
 						break;
 						
 					case 'version_writer':
-						$qb->addNestedSelect(
-							$this->newQB()
-								->select('writer2.name')
-								->from(User::class, 'writer2')
-								->where('writer2.id = version.writer'),
-							'version_writer'
-						);
+						if ($qb->hasAlias('writer') === false) {
+							$qb->leftJoin('version.writer', 'writer');
+						}
+						$qb->addSelect('writer.name as version_writer');
 						break;
 						
 					case 'version_checker':
-						$qb->addNestedSelect(
-							$this->newQB()
-								->select('checker2.name')
-								->from(User::class, 'checker2')
-								->where('checker2.id = version.checker'),
-							'version_checker'
-						);
+						if ($qb->hasAlias('checker') === false) {
+							$qb->leftJoin('version.checker', 'checker');
+						}
+						$qb->addSelect('checker.name as version_checker');
 						break;
 						
 					case 'version_approver':
-						$qb->addNestedSelect(
-							$this->newQB()
-								->select('approver2.name')
-								->from(User::class, 'approver2')
-								->where('approver2.id = version.checker'),
-							'version_approver'
-						);
+						if ($qb->hasAlias('approver') === false) {
+							$qb->leftJoin('version.approver', 'approver');
+						}
+						$qb->addSelect('approver.name as version_approver');
 						break;
 					
 					case 'serie_name':
@@ -269,33 +242,24 @@ class VersionRepository extends RepositoryService
 						break;
 					
 					case 'serie_company':
-						$qb->addNestedSelect(
-							$this->newQB()
-								->select('company3.name')
-								->from(Company::class, 'company3')
-								->where('company3.id = serie.company'),
-							'serie_company'
-						);
+						if ($qb->hasAlias('company') === false) {
+							$qb->leftJoin('serie.company', 'company');
+						}
+						$qb->addSelect('company.name AS serie_company');
 						break;
 					
 					case 'status_value':
-						$qb->addNestedSelect(
-							$this->newQB()
-								->select('status6.value')
-								->from(Status::class, 'status6')
-								->where('status6.id = version.status'),
-							'status_value'
-						);
+						if ($qb->hasAlias('status') === false) {
+							$qb->leftJoin('version.status', 'status');
+						}
+						$qb->addSelect('status.value AS status_value');
 						break;
 					
 					case 'status_type':
-						$qb->addNestedSelect(
-							$this->newQB()
-								->select('status7.name')
-								->from(Status::class, 'status7')
-								->where('status7.id = version.status'),
-							'status_type'
-						);
+						if ($qb->hasAlias('status') === false) {
+							$qb->leftJoin('version.status', 'status');
+						}
+						$qb->addSelect('status.type AS status_type');
 						break;
 					
 					case (preg_match('/metadata_(\d+)/', $name, $result) === 1):
@@ -306,47 +270,26 @@ class VersionRepository extends RepositoryService
 								
 								$id = $result[1];
 								
-								switch ($field['parent']) {
-									case 'serie':
-										$className = Serie::class;
-										break;
-									case 'document':
-										$className = Document::class;
-										break;
-									case 'version':
-										$className = Version::class;
-										break;
-									default:
-										continue 2;
-								}
-								
 								switch ($field['type']) {
 									
 									case Metadata::BOOLEAN:
 									case Metadata::TEXT:
 									case Metadata::DATE:
 									case Metadata::LINK:
-										
-										$qb->addNestedSelect(
-											$this->newQB()
-												->select("m{$id}.value")
-												->from($className, "p{$id}")
-												->innerJoin("p{$id}.metadataValues", "m{$id}", Join::WITH, "m{$id}.metadata = {$id}")
-												->where("p{$id}.id = {$field['parent']}.id"),
-											"metadata_{$id}"
-										);
+										if ($qb->hasAlias($field['id'] . '_') === false) {
+											$qb->innerJoin($field['parent'] . '.metadataValues', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id));
+										}
+										$qb->addSelect("{$field['id']}_.value AS {$field['id']}");
 										break;
 										
 									case Metadata::LIST:
 										
-										$qb->addNestedSelect(
-											$this->newQB()
-												->select("m{$id}.value")
-												->from($className, "p{$id}")
-												->innerJoin("p{$id}.metadataItems", "m{$id}", Join::WITH, "m{$id}.metadata = {$id}")
-												->where("p{$id}.id = {$field['parent']}.id"),
-											"metadata_{$id}"
-										);
+										if ($qb->hasAlias($field['id'] . '_') === false) {
+											$qb
+												->innerJoin($field['parent'] . '.metadataItems', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
+											;
+										}
+										$qb->addSelect("{$field['id']}_.value AS {$field['id']}");
 										break;
 										
 								}
@@ -357,15 +300,32 @@ class VersionRepository extends RepositoryService
 					case (preg_match('/visa_(\d+)/', $name, $result) === 1):
 						
 						$id = $result[1];
-						$qb->addNestedSelect(
-							$this->newQB()
-								->select("visa{$id}.name")
-								->from(Review::class, "review{$id}")
-								->innerJoin("review{$id}.visa", "visa{$id}")
-								->where("review{$id}.version = version.id")
-								->andWhere("visa{$id}.company = {$id}"),
-							"visa_{$id}"
-						);
+						
+						foreach ($fields as $field) {
+							
+							if ($name == $field['id']) {
+								if ($qb->hasAlias($field['id'] . '_') === false) {
+									
+									$subQb = $this->newQB('');
+									$visas = $subQb
+										->select('visa.id')
+										->from(Visa::class, 'visa')
+										->andWhere($subQb->eq('visa.project', $project))
+										->andWhere($subQb->eq('visa.company', $id))
+										->getQuery()
+										->getArrayResult()
+									;
+									
+									$qb
+										->leftJoin('version.reviews', 'review_' . $id, Join::WITH, $qb->in("review_{$id}.visa", $visas))
+										->leftJoin("review_{$id}.visa", $field['id'] . '_')
+									;
+									
+								}
+								$qb->addSelect("{$field['id']}_.name AS {$field['id']}");
+							}
+							
+						}
 						break;
 				}
 			}
@@ -405,33 +365,16 @@ class VersionRepository extends RepositoryService
 		if (array_search('document_reference', $display) !== false || preg_grep('/codification_(\d+)/', $display)) {
 			
 			foreach ($results as &$result) {
-				
-				foreach ($codifications as $codification) {
-					
-					$id = $codification->getId();
-					
-					if (array_search("codification_{$id}", $display) === false) {
-						unset ($result["codification_{$id}"]);
+				foreach ($fields as $field) {
+					if (preg_match('/codification_\d+/', $field['id']) === 1) {
+						if (array_search($field['id'], $display) === false) {
+							unset ($result[$field['id']]);
+						}
 					}
-					
 				}
 			}
 			
 		}
-		
-// 		if ($search = $request->query->get('search')) {
-
-// 			$search = preg_replace('/(\*+)/', '.', $search);
-			
-// 			foreach ($results as $key => $result) {
-// 				if (preg_match('/' . $search . '/', $result['document_reference']) === 0) {
-// 					unset($results[$key]);
-// 				}
-// 			}
-			
-// 			$results = array_values($results);
-			
-// 		}
 		
 		foreach ($results as &$result) {
 			$result['detailUrl'] = $this->router->generate('document_detail', [
@@ -569,12 +512,8 @@ class VersionRepository extends RepositoryService
 		;
 	}
 	
-	private function getCoreQB($codifications, $fields, $series, $request): QueryBuilderService
+	private function getCoreQB($codifications, $fields, $series, $project, $request): QueryBuilderService
 	{
-		
-		$codificationQuery = [];
-		$subQuery = [];
-		
 		
 		$qb = $this->newQB('version');
 		
@@ -586,32 +525,14 @@ class VersionRepository extends RepositoryService
 		
 		if ($request->query->all('filter')) {
 			
-			foreach ($codifications as $codification) {
-				
-				$id = $codification->getId();
-				
-				if (array_key_exists("codification_{$id}", $request->query->all('filter'))) {
-					
-					$value = $request->query->all('filter')["codification_{$id}"];
-					
-					$subQb = $this->newQB();
-					$subQb->select('d.id')
-						->from(Document::class, 'd')
-						->innerJoin('d.codificationItems', "i")
-						->where($subQb->eq("i.codification", $id))
-						->andWhere($subQb->in("i.id", $value));
-					
-					$qb->andWhere($qb->in('document.id', $subQb->getQuery()->getArrayResult()));
-				}
-				
-			}
-			
 			foreach ($fields as $field) {
 				
 				if (array_key_exists($field['id'], $request->query->all('filter'))) {
 					
 					$value = $request->query->all('filter')[$field['id']];
+					
 					switch ($field['id']) {
+						
 						case 'document_name':
 							$qb->andWhere($qb->like('document.name', $this->likeStatement($value)));
 							break;
@@ -670,29 +591,22 @@ class VersionRepository extends RepositoryService
 							break;
 							
 						case 'serie_company':
-							$subQb = $this->newQB();
-							$subQb
-							->select('s.id')
-							->from(Serie::class, 's')
-							->where($subQb->in('s.company', $value));
-							
-							$qb->andWhere($qb->in('serie.id', $subQb->getQuery()->getArrayResult()));
+							$qb->andWhere($qb->in('serie.company', $value));
 							break;
 							
 						case 'status_value':
-							$subQb = $this->newQB('v');
-							$subQb->innerJoin('v.status', 's')
-								->where($subQb->in('s.id', $value));
 							
-							$qb->andWhere($qb->in('version.id', $subQb->getQuery()->getArrayResult()));
+							if ($qb->hasAlias('status') === false) {
+								$qb->innerJoin('version.status', 'status');
+							}
+							$qb->andWhere($qb->in('status.id', $value));
 							break;
 							
 						case 'status_type':
-							$subQb = $this->newQB('v');
-							$subQb->innerJoin('v.status', 's')
-								->where($subQb->in('s.type', $value));
-							
-							$qb->andWhere($qb->in('version.id', $subQb->getQuery()->getArrayResult()));
+							if ($qb->hasAlias('status') === false) {
+								$qb->innerJoin('version.status', 'status');
+							}
+							$qb->andWhere($qb->in('status.type', $value));
 							break;
 						
 						case (preg_match('/codification_(\d+)/', $field['id'], $result) === 1):
@@ -701,79 +615,50 @@ class VersionRepository extends RepositoryService
 							
 							switch ($field['type']) {
 
-								
 								case Codification::LIST:
-									$subQb = $this->newQB()
-										->select('d.id')
-										->from(Document::class, 'd')
-										->innerJoin('d.codificationItems', 'c')
-									;
+									if ($qb->hasAlias($field['id'] . '_') === false) {
+										$qb->innerJoin('document.codificationItems', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.codification', $id));
+									}
 									break;
 									
 								case Codification::REGEX:
-									$subQb = $this->newQB()
-										->select('d.id')
-										->from(Document::class, 'd')
-										->innerJoin('d.codificationValues', 'c')
-									;
+									if ($qb->hasAlias($field['id']. '_') === false) {
+										$qb->innerJoin('document.codificationValues', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.codification', $id));
+									}
 									break;
 							}
 							
 							switch ($field['type']) {
 								
 								case Codification::LIST:
-									$subQb
-										->where($subQb->eq('c.codification', $id))
-										->andWhere($subQb->in('c.id', $value))
-									;
+									$qb->andWhere($qb->in($field['id'] . '_.id', $value));
 									break;
 									
 								case Codification::REGEX:
-									$subQb = $this->newQB()
-										->where($subQb->eq('c.codification', $id))
-										->andWhere($subQb->like('c.value', $this->likeStatement($value)))
-									;
+									$qb->andWhere($qb->like($field['id'] . '_.value', $this->likeStatement($value)));
 									break;
 									
 							}
-							
-							$qb->andWhere($qb->in("document.id", $subQb->getQuery()->getArrayResult()));
 							break;
 							
 						case (preg_match('/metadata_(\d+)/', $field['id'], $result) === 1):
 							
 							$id = $result[1];
 							
-							switch ($field['parent']) {
-								case 'serie':
-									$className = Serie::class;
-									break;
-								case 'document':
-									$className = Document::class;
-									break;
-								case 'version':
-									$className = Version::class;
-									break;
-							}
-							
 							switch ($field['type']) {
 								
 								case Metadata::BOOLEAN:
 								case Metadata::TEXT:
 								case Metadata::DATE:
-									$subQb = $this->newQB()
-										->select('p.id')
-										->from($className, 'p')
-										->innerJoin('p.metadataValues', 'm')
-									;
+									if ($qb->hasAlias($field['id'] . '_') === false) {
+										$qb->innerJoin($field['parent'] . '.metadataValues', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id));
+									}
 									break;
 									
 								case Metadata::LIST:
-									$subQb = $this->newQB()
-										->select('p.id')
-										->from($className, 'p')
-										->innerJoin('p.metadataItems', 'm')
-									;
+									if ($qb->hasAlias($field['id'] . '_') === false) {
+										$qb->innerJoin($field['parent'] . '.metadataItems', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id));
+									}
 									break;
 									
 							}
@@ -781,77 +666,64 @@ class VersionRepository extends RepositoryService
 							switch ($field['type']) {
 								
 								case Metadata::BOOLEAN:
-									
 									if ($value == '1') {
-										$subQb
-											->where($subQb->eq('m.metadata', $id))
-											->andWhere($subQb->eq('m.value', 1));
+										$qb->andWhere($qb->eq($field['id'] . '_.value', 1));
 									} else {
-										$subQb
-											->where($subQb->eq('m.metadata', $id))
-											->andWhere($subQb->orX(
-												$subQb->eq('m.value', 0),
-												$subQb->isNull('m.value')
+										$qb->andWhere($qb->orX(
+												$qb->eq($field['id'] . '_.value', 0),
+												$qb->isNull($field['id'] . '_.value')
 											)
 										);
 									}
 									break;
 									
 								case Metadata::TEXT:
-									
-									$subQb
-										->where($subQb->eq('m.metadata', $id))
-										->andWhere($subQb->like('m.value', $this->likeStatement($value)))
-									;
-									
+									$qb->andWhere($qb->like($field['id'] . '_.value', $this->likeStatement($value)));
 									break;
 									
 								case Metadata::DATE:
 									
 									foreach ($value as $v) {
-										
 										$r = [];
 										if (preg_match('/>(\d{2}-\d{2}-\d{4})/', $v, $r) === 1) {
-											
-											$subQb
-												->where($subQb->eq('m.metadata', $id))
-												->andWhere($subQb->gte("STR_TO_DATE(m.value, '%d-%m-%Y')", \DateTime::createFromFormat('d-m-Y', $r[1])));
-										
+											$qb->andWhere($qb->gte("STR_TO_DATE({$field['id']}_.value, '%d-%m-%Y')", \DateTime::createFromFormat('d-m-Y', $r[1])));
 										} elseif (preg_match('/<(\d{2}-\d{2}-\d{4})/', $v, $r) === 1) {
-											
-											$subQb
-												->where($subQb->eq('m.metadata', $id))
-												->andWhere($subQb->lte("STR_TO_DATE(m.value, '%d-%m-%Y')", \DateTime::createFromFormat('d-m-Y', $r[1])));
+											$qb->andWhere($qb->lte("STR_TO_DATE({$field['id']}_.value, '%d-%m-%Y')", \DateTime::createFromFormat('d-m-Y', $r[1])));
 										}
-										
 									}
 									
 									break;
 									
 								case Metadata::LIST:
-									
-									$subQb
-										->where($subQb->eq('m.metadata', $id))
-										->andWhere($subQb->in('m.id', $value));
+									$qb->andWhere($qb->in($field['id'] . '_.id', $value));
 									
 									break;
 									
 							}
-							
-							$qb->andWhere($qb->in("{$field['parent']}.id", $subQb->getQuery()->getArrayResult()));
 							break;
 							
 						case (preg_match('/visa_(\d+)/', $field['id'], $result) === 1):
 							
 							$id = $result[1];
 							
-							$subQb = $this->newQB('version');
-							$subQb->innerJoin('version.reviews', 'r')
-								->innerJoin('r.visa', 'v')
-								->where($subQb->eq('v.company', $id))
-								->andWhere($subQb->in('v.id', $value));
-							
-							$qb->andWhere($qb->in('version.id', $subQb->getQuery()->getArrayResult()));
+							if ($qb->hasAlias($field['id'] . '_') === false) {
+								
+								$subQb = $this->newQB('');
+								$visas = $subQb
+									->select('visa.id')
+									->from(Visa::class, 'visa')
+									->andWhere($subQb->eq('visa.project', $project))
+									->andWhere($subQb->eq('visa.company', $id))
+									->getQuery()
+									->getArrayResult()
+								;
+								
+								$qb
+									->leftJoin('version.reviews', 'review_' . $id, Join::WITH, $qb->in("review_{$id}.visa", $visas))
+									->leftJoin("review_{$id}.visa", $field['id'] . '_')
+								;
+							}
+							$qb->andWhere($qb->in($field['id'] . '_.id', $value));
 							break;
 					}
 				}
@@ -860,46 +732,19 @@ class VersionRepository extends RepositoryService
 		
 		if ($request->query->all('display')) {
 			
-			if (array_key_exists('version_last_scheduled', $request->query->all('display'))) {
-				
-
-				
-				$subQb = $this->newQB('v1');
-				$subQb->select('v1.id, v1.deliveryDate, v2.id AS v2i, v2.scheduledDate AS v2d')
-	 				->leftJoin(Version::class, 'v2', Join::WITH, 'v1.document = v2.document AND v1.scheduledDate <= v2.scheduledDate AND v1.name < v2.name')
-	 				->where($subQb->isNull('v2.scheduledDate'))
-					->andWhere($subQb->eq('v1.isRequired', true))
-					->addGroupBy('v1.document')
+			if (array_key_exists('version_first_scheduled', $request->query->all('display'))) {
+				$qb->leftJoin(Version::class, 'vfc', Join::WITH, 'version.document = vfc.document AND (version.scheduledDate > vfc.scheduledDate OR (version.scheduledDate = vfc.scheduledDate AND version.name < vfc.name))')
+					->andWhere($qb->isNull('vfc.scheduledDate'))
 				;
-	
-				$qb->andWhere($qb->in('version.id', $subQb->getQuery()->getArrayResult()));
-
-				
-				
 			}
 			
 			if (array_key_exists('version_last_delivered', $request->query->all('display'))) {
-				
-// 				$s = new Stopwatch();
-// 				$s->start('a');
-				
-				$qb->leftJoin(Version::class, 'v2', Join::WITH, 'version.document = v2.document AND version.deliveryDate <= v2.deliveryDate AND version.name < v2.name')
-					->andWhere($subQb->isNull('v2.deliveryDate'))
-					->addGroupBy('version.document');
-				
-// 				$subQb = $this->newQB('v1');
-// 				$subQb->select('v1.id, v1.deliveryDate, v2.id AS v2i, v2.deliveryDate AS v2d')
-// 					->leftJoin(Version::class, 'v2', Join::WITH, 'v1.document = v2.document AND v1.deliveryDate <= v2.deliveryDate AND v1.name < v2.name')
-// 					->where($subQb->isNull('v2.deliveryDate'))
-// 					->andWhere($subQb->eq('v1.isRequired', false))
-// 					->addGroupBy('v1.document')
-// 				;
-				
-// 				$qb->andWhere($qb->in('version.id', $subQb->getQuery()->getArrayResult()));
-// 				dd($s->stop('a')->getPeriods());
+				$qb->leftJoin(Version::class, 'vld', Join::WITH, 'version.document = vld.document AND (version.deliveryDate < vld.deliveryDate OR (version.deliveryDate = vld.deliveryDate AND version.name < vld.name))')
+					->andWhere($qb->isNull('vld.deliveryDate'))
+				;
 			}
 		}
-				
+		
 		return $qb;
 	}
 	

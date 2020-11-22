@@ -233,6 +233,7 @@ class ProgramController extends AbstractController
 					$this->addFlash('danger', 'Erreur interne');
 					return $this->render('program/error.html.twig');
 				}
+								
 				return new JsonResponse([
 					'series' => $this->serieRepository->getSeriesArray($project),
 					'current_progress' => $this->programService->progress($program),
@@ -299,6 +300,7 @@ class ProgramController extends AbstractController
 	
 	public function console(Request $request, Program $program): Response
 	{
+		set_time_limit(120);
 		$project = $program->getProject();
 		if ($this->isGranted('ROLE_ADMIN') === false &&
 			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {

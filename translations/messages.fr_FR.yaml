@@ -145,7 +145,7 @@ Writer: Rédacteur
 Checker: Vérificateur
 Approver: Approbateur
 Last delivered: Dernier remis
-Last scheduled: Dernier programmé
+First scheduled: Prochain à produire
 required: à produire
 information: information
 cancelled: annulé
@@ -192,6 +192,11 @@ Programs: Programmes
 Programs for: Programmes pour
 Read: Lecture
 Write: Ecriture
+Chart: Graphique
+Table: Résultats
+All: Tout
+MDR Only: MDR seulement
+SDR Only: SDR seulement
 
 #Automations
 Automations: Tâches automatisées

@@ -156,7 +156,7 @@ class DocumentController extends AbstractController
 			}
 		}
 		
-		$versionsCount = $this->versionRepository->getVersionsCount($codifications, $fields, $series, $request);
+		$versionsCount = $this->versionRepository->getVersionsCount($codifications, $fields, $series, $project, $request);
 		
 		$resultsPerPage = $request->query->get('results_per_page') ?? 50;
 		if ($resultsPerPage == 0) { //display all

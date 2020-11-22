@@ -463,7 +463,7 @@ class Version
 				}
 				return true;
 				
-			case 'version.lastScheduled':
+			case 'version.firstScheduled':
 				if ($this->getIsRequired() == false) return false;
 				$date = $this->getScheduledDate();
 				foreach ($this->getDocument()->getVersions()->getValues() as $version) {

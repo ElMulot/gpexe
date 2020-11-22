@@ -1,15 +1,20 @@
-Automation :
-    Vérifier les imports															OK
-    Vérifier les exports															OK
-    Ajouter une fonction perso pour couper les chaînes								OK
+Program :
+    Vérifier les imports															
+    Vérifier les exports															
     Vérifier l'import zone 21														OK
     Ajouter la date et l'auteur des visas											OK
     Vider le cache																	OK
 
+Automation:
+	Créer fonction pour vider le cache												
+
 Vue principale :
 	Refonte search																	OK
-	Revoir le tri "dernière version". Peut être créer une function DQL perso
+	Revoir le tri "dernière version".												OK
 	Bug visa javascript
+	Bug version delete																n/a
+	Corriger valeur par défaut et valeurs recopiées									OK
+	Modifier "dernier à produire" par "premier à produire"							OK
 	
 Progress:
 	A faire																			A finir

@@ -103,8 +103,9 @@ class VersionController extends AbstractController
 		$version->setDocument($document);
 		$version->setStatus($status);
 		
-		$form = $this->createForm(VersionType::class, $version, [
+		$form = $this->createForm(VersionType::class, null, [
 			'serie' => $serie,
+			'versions' => [$version],
 		]);
 		
 		$form->handleRequest($request);
@@ -322,7 +323,7 @@ class VersionController extends AbstractController
 			$newVersion->setApprover($version->getApprover());
 			
 			foreach ($this->metadataRepository->getMetadatasForVersion($project) as $metadata) {
-				if ($metadata->getIsMandatory()) {
+				if ($metadata->isBoolean() || $metadata->isList() || $metadata->getIsMandatory()) {
 					$newVersion->setMetadataValue($metadata, $version->getMetadataValue($metadata));
 				}
 			}

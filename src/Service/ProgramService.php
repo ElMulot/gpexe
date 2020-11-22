@@ -90,34 +90,37 @@ class ProgramService
 		//setting up cache
 		
 		$options = $this->parsedCode['option'] ?? [];
-		foreach ($options as $key => $option) {
-			switch ($program->getType()) {
-				
-				case Program::EXPORT:
-					$option = $request->request->get('launcher_export')[$key] ?? false;
+		
+		switch ($program->getType()) {
+			
+			case Program::EXPORT:
+				foreach ($options as $key => $option) {
+					$option = $request->request->get('launcher')[$key] ?? false;
 					$this->cacheService->set('program.' . $key, $option);
-					break;
-					
-				case Program::IMPORT:
-					$firstRow = $this->parsedCode['first_row'];
-					
-					if ($this->cacheService->get('program.ready_to_persist')) {
-						$this->cacheService->set('program.current_row', $firstRow);
-						$this->cacheService->set('program.state', 'new_batch');
-						return true;
-					}
-					
-					$option = $request->request->get('launcher_import')[$key] ?? false;
-					$this->cacheService->set('program.' . $key, $option);
-					break;
+				}
+				break;
 				
-				case Program::PROGRESS:
+			case Program::IMPORT:
+				$firstRow = $this->parsedCode['first_row'];
+				
+				if ($this->cacheService->get('program.ready_to_persist')) {
+					$this->cacheService->set('program.current_row', $firstRow);
+					$this->cacheService->set('program.state', 'new_batch');
 					return true;
-					
-				default:
-					$this->flashBagInterface->add('error', 'Erreur : programme invalide');
-					return false;
-			}
+				}
+				
+				foreach ($options as $key => $option) {
+					$option = $request->request->get('launcher')[$key] ?? false;
+					$this->cacheService->set('program.' . $key, $option);
+				}
+				break;
+			
+			case Program::PROGRESS:
+				return true;
+				
+			default:
+				$this->flashBagInterface->add('error', 'Erreur : programme invalide');
+				return false;
 		}
 		
 		if ($file !== null) {
@@ -799,7 +802,7 @@ class ProgramService
 		
 		//load datas
 		$series = $this->serieRepository->getHydratedSeries($project);
-// 		dd($series[0]->getDocuments()[0]->getVersions());
+// 		$series = [];
 		foreach ($series as $serie) {
 			
 			$countProcessed = 0;

@@ -1248,6 +1248,11 @@ $(document).ready(function() {
 				
 				if (value !== undefined) {
 					
+					if (header.id == 'status_type') {
+						console.log(header);
+						value = header.elements[0].filter.choices[value].text;
+					}
+					
 					switch (header.type) {
 						case type.bool:
 							dataClass = 'text-center';

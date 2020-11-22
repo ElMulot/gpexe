@@ -9,9 +9,12 @@ require ('@wikimedia/jquery.i18n/src/jquery.i18n.messagestore.js');
 require('../css/global.scss');
 
 String.prototype.toDate = function () {
-	const [day, month, year] = this.split("-");
-	d = new Date(year, month - 1, day);
-	return (d instanceof Date && isNaN(d) === false)?d:null;
+	if (s = /\d{4}-\d{2}-\d{2}/g.exec(this)) {
+		const [year, month, day] = s[0].split("-");
+		d = new Date(year, month - 1, day);
+		return (d instanceof Date && isNaN(d) === false)?d:null;
+	}
+	return null;
 };
 
 Date.prototype.format = function() {

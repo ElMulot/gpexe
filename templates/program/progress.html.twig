@@ -21,11 +21,18 @@
 {% endblock %}
 
 {% block content %}
-	<nav class="align-self-start px-5">
-    	<div class="nav nav-tabs" role="tablist">
-    		<a class="nav-item nav-link active" id="chart-tab" data-toggle="tab" href="#chart_nav" role="tab" aria-controls="chart_nav" aria-selected="true">Chart</a>
-    		<a class="nav-item nav-link" id="table-tab" data-toggle="tab" href="#table_nav" role="tab" aria-controls="table_nav" aria-selected="false">Table</a>
+	<nav class="d-flex px-5 w-100">
+    	<div class="mr-auto nav nav-tabs" role="tablist">
+    		<a class="nav-item nav-link active" id="chart-tab" data-toggle="tab" href="#chart_nav" role="tab" aria-controls="chart_nav" aria-selected="true">{% trans %}Chart{% endtrans %}</a>
+    		<a class="nav-item nav-link" id="table-tab" data-toggle="tab" href="#table_nav" role="tab" aria-controls="table_nav" aria-selected="false">{% trans %}Table{% endtrans %}</a>
     	</div>
+		<div class="d-flex ml-auto">
+			<div class="btn-group mx-1 align-self-end">
+    			<button type="button" id="all" class="btn btn-sm btn-primary">{% trans %}All{% endtrans %}</button>
+    			<button type="button" id="mdr" class="btn btn-sm btn-primary">{% trans %}MDR Only{% endtrans %}</button>
+    			<button type="button" id="sdr" class="btn btn-sm btn-primary">{% trans %}SDR Only{% endtrans %}</button>
+			</div>
+		</div>
 	</nav>
     <div class="tab-content mw-100">
     	<div id="spinner">

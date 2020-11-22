@@ -58,6 +58,9 @@ class DocumentType extends AbstractType
 					$builder->add($codification->getCodeName(), EntityType::class, [
 						'class' => CodificationItem::class,
 						'choices' => $codification->getCodificationItems(),
+						'choice_label' => function($codification) {
+							return $codification->getValue() . ' - ' . $codification->getName();
+						},
 						'label' => $codification->getName(),
 						'mapped' => false,
 						'required' => $codification->getIsMandatory(),

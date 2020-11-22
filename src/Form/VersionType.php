@@ -165,12 +165,13 @@ class VersionType extends AbstractType
 			case Metadata::DATE:
 				
 				$data = null;
-				if ($required) $data = new \DateTime('now');
+				
 				if (!$multiple && $version) {
 					if ($data = $version->getPropertyValue($codename)) {
 						if ($data instanceof MetadataValue) $data = new \DateTime($data->getValue());
 					}
-					if ($data === null) $data = new \DateTime('now');
+					
+					if ($data === null && $required) $data = new \DateTime('now');
 				}
 				
 				$this->builder->add($id, DateType::class, [

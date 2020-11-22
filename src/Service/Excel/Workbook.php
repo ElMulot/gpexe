@@ -69,7 +69,7 @@ class Workbook
 				break;
 		
 			default:
-				throw new Exception(sprintf('Library "%s" is not supported.', $library));
+				throw new Exception(sprintf('La librarie "%s" n\'est pas supportée.', $library));
 		}
 		
 		$this->firstRow = $firstRow;
@@ -95,7 +95,7 @@ class Workbook
 						$this->writer = WriterEntityFactory::createXLSXWriter();
 						break;
 					default:
-						throw new Exception('Extension not supported.');
+						throw new Exception('Extension non supportée.');
 				}
 				$this->writer->openToFile($this->getPath());
 				$this->writer->close();
@@ -115,13 +115,13 @@ class Workbook
 						$this->writer = IOFactory::createWriter($this->_workbook, "Xlsx");
 						break;
 					default:
-						throw new Exception('Extension not supported.');
+						throw new Exception('Extension non supportée.');
 				}
 				
 				break;
 				
 			default:
-				throw new Exception('Library not defined.');
+				throw new Exception('Librarie non définie.');
 		}
 	}
 	
@@ -142,7 +142,7 @@ class Workbook
 						$this->reader->setFieldDelimiter(";");
 						break;
 					default:
-						throw new Exception('Extension not supported.');
+						throw new Exception('Extension non supportée.');
 				}
 				
 				$this->reader->setShouldPreserveEmptyRows(true);
@@ -177,14 +177,14 @@ class Workbook
 							$this->writer = IOFactory::createWriter($this->_workbook, "Csv");
 							break;
 						default:
-							throw new Exception('Extension not supported.');
+							throw new Exception('Extension non supportée.');
 					}
 					
 				}
 				break;
 				
 			default:
-				throw new Exception('Library not defined.');
+				throw new Exception('Librarie non définie.');
 			
 		}
 		
@@ -220,7 +220,7 @@ class Workbook
 				break;
 				
 			default:
-				throw new Exception('Library not defined.');
+				throw new Exception('Librarie non définie.');
 		}
 		return $this;
 		
@@ -317,7 +317,7 @@ class Workbook
 				break;
 				
 			default:
-				throw new Exception('Library not defined.');
+				throw new Exception('Librarie non définie.');
 		}
 		
 		return null;
@@ -334,7 +334,7 @@ class Workbook
 			case self::PHPSPREADSHEET:
 				break;
 			default:
-				throw new Exception('Library not defined.');
+				throw new Exception('Librarie non définie.');
 		}
 		return $this;
 	}

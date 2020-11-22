@@ -215,7 +215,7 @@ class Metadata
     	return $this->getParentName() . '.' . $this->codename;
     }
     
-    public function getIsBoolean(): bool
+    public function isBoolean(): bool
     {
     	return ($this->getType() == self::BOOLEAN);
     }

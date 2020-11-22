@@ -49,9 +49,12 @@ class SerieRepository extends RepositoryService
 	{
 		$qb = $this->newQb('s');
 		return $qb
-			->join('s.company', 'c')
+			->select('s.id, s.name, c.type', $qb->count('d.id', 'count'))
+			->innerJoin('s.company', 'c')
+			->innerJoin('s.documents', 'd')
 			->andWhere($qb->eq('s.project', $project))
-			->addOrderBy('c.type')
+			->addOrderBy('c.type, s.name')
+			->addGroupBy('s.id')
 			->getQuery()
 			->getArrayResult()
 		;

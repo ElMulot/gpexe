@@ -98,9 +98,72 @@ class QueryBuilderService extends QueryBuilder
 		return $this->expr()->isNotNull($x);
 	}
 	
+	public function count(string $x, string $alias = null): string
+	{
+		return $this->expr()->count($x) . (($alias === null)?'':' AS ' . $alias);
+	}
+	
 	public function hasAlias(string $alias): bool
 	{
 		return in_array($alias, $this->getAllAliases());
+	}
+	
+	public function getRunnableQuery(): string
+	{
+		$sql = $this->getQuery()->getSQL();
+		
+		foreach ($this->getParameters() as $parameter) {
+			$sql = preg_replace('/\?/', $this->getValueToString($parameter->getValue()), $sql, 1);
+		}
+		
+		return $sql;		
+	}
+	
+	private function getValueToString($value): string
+	{
+		
+		if (is_string($value)) {
+			return $value;
+		}
+		
+		if (is_int($value)) {
+			return (string)$value;
+		}
+		
+		if (is_bool($value)) {
+			return $value?'TRUE':'FALSE';
+		}
+		
+		if ($value instanceof \DateTime || $value instanceof \DateTimeInterface) {
+			return $value;
+		}
+		
+		if ($value instanceof \DateInterval) {
+			return $value;
+		}
+		
+		if (is_array($value)) {
+			
+			return join(',', array_map(function($v) {
+				if (is_array($v) && array_key_exists('id', $v)) {
+					return $this->getValueToString($v['id']);
+				} else {
+					return $this->getValueToString($v);
+				}
+			}, $value));
+		}
+		
+		if (is_object($value)) {
+			if (method_exists($value, 'getId')) {
+				return $this->getValueToString($value->getId());
+			} elseif (method_exists($value, '__toString')) {
+				return $this->getValueToString($value->__toString());
+			} else {
+				throw new \Exception('Entité invalide');
+			}
+		}
+		
+		throw new \Exception('Paramètre invalide');
 	}
 	
 }

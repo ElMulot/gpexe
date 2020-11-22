@@ -260,10 +260,10 @@ class FieldService
 					'write' => false
 				],
 			],
-			'version.lastScheduled' => [
-				'id' =>'version_last_scheduled',
-				'codename' => 'version.lastScheduled',
-				'title' => $this->translator->trans('Last scheduled'),
+			'version.firstScheduled' => [
+				'id' =>'version_first_scheduled',
+				'codename' => 'version.firstScheduled',
+				'title' => $this->translator->trans('First scheduled'),
 				'type' => Metadata::BOOLEAN,
 				'parent' => 'version',
 				'default_width' => 10,
