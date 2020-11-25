@@ -345,20 +345,14 @@ class ProgramController extends AbstractController
 			return $this->redirectToRoute('project');
 		}
 		
-		$program = new Program();
-		$form = $this->createForm(ProgramType::class, $program, [
-			'page' => ($request->request->get('submit') === null)?1:2,
-		]);
-		$form->handleRequest($request);
-		
-		if ($form->isSubmitted() && $form->isValid()) {
+		if ($request->request->has('program')) {														//validation du type de programme et affichage du formulaire principal
 			
-			if ($form->has('type')) {
-				
+			if ($type = $request->request->get('program')['type'] ?? null) {
+			
 				$program = new Program();
 				$program->setEnabled(true);
 				
-				switch ($form->get('type')->getData()) {
+				switch ($type) {
 					case Program::EXPORT:
 						$program->setCode($this->parseService->getValidatedCode('type: export'));
 						break;
@@ -373,57 +367,72 @@ class ProgramController extends AbstractController
 						return $this->render('generic/form.html.twig', [
 							'form' => $view
 						]);
-					}
-					
-					$form = $this->createForm(ProgramType::class, $program);
-					
-					$view = $form->createView();
-					$fields = $this->fieldService->getFields($project);
-					
-					return $this->render('program/form.html.twig', [
-						'route_back' =>  $this->generateUrl('program', [
-							'project' => $project->getId(),
-						]),
-						'form' => $view,
-						'fields' => $fields,
-					]);
-					
-				} else {
-					
-					$program->setProject($project);
-					$program->setEnabled(true);
-					$program->setCreatedBy($this->getUser());
-					
-					$entityManager = $this->getDoctrine()->getManager();
-					$entityManager->persist($program);
-					
-					//create automation
-					if ($program->getType() === Program::PROGRESS) {
-						$options = $program->getParsedCode('options');
-						$nextRun = (new \DateTime('now'))->add(new \DateInterval('P' . $options['frequency'] . 'D'));
-						$automation = new Automation;
-						$automation->setEnabled($program->getEnabled());
-						$automation->setNextRun($nextRun);
-						$automation->setRoute(ProgramService::class . '::automation');
-						$automation->setParameters(['program' => $program->getId()]);
-						$automation->setProject($project);
-						$entityManager->persist($automation);
-					}
-					
-					$entityManager->flush();
-					
-					$this->addFlash('success', 'Nouveau programme créé');
-					
-					if ($request->request->get('submit') == 'save') {
-						return $this->redirectToRoute('program_edit', [
-							'program' => $program->getId(),
-						]);
-					} else {
-						return $this->redirectToRoute('program', [
-							'project' => $project->getId()
-						]);
-					}
 				}
+				
+				$form = $this->createForm(ProgramType::class, $program);
+				
+				$view = $form->createView();
+				$fields = $this->fieldService->getFields($project);
+				
+				return $this->render('program/form.html.twig', [
+					'route_back' =>  $this->generateUrl('program', [
+						'project' => $project->getId(),
+					]),
+					'form' => $view,
+					'fields' => $fields,
+				]);
+			
+			} elseif ($request->request->get('program')['name']) {									//validation du formulaire principal
+			
+				$program = new Program();
+				$form = $this->createForm(ProgramType::class, $program);
+			
+			}
+			
+		} else {																					//affichage du type de programme
+			
+			$form = $this->createForm(ProgramType::class, null);
+			
+		}
+		
+		$form->handleRequest($request);
+		
+		if ($form->isSubmitted() && $form->isValid()) {
+				
+			$program->setProject($project);
+			$program->setEnabled(true);
+			$program->setCreatedBy($this->getUser());
+			
+			$entityManager = $this->getDoctrine()->getManager();
+			$entityManager->persist($program);
+			$entityManager->flush();
+			
+			//create automation
+			if ($program->getType() === Program::PROGRESS) {
+				$options = $program->getParsedCode('option');
+				$nextRun = (new \DateTime('now'))->add(new \DateInterval('P' . $options['frequency'] . 'D'));
+				$automation = new Automation;
+				$automation->setEnabled($program->getEnabled());
+				$automation->setNextRun($nextRun);
+				$automation->setRoute(ProgramService::class . '::automation');
+				$automation->setParameters(['program' => $program->getId()]);
+				$automation->setProject($project);
+				$entityManager->persist($automation);
+			}
+			
+			$entityManager->flush();
+			
+			$this->addFlash('success', 'Nouveau programme créé');
+			
+			if ($request->request->get('submit') == 'save') {
+				return $this->redirectToRoute('program_edit', [
+					'program' => $program->getId(),
+				]);
+			} else {
+				return $this->redirectToRoute('program', [
+					'project' => $project->getId()
+				]);
+			}
 			
 		} else {
 			$view = $form->createView();

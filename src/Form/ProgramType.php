@@ -23,10 +23,8 @@ class ProgramType extends AbstractType
 	}
 	
 	public function buildForm(FormBuilderInterface $builder, array $options)
-    {
-    	$program = $builder->getData();
-    	
-    	if ($options['page'] === 1) {
+    {    	
+    	if ($builder->getData() === null) {
     		$builder
     			->add('type', ChoiceType::class, [
     				'choices' => [
@@ -73,7 +71,6 @@ class ProgramType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => Program::class,
-        	'page' => 2,
         ]);
     }
 }

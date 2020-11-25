@@ -18,8 +18,10 @@ main {
 	margin: 0 !important;
 }
 
-#table th {
+#table div {
 	writing-mode: vertical-rl;
+	-webkit-writing-mode: vertical-lr;
+	-ms-writing-mode: vertical-lr;
 	text-orientation: sideways-right;
 	-moz-transform: rotate(180deg);  /* FF3.5+ */
 	-o-transform: rotate(180deg);  /* Opera 10.5 */

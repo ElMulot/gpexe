@@ -18,6 +18,8 @@
     <table class="table">
     	<thead>
     		<tr class="text-center">
+    			<th>{% trans %}Route{% endtrans %}</th>
+    			<th>{% trans %}Parameters{% endtrans %}</th>
     			<th>{% trans %}Enabled{% endtrans %}</th>
     			<th>{% trans %}Last run{% endtrans %}</th>
     			<th>{% trans %}Next run{% endtrans %}</th>
@@ -27,6 +29,8 @@
     	<tbody>
     		{% for automation in automations %}
         		<tr>
+        			<td class="text-left">{{ automation.route }}</td>
+        			<td class="text-left">{{ automation.parameters|json_encode }}</td>
         			<td class="text-center">{{ (automation.enabled ? 'Yes' : 'No')|trans }}</td>
         			<td class="text-center">{{ automation.lastRun is empty ? '--' : automation.lastRun|date('d-m-Y') }}</td>
         			<td class="text-center">{{ automation.nextRun is empty ? '--' : automation.nextRun|date('d-m-Y') }}</td>

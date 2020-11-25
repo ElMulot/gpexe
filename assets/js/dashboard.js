@@ -52,11 +52,15 @@ $(document).ready(function() {
 		let thead = $('#table').append(create.thead).children().last();
 		let tr = thead.append(create.tr).children().last();
 		tr.append(create.th).children().last()
+			.addClass('align-items-center')
+			.css('min-width', '8rem')
+			.append(create.div).children().last()
 			.text($.i18n('date'))
 		;
 		
 		for (let serie of result.series) {
 			tr.append(create.th).children().last()
+				.append(create.div).children().last()
 				.text(serie.name)
 			;
 		}
