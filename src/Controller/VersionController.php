@@ -103,7 +103,7 @@ class VersionController extends AbstractController
 		$version->setDocument($document);
 		$version->setStatus($status);
 		
-		$form = $this->createForm(VersionType::class, null, [
+		$form = $this->createForm(VersionType::class, $version, [
 			'serie' => $serie,
 			'versions' => [$version],
 		]);
@@ -111,6 +111,7 @@ class VersionController extends AbstractController
 		$form->handleRequest($request);
 		
 		if ($form->isSubmitted() && $form->isValid()) {
+			
 			$version->setIsRequired($form->get('isRequired')->getData());
 			if ($version->getIsRequired()) {
 				$version->setScheduledDate($form->get('date')->getData());

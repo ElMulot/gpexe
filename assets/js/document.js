@@ -294,14 +294,26 @@ function setup(datas) {
 							if (urlSearch.get('sortAsc') == element.id) {
 								urlSearch.delete('sortAsc');
 								urlSearch.set('sortDesc', element.id);
+								urlSearch.delete('vue');
+								urlSearch.fetch();
+								return;
 							}
 							if (urlSearch.get('sortDesc') == element.id) {
 								urlSearch.delete('sortDesc');
 								urlSearch.set('sortAsc', element.id);
+								urlSearch.delete('vue');
+								urlSearch.fetch();
+								return;
 							}
 						}
-						urlSearch.delete('vue');
-						urlSearch.fetch();
+						for (element of header.elements) {
+							if (element.sort) {
+								urlSearch.set('sortAsc', element.id);
+								urlSearch.delete('vue');
+								urlSearch.fetch();
+								return;
+							}
+						}	
 					}
 				})
 			;
@@ -388,7 +400,7 @@ function setup(datas) {
 		
 		if (element.sort) {
 			divButtons.append(create.smallButton).children().last()
-				.append(global.icon.arrowUp)
+				.append(global.icon.arrowDown)
 				.addClass((urlSearch.get('sortDesc') == element.id)?'px-2 btn-outline-primary bg-dark text-white':'px-2 btn-primary')
 				.on('click', function() {
 					urlSearch.delete('sortAsc');
@@ -500,7 +512,7 @@ function setup(datas) {
 		
 		if (element.sort) {
 			divButtons.append(create.smallButton).children().last()
-				.append(global.icon.arrowDown)
+				.append(global.icon.arrowUp)
 				.addClass((urlSearch.get('sortAsc') == element.id)?'px-2 btn-outline-primary bg-dark text-white':'px-2 btn-primary')
 				.on('click', function() {
 					urlSearch.delete('sortDesc');
@@ -1206,11 +1218,11 @@ $(document).ready(function() {
 				header.btnDropdown.append((header.isFiltered)?global.icon.funnelFill:global.icon.funnel);					
 				
 				if (header.isSortedAsc) {
-					header.btnDropdown.append(global.icon.arrowDown);
+					header.btnDropdown.append(global.icon.arrowUp);
 				}
 				
 				if (header.isSortedDesc) {
-					header.btnDropdown.append(global.icon.arrowUp);
+					header.btnDropdown.append(global.icon.arrowDown);
 				}
 				
 			} else {
@@ -1249,7 +1261,6 @@ $(document).ready(function() {
 				if (value !== undefined) {
 					
 					if (header.id == 'status_type') {
-						console.log(header);
 						value = header.elements[0].filter.choices[value].text;
 					}
 					
@@ -1261,8 +1272,25 @@ $(document).ready(function() {
 							break;
 						case type.date:
 							dataClass = 'text-center';
-							if (value instanceof Object){
-								value = new Date(value.date).format();
+							if (value instanceof Object) {
+
+								value = value.date.toDate();
+								
+								//highlight
+								if (urlSearch.get('highlight').toString() == header.id) {
+									if (value !== null) {
+										if (value < new Date()) {
+											tr.addClass('highlight-late');
+										} else if (value.addDays(-15) < new Date()) {
+											tr.addClass('highlight-15');
+										} else if (value.addDays(-30) < new Date()) {
+											tr.addClass('highlight-30');
+										} else {
+											tr.addClass('highlight-ok');
+										}
+									}
+								}
+								value = value.format();
 							}
 							break;
 						case type.link:
@@ -1282,22 +1310,6 @@ $(document).ready(function() {
 						.addClass(dataClass)
 						.text(value)
 					;
-					
-					//highlight
-					
-					if (urlSearch.get('highlight') == header.id) {
-						if (value.toDate() !== null) {
-							if (value.toDate() < new Date()) {
-								tr.addClass('highlight-late');
-							} else if (value.toDate().addDays(-15) < new Date()) {
-								tr.addClass('highlight-15');
-							} else if (value.toDate().addDays(-30) < new Date()) {
-								tr.addClass('highlight-30');
-							} else {
-								tr.addClass('highlight-ok');
-							}
-						}
-					}
 					
 				} else {
 					

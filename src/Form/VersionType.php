@@ -54,7 +54,7 @@ class VersionType extends AbstractType
 				'data' => reset($versions)->getName(),
 			]);
 		} elseif ($versions == false) {
-			$this->builder->add('name', TextType::class);
+			$this->builder->add('name');
 		}
 		
 		$project = $serie->getProject();

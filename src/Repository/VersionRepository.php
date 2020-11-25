@@ -277,19 +277,25 @@ class VersionRepository extends RepositoryService
 									case Metadata::DATE:
 									case Metadata::LINK:
 										if ($qb->hasAlias($field['id'] . '_') === false) {
-											$qb->innerJoin($field['parent'] . '.metadataValues', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id));
+											$qb->leftJoin($field['parent'] . '.metadataValues', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id));
 										}
-										$qb->addSelect("{$field['id']}_.value AS {$field['id']}");
+										$qb
+											->groupBy('version.id')
+											->addSelect("MAX({$field['id']}_.value) AS {$field['id']}")
+										;
 										break;
 										
 									case Metadata::LIST:
 										
 										if ($qb->hasAlias($field['id'] . '_') === false) {
 											$qb
-												->innerJoin($field['parent'] . '.metadataItems', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
+												->leftJoin($field['parent'] . '.metadataItems', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
 											;
 										}
-										$qb->addSelect("{$field['id']}_.value AS {$field['id']}");
+										$qb
+											->groupBy('version.id')
+											->addSelect("MAX({$field['id']}_.value) AS {$field['id']}")
+										;
 										break;
 										
 								}
@@ -651,13 +657,13 @@ class VersionRepository extends RepositoryService
 								case Metadata::TEXT:
 								case Metadata::DATE:
 									if ($qb->hasAlias($field['id'] . '_') === false) {
-										$qb->innerJoin($field['parent'] . '.metadataValues', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id));
+										$qb->leftJoin($field['parent'] . '.metadataValues', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id));
 									}
 									break;
 									
 								case Metadata::LIST:
 									if ($qb->hasAlias($field['id'] . '_') === false) {
-										$qb->innerJoin($field['parent'] . '.metadataItems', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id));
+										$qb->leftJoin($field['parent'] . '.metadataItems', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id));
 									}
 									break;
 									

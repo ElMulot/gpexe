@@ -29,7 +29,7 @@ class Document
     private $codificationItems;
     
     /**
-     * @ORM\ManyToMany(targetEntity=CodificationValue::class, cascade={"persist", "remove"}, orphanRemoval=true)
+     * @ORM\ManyToMany(targetEntity=CodificationValue::class, cascade={"persist"}, orphanRemoval=true)
      */
     private $codificationValues;
 
@@ -40,7 +40,7 @@ class Document
     private $metadataItems;
     
     /**
-     * @ORM\ManyToMany(targetEntity=MetadataValue::class, cascade={"persist", "remove"}, orphanRemoval=true)
+     * @ORM\ManyToMany(targetEntity=MetadataValue::class, cascade={"persist"}, orphanRemoval=true)
      * @ORM\JoinTable(name="document_metadata_value")
      */
     private $metadataValues;
@@ -343,8 +343,8 @@ class Document
     			return true;
     			
     		case Codification::LIST:
+    			
     			if ($codificationItem = $this->getCodificationItemByCodification($codification)) {
-    				
     				if ($codificationItem->getValue() == $value) {
     					return true;
     				} else {
@@ -353,15 +353,18 @@ class Document
     			}
     			
     			if ($value) {
-    				if ($codificationItem = $codification->getCodificationItemByValue($value)) {
-    					$this->addCodificationItem($codificationItem);
-    					return true;
+    				foreach ($codification->getCodificationItems()->getValues() as $codificationItem) {
+    					if ($codificationItem->getValue() == $value) {
+    						$this->addCodificationItem($codificationItem);
+    						return true;
+    					}
     				}
     			}
     			
     			break;
     				
     		case Codification::REGEX:
+    			
     			if ($codificationValue = $this->getCodificationValueByCodification($codification)) {
     				if ($codificationValue->getValue() == $value) {
     					return true;
@@ -371,11 +374,19 @@ class Document
     			}
     			
     			if ($value != '' && preg_match('/' . $codification->getValue() . '/', $value) === 1) {
-    				$codificationValue = new CodificationValue();
-    				$codificationValue->setValue($value);
-    				$codificationValue->setCodification($codification);
-    				$this->addCodificationValue($codificationValue);
-    				return true;
+    				if ($value) {
+    					foreach ($codification->getCodificationValues()->getValues() as $codificationValue) {
+    						if ($codificationValue->getValue() == $value) {
+    							$this->addCodificationValue($codificationValue);
+    							return true;
+    						}
+    					}
+    					$codificationValue = new CodificationValue();
+    					$codificationValue->setValue($value);
+    					$codificationValue->setCodification($codification);
+    					$this->addCodificationValue($codificationValue);
+    					return true;
+    				}
     			}
     			
     			break;
@@ -453,6 +464,12 @@ class Document
     			}
     			
     			if ($value) {
+    				foreach ($metadata->getMetadataValues()->getValues() as $metadataValue) {
+    					if ($metadataValue->getValue() == $value) {
+    						$this->addMetadataValue($metadataValue);
+    						return true;
+    					}
+    				}
     				$metadataValue = new MetadataValue();
     				$metadataValue->setValue($value);
     				$metadataValue->setMetadata($metadata);
@@ -477,9 +494,9 @@ class Document
     				foreach ($metadata->getMetadataItems()->getValues() as $metadataItem) {
     					if ($metadataItem->getValue() == $value) {
     						$this->addMetadataItem($metadataItem);
+    						return true;
     					}
     				}
-    				return true;
     			}
     			
     			break;

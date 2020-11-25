@@ -33,4 +33,13 @@
         - Corrections du bug sur l'écran d'accueil
         - Ajouts de photos en arrière plan sur la page de login
         - Correction de bugs
-        
+
+- 
+    version: 0.3
+    date: 25/11/2020
+    changes:
+        - Ajout du calcul des avancements
+        - Ajout du module Automatisations
+        - Accélération de l'affichage du tableau principal
+        - Passage au nouveau système d'authentification Symfony 5.1
+        - Correction de bugs

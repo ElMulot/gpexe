@@ -6,8 +6,8 @@
 parameters:
     uploads_directory: 'uploads'
     webmaster: 'Nicolas VEDEL'
-    app_version: 0.2
-    app_date: 08-11-2020
+    app_version: 0.3
+    app_date: 25-11-2020
 
 services:
     # default configuration for services in *this* file

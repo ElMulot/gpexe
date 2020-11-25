@@ -2,7 +2,6 @@
 
 {% set entity_name = class|short_name %}
 {% set headers = headers(class) %}
-{% dump(headers) %}
 {% set display_list = false %}
 {% for entity in entities %}
 	{% if attribute(entity, 'isList') is defined and attribute(entity, 'isList') == "True" %}

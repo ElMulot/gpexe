@@ -173,7 +173,6 @@ class Codification
     {
         if ($this->codificationItems->contains($codificationItem)) {
             $this->codificationItems->removeElement($codificationItem);
-            // set the owning side to null (unless already changed)
             if ($codificationItem->getCodification() === $this) {
                 $codificationItem->setCodification(null);
             }
@@ -182,14 +181,34 @@ class Codification
         return $this;
     }
     
-    public function getCodificationItemByValue(string $value): ?CodificationItem
+    /**
+     * @return Collection|CodificationValue[]
+     */
+    public function getCodificationValues(): Collection
     {
-    	foreach ($this->getCodificationItems()->getValues() as $codificationItem) {
-    		if ($codificationItem->__toString() == $value) {
-    			return $codificationItem;
+    	return $this->codificationValues;
+    }
+    
+    public function addCodificationValue(CodificationValue $codificationValue): self
+    {
+    	if (!$this->codificationValues->contains($codificationValue)) {
+    		$this->codificationValues[] = $codificationValue;
+    		$codificationValue->setCodification($this);
+    	}
+    	
+    	return $this;
+    }
+    
+    public function removeCodificationValue(CodificationValue $codificationValue): self
+    {
+    	if ($this->codificationValues->contains($codificationValue)) {
+    		$this->codificationValues->removeElement($codificationValue);
+    		if ($codificationValue->getCodification() === $this) {
+    			$codificationValue->setCodification(null);
     		}
     	}
-    	return null;
+    	
+    	return $this;
     }
     
     public function getFullDomId(): string

@@ -56,7 +56,7 @@ class Version
 	private $metadataItems;
 	
 	/**
-	 * @ORM\ManyToMany(targetEntity=MetadataValue::class, cascade={"persist", "remove"}, orphanRemoval=true)
+	 * @ORM\ManyToMany(targetEntity=MetadataValue::class, cascade={"persist"}, orphanRemoval=true)
 	 * @ORM\JoinTable(name="version_metadata_value")
 	 */
 	private $metadataValues;
@@ -389,6 +389,12 @@ class Version
 				}
 				
 				if ($value) {
+					foreach ($metadata->getMetadataValues()->getValues() as $metadataValue) {
+						if ($metadataValue->getValue() == $value) {
+							$this->addMetadataValue($metadataValue);
+							return true;
+						}
+					}
 					$metadataValue = new MetadataValue();
 					$metadataValue->setValue($value);
 					$metadataValue->setMetadata($metadata);

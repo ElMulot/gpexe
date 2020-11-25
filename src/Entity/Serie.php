@@ -30,7 +30,7 @@ class Serie
     private $metadataItems;
     
     /**
-     * @ORM\ManyToMany(targetEntity=MetadataValue::class, cascade={"persist", "remove"}, orphanRemoval=true)
+     * @ORM\ManyToMany(targetEntity=MetadataValue::class, cascade={"persist"}, orphanRemoval=true)
      */
     private $metadataValues;
     
@@ -47,7 +47,7 @@ class Serie
     private $project;
 
     /**
-     * @ORM\OneToMany(targetEntity=Document::class, mappedBy="serie", orphanRemoval=true, cascade={"persist"})
+     * @ORM\OneToMany(targetEntity=Document::class, mappedBy="serie", cascade={"persist"}, orphanRemoval=true)
      */
     private $documents;
 
@@ -296,7 +296,13 @@ class Serie
     				}
     			}
     			
-    			if ($value != '') {
+    			if ($value) {
+    				foreach ($metadata->getMetadataValues()->getValues() as $metadataValue) {
+    					if ($metadataValue->getValue() == $value) {
+    						$this->addMetadataValue($metadataValue);
+    						return true;
+    					}
+    				}
     				$metadataValue = new MetadataValue();
     				$metadataValue->setValue($value);
     				$metadataValue->setMetadata($metadata);
