@@ -46,14 +46,14 @@ $(document).ready(function() {
 		e.stopPropagation();
 		$('#spinner').empty();
 		
-		let dates = [(new Date).format()];
+		let dates = [];
 		let datasets = [];
 		
 		let thead = $('#table').append(create.thead).children().last();
 		let tr = thead.append(create.tr).children().last();
 		tr.append(create.th).children().last()
-			.addClass('align-items-center')
 			.css('min-width', '8rem')
+			.css('padding-left', '2rem')
 			.append(create.div).children().last()
 			.text($.i18n('date'))
 		;
@@ -134,6 +134,7 @@ $(document).ready(function() {
 			}
 			
 		}
+		dates.unshift((new Date).format());
 		
 		$('#chart_container').css('height', ($(window).height() - remToPx(12)) + 'px');
 		Chart.defaults.global.defaultFontColor = 'white';

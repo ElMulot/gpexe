@@ -83,6 +83,7 @@ App\Entity\Program:
     properties:
         name:
             - Regex: '/^[^$"'']+$/'
+            - NotBlank: ~
 
 App\Entity\Project:
     constraints:

@@ -77,7 +77,9 @@ class ProjectController extends AbstractController
 		$programs = [];
 		if ($this->isGranted('ROLE_ADMIN') ||
 			$this->isGranted('ROLE_CONTROLLER') && $this->getUser()->getCompany()->isMainContractor()) {
-				$programs = $this->programRepository->getEnabledPrograms($project);
+			$programs = $this->programRepository->getEnabledPrograms($project);
+		} else if ($this->isGranted('ROLE_USER') && $this->getUser()->getCompany()->isMainContractor()) {
+			$programs = $this->programRepository->getEnabledProgressPrograms($project);
 		}
 		
 		if ($this->isGranted('ROLE_ADMIN') === false) {

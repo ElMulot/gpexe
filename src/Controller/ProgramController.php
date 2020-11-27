@@ -78,8 +78,10 @@ class ProgramController extends AbstractController
 	public function dashboard(Program $program): Response
 	{
 		$project = $program->getProject();
+		
 		if ($this->isGranted('ROLE_ADMIN') === false &&
-			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
+			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false) &&
+			($this->isGranted('ROLE_USER') === false || $project->hasUser($this->getUser()) === false || $this->getUser()->getCompany()->isMainContractor() === false || $program->isTypeProgress() === false)) {
 			return $this->redirectToRoute('project');
 		}
 		
@@ -116,8 +118,10 @@ class ProgramController extends AbstractController
 	public function preload(Request $request, Program $program): Response
 	{
 		$project = $program->getProject();
+		
 		if ($this->isGranted('ROLE_ADMIN') === false &&
-			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
+			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false) &&
+			($this->isGranted('ROLE_USER') === false || $project->hasUser($this->getUser()) === false || $this->getUser()->getCompany()->isMainContractor() === false || $program->isTypeProgress() === false)) {
 			return $this->redirectToRoute('project');
 		}
 			
@@ -190,8 +194,10 @@ class ProgramController extends AbstractController
 	{
 		
 		$project = $program->getProject();
+
 		if ($this->isGranted('ROLE_ADMIN') === false &&
-			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
+			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false) &&
+			($this->isGranted('ROLE_USER') === false || $project->hasUser($this->getUser()) === false || $this->getUser()->getCompany()->isMainContractor() === false || $program->isTypeProgress() === false)) {
 			return $this->redirectToRoute('project');
 		}
 		
@@ -256,11 +262,6 @@ class ProgramController extends AbstractController
 			return $this->redirectToRoute('project');
 		}
 		
-		if ($this->isGranted('ROLE_ADMIN') === false &&
-			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
-			return $this->redirectToRoute('project');
-		}
-		
 		switch ($program->getType()) {
 			
 			case Program::EXPORT:
@@ -300,7 +301,7 @@ class ProgramController extends AbstractController
 	
 	public function console(Request $request, Program $program): Response
 	{
-		set_time_limit(120);
+		
 		$project = $program->getProject();
 		if ($this->isGranted('ROLE_ADMIN') === false &&
 			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {

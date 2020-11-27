@@ -811,6 +811,10 @@ class ProgramService
 			
 			foreach ($serie->getDocuments() as $document) {
 				
+				$countValidated = [];
+				$hasVersionNotExcluded = false;
+				$maxValue = 0;
+				
 				foreach ($document->getVersions() as $version) {
 					
 					foreach ($this->parsedCode['exclude'] as $exclude) {
@@ -818,9 +822,11 @@ class ProgramService
 							continue 2;
 						}
 					}
-
-					$countProcessed++;
-					$countValidated = [];
+					
+					if ($hasVersionNotExcluded === false) {
+						$countProcessed++;
+						$hasVersionNotExcluded = true;
+					}
 					
 					foreach ($this->parsedCode['rules'] as $key => $rule) {
 						
@@ -830,16 +836,16 @@ class ProgramService
 							}
 						}
 						
-						$countValidated[$key] = $countValidated[$key] ?? 0 + 1;
+						$countValidated[$key] = ($countValidated[$key] ?? 0) + 1;
 						
 						if ($countValidated[$key] >= $rule['count']) {
-							$progress[$serie->getId()] += $rule['value'];
-							break 2;
+							$maxValue = max($maxValue, $rule['value']);
+							
+							break;
 						}
 					}
-					
 				}
-
+				$progress[$serie->getId()] += $maxValue;
 			}
 			
 			if ($countProcessed > 0) {

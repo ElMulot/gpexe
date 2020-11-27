@@ -51,7 +51,9 @@
         		<tr>
         			{% for key, header in headers %}
             			{% set value = attribute(entity, key) %}
-            			{% if value is same as (false) %}
+            			{% if value is iterable %}
+            				<td class="col-auto text-center">[...]</td>
+            			{% elseif value is same as (false) %}
             				<td class="col-auto text-center">{% trans %}False{% endtrans %}</td>
             			{% elseif value is same as (true) %}
             				<td class="col-auto text-center">{% trans %}True{% endtrans %}</td>

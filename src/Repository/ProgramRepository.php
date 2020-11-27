@@ -48,4 +48,20 @@ class ProgramRepository extends RepositoryService
     		->getResult()
     	;
     }
+    
+    /**
+     * @return Program[]
+     *
+     */
+    public function getEnabledProgressPrograms(Project $project)
+    {
+    	$qb = $this->newQB('p');
+    	return $qb
+	    	->andWhere($qb->eq('p.project', $project))
+	    	->andWhere($qb->eq('p.enabled', true))
+	    	->andWhere($qb->eq('p.type', Program::PROGRESS))
+	    	->getQuery()
+	    	->getResult()
+    	;
+    }
 }

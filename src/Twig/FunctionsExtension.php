@@ -35,7 +35,10 @@ class FunctionsExtension extends AbstractExtension
 		$properties = $this->doctrineExtractor->getProperties($class);
 		
 		foreach ($properties as $property) {
-			$headers[$property] = ucfirst(strtolower(preg_replace("#([A-Z])#", ' $1', $property)));
+			$type = $this->doctrineExtractor->getTypes($class, $property);
+			if (current($type)->isCollection() === false) {
+				$headers[$property] = ucfirst(strtolower(preg_replace("#([A-Z])#", ' $1', $property)));
+			}
 		}
 		return $headers;
 	}
