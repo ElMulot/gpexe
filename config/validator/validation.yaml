@@ -5,7 +5,7 @@ App\Entity\Codification:
         - App\Validator\Constraints\CodificationWithoutSplitter: ~
     properties:
         name:
-            - Regex: '/^[^$"'']+$/'
+            - Regex: '/^[^$"]+$/'
             - NotBlank: ~
         codename:
             - Regex: '/^\w+$/'
@@ -17,7 +17,7 @@ App\Entity\CodificationItem:
             fields: ['value', 'codification']
     properties:
         name:
-            - Regex: '/^[^$"'']+$/'
+            - Regex: '/^[^$"]+$/'
             - NotBlank: ~
 
 App\Entity\Company:
@@ -26,7 +26,7 @@ App\Entity\Company:
         - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity: codename
     properties:
         name:
-            - Regex: '/^[^$"'']+$/'
+            - Regex: '/^[^$"]+$/'
             - NotBlank: ~
         codename:
             - Regex: '/^\w+$/'
@@ -35,7 +35,7 @@ App\Entity\Company:
 App\Entity\Document:
     properties:
         name:
-            - Regex: '/^[^$"'']+$/'
+            - Regex: '/^[^$"]+$/'
             - NotBlank: ~
 
 App\Entity\Metadata:
@@ -44,7 +44,7 @@ App\Entity\Metadata:
             fields: ['codename', 'project']
     properties:
         name:
-            - Regex: '/^[^$"'']+$/'
+            - Regex: '/^[^$"]+$/'
             - NotBlank: ~
         codename:
           - Regex: '/^\w+$/'
@@ -73,7 +73,7 @@ App\Entity\Profil:
         - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity: name
     properties:
         name:
-            - Regex: '/^[^$"'']+$/'
+            - Regex: '/^[^$"]+$/'
             - NotBlank: ~
 
 App\Entity\Program:
@@ -82,7 +82,7 @@ App\Entity\Program:
             fields: ['name', 'project']
     properties:
         name:
-            - Regex: '/^[^$"'']+$/'
+            - Regex: '/^[^$"]+$/'
             - NotBlank: ~
 
 App\Entity\Project:
@@ -90,7 +90,7 @@ App\Entity\Project:
         - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity: name
     properties:
         name:
-            - Regex: '/^[^$"'']+$/'
+            - Regex: '/^[^$"]+$/'
             - NotBlank: ~
 
 App\Entity\Review:
@@ -104,7 +104,7 @@ App\Entity\Serie:
             fields: ['name', 'project']
     properties:
         name:
-            - Regex: '/^[^$"'']+$/'
+            - Regex: '/^[^$"]+$/'
             - NotBlank: ~
 
 App\Entity\Status:
@@ -113,7 +113,7 @@ App\Entity\Status:
             fields: ['name', 'project']
     properties:
         name:
-            - Regex: '/^[^$"'']+$/'
+            - Regex: '/^[^$"]+$/'
             - NotBlank: ~
 
 App\Entity\User:
@@ -122,7 +122,7 @@ App\Entity\User:
     properties:
         email: [Email: ~]
         name:
-            - Regex: '/^[^$"'']+$/'
+            - Regex: '/^[^$"]+$/'
             - NotBlank: ~
 
 App\Entity\Version:
@@ -140,5 +140,5 @@ App\Entity\Visa:
             fields: ['name', 'company', 'project']
     properties:
         name:
-            - Regex: '/^[^$"'']+$/'
+            - Regex: '/^[^$"]+$/'
             - NotBlank: ~

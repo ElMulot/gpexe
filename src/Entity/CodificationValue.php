@@ -7,7 +7,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Mapping\ClassMetadata;
 
 /**
- * @ORM\Entity(repositoryClass="App\Repository\CodificationDataRepository")
+ * @ORM\Entity(repositoryClass="App\Repository\CodificationValueRepository")
  */
 class CodificationValue
 {

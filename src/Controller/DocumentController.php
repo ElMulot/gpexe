@@ -303,7 +303,7 @@ class DocumentController extends AbstractController
 			foreach ($this->codificationRepository->getCodifications($project) as $codification) {
 				$value = $form->get($codification->getCodeName())->getData();
 				
-				if ($value === null && $metadata->getIsMandatory()) {
+				if ($value === null && $codification->getIsMandatory()) {
 					$this->addFlash('danger', $this->translator->trans('notEmpty.field', ['field' => $codification->getName()]));
 					$view = $form->createView();
 					return $this->render('ajax/form.html.twig', [

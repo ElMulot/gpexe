@@ -18,4 +18,19 @@ class CodificationValueRepository extends RepositoryService
     {
     	parent::__construct($registry, CodificationValue::class);
     }
+    
+    public function deleteCodificationValueOrphans()
+    {
+    	$this
+	    	->getEntityManager()
+	    	->getConnection()
+	    	->executeStatement(
+	    		'DELETE codification_value.* FROM
+				    codification_value
+				LEFT JOIN document_codification_value ON document_codification_value.codification_value_id = codification_value.id
+				WHERE
+				    document_codification_value.document_id IS NULL'
+    		)
+    	;
+    }
 }

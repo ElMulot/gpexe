@@ -56,7 +56,7 @@ class Version
 	private $metadataItems;
 	
 	/**
-	 * @ORM\ManyToMany(targetEntity=MetadataValue::class, cascade={"persist"}, orphanRemoval=true)
+	 * @ORM\ManyToMany(targetEntity=MetadataValue::class, cascade={"persist"})
 	 * @ORM\JoinTable(name="version_metadata_value")
 	 */
 	private $metadataValues;

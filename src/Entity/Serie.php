@@ -30,7 +30,7 @@ class Serie
     private $metadataItems;
     
     /**
-     * @ORM\ManyToMany(targetEntity=MetadataValue::class, cascade={"persist"}, orphanRemoval=true)
+     * @ORM\ManyToMany(targetEntity=MetadataValue::class, cascade={"persist"})
      */
     private $metadataValues;
     

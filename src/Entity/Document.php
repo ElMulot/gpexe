@@ -29,7 +29,7 @@ class Document
     private $codificationItems;
     
     /**
-     * @ORM\ManyToMany(targetEntity=CodificationValue::class, cascade={"persist"}, orphanRemoval=true)
+     * @ORM\ManyToMany(targetEntity=CodificationValue::class, cascade={"persist"})
      */
     private $codificationValues;
 
@@ -40,7 +40,7 @@ class Document
     private $metadataItems;
     
     /**
-     * @ORM\ManyToMany(targetEntity=MetadataValue::class, cascade={"persist"}, orphanRemoval=true)
+     * @ORM\ManyToMany(targetEntity=MetadataValue::class, cascade={"persist"})
      * @ORM\JoinTable(name="document_metadata_value")
      */
     private $metadataValues;
@@ -436,6 +436,10 @@ class Document
     
     public function setMetadataValue(Metadata $metadata, $value): bool
     {
+    	
+    	if ($value instanceof MetadataItem || $value instanceof MetadataValue) {
+    		$value = $value->__toString();
+    	}
     	
     	switch ($metadata->getType()) {
     		case Metadata::BOOLEAN:

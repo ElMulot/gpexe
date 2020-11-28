@@ -179,13 +179,42 @@ class Metadata
     {
         if ($this->metadataItems->contains($metadataItem)) {
             $this->metadataItems->removeElement($metadataItem);
-            // set the owning side to null (unless already changed)
             if ($metadataItem->getMetadata() === $this) {
                 $metadataItem->setMetadata(null);
             }
         }
 
         return $this;
+    }
+    
+    /**
+     * @return Collection|MetadataValue[]
+     */
+    public function getMetadataValues(): Collection
+    {
+    	return $this->metadataValues;
+    }
+    
+    public function addMetadataValue(MetadataValue $metadataValue): self
+    {
+    	if (!$this->metadataValues->contains($metadataValue)) {
+    		$this->metadataValues[] = $metadataValue;
+    		$metadataValue->setMetadata($this);
+    	}
+    	
+    	return $this;
+    }
+    
+    public function removeMetadataValue(MetadataValue $metadataValue): self
+    {
+    	if ($this->metadataValues->contains($metadataValue)) {
+    		$this->metadataValues->removeElement($metadataValue);
+    		if ($metadataValue->getMetadata() === $this) {
+    			$metadataValue->setMetadata(null);
+    		}
+    	}
+    	
+    	return $this;
     }
     
     public function getParentName(): string

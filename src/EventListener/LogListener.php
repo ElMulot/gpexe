@@ -12,15 +12,23 @@ class LogListener
 
 	private $security;
 	
+	private $disableLog;
+	
 	private $entityManager;
 		
-	public function __construct(Security $security)
+	public function __construct(Security $security, string $disableLog)
 	{
 		$this->security = $security;
+		$this->disableLog = $disableLog;
 	}
 	
 	public function onFlush(OnFlushEventArgs $args)
 	{
+		
+		if ($this->disableLog) {
+			return;
+		}
+		
 		$this->entityManager = $args->getEntityManager();
 		$uow = $this->entityManager->getUnitOfWork();
 		

@@ -1,10 +1,10 @@
 twig:
     default_path: '%kernel.project_dir%/templates'
     form_themes:
-        - 'form/layout.html.twig'
+        - 'generic/layout.html.twig'
     globals:
-        webmaster: '%webmaster%'
-        app_version: '%app_version%'
-        app_date: '%app_date%'
+        webmaster: '%app.webmaster%'
+        app_version: '%app.version%'
+        app_date: '%app.date%'
         app_name: 'GPExe'
-        uploads_directory: '%uploads_directory%'
+        uploads_directory: '%app.uploads_directory%'

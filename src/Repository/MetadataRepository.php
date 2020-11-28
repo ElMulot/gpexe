@@ -57,10 +57,10 @@ class MetadataRepository extends RepositoryService
     {
     	$qb = $this->newQb('m');
     	return $qb
-    	->andWhere($qb->eq('m.project', $project))
-    	->andWhere($qb->eq('m.parent', Metadata::DOCUMENT))
-    	->getQuery()
-    	->getResult()
+	    	->andWhere($qb->eq('m.project', $project))
+	    	->andWhere($qb->eq('m.parent', Metadata::DOCUMENT))
+	    	->getQuery()
+	    	->getResult()
     	;
     }
     
@@ -72,10 +72,10 @@ class MetadataRepository extends RepositoryService
     {
     	$qb = $this->newQb('m');
     	return $qb
-    	->andWhere($qb->eq('m.project', $project))
-    	->andWhere($qb->eq('m.parent', Metadata::VERSION))
-    	->getQuery()
-    	->getResult()
+	    	->andWhere($qb->eq('m.project', $project))
+	    	->andWhere($qb->eq('m.parent', Metadata::VERSION))
+	    	->getQuery()
+	    	->getResult()
     	;
     }
 }
