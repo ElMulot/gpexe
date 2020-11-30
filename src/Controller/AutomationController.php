@@ -75,11 +75,9 @@ class AutomationController extends AbstractController
 	public function cron(): Response
 	{
 		
-		$this->getDoctrine()->getRepository(MetadataValue::class)->deleteMetadataValueOrphans();		
-		$this->getDoctrine()->getRepository(CodificationValue::class)->deleteCodificationValueOrphans();
-		
 		$entityManager = $this->getDoctrine()->getManager();
 		
+		/*
 		$nb_c = 0;
 		$nb_ms = 0;
 		$nb_md = 0;
@@ -89,147 +87,54 @@ class AutomationController extends AbstractController
 		
 		foreach ($this->getDoctrine()->getRepository(Project::class)->getAllProjects() as $project) {
 			
-			foreach ($this->getDoctrine()->getRepository(Codification::class)->getCodifications($project) as $codification) {
-				
-				if ($codification->isRegex()) {
-					
-					do {
-						
-						$restart = false;
-						
-						foreach ($codification->getCodificationValues()->getValues() as $cv1) {
-							
-							foreach ($this->getDoctrine()->getRepository(Document::class)->getDocumentsByProject($project) as $document) {
-									
-								foreach ($document->getCodificationValues()->getValues() as $cv2) {
-									
-									if ($cv1->getId() != $cv2->getId() && $cv1->getCodification()->getId() == $cv2->getCodification()->getId() && $cv1->getValue() == $cv2->getValue()) {
-										$document->removeCodificationValue($cv2);
-										$codification->removeCodificationValue($cv2);
-										$document->addCodificationValue($cv1);
-										$entityManager->persist($document);
-										$restart = true;
-										$nb_c++;
-										break 3;
-									}
-								}
-							}
-						}
-					} while ($restart);
-					
-				}
-				
-			}
-		}
-		
-		
-		/*
-		foreach ($this->getDoctrine()->getRepository(Project::class)->getAllProjects() as $project) {
+			$series = $this->getDoctrine()->getRepository(Serie::class)->getHydratedSeries($project);
 			
-			foreach ($this->getDoctrine()->getRepository(Metadata::class)->getMetadatas($project) as $metadata) {
+			do {
 				
-				if ($metadata->isList() === false && $metadata->parentIsSerie()) {
-					
-					do {
-						
-						$restart = false;
-						
-						foreach ($metadata->getMetadataValues()->getValues() as $cv1) {
-							
-							foreach ($this->getDoctrine()->getRepository(Serie::class)->getSeries($project) as $serie) {
-									
-								foreach ($serie->getMetadataValues()->getValues() as $cv2) {
-									
-									if ($cv1->getId() != $cv2->getId() && $cv1->getMetadata()->getId() == $cv2->getMetadata()->getId() && $cv1->getValue() == $cv2->getValue()) {
-										$serie->removeMetadataValue($cv2);
-										$serie->removeMetadataValue($cv2);
-										$serie->addMetadataValue($cv1);
-										$entityManager->persist($serie);
-										$restart = true;
-										$nb_ms++;
-										break 3;
-									}
-								}
-							}
-						}
-					} while ($restart);
-					
-				}
+				$restart = false;
 				
-			}
-		}
-		
-		foreach ($this->getDoctrine()->getRepository(Project::class)->getAllProjects() as $project) {
-			
-			foreach ($this->getDoctrine()->getRepository(Metadata::class)->getMetadatas($project) as $metadata) {
-				
-				if ($metadata->isList() === false && $metadata->parentIsDocument()) {
-					
-					do {
+				foreach ($series as $serie1) {
+					foreach ($serie1->getDocuments()->getValues() as $document1) {
+						foreach ($document1->getVersions()->getValues() as $version1) {
 						
-						$restart = false;
-						
-						foreach ($metadata->getMetadataValues()->getValues() as $cv1) {
-							
-							foreach ($this->getDoctrine()->getRepository(Document::class)->getDocumentsByProject($project) as $document) {
+							foreach ($version1->getMetadataValues()->getValues() as $cv1) {
 								
-								foreach ($document->getMetadataValues()->getValues() as $cv2) {
-									
-									if ($cv1->getId() != $cv2->getId() && $cv1->getMetadata()->getId() == $cv2->getMetadata()->getId() && $cv1->getValue() == $cv2->getValue()) {
-										$document->removeMetadataValue($cv2);
-										$metadata->removeMetadataValue($cv2);
-										$document->addMetadataValue($cv1);
-										$entityManager->persist($document);
-										$restart = true;
-										$nb_md++;
-										break 3;
+								foreach ($series as $serie2) {
+									foreach ($serie2->getDocuments()->getValues() as $document2) {
+										
+										foreach ($document2->getVersions()->getValues() as $version2) {
+										
+											foreach ($version2->getMetadataValues()->getValues() as $cv2) {
+												
+												if ($cv1->getId() != $cv2->getId() && $cv1->getMetadata()->getId() == $cv2->getMetadata()->getId() && $cv1->getValue() == $cv2->getValue()) {
+													
+													$version2->removeMetadataValue($cv2);
+													$version2->addMetadataValue($cv1);
+													$entityManager->persist($version2);
+													$restart = true;
+													$nb_c++;
+													
+												}
+											}
+										}
+										
 									}
 								}
-							}
-						}
-					} while ($restart);
-					
-				}
-				
-			}
-		}
-		
-		foreach ($this->getDoctrine()->getRepository(Project::class)->getAllProjects() as $project) {
-			
-			foreach ($this->getDoctrine()->getRepository(Metadata::class)->getMetadatas($project) as $metadata) {
-				
-				if ($metadata->isList() === false && $metadata->parentIsVersion()) {
-					
-					do {
-						
-						$restart = false;
-						
-						foreach ($metadata->getMetadataValues()->getValues() as $cv1) {
-							
-							foreach ($this->getDoctrine()->getRepository(Version::class)->getVersionsByProject($project) as $version) {
 								
-								foreach ($version->getMetadataValues()->getValues() as $cv2) {
-									
-									if ($cv1->getId() != $cv2->getId() && $cv1->getMetadata()->getId() == $cv2->getMetadata()->getId() && $cv1->getValue() == $cv2->getValue()) {
-										dump($cv1, $cv2);
-										$version->removeMetadataValue($cv2);
-										$metadata->removeMetadataValue($cv2);
-										$version->addMetadataValue($cv1);
-										$entityManager->persist($version);
-										$restart = true;
-										$nb_mv++;
-										break 3;
-									}
-								}
-							}
+								break;
+								
+								
+							}	
 						}
-					} while ($restart);
-					
+					}
 				}
-				
-			}
+					
+			} while ($restart);
 		}
 		*/
+		
+		$this->getDoctrine()->getRepository(MetadataValue::class)->deleteMetadataValueOrphans();
+		$this->getDoctrine()->getRepository(CodificationValue::class)->deleteCodificationValueOrphans();
 		
 		$automations = $this->automationRepository->getAutomationsToRun();
 		
@@ -260,7 +165,6 @@ class AutomationController extends AbstractController
 		}
 		
 		$entityManager->flush();
-		dd('nb_c:' . $nb_c . "\nnb_ms:" . $nb_ms . "\nnb_md:" . $nb_md . "\nnb_mv:" . $nb_mv);
 		return new Response();
 	}
 }

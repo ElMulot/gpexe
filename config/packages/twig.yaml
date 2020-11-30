@@ -3,8 +3,8 @@ twig:
     form_themes:
         - 'generic/layout.html.twig'
     globals:
-        webmaster: '%app.webmaster%'
-        app_version: '%app.version%'
-        app_date: '%app.date%'
+        webmaster: '%app_webmaster%'
+        app_version: '%app_version%'
+        app_date: '%app_date%'
         app_name: 'GPExe'
-        uploads_directory: '%app.uploads_directory%'
+        uploads_directory: '%uploads_directory%'

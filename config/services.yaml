@@ -4,11 +4,11 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices/configuration.html#application-related-configuration
 parameters:
-    app.webmaster: 'Nicolas VEDEL'
-    app.version: 0.3.1
-    app.date: 26-11-2020
-    app.disable_log: true
-    app.uploads_directory: 'uploads'
+    app_webmaster: 'Nicolas VEDEL'
+    app_version: 0.3.1
+    app_date: 26-11-2020
+    disable_log: true
+    uploads_directory: 'uploads'
 
 services:
     # default configuration for services in *this* file
@@ -50,7 +50,7 @@ services:
                 
     App\EventListener\LogListener:
         arguments:
-            $disableLog: '%app.disable_log%'
+            $disableLog: '%disable_log%'
         tags:
             -
                 name: 'doctrine.event_listener'
@@ -74,7 +74,7 @@ services:
     
     App\Service\ProgramService:
         arguments:
-            $targetDirectory: '%kernel.project_dir%/public/%app.uploads_directory%/'
+            $targetDirectory: '%kernel.project_dir%/public/%uploads_directory%/'
             
     App\Service\RepositoryService:
         autowire: false
