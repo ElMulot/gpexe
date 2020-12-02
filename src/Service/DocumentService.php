@@ -31,7 +31,17 @@ class DocumentService
 	public function validateReference(Document $document): bool
 	{
 		$this->removeOrphans();
-		return empty($this->documentRepository->getDocumentByReference($document->getSerie()->getProject(), $document->getCodificationItems(), $document->getCodificationValues()));
+		$documents = $this->documentRepository->getDocumentsByReference($document->getSerie()->getProject(), $document->getCodificationItems(), $document->getCodificationValues());
+		
+		if (empty($documents)) {
+			return true;
+		} elseif ($document->getId() !== null) {
+			return empty(array_filter($documents, function($item) use ($document) {
+				return ($item->getId() !== $document->getId());
+			}));
+		}
+		
+		return false;
 	}
 	
 }

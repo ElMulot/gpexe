@@ -314,6 +314,14 @@ class DocumentController extends AbstractController
 				$document->setCodificationValue($codification, $value);
 			}
 			
+			if ($this->documentService->validateReference($document) === false) {
+				$this->addFlash('danger', $this->translator->trans('alreadyExist.reference', ['reference' => $document->getReference()]));
+				$view = $form->createView();
+				return $this->render('ajax/form.html.twig', [
+					'form' => $view,
+				]);
+			}
+			
 			foreach ($this->metadataRepository->getMetadatasForDocument($project) as $metadata) {
 				$value = $form->get($metadata->getCodeName())->getData();
 				

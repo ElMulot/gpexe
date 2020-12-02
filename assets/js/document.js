@@ -224,12 +224,7 @@ function setup(datas) {
 							break;
 	
 						case type.list:
-							var c = [
-								{
-									text: $.i18n('selectAll'),
-									value: -1,
-								}
-							];
+							var c = [];
 							
 							$.each(element.filter.choices, function (key, value) {
 								if (typeof value === 'object') {
@@ -243,6 +238,21 @@ function setup(datas) {
 										value: key,
 									});
 								}
+							});
+							
+							c.sort(function (a, b) {
+								if (a.text < b.text) {
+									return -1;
+								}
+								if (a.text > b.text) {
+									return 1;
+								}
+								return 0;
+							});
+							
+							c.unshift({
+								text: $.i18n('selectAll'),
+								value: -1,
 							});
 					}
 					

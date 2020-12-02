@@ -8,7 +8,7 @@ use App\Entity\Codification;
 use App\Entity\Metadata;
 use App\Entity\Project;
 use App\Entity\Status;
-use App\Form\SelectType;
+use App\Repository\CodificationItemRepository;
 use App\Repository\CompanyRepository;
 use App\Repository\CodificationRepository;
 use App\Repository\MetadataItemRepository;
@@ -28,6 +28,8 @@ class FieldService
 	
 	private $codificationRepository;
 	
+	private $codificationItemRepository;
+	
 	private $metadataRepository;
 	
 	private $metadataItemRepository;
@@ -38,12 +40,13 @@ class FieldService
 	
 	private $visaRepository;
 	
-	public function __construct(TranslatorInterface $translator, FormFactoryInterface $formFactory, CompanyRepository $companyRepository, CodificationRepository $codificationRepository, MetadataRepository $metadataRepository, MetadataItemRepository $metadataItemRepository, StatusRepository $statusRepository, UserRepository $userRepository, VisaRepository $visaRepository)
+	public function __construct(TranslatorInterface $translator, FormFactoryInterface $formFactory, CompanyRepository $companyRepository, CodificationRepository $codificationRepository, CodificationItemRepository $codificationItemRepository, MetadataRepository $metadataRepository, MetadataItemRepository $metadataItemRepository, StatusRepository $statusRepository, UserRepository $userRepository, VisaRepository $visaRepository)
 	{
 		$this->translator = $translator;
 		$this->formFactory = $formFactory;
 		$this->companyRepository = $companyRepository;
 		$this->codificationRepository = $codificationRepository;
+		$this->codificationItemRepository = $codificationItemRepository;
 		$this->metadataRepository = $metadataRepository;
 		$this->metadataItemRepository = $metadataItemRepository;
 		$this->statusRepository = $statusRepository;
@@ -473,7 +476,7 @@ class FieldService
 				
 				case Codification::LIST:
 					$choices = [];
-					foreach ($codification->getCodificationItems()->getValues() as $codificationItem) {
+					foreach ($this->codificationItemRepository->getCodificationItem($codification) as $codificationItem) {
 						$choices[$codificationItem->getId()] = $codificationItem->getValue();
 					}
 					$element['filter'] = [

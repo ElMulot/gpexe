@@ -63,7 +63,7 @@ class DocumentRepository extends RepositoryService
      * @return Document[]
      *
      */
-    public function getDocumentByReference(Project $project, $codificationItems, $codificationValues)
+    public function getDocumentsByReference(Project $project, $codificationItems, $codificationValues)
     {
     	$qb = $this->newQB('d');
     	$qb->innerJoin('d.serie', 's')
@@ -100,7 +100,6 @@ class DocumentRepository extends RepositoryService
     	}
     	
     	return $qb
-    		->setMaxResults(1)
     		->getQuery()
     		->getResult()
     	;
