@@ -33,14 +33,7 @@ class LogController extends AbstractController
     
     public function clear(): Response
     {
-    	$entityManager = $this->getDoctrine()->getManager();
-    	$log = $this->logRepository->getLog();
-    	
-    	foreach ($log as $item) {
-    		$entityManager->remove($item);
-    	}
-    	
-    	$entityManager->flush();
+    	$this->logRepository->clearLog();
     	$this->addFlash('success', 'Log cleared');
     	
     	return $this->redirectToRoute('log');

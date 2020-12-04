@@ -5,6 +5,7 @@ namespace App\Repository;
 
 use Doctrine\Persistence\ManagerRegistry;
 use App\Service\RepositoryService;
+use App\Entity\ChangeSet;
 use App\Entity\Log;
 
 /**
@@ -39,5 +40,20 @@ class LogRepository extends RepositoryService
 		;
 		
 		return $log;
+	}
+	
+	public function clearLog()
+	{
+		$this->newQB()
+			->delete(ChangeSet::class, 'c')
+			->getQuery()
+			->execute()
+		;
+		
+		$this->newQB()
+			->delete($this->getEntityName(), 'l')
+			->getQuery()
+			->execute()
+		;
 	}
 }

@@ -524,7 +524,7 @@ class ProgramService
 				}
 			
 				//check if the document is not in another serie
-				if ($currentDocument === null && ($options['move_from_mdr'] || $options['move_from_sdr'])) {
+				if ($currentDocument === null) {
 					foreach ($series as $serie) {
 						foreach ($serie->getDocuments() as $document) {
 							if ($this->compare($this->parsedCode['get_document']['condition'], $document, $row)) { //cette ligne créé un Internal Server Error
@@ -600,16 +600,24 @@ class ProgramService
 							$this->addComment('valid', "Création d'un nouveau document.");
 						}
 						
+						
 						if ($currentDocument->setPropertyValue($matches[2], $this->get($matches[3], $currentDocument, $row))) {
+// 							if ($matches[2] == 'document.reference') {
+// 								if ($this->documentService->validateReference($document) === false) {
+// 									$this->addComment('error', "Ligne exclue : le document existe déjà.");
+// 									$currentSerie->removeDocument($currentDocument);
+// 									$currentDocument = null;
+// 								}
+// 							}
 							$this->addComment('valid', "Champ '{$matches[2]}' mis à jour.");
 						} elseif ($matches[2] == 'document.name' || $matches[2] == 'document.reference') {
-							$this->addComment('warning', "Erreur en écrivant le champ '{$matches[2]}'.");
+							$this->addComment('error', "Erreur en écrivant le champ '{$matches[2]}'.");
 							$currentSerie->removeDocument($currentDocument);
 							$currentDocument = null;
 							break;
 						} else {
 							$col = $this->getCol($matches[3]);
-							$this->addComment('warning', "Erreur en écrivant le champ '{$matches[2]}'.", $col);
+							$this->addComment('error', "Erreur en écrivant le champ '{$matches[2]}'.", $col);
 						}
 						
 					}

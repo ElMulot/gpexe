@@ -56,6 +56,8 @@ class Document
      */
     private $serie;
     
+    private $reference;
+    
     public function __construct()
     {
     	$this->codificationItems = new ArrayCollection();
@@ -94,6 +96,7 @@ class Document
     {
     	if (!$this->codificationItems->contains($codificationItem)) {
     		$this->codificationItems[] = $codificationItem;
+    		$this->reference = null;
         }
 
         return $this;
@@ -103,6 +106,7 @@ class Document
     {
     	if ($this->codificationItems->contains($codificationItem)) {
     		$this->codificationItems->removeElement($codificationItem);
+    		$this->reference = null;
         }
 
         return $this;
@@ -121,6 +125,7 @@ class Document
     {
     	if (!$this->codificationValues->contains($codificationValue)) {
     		$this->codificationValues[] = $codificationValue;
+    		$this->reference = null;
     	}
     	
     	return $this;
@@ -130,6 +135,7 @@ class Document
     {
     	if ($this->codificationValues->contains($codificationValue)) {
     		$this->codificationValues->removeElement($codificationValue);
+    		$this->reference = null;
     	}
     	
     	return $this;
@@ -253,6 +259,10 @@ class Document
     
     public function getReference(): ?string
     {
+    	if ($this->reference !== null) {
+    		return $this->reference;
+    	}
+    	
     	if ($this->getCodificationItems()->count() == 0 && $this->getCodificationValues()->count() == 0) {
     		return null;
     	}
@@ -284,7 +294,9 @@ class Document
     		}
     	}
     	
-    	return join($project->getSplitter(), $references);
+    	$this->reference = join($project->getSplitter(), $references);
+    	
+    	return $this->reference;
     	
     }
     

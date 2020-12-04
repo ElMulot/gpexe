@@ -29,7 +29,7 @@ class SerieChangeType extends AbstractType
     public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setDefaults([
-            'data_class' => Serie::class,
+            'data_class' => null,
         	'current_serie' => null,
         	'series' => [],
         ]);
