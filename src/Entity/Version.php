@@ -531,6 +531,11 @@ class Version
 		switch ($codename) {
 			case 'version.name':
 				if ($value) {
+					foreach ($this->document->getVersions()->getValues() as $version) {
+						if ($version->getName() == $value && $version !== $this) {
+							return false;
+						}
+					}
 					$this->setName($value);
 					return true;
 				} else {

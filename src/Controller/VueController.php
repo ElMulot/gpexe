@@ -25,7 +25,7 @@ class VueController extends AbstractController
 	
 	public function index(Project $project): Response
 	{
-		$vues = $this->vueRepository->getVues($project, $this->getUser());
+		$vues = $this->vueRepository->getVuesByProjectAndByUserAsArray($project, $this->getUser());
 		
 		foreach ($vues as &$vue) {
 			if ($vue['user_id'] == $this->getUser()->getId() || 

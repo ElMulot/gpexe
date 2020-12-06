@@ -56,7 +56,7 @@ class VisaRepository extends RepositoryService
      * @return Visa[]
      *
      */
-    public function getVisasArrayByCompany(Project $project, Company $company)
+    public function getVisasByCompanyAsArray(Project $project, Company $company)
     {
     	$qb = $this->newQB('v');
     	return $qb

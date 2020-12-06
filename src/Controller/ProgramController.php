@@ -241,9 +241,9 @@ class ProgramController extends AbstractController
 				}
 								
 				return new JsonResponse([
-					'series' => $this->serieRepository->getSeriesArray($project),
+					'series' => $this->serieRepository->getSeriesByProjectAsArray($project),
 					'current_progress' => $this->programService->progress($program),
-					'progress' => $this->progressRepository->getProgressArray($program),
+					'progress' => $this->progressRepository->getProgressAsArray($program),
 				]);
 				
 			default:

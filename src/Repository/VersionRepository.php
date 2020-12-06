@@ -55,7 +55,7 @@ class VersionRepository extends RepositoryService
 	 * @return Version[]
 	 *
 	 */
-	public function getVersionsArray($codifications, $fields, $series, $project, $request=null): array
+	public function getVersionsAsArray($codifications, $fields, $series, $project, $request=null): array
 	{
 		
 		$qb = $this->getCoreQB($codifications, $fields, $series, $project, $request);

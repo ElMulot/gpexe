@@ -292,6 +292,8 @@ class ProgramService
 			
 			case Program::IMPORT:
 			
+				$this->cacheService->delete('program.documents_created');
+				$this->cacheService->delete('program.versions_created');
 				$this->cacheService->delete('program.ready_to_persist');
 				return true;
 			
@@ -401,7 +403,7 @@ class ProgramService
 	
 	public function import(Program $program): bool
 	{
-		
+		set_time_limit(500);
 		$this->stopWatch->start('import');
 		$project = $program->getProject();
 		$this->parsedCode = $program->getParsedCode();
@@ -424,6 +426,9 @@ class ProgramService
 		$dateFormat = $this->cacheService->get('program.date_format');
 		$currentRow = $this->cacheService->get('program.current_row');
 		$countProcessed = (int)$this->cacheService->get('program.count_processed');
+		$documentsCreated = (int)$this->cacheService->get('program.documents_created');
+		$versionsCreated = (int)$this->cacheService->get('program.versions_created');
+		
 		$options = [];
 		foreach (array_keys($this->parsedCode['option'] ?? []) as $key) {
 			$options[$key] = $this->cacheService->get('program.' . $key);
@@ -598,23 +603,21 @@ class ProgramService
 							$currentDocument->setSerie($currentSerie);
 							$currentSerie->addDocument($currentDocument);
 							$this->addComment('valid', "Création d'un nouveau document.");
+							$documentsCreated++;
 						}
 						
-						
 						if ($currentDocument->setPropertyValue($matches[2], $this->get($matches[3], $currentDocument, $row))) {
-// 							if ($matches[2] == 'document.reference') {
-// 								if ($this->documentService->validateReference($document) === false) {
-// 									$this->addComment('error', "Ligne exclue : le document existe déjà.");
-// 									$currentSerie->removeDocument($currentDocument);
-// 									$currentDocument = null;
-// 								}
-// 							}
 							$this->addComment('valid', "Champ '{$matches[2]}' mis à jour.");
 						} elseif ($matches[2] == 'document.name' || $matches[2] == 'document.reference') {
 							$this->addComment('error', "Erreur en écrivant le champ '{$matches[2]}'.");
 							$currentSerie->removeDocument($currentDocument);
 							$currentDocument = null;
-							break;
+							$this->addComment('error', "Ligne exclue : création du document annulée.");
+							$documentsCreated--;
+							
+							$this->writeComments($row);
+							$currentRow++;
+							continue 2;
 						} else {
 							$col = $this->getCol($matches[3]);
 							$this->addComment('error', "Erreur en écrivant le champ '{$matches[2]}'.", $col);
@@ -631,15 +634,6 @@ class ProgramService
 				$currentRow++;
 				continue;
 				
-			}
-			
-			if ($currentDocument === null) {
-				$this->addComment('error', "Ligne exclue : création du document annulée.");
-				$this->writeComments($row);
-				$currentRow++;
-				continue;
-			} elseif ($this->cacheService->get('program.ready_to_persist')) {
-				$this->entityManager->persist($currentDocument);
 			}
 			
 			//get version
@@ -692,9 +686,6 @@ class ProgramService
 							if ($lastVersion = $currentDocument->getLastVersion()) {
 								
 								$currentVersion
-									->setName($lastVersion->getName())
-									->setIsRequired($lastVersion->getIsRequired())
-									->setDate($lastVersion->getDate())
 									->setStatus($lastVersion->getStatus())
 									->setWriter($lastVersion->getWriter())
 									->setChecker($lastVersion->getChecker())
@@ -718,6 +709,7 @@ class ProgramService
 							$currentVersion->setDocument($currentDocument);
 							$currentDocument->addVersion($currentVersion);
 							$this->addComment('valid', "Création d'une nouvelle version.");
+							$versionsCreated++;
 						}
 						
 						if ($currentVersion->setPropertyValue($matches[2], $this->get($matches[3], $currentVersion, $row))) {
@@ -726,7 +718,19 @@ class ProgramService
 							$this->addComment('warning', "Erreur en écrivant le champ '{$matches[2]}'.");
 							$currentDocument->removeVersion($currentVersion);
 							$currentVersion = null;
-							break;
+							$this->addComment('error', "Ligne exclue : création de la version annulée.");
+							
+							if ($currentDocument->getVersions()->count() == 0) {
+								$currentSerie->removeDocument($currentDocument);
+								$currentDocument = null;
+								$this->addComment('error', "Ligne exclue : création du document annulée.");
+								$documentsCreated--;
+							}
+							
+							$versionsCreated--;
+							$this->writeComments($row);
+							$currentRow++;
+							continue 2;
 						} else {
 							$col = $this->getCol($matches[3]);
 							$this->addComment('warning', "Erreur en écrivant le champ '{$matches[2]}'.", $col);
@@ -737,23 +741,17 @@ class ProgramService
 				}
 				
 			} else {
+				
 				$this->addComment('warning', "Version non trouvée.");
 				$this->writeComments($row);
 				$currentRow++;
 				continue;
+				
 			}
 			
-			if ($currentVersion === null) {
-				$this->addComment('error', "Ligne exclue : création de la version annulée.");
-				if ($currentDocument->getVersions()->count() == 0) {
-					$currentDocument = null;
-					$this->addComment('error', "Ligne exclue : création du document annulée.");
-				}
-				$this->writeComments($row);
-				$currentRow++;
-				continue;
-			} elseif ($this->cacheService->get('program.ready_to_persist')) {
+			if ($readyToPersist) {
 				$this->entityManager->persist($currentVersion);
+				$this->entityManager->persist($currentDocument);
 			}
 			
 			$this->writeComments($row);
@@ -768,11 +766,15 @@ class ProgramService
 			
 			$this->cacheService->set('program.state', 'completed');
 			
-			if ($this->cacheService->get('program.ready_to_persist')) {
+			if ($readyToPersist) {
 				$this->entityManager->flush();
-				$this->flashBagInterface->add('success', 'Import terminé : ' . $countProcessed . '/' . ($currentRow - $firstRow) . ' lignes ont été importées');
+				$this->flashBagInterface->add('success', 'Import terminé : ' . $countProcessed . '/' . ($currentRow - $firstRow) . ' lignes ont été exploitées');
+				$this->flashBagInterface->add('success', $documentsCreated . ' documents ont été créés');
+				$this->flashBagInterface->add('success', $versionsCreated . ' révisions ont été créées');
 			} else {
 				$this->flashBagInterface->add('success', 'Vérification terminée : ' . $countProcessed . '/' . ($currentRow - $firstRow) . ' lignes peuvent être importées');
+				$this->flashBagInterface->add('success', $documentsCreated . ' documents peuvent être créés');
+				$this->flashBagInterface->add('success', $versionsCreated . ' révisions peuvent être créées');
 				try {
 					$this->workbook->save();
 				} catch (Exception $e) {
@@ -786,7 +788,7 @@ class ProgramService
 			$this->cacheService->set('program.count_processed', $countProcessed);
 			$this->cacheService->set('program.current_row', $currentRow);
 			
-			if ($this->cacheService->get('program.ready_to_persist')) {
+			if ($readyToPersist) {
 				$this->entityManager->flush();
 			} else {
 
@@ -876,7 +878,7 @@ class ProgramService
 				}
 				
 				$project = $program->getProject();
-				$series = $this->serieRepository->getSeries($project);
+				$series = $this->serieRepository->getSeriesByProject($project);
 				$values = $this->progress($program);
 				foreach ($values as $serieId => $value) {
 					foreach ($series as $serie) {

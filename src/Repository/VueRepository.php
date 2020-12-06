@@ -26,7 +26,7 @@ class VueRepository extends RepositoryService
 	 * @return Vue[]
 	 *
 	 */
-	public function getVues(Project $project, User $user)
+	public function getVuesByProjectAndByUserAsArray(Project $project, User $user)
 	{
 		$qb = $this->newQB('v');
 		
@@ -67,7 +67,7 @@ class VueRepository extends RepositoryService
 	 * @return Vue
 	 *
 	 */
-	public function getDefaultVue(Project $project, User $user)
+	public function getDefaultVueByProjectAndByUser(Project $project, User $user)
 	{
 		
 		$qb = $this->newQB('v');

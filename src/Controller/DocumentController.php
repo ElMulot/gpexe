@@ -101,11 +101,11 @@ class DocumentController extends AbstractController
 	{
 		if ($serie === null) {
 			$company = null;
-			$series = $this->serieRepository->getSeriesArrayByType($project, $type);
+			$series = $this->serieRepository->getSeriesByTypeAsArray($project, $type);
 			$fields = $this->fieldService->getFieldsForJs($project, $series);
 		} else {
 			$company = $serie->getCompany();
-			$series = $this->serieRepository->getSeriesArrayByCompany($project, $company);
+			$series = $this->serieRepository->getSeriesByCompanyAsArray($project, $company);
 			$fields = $this->fieldService->getFieldsForJs($project, $series);
 		}
 		return new JsonResponse([
@@ -133,7 +133,7 @@ class DocumentController extends AbstractController
 			if ($this->getUser()->getCompany()->isMainContractor() === false) {
 				throw $this->createAccessDeniedException();
 			}
-			$series = $this->serieRepository->getSeriesArrayByType($project, $type);
+			$series = $this->serieRepository->getSeriesByTypeAsArray($project, $type);
 			$serieId = 0;
 		} else {
 			if ($this->getUser()->getCompany()->isMainContractor() === false && $this->getUser()->getCompany() !== $serie->getCompany()) {
@@ -147,7 +147,7 @@ class DocumentController extends AbstractController
 		$fields = $this->fieldService->getFields($project);
 		
 		if ($request->query->all() == false) {
-			if ($vue = $this->vueRepository->getDefaultVue($project, $this->getUser())) {
+			if ($vue = $this->vueRepository->getDefaultVueByProjectAndByUser($project, $this->getUser())) {
 				$vueId = $vue->getId();
 				$request->query->replace($vue->getValue());
 				$request->query->set('vue', $vueId);
@@ -168,7 +168,7 @@ class DocumentController extends AbstractController
 		$request->query->set('results_per_page', $resultsPerPage);
 		$request->query->set('page', min($request->query->get('page') ?? 1, $pageMax));
 		
-		$versions = $this->versionRepository->getVersionsArray($codifications, $fields, $series, $project, $request);
+		$versions = $this->versionRepository->getVersionsAsArray($codifications, $fields, $series, $project, $request);
 		
 		return new JsonResponse([
 			'datas' => $versions,
@@ -365,7 +365,7 @@ class DocumentController extends AbstractController
 		$document = reset($documents);
 		$currentSerie = $document->getSerie();
 		$project = $currentSerie->getProject();
-		$series = $project->getSeries();
+		$series = $this->serieRepository->getSeriesExcept($currentSerie);
 		
 		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
 			throw $this->createAccessDeniedException();

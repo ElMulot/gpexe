@@ -38,7 +38,7 @@ class MetadataItemRepository extends RepositoryService
      * @return MetadataItem[]
      *
      */
-    public function getMetadataItemArray(Metadata $metadata)
+    public function getMetadataItemAsArray(Metadata $metadata)
     {
     	$qb = $this->newQb('m');
     	return $qb

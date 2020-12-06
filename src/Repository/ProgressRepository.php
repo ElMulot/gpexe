@@ -24,7 +24,7 @@ class ProgressRepository extends RepositoryService
      * @return Progress[]
      *
      */
-    public function getProgressArray(Program $program)
+    public function getProgressAsArray(Program $program)
     {
     	$qb = $this->newQB('p');
     	return $qb

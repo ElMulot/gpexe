@@ -586,7 +586,7 @@ class FieldService
 			'sort'		=> true,
 			'filter'	=> [
 				'type'		=> Metadata::LIST,
-				'choices' 	=> $this->companyRepository->getCompaniesArrayByProject($project),
+				'choices' 	=> $this->companyRepository->getCompaniesByProjectAsArray($project),
 			]
 		];
 		
@@ -596,7 +596,7 @@ class FieldService
 			'sort'		=> true,
 			'filter'	=> [
 				'type'		=> Metadata::LIST,
-				'choices' 	=> $this->statusRepository->getStatusesArray($project),
+				'choices' 	=> $this->statusRepository->getStatusesAsArray($project),
 			]
 		];
 		
@@ -639,7 +639,7 @@ class FieldService
 						'sort'		=> true,
 						'filter'	=> [
 							'type'		=> Metadata::LIST,
-							'choices' 	=> $this->metadataItemRepository->getMetadataItemArray($metadata),
+							'choices' 	=> $this->metadataItemRepository->getMetadataItemAsArray($metadata),
 						]
 					];
 					break;
@@ -654,7 +654,7 @@ class FieldService
 					'sort'		=> true,
 					'filter'	=> [
 						'type'		=> Metadata::LIST,
-						'choices' 	=> $this->visaRepository->getVisasArrayByCompany($project, $checkerCompany),
+						'choices' 	=> $this->visaRepository->getVisasByCompanyAsArray($project, $checkerCompany),
 					]
 				];
 			}

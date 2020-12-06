@@ -180,7 +180,7 @@ class Serie
     	if ($this->documents->contains($document)) {
     		$this->documents->removeElement($document);
             // set the owning side to null (unless already changed)
-    		if ($document->getSerie() === $document) {
+    		if ($document->getSerie() === $this) {
     			$document->setSerie(null);
             }
         }

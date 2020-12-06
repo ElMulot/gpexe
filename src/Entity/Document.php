@@ -25,11 +25,13 @@ class Document
 
     /**
      * @ORM\ManyToMany(targetEntity=CodificationItem::class, cascade={"persist"})
+     * @ORM\JoinTable(name="document_codification_item")
      */
     private $codificationItems;
     
     /**
      * @ORM\ManyToMany(targetEntity=CodificationValue::class, cascade={"persist"})
+     * @ORM\JoinTable(name="document_codification_value")
      */
     private $codificationValues;
 
@@ -304,8 +306,8 @@ class Document
     {
     	$project = $this->getSerie()->getProject();
     	$references = explode($project->getSplitter(), $value);
-    	$reference = null;
     	
+    	$reference = null;
     	foreach ($project->getCodifications()->getValues() as $codification) {
     		
     		if ($reference === null) $reference = trim(array_shift($references));

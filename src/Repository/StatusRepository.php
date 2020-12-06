@@ -85,7 +85,7 @@ class StatusRepository extends RepositoryService
      * @return Status[]
      *
      */
-    public function getStatusesArray(Project $project)
+    public function getStatusesAsArray(Project $project)
     {
     	$qb = $this->newQb('s');
     	return $qb

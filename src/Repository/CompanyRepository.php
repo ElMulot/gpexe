@@ -99,7 +99,7 @@ class CompanyRepository extends RepositoryService
     /**
      * @return Company[]
      */
-    public function getCompaniesArrayByProject(Project $project)
+    public function getCompaniesByProjectAsArray(Project $project)
     {
     	$qb = $this->newQb('c');
     	

@@ -81,7 +81,7 @@ class ProfilController extends AbstractController
             
             $this->addFlash('success', 'Entry deleted');
             return $this->redirectToRoute('profil');
-        } elseif ($profilRepository->countAdminProfil($profil->getId()) == 0) {
+        } elseif ($profilRepository->getCountAdminProfil($profil->getId()) == 0) {
             $this->addFlash('danger', 'The last entry with Admin rights cannot be deleted');
             return $this->redirectToRoute('profil');
         } else {

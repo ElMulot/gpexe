@@ -32,7 +32,7 @@ class SerieRepository extends RepositoryService
 	/**
 	 * @return Serie[]
 	 */
-	public function getSeries(Project $project)
+	public function getSeriesByProject(Project $project)
 	{
 		$qb = $this->newQb('s');
 		return $qb
@@ -45,7 +45,7 @@ class SerieRepository extends RepositoryService
 	/**
 	 * @return Serie[]
 	 */
-	public function getSeriesArray(Project $project)
+	public function getSeriesByProjectAsArray(Project $project)
 	{
 		$qb = $this->newQb('s');
 		return $qb
@@ -57,6 +57,22 @@ class SerieRepository extends RepositoryService
 			->addGroupBy('s.id')
 			->getQuery()
 			->getArrayResult()
+		;
+	}
+	
+	/**
+	 * @return Serie[]
+	 */
+	public function getSeriesExcept(Serie $serie)
+	{
+		$qb = $this->newQb('s');
+		return $qb
+			->innerJoin('s.company', 'c')
+			->andWhere($qb->eq('s.project', $serie->getProject()))
+			->andWhere($qb->neq('s.id', $serie->getId()))
+			->addOrderBy('c.name, s.name')
+			->getQuery()
+			->getResult()
 		;
 	}
 	
@@ -201,7 +217,6 @@ class SerieRepository extends RepositoryService
 	{
 		$qb = $this->newQb('s');
 		return $qb
-			->select('s.id, s.name, c.type')
 			->innerJoin('s.company', 'c')
 			->andWhere($qb->eq('s.project', $project))
 			->andWhere($qb->eq('s.company', $company))
@@ -215,7 +230,7 @@ class SerieRepository extends RepositoryService
 	/**
 	 * @return Serie[]
 	 */
-	public function getSeriesArrayByType(Project $project, string $type)
+	public function getSeriesByTypeAsArray(Project $project, string $type)
 	{
 		switch ($type) {
 			case 'sdr':
@@ -259,7 +274,7 @@ class SerieRepository extends RepositoryService
 	/**
 	 * @return Serie[]
 	 */
-	public function getSeriesArrayByCompany(Project $project, Company $company)
+	public function getSeriesByCompanyAsArray(Project $project, Company $company)
 	{
 		$qb = $this->newQb('s');
 		$series = $qb

@@ -5,8 +5,8 @@
 # https://symfony.com/doc/current/best_practices/configuration.html#application-related-configuration
 parameters:
     app_webmaster: 'Nicolas VEDEL'
-    app_version: 0.3.1
-    app_date: 26-11-2020
+    app_version: 0.3.2
+    app_date: 06-12-2020
     disable_log: true
     uploads_directory: 'uploads'
 

@@ -84,6 +84,7 @@ class Project
 
     /**
      * @ORM\OneToMany(targetEntity=Serie::class, mappedBy="project", orphanRemoval=true)
+     * @ORM\OrderBy({"name" = "ASC"})
      */
     private $series;
 

@@ -38,7 +38,7 @@ class Automation
 	private $route;
 
 	/**
-	 * @ORM\Column(type="json")
+	 * @ORM\Column(type="json", nullable=true)
 	 */
 	private $parameters = [];
 	
