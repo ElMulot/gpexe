@@ -1498,7 +1498,7 @@ $(document).ready(function() {
 	$('#modal_detail').on('ajax.completed', function(e, result, textStatus, jqXHR) {
 		
 		$(e.target).find('#version_edit_detail, #version_delete_detail').on('click', function() {
-			global.ajax.set('#modal', $(this).data('url') + '?id[]=' + $('#version_tabs>a.active').data('id'), {from: this});
+			global.ajax.set('#modal', $(this).data('url') + '?id[]=' + $('#version_tabs>a.active').data('id') + '&modal=1', {from: this});
 	    });
 		
 	});
@@ -1507,12 +1507,6 @@ $(document).ready(function() {
 		
 		if (result === '') {
 			
-			if ($('#modal_detail_container').hasClass('show')) {
-				global.ajax.set('#modal_detail', $('#menu').data('url'));
-			} else {
-				urlSearch.fetch();
-			}
-			$('#modal').empty();
 			$('#modal_container').modal('hide');
 			
 			if ($('#modal').data('upload') === 'vues') {
@@ -1520,7 +1514,13 @@ $(document).ready(function() {
 				$('#modal').removeAttr('data-upload');
 			}
 			
+			$('#modal_detail_container').modal('hide');
+			urlSearch.fetch();
 			e.stopPropagation();
+		}
+		
+		if ($(result).filter('div').hasClass('modal-body') === false) {
+			$('#modal_container').modal('hide');
 		}
 		
 	});

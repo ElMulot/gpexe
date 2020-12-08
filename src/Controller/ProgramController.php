@@ -2,27 +2,24 @@
 
 namespace App\Controller;
 
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Contracts\Translation\TranslatorInterface;
-use App\Entity\Project;
 use App\Entity\Automation;
 use App\Entity\Program;
-use App\Entity\Progress;
-use App\Form\ProgramType;
+use App\Entity\Project;
 use App\Form\LauncherType;
+use App\Form\ProgramType;
 use App\Repository\AutomationRepository;
 use App\Repository\ProgramRepository;
 use App\Repository\ProgressRepository;
 use App\Repository\SerieRepository;
-use App\Service\ParseService;
-use App\Service\ProgramService;
 use App\Service\CacheService;
 use App\Service\FieldService;
-use Symfony\Component\Security\Core\Authorization\Voter\AuthenticatedVoter;
-use Symfony\Component\Validator\Mapping\AutoMappingStrategy;
+use App\Service\ParseService;
+use App\Service\ProgramService;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 
 class ProgramController extends AbstractController

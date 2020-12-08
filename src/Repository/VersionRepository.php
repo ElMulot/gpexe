@@ -142,6 +142,81 @@ class VersionRepository extends RepositoryService
 						}
 						$qb->addOrderBy('status.type', $order);
 						break;
+					
+					case (preg_match('/metadata_(\d+)/', $sortedField, $result) === 1):
+						
+						$id = $result[1];
+						
+						foreach ($fields as $field) {
+							
+							if ($sortedField == $field['id']) {
+								
+								switch ($field['type']) {
+									
+									case Metadata::BOOLEAN:
+									case Metadata::TEXT:
+									case Metadata::DATE:
+									case Metadata::LINK:
+										if ($qb->hasAlias($field['id'] . '_') === false) {
+											$qb->leftJoin($field['parent'] . '.metadataValues', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id));
+										}
+										$qb
+											->groupBy('version.id')
+											->addOrderBy("MAX({$field['id']}_.value)", $order)
+										;
+										break;
+										
+									case Metadata::LIST:
+										
+										if ($qb->hasAlias($field['id'] . '_') === false) {
+											$qb
+												->leftJoin($field['parent'] . '.metadataItems', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
+											;
+										}
+										$qb
+											->groupBy('version.id')
+											->addOrderBy("MAX({$field['id']}_.value)", $order)
+										;
+										break;
+										
+								}
+								break;
+							}
+						}
+						break;
+						
+					case (preg_match('/visa_(\d+)/', $sortedField, $result) === 1):
+						
+						$id = $result[1];
+						
+						foreach ($fields as $field) {
+							
+							if ($sortedField == $field['id']) {
+								if ($qb->hasAlias($field['id'] . '_') === false) {
+									
+									$subQb = $this->newQB('');
+									$visas = $subQb
+										->select('visa.id')
+										->from(Visa::class, 'visa')
+										->andWhere($subQb->eq('visa.project', $project))
+										->andWhere($subQb->eq('visa.company', $id))
+										->getQuery()
+										->getArrayResult()
+									;
+									
+									$qb
+										->leftJoin('version.reviews', 'review_' . $id, Join::WITH, $qb->in("review_{$id}.visa", $visas))
+										->leftJoin("review_{$id}.visa", $field['id'] . '_')
+									;
+									
+								}
+								$qb->addOrderBy("{$field['id']}_.name", $order);
+								break;
+							}
+							
+						}
+						
+						break;
 				}
 			}
 			
@@ -263,12 +338,12 @@ class VersionRepository extends RepositoryService
 						break;
 					
 					case (preg_match('/metadata_(\d+)/', $name, $result) === 1):
-							
+						
+						$id = $result[1];
+						
 						foreach ($fields as $field) {
 							
 							if ($name == $field['id']) {
-								
-								$id = $result[1];
 								
 								switch ($field['type']) {
 									
@@ -299,6 +374,7 @@ class VersionRepository extends RepositoryService
 										break;
 										
 								}
+								break;
 							}
 						}
 						break;
@@ -329,6 +405,7 @@ class VersionRepository extends RepositoryService
 									
 								}
 								$qb->addSelect("{$field['id']}_.name AS {$field['id']}");
+								break;
 							}
 							
 						}

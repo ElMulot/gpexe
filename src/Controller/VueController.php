@@ -59,7 +59,7 @@ class VueController extends AbstractController
 			$entityManager->flush();
 			
 			$this->addFlash('success', $this->translator->trans('New vue created'));
-			return new Response();
+			return $this->ajaxRedirectService->get($this->generateUrl('document_fields', ['version' => $version->getId()]), '#modal_detail');
 		} else {
 			$view = $form->createView();
 			return $this->render('ajax/form.html.twig', [

@@ -143,7 +143,13 @@ class VersionController extends AbstractController
 			$entityManager->flush();
 			
 			$this->addFlash('success', $this->translator->trans('New version created'));
-			return new Response();
+			
+			if ($request->query->has('modal')) {
+				return $this->ajaxRedirectService->get($this->generateUrl('document_detail', ['version' => $version->getId()]), '#modal_detail');
+			} else {
+				return new Response();
+			}
+				
 		} else {
 			$view = $form->createView();
 			return $this->render('ajax/form.html.twig', [
@@ -250,7 +256,14 @@ class VersionController extends AbstractController
 			$entityManager->flush();
 			
 			$this->addFlash('success', $this->translator->trans('updated.version', ['count' => count($versions)]));
-			return new Response();
+			
+			if ($request->query->has('modal')) {
+				
+				return $this->ajaxRedirectService->get($this->generateUrl('document_detail', ['version' => reset($versions)->getId()]), '#modal_detail');
+			} else {
+				return new Response();
+			}
+			
 		} else {
 			$view = $form->createView();
 			return $this->render('ajax/form.html.twig', [
@@ -286,7 +299,14 @@ class VersionController extends AbstractController
 	        $this->documentService->removeOrphans();
 	        
 	        $this->addFlash('success', $this->translator->trans('deleted.version', ['count' => count($versions)]));
-	        return new Response();
+	        
+	        
+	        if ($request->query->has('modal') && $document->getVersions()->count() > 0) {
+	        	return $this->ajaxRedirectService->get($this->generateUrl('document_detail', ['version' => $document->getLastVersion()->getId()]), '#modal_detail');
+	        } else {
+	        	return new Response();
+	        }
+	       
 	    } else {
 	        return $this->render('ajax/delete.html.twig', [
 	            'entities' => $versions,

@@ -403,7 +403,7 @@ class ProgramService
 	
 	public function import(Program $program): bool
 	{
-		set_time_limit(500);
+// 		set_time_limit(500);
 		$this->stopWatch->start('import');
 		$project = $program->getProject();
 		$this->parsedCode = $program->getParsedCode();

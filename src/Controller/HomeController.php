@@ -81,6 +81,7 @@ class HomeController extends AbstractController
     			'version_checker' => $fields['version.checker']['default_width'],
     			'version_delivery_date' => $fields['version.deliveryDate']['default_width'],
     			'version_last_delivered' => $fields['version.lastDelivered']['default_width'],
+    			'visa_' . $this->getUser()->getCompany()->getId() => $fields['visa.' . $this->getUser()->getCompany()->getCodename() . '.value']['default_width'],
     		],
     		'filter' => [
     			'version_is_required' => 0,
@@ -88,7 +89,7 @@ class HomeController extends AbstractController
     			'version_checker' => [$this->getUser()->getId()],
     		],
     		'results_per_page' => 50,
-    		'sortDesc' => 'version_delivery_date',
+    		'sortAsc' => 'visa_' . $this->getUser()->getCompany()->getId(),
     		'page' => 1,
     		
     	];

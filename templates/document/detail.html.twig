@@ -19,12 +19,12 @@
         
         {% if is_granted('ROLE_EDIT_DOCUMENTS') %}
             <div class="align-items-end">
-            	<button class="btn btn-primary w-100 text-nowrap my-1" data-toggle="modal ajax" data-target="#modal" data-url="{{ path('version_new', {'document': document.id }) }}">{% trans %}New{% endtrans %}</button>
+            	<button class="btn btn-primary w-100 text-nowrap my-1" data-toggle="modal ajax" data-target="#modal" data-url="{{ path('version_new', {'document': document.id, 'modal':true }) }}">{% trans %}New{% endtrans %}</button>
             	<button id="version_edit_detail" class="btn btn-primary w-100 text-nowrap my-1" data-toggle="modal" data-url="{{ path('version_edit') }}">{% trans %}Edit{% endtrans %}</button>
             	<button id="version_delete_detail" class="btn btn-primary w-100 text-nowrap my-1" data-toggle="modal" data-url="{{ path('version_delete') }}">{% trans %}Delete{% endtrans %}</button>
             </div>
 		{% endif %}
 	</div>
-	<div id="version_content" class="col px-3 overflow-auto h-100" >
+	<div id="version_content" class="col px-3 overflow-auto h-100">
 	</div>
 </div>
