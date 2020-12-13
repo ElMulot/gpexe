@@ -206,22 +206,29 @@ class DocumentController extends AbstractController
 		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
 			throw $this->createAccessDeniedException();
 		}
-		
+
 		$document = new Document();
 		$document->setSerie($serie);
-		$project = $serie->getProject();
-
+		
 		$form = $this->createForm(DocumentType::class, $document, [
-			'project' => $project
+			'serie' => $serie
 		]);
 		
 		$form->handleRequest($request);
 		
 		if ($form->isSubmitted() && $form->isValid()) {
 			
+			$entityManager = $this->getDoctrine()->getManager();
+			$this->documentService->removeOrphans();
+			$entityManager->flush();
+			
 			foreach ($this->codificationRepository->getCodifications($project) as $codification) {
 				
-				$value = $form->get($codification->getCodeName())->getData();
+				if ($codification->isFixed()) {
+					continue;
+				}
+				
+				$value = $form->get($codification->getFullId())->getData();
 				
 				if ($value === null && $codification->getIsMandatory()) {
 					$this->addFlash('danger', $this->translator->trans('notEmpty.field', ['field' => $codification->getName()]));
@@ -241,9 +248,9 @@ class DocumentController extends AbstractController
 					'form' => $view,
 				]);
 			}
-			
+						
 			foreach ($this->metadataRepository->getMetadatasForDocument($project) as $metadata) {
-				$value = $form->get($metadata->getCodeName())->getData();
+				$value = $form->get($metadata->getFullId())->getData();
 				
 				if ($value === null && $metadata->getIsMandatory()) {
 					$this->addFlash('danger', $this->translator->trans('notEmpty.field', ['field' => $metadata->getName()]));
@@ -256,7 +263,6 @@ class DocumentController extends AbstractController
 				$document->setMetadataValue($metadata, $value);
 			}
 			
-			$entityManager = $this->getDoctrine()->getManager();
 			$entityManager->persist($document);
 			$entityManager->flush();
 			
@@ -280,64 +286,95 @@ class DocumentController extends AbstractController
 		}
 		
 		$document = reset($documents);
-		
-		if (count($documents) > 1) {
-			$this->addFlash('danger', $this->translator->trans('Only one reference must be selected'));
-			return $this->render('ajax/error.html.twig');
-		}
-		
-		$project = $document->getSerie()->getProject();
+		$serie = $document->getSerie();
+		$project = $serie->getProject();
 		
 		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
 			throw $this->createAccessDeniedException();
 		}
 		
-		$form = $this->createForm(DocumentType::class, $document, [
-			'project' => $project
+		$form = $this->createForm(DocumentType::class, $documents, [
+			'serie' => $serie,
 		]);
 		
 		$form->handleRequest($request);
 		
 		if ($form->isSubmitted() && $form->isValid()) {
 			
-			foreach ($this->codificationRepository->getCodifications($project) as $codification) {
-				$value = $form->get($codification->getCodeName())->getData();
+			$entityManager = $this->getDoctrine()->getManager();
+			$this->documentService->removeOrphans();
+			$entityManager->flush();
+			
+			$references = [];
+			
+			foreach ($documents as $document) {
 				
-				if ($value === null && $codification->getIsMandatory()) {
-					$this->addFlash('danger', $this->translator->trans('notEmpty.field', ['field' => $codification->getName()]));
+				foreach ($this->codificationRepository->getCodifications($project) as $codification) {
+					
+					if ($codification->isFixed()) {
+						continue;
+					}
+					
+					if ($this->isMultiple($form, $codification->getFullId()) == false) {
+						
+						$value = $form->get($codification->getFullId())->getData();
+						
+						if ($value === null && $codification->getIsMandatory()) {
+							$this->addFlash('danger', $this->translator->trans('notEmpty.field', ['field' => $codification->getName()]));
+							$view = $form->createView();
+							return $this->render('ajax/form.html.twig', [
+								'form' => $view,
+							]);
+						}
+						
+						$document->setCodificationValue($codification, $value);
+					}
+				}
+				
+				$references[] = $document->getReference();
+				
+				if ($this->documentService->validateReference($document) === false) {
+					$this->addFlash('danger', $this->translator->trans('alreadyExist.reference', ['reference' => $document->getReference()]));
 					$view = $form->createView();
 					return $this->render('ajax/form.html.twig', [
 						'form' => $view,
 					]);
 				}
 				
-				$document->setCodificationValue($codification, $value);
+				if ($form->has('name')) {
+					$document->setName($form->get('name')->getData());
+				}
+				
+				foreach ($this->metadataRepository->getMetadatasForDocument($project) as $metadata) {
+					
+					if ($this->isMultiple($form, $metadata->getFullId()) == false) {
+						
+						$value = $form->get($metadata->getFullId())->getData();
+						
+						if ($value === null && $metadata->getIsMandatory()) {
+							$this->addFlash('danger', $this->translator->trans('notEmpty.field', ['field' => $metadata->getName()]));
+							$view = $form->createView();
+							return $this->render('ajax/form.html.twig', [
+								'form' => $view,
+							]);
+						}
+						
+						$document->setMetadataValue($metadata, $value);
+					}
+				}
+				
+				$entityManager->persist($document);
 			}
 			
-			if ($this->documentService->validateReference($document) === false) {
-				$this->addFlash('danger', $this->translator->trans('alreadyExist.reference', ['reference' => $document->getReference()]));
+			//check if any modified documents hasn't the same codification
+			if (array_unique($references) != $references) {
+				$this->addFlash('danger', $this->translator->trans('The same codification has been setting up to more than one document'));
 				$view = $form->createView();
 				return $this->render('ajax/form.html.twig', [
 					'form' => $view,
 				]);
 			}
 			
-			foreach ($this->metadataRepository->getMetadatasForDocument($project) as $metadata) {
-				$value = $form->get($metadata->getCodeName())->getData();
-				
-				if ($value === null && $metadata->getIsMandatory()) {
-					$this->addFlash('danger', $this->translator->trans('notEmpty.field', ['field' => $metadata->getName()]));
-					$view = $form->createView();
-					return $this->render('ajax/form.html.twig', [
-						'form' => $view,
-					]);
-				}
-				
-				$document->setMetadataValue($metadata, $value);
-			}
-			
-			$entityManager = $this->getDoctrine()->getManager();
-			$entityManager->persist($document);
 			$entityManager->flush();
 			
 			$request->query->remove('id');
@@ -448,6 +485,14 @@ class DocumentController extends AbstractController
 			'version_is_required' => $fields['version.isRequired']['default_width'],
 			'status_value' => $fields['status.value']['default_width'],
 		];
+	}
+	
+	private function isMultiple($form, string $id): bool
+	{
+		if ($form->has($id . '_multiple')) {
+			if ($form->get($id . '_multiple')->getData() == 1) return true;
+		}
+		return false;
 	}
 	
 }

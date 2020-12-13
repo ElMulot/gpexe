@@ -14,11 +14,11 @@ var gpexe = {
 }
 
 const type = {
-	bool: 1,
-	text: 2,
-	date: 3,
-	link: 4,
-	list: 5,
+	bool: 11,
+	text: 12,
+	date: 13,
+	link: 14,
+	list: 15,
 };
 
 //---------------
@@ -584,7 +584,12 @@ function setup(datas) {
 								.attr('checked', parseInt(urlSearch.get('filter[' + element.id + ']')) === choice.value)
 								.on('click', function() {
 									
-									element.filter.find('input').not(this).prop('checked', false);
+									for (let choice of element.filter.choices) {	
+										if (choice.chx != this) {
+											choice.chx.prop('checked', false);
+										}
+									}
+									
 									urlSearch.set('filter[' + element.id + ']', choice.value);
 									
 									header.btnDropdown.dropdown('hide');
@@ -1094,7 +1099,6 @@ $(document).ready(function() {
 				div3.append(create.a).children().last()
 					.addClass('dropdown-item text-success')
 					.on('click', function() {
-						$('#modal').attr('data-upload', 'vues');
 						global.ajax.set('#modal', vue['edit_url'], {modal: true});
 					})
 					.text($.i18n('edit'))
@@ -1103,7 +1107,6 @@ $(document).ready(function() {
 				div3.append(create.a).children().last()
 					.addClass('dropdown-item text-danger')
 					.on('click', function() {
-						$('#modal').attr('data-upload', 'vues');
 						global.ajax.set('#modal', vue['delete_url'], {modal: true, from: this});
 					})
 					.text($.i18n('delete'))
@@ -1119,7 +1122,6 @@ $(document).ready(function() {
 	});
 	
 	$('#vue_new').on('click', function() {
-		$('#modal').attr('data-upload', 'vues');
 		global.ajax.set('#modal', $(this).data('url') + urlSearch.toUrl(), {modal: true});
 	});
 	
@@ -1273,7 +1275,7 @@ $(document).ready(function() {
 					if (header.id == 'status_type') {
 						value = header.elements[0].filter.choices[value].text;
 					}
-					
+					console.log(value);
 					switch (header.type) {
 						case type.bool:
 							dataClass = 'text-center';
@@ -1282,8 +1284,9 @@ $(document).ready(function() {
 							break;
 						case type.date:
 							dataClass = 'text-center';
+							
 							if (value instanceof Object) {
-
+								
 								value = value.date.toDate();
 								
 								//highlight
@@ -1509,23 +1512,20 @@ $(document).ready(function() {
 			
 			$('#modal_container').modal('hide');
 			
-			if ($('#modal').data('upload') === 'vues') {
-				urlSearch.getVues();
-				$('#modal').removeAttr('data-upload');
-			}
-			
 			$('#modal_detail_container').modal('hide');
 			urlSearch.fetch();
 			e.stopPropagation();
-		}
 		
-		if ($(result).filter('div').hasClass('modal-body') === false) {
-			$('#modal_container').modal('hide');
+		} else if ($('<div>' + result + '</div>').find('div.modal-body').exist()) {
+			return true;
+		} else if ($('<div>' + result + '</div>').find('pre.sf-dump').exist()) { //for debug only
+			return true;	
 		}
+		$('#modal_container').modal('hide');
 		
 	});
 	
-	$('#modal_detail_close').on('click', function(e) {
+	$('#modal_detail_container').on('hidden.bs.modal', function(e) {
 		urlSearch.fetch();
 	});
 	

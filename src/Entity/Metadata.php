@@ -14,11 +14,11 @@ use App\Entity\MetadataItem;
 class Metadata
 {
     
-	const BOOLEAN   		= 1;
-	const TEXT			    = 2;
-	const DATE			    = 3;
-	const LINK				= 4;
-	const LIST      	    = 5;
+	const BOOLEAN   		= 11;
+	const TEXT			    = 12;
+	const DATE			    = 13;
+	const LINK				= 14;
+	const LIST      	    = 15;
 	const DEFAULT           = self::LIST;
 	
 	const SERIE				= 1;
@@ -229,14 +229,9 @@ class Metadata
     	}
     }
     
-    public function getFullDomId(): string
+    public function getFullId(): string
     {
     	return 'metadata_' . $this->id;
-    }
-    
-    public function getFullDomName(): string
-    {
-    	return 'metadata[' . $this->id . ']';
     }
     
     public function getFullCodename(): string

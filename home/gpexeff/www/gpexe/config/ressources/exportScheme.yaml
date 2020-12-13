@@ -1,0 +1,31 @@
+type: 
+    default: 'export'
+
+first_row:
+    regex: '\d+'
+    default: 1
+
+exclude:
+    -
+        regex: '.+'
+
+write:
+    -
+        condition:
+            regex: '.+'
+        to:
+            regex: '[A-Z]{1,2}'
+        value:
+            regex: '.+'
+        title:
+            regex: '.+'
+
+option:
+    library:
+        regex: 'phpspreadsheet|spout'
+        default: 'spout'
+        type: 'list'
+    date_format:
+        regex: '[djDlSzFMmnYyaAhgGHisvu\s#;:\/\.,\-\(\)]+'
+        default: 'd-m-Y'
+        type: 'text'

@@ -2,25 +2,29 @@
 
 namespace App\Controller;
 
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Contracts\Translation\TranslatorInterface;
-use Symfony\Component\HttpFoundation\JsonResponse;
-use App\Entity\Vue;
 use App\Entity\Project;
+use App\Entity\Vue;
 use App\Form\VueType;
 use App\Repository\VueRepository;
+use App\Service\AjaxRedirectService;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 class VueController extends AbstractController
 {
 	
 	private $vueRepository;
 	
-	public function __construct(TranslatorInterface $translator, VueRepository $vueRepository)
+	private $ajaxRedirectService;
+	
+	public function __construct(TranslatorInterface $translator, VueRepository $vueRepository, AjaxRedirectService $ajaxRedirectService)
 	{
 		$this->translator = $translator;
 		$this->vueRepository = $vueRepository;
+		$this->ajaxRedirectService = $ajaxRedirectService;
 	}
 	
 	public function index(Project $project): Response
@@ -59,7 +63,7 @@ class VueController extends AbstractController
 			$entityManager->flush();
 			
 			$this->addFlash('success', $this->translator->trans('New vue created'));
-			return $this->ajaxRedirectService->get($this->generateUrl('document_fields', ['version' => $version->getId()]), '#modal_detail');
+			return $this->ajaxRedirectService->get($this->generateUrl('vue', ['project' => $project->getId()]), '#vues');
 		} else {
 			$view = $form->createView();
 			return $this->render('ajax/form.html.twig', [
@@ -83,7 +87,7 @@ class VueController extends AbstractController
 			$entityManager->flush();
 			
 			$this->addFlash('success', $this->translator->trans('Vue updated'));
-			return new Response();
+			return $this->ajaxRedirectService->get($this->generateUrl('vue', ['project' => $vue->getProject()->getId()]), '#vues');
 		} else {
 			$view = $form->createView();
 			return $this->render('ajax/form.html.twig', [
@@ -105,7 +109,7 @@ class VueController extends AbstractController
 			$entityManager->flush();
 			
 			$this->addFlash('success', $this->translator->trans('Vue deleted'));
-			return new Response();
+			return $this->ajaxRedirectService->get($this->generateUrl('vue', ['project' => $vue->getProject()->getId()]), '#vues');
 		} else {
 			return $this->render('ajax/delete.html.twig', [
 				'entities' => [$vue],

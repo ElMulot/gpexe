@@ -211,14 +211,9 @@ class Codification
     	return $this;
     }
     
-    public function getFullDomId(): string
+    public function getFullId(): string
     {
     	return 'codification_' . $this->id;
-    }
-    
-    public function getFullDomName(): string
-    {
-    	return 'codification[' . $this->id . ']';
     }
     
     public function getFullCodename(): string

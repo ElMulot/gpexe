@@ -115,7 +115,7 @@ class VersionRepository extends RepositoryService
 						if ($qb->hasAlias('company') === false) {
 							$qb->leftJoin('serie.company', 'company');
 						}
-						$qb->addSelect('company.name', $order);
+						$qb->addOrderBy('company.name', $order);
 						break;
 						
 					case 'status_name':
@@ -490,36 +490,19 @@ class VersionRepository extends RepositoryService
 	 * @return Version[]
 	 *
 	 */
-	public function getVersionsByDocument(Document $document, bool $lastProducedVersion = false)
+	public function getVersionsByDocument(Document $document)
 	{
 		$qb = $this->newQB('v');
-		
-		if ($lastProducedVersion) {
 			
-			return $qb
-				->innerJoin('v.document', 'd')
-				->innerJoin('v.status', 's')
-				->andWhere($qb->eq('d.id', $document->getId()))
-				->andWhere($qb->eq('v.isRequired', false))
-				->andWhere($qb->neq('s.type', Status::CANCEL))
-				->addOrderBy('v.deliveryDate', 'DESC')
-				->getQuery()
-				->getOneOrNullResult()
-			;
-			
-		} else {
-			
-			return $qb->innerJoin('v.document', 'd')
-				->andWhere($qb->eq('d.id', $document->getId()))
-				->addOrderBy('v.initialScheduledDate', 'DESC')
-				->addOrderBy('v.scheduledDate', 'DESC')
-				->addOrderBy('v.deliveryDate', 'DESC')
-				->addOrderBy('v.name', 'DESC')
-				->getQuery()
-				->getResult()
-			;
-			
-		}
+		return $qb
+			->addSelect('CASE WHEN v.deliveryDate IS NULL THEN v.scheduledDate ELSE v.deliveryDate END AS HIDDEN date')
+			->innerJoin('v.document', 'd')
+			->andWhere($qb->eq('d.id', $document->getId()))
+			->addOrderBy('date', 'DESC')
+			->addOrderBy('v.name', 'DESC')
+			->getQuery()
+			->getResult()
+		;
 	}
 	
 	/**
@@ -816,13 +799,13 @@ class VersionRepository extends RepositoryService
 		if ($request->query->all('display')) {
 			
 			if (array_key_exists('version_first_scheduled', $request->query->all('display'))) {
-				$qb->leftJoin(Version::class, 'vfc', Join::WITH, 'version.document = vfc.document AND (version.scheduledDate > vfc.scheduledDate OR (version.scheduledDate = vfc.scheduledDate AND version.name < vfc.name))')
+				$qb->leftJoin(Version::class, 'vfc', Join::WITH, 'version.document = vfc.document AND vfc.isRequired = true AND (version.scheduledDate > vfc.scheduledDate OR (version.scheduledDate = vfc.scheduledDate AND version.name < vfc.name))')
 					->andWhere($qb->isNull('vfc.scheduledDate'))
 				;
 			}
 			
 			if (array_key_exists('version_last_delivered', $request->query->all('display'))) {
-				$qb->leftJoin(Version::class, 'vld', Join::WITH, 'version.document = vld.document AND (version.deliveryDate < vld.deliveryDate OR (version.deliveryDate = vld.deliveryDate AND version.name < vld.name))')
+				$qb->leftJoin(Version::class, 'vld', Join::WITH, 'version.document = vld.document AND vld.isRequired = false AND (version.deliveryDate < vld.deliveryDate OR (version.deliveryDate = vld.deliveryDate AND version.name < vld.name))')
 					->andWhere($qb->isNull('vld.deliveryDate'))
 				;
 			}

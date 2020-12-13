@@ -46,11 +46,6 @@ security:
         - { path: '^/logout$',                                                     roles: PUBLIC_ACCESS }
         - { path: '^/automation/cron$',                                            roles: PUBLIC_ACCESS }
         
-        - { path: '^/company',                                                     roles: ROLE_ADMIN }
-        - { path: '^/user',                                                        roles: ROLE_ADMIN }
-        - { path: '^/profil',                                                      roles: ROLE_ADMIN }
-        - { path: '^/log',                                                         roles: ROLE_ADMIN }
-        
         - { path: '^/project/\d+/alert$',                                          roles: ROLE_USER }
         - { path: '^/project/\d+$',                                                roles: ROLE_USER } #project_view
         - { path: '^/project/\d+/\d+$',                                            roles: ROLE_USER } #serie_route
@@ -58,22 +53,28 @@ security:
         - { path: '^/project/\d+/serie/(sdr|mdr)/?\d*',                            roles: ROLE_USER } #document, document_table
         
         - { path: '^/project/\d+/vue',                                             roles: ROLE_USER } #vue, vue_new
-        - { path: '^/project/vue/\d+/',                                            roles: ROLE_USER } #vue_edit, vue_remove
+        - { path: '^/project/vue/\d+/',                                            roles: ROLE_USER } #vue_edit, vue_delete
         
         - { path: '^/project/serie/document/\d+/detail$',                          roles: ROLE_USER } #document_detail
         - { path: '^/project/serie/document/version/\d+/detail$',                  roles: ROLE_USER } #version_detail
         
-        - { path: '^/project/serie/document/version/{version}/{company}/review',   roles: ROLE_USER } #review, review_new
-        - { path: '^/project/serie/document/version/review/\d+/',                  roles: ROLE_USER } #review_edit, review_remove
-        
-        - { path: '^/project/serie/\d+/document/new$',                             roles: ROLE_EDIT_DOCUMENTS } #document_new
-        - { path: '^/project/serie/document/',                                     roles: ROLE_EDIT_DOCUMENTS } #document_edit, document_remove, document_move
-        - { path: '^/project/serie/document/\d+/version/new$',                     roles: ROLE_EDIT_DOCUMENTS } #version_new
-        - { path: '^/project/serie/document/version/',                             roles: ROLE_EDIT_DOCUMENTS } #version_edit, version_remove
+        - { path: '^/project/serie/document/version/\d+/\d+/review',               roles: ROLE_USER } #review, review_new
+        - { path: '^/project/serie/document/version/review/\d+/',                  roles: ROLE_USER } #review_edit, review_delete
         
         - { path: '^/project/program/\d+/(dashboard|preload|load)$',               roles: ROLE_USER } #program_dashboard, program_preload, program_load
+
+        - { path: '^/project/serie/\d+/document/new$',                             roles: ROLE_EDIT_DOCUMENTS } #document_new
+        - { path: '^/project/serie/document/(edit|move|delete)',                   roles: ROLE_EDIT_DOCUMENTS } #document_edit, document_move, document_delete
+        - { path: '^/project/serie/document/\d+/version/new$',                     roles: ROLE_EDIT_DOCUMENTS } #version_new
+        - { path: '^/project/serie/document/version/(edit|delete)',                roles: ROLE_EDIT_DOCUMENTS } #version_edit, version_delete
         
         - { path: '^/project/',                                                    roles: ROLE_CONTROLLER }
+        
+        - { path: '^/company',                                                     roles: ROLE_ADMIN }
+        - { path: '^/user',                                                        roles: ROLE_ADMIN }
+        - { path: '^/profil',                                                      roles: ROLE_ADMIN }
+        - { path: '^/log',                                                         roles: ROLE_ADMIN }
+
         - { path: '.',                                                             roles: ROLE_USER }
         
     role_hierarchy:

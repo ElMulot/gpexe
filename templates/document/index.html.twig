@@ -113,7 +113,7 @@
     				
     			</div>
     			<div class="modal-footer justify-content-center">
-    				<button id="modal_detail_close" type="button" class="btn btn-secondary w-25" data-dismiss="modal">{% trans %}Close{% endtrans %}</button>
+    				<button type="button" class="btn btn-secondary w-25" data-dismiss="modal">{% trans %}Close{% endtrans %}</button>
     			</div>
     		</div>
     	</div>
@@ -123,22 +123,7 @@
     	<div id="spinner">
     	</div>
         <table id="table" class="table table-sm" data-url="{{ path('document_table', app.request.attributes.get('_route_params')) }}" style="display: none;">
-        
-{#             <thead>#}
-{#                 <tr>#}
-{#         			<th id="checkbox">#}
-{#                 		<div class="btn-group custom-control custom-checkbox btn btn-sm btn-primary rounded-0">#}
-{#                 			<input type="checkbox" id="check_all" class="custom-control-input" unchecked="unchecked">#}
-{#                 			<label class="custom-control-label mx-1" for="check_all"></label>#}
-{#                 		</div>#}
-{#         			</th>#}
-        			
-{#                     <th id="detail"></th>#}
-{#         		</tr>#}
-{#             </thead>#}
-            <tbody>
-            
-        	</tbody>
+        	
         </table>
         
         <nav id="pagination">

@@ -1,93 +1,99 @@
 <?php
 namespace App\Form;
 
-use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\FormBuilderInterface;
-use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
-use Symfony\Component\Form\Extension\Core\Type\TextareaType;
-use Symfony\Component\Form\Extension\Core\Type\DateType;
-use Symfony\Component\Form\Extension\Core\Type\TextType;
-use Symfony\Bridge\Doctrine\Form\Type\EntityType;
-use Symfony\Component\Form\Extension\Core\Type\HiddenType;
-use App\Entity\Version;
 use App\Entity\Metadata;
 use App\Entity\MetadataItem;
 use App\Entity\MetadataValue;
+use App\Entity\Serie;
+use App\Entity\Status;
 use App\Entity\User;
-use App\Repository\MetadataRepository;
 use App\Repository\CompanyRepository;
+use App\Repository\MetadataRepository;
 use App\Repository\UserRepository;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
+use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\DateType;
+use Symfony\Component\Form\Extension\Core\Type\HiddenType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Extension\Core\Type\TextareaType;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class VersionType extends AbstractType
 {
 	
 	private $builder;
 	
-	private $metadataRepository;
-	
 	private $companyRepository;
 	
-	private $userRepository;
+	private $metadataRepository;
 	
-	public function __construct(MetadataRepository $metadataRepository, CompanyRepository $companyRepository, UserRepository $userRepository)
+	private $userRepository;
+		
+	public function __construct(CompanyRepository $companyRepository, MetadataRepository $metadataRepository, UserRepository $userRepository)
 	{
-		$this->metadataRepository = $metadataRepository;
 		$this->companyRepository = $companyRepository;
+		$this->metadataRepository = $metadataRepository;
 		$this->userRepository = $userRepository;
 	}
 	
 	public function buildForm(FormBuilderInterface $builder, array $options)
 	{
 		$this->builder = $builder;
-		
-		$versions = $options['versions'];
-		
-		if ($versions) {
-			$serie = reset($versions)->getDocument()->getSerie();
-		} else {
-			$serie = $options['serie'];
-		}
+		$versions = is_array($builder->getData())?$builder->getData():[$builder->getData()];
+		$serie = $options['serie'];
+		$project = $serie->getProject();
 		
 		if (count($versions) == 1) {
 			$this->builder->add('name', TextType::class, [
 				'data' => reset($versions)->getName(),
 			]);
-		} elseif ($versions == false) {
-			$this->builder->add('name');
 		}
 		
-		$project = $serie->getProject();
+		$this->buildField('Required', 'isRequired', 'version.isRequired', Metadata::BOOLEAN, $versions);
 		
-		$this->buildRow('Required', 'isRequired', 'version.isRequired', Metadata::BOOLEAN, false, $versions);
+		$this->buildField('Date', 'date', 'version.date', Metadata::DATE, $versions);
 		
-		$this->buildRow('Date', 'date', 'version.date', Metadata::DATE, true, $versions);
-		
-		$this->buildRow('Status', 'status', 'status.value', Metadata::LIST, true, $versions, $project->getStatuses());
+		$options = [
+			'class' 	=> Status::class,
+			'choices' 	=> $project->getStatuses(),
+		];
+		$this->buildField('Status', 'status', 'status.value', Metadata::LIST, $versions, $options);
 		
 		foreach ($this->metadataRepository->getMetadatasForVersion($project) as $metadata) {
-			if ($metadata->getType() == Metadata::LIST) {		
-				$this->buildRow($metadata->getName(), $metadata->getCodename(), $metadata->getFullCodename(), $metadata->getType(), $metadata->getIsMandatory(), $versions, $metadata->getMetadataItems());
-			} else {
-				$this->buildRow($metadata->getName(), $metadata->getCodename(), $metadata->getFullCodename(), $metadata->getType(), $metadata->getIsMandatory(), $versions);
+			switch ($metadata->getType()) {
+				case Metadata::LIST:
+					$options = [
+						'required'	=> $metadata->getIsMandatory(),
+						'class' 	=> MetadataItem::class,
+						'choices' 	=> $metadata->getMetadataItems(),
+					];
+					$this->buildField($metadata->getName(), $metadata->getFullId(), $metadata->getFullCodename(), $metadata->getType(), $versions, $options);
+					break;
+				default:
+					$options = [
+						'required'	=> $metadata->getIsMandatory(),
+					];
+					$this->buildField($metadata->getName(), $metadata->getFullId(), $metadata->getFullCodename(), $metadata->getType(), $versions, $options);
+					break;
 			}
 		}
 		
-		$this->buildRow('Writer', 'writer', 'version.writer', Metadata::LIST, false, $versions, $serie->getCompany()->getUsers());
+		$options = [
+			'required' 	=> false,
+			'class' 	=> User::class,
+			'choices' 	=> $serie->getCompany()->getUsers(),
+		];
+		$this->buildField('Writer', 'writer', 'version.writer', Metadata::LIST, $versions, $options);
 		
-		$choices = $this->userRepository->getCheckers($project);
-		
-		$this->buildRow('Checker', 'checker', 'version.checker', Metadata::LIST, false, $versions, $choices);
-		$this->buildRow('Approver', 'approver', 'version.approver', Metadata::LIST, false, $versions, $choices);
-	}
-	
-	public function configureOptions(OptionsResolver $resolver)
-	{
-		$resolver->setDefaults([
-			'serie' => null,
-			'versions' => [],
-			
-		]);
+		$options = [
+			'required' 	=> false,
+			'class' 	=> User::class,
+			'choices' 	=> $this->userRepository->getCheckers($project),
+		];
+		$this->buildField('Checker', 'checker', 'version.checker', Metadata::LIST, $versions, $options);
+		$this->buildField('Approver', 'approver', 'version.approver', Metadata::LIST, $versions, $options);
 	}
 	
 	private function checkMultiple(array $versions, string $codename): bool
@@ -108,7 +114,7 @@ class VersionType extends AbstractType
 		return false;
 	}
 	
-	private function buildRow(string $label, string $id, string $codename, int $type, bool $required, array $versions=null, $choices=null)
+	private function buildField(string $label, string $id, string $codename, int $type, array $versions=null, $options=[])
 	{
 		
 		$multiple = false;
@@ -124,13 +130,13 @@ class VersionType extends AbstractType
 			case Metadata::BOOLEAN:
 				
 				$data = false;
-				if (!$multiple && $version) {
+				if ($version && $multiple === false) {
 					if ($version->getPropertyValue($codename)) {
 						$data = true;
 					}
 				}
 				
-				$this->builder->add($id, ChoiceType::class, [
+				$this->builder->add($id, ChoiceType::class, $options + [
 					'label' => $label,
 					'choices' => [
 						'Yes' => true,
@@ -147,15 +153,14 @@ class VersionType extends AbstractType
 			case Metadata::TEXT:
 				
 				$data = null;
-				if (!$multiple && $version) {
+				if ($version && $multiple === false) {
 					$data = $version->getPropertyValue($codename);
 				}
 				
-				$this->builder->add($id, TextareaType::class, [
+				$this->builder->add($id, TextareaType::class, $options + [
 					'label' => $label,
 					'mapped' => false,
 					'data' => $data,
-					'required' => $required,
 					'attr' => [
 						'data-multiple' => $multiple,
 					],
@@ -166,22 +171,23 @@ class VersionType extends AbstractType
 				
 				$data = null;
 				
-				if (!$multiple && $version) {
+				if ($version && $multiple === false) {
 					if ($data = $version->getPropertyValue($codename)) {
 						if ($data instanceof MetadataValue) $data = new \DateTime($data->getValue());
 					}
 					
-					if ($data === null && $required) $data = new \DateTime('now');
+					if ($data === null && ($options['required'] ?? true)) {
+						$data = new \DateTime('now');
+					}
 				}
 				
-				$this->builder->add($id, DateType::class, [
+				$this->builder->add($id, DateType::class, $options + [
 					'label' => $label,
 					'mapped' => false,
 					'widget' => 'single_text',
 					'format' => 'dd-MM-yyyy',
 					'html5' => false,
 					'data' => $data,
-					'required' => $required,
 					'attr' => [
 						'data-multiple' => $multiple,
 					],
@@ -192,15 +198,14 @@ class VersionType extends AbstractType
 			case Metadata::LINK:
 				
 				$data = null;
-				if (!$multiple && $version) {
+				if ($version && $multiple === false) {
 					$data = $version->getPropertyValue($codename);
 				}
 				
-				$this->builder->add($id, TextType::class, [
+				$this->builder->add($id, TextType::class, $options + [
 					'label' => $label,
 					'mapped' => false,
 					'data' => $data,
-					'required' => $required,
 					'attr' => [
 						'data-multiple' => $multiple,
 					],
@@ -209,20 +214,17 @@ class VersionType extends AbstractType
 				
 			case Metadata::LIST:
 				$data = null;
-				if (!$multiple && $version) {
+				if ($version && $multiple === false) {
 					$data = $version->getPropertyValue($codename);
 				}
 				
-				$this->builder->add($id, EntityType::class, [
-					'class' => get_class($choices[0]),
-					'choices' => $choices,
+				$this->builder->add($id, EntityType::class, $options + [
 					'label' => $label,
 					'mapped' => false,
 					'data' => $data,
-					'required' => $required,
 					'attr' => [
 						'data-multiple' => $multiple,
-						'data-required' => $required,
+						'data-required' => $options['required'] ?? true,
 					],
 				]);
 				break;
@@ -238,5 +240,15 @@ class VersionType extends AbstractType
 		]);
 		
 		return true;
+	}
+	
+	
+	public function configureOptions(OptionsResolver $resolver)
+	{
+		$resolver->setDefaults([
+			'serie' => null,
+		]);
+		
+		$resolver->setAllowedTypes('serie', Serie::class);
 	}
 }

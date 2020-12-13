@@ -24,13 +24,11 @@ class DocumentService
 		foreach ($this->documentRepository->getOrphanedDocuments() as $document) {
 			$this->entityManager->remove($document);
 		}
-		$this->entityManager->flush();
 	}
 	
 	
 	public function validateReference(Document $document): bool
 	{
-		$this->removeOrphans();
 		$documents = $this->documentRepository->getDocumentsByReference($document->getSerie()->getProject(), $document->getCodificationItems(), $document->getCodificationValues());
 		
 		if (empty($documents)) {

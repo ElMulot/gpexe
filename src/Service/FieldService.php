@@ -363,7 +363,7 @@ class FieldService
 		
 		foreach ($this->codificationRepository->getCodifications($project) as $codification) {
 			$fields[$codification->getFullCodename()] = [
-				'id' =>$codification->getFullDomId(),
+				'id' =>$codification->getFullId(),
 				'codename' => $codification->getFullCodename(),
 				'title' => $codification->getName(),
 				'type' => $codification->getType(),
@@ -382,7 +382,7 @@ class FieldService
 		
 		foreach ($this->metadataRepository->getMetadatas($project) as $metadata) {
 			$fields[$metadata->getFullCodename()] = [
-				'id' =>$metadata->getFullDomId(),
+				'id' =>$metadata->getFullId(),
 				'codename' => $metadata->getFullCodename(),
 				'title' => $metadata->getName(),
 				'type' => $metadata->getType(),
@@ -467,7 +467,7 @@ class FieldService
 		foreach ($this->codificationRepository->getCodifications($project) as $codification) {
 			
 			$element = [
-				'id' 		=> $codification->getFullDomId(),
+				'id' 		=> $codification->getFullId(),
 				'title' 		=> $codification->getName(),
 				'sort'			=> false,
 			];
@@ -623,7 +623,7 @@ class FieldService
 				case Metadata::TEXT:
 				case Metadata::DATE:
 					$fields[$metadata->getFullCodename()]['elements'][] = [
-						'id' 	=> $metadata->getFullDomId(),
+						'id' 	=> $metadata->getFullId(),
 						'title' 	=> $metadata->getName(),
 						'sort'		=> true,
 						'filter'	=> [
@@ -634,7 +634,7 @@ class FieldService
 					
 				case Metadata::LIST:
 					$fields[$metadata->getFullCodename()]['elements'][] = [
-						'id' 	=> $metadata->getFullDomId(),
+						'id' 	=> $metadata->getFullId(),
 						'title' 	=> $metadata->getName(),
 						'sort'		=> true,
 						'filter'	=> [
