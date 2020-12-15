@@ -147,6 +147,7 @@ Checker: Vérificateur
 Approver: Approbateur
 Last delivered: Dernier remis
 First scheduled: Prochain à produire
+Last scheduled: Dernier à produire
 required: à produire
 information: information
 cancelled: annulé
@@ -168,6 +169,7 @@ Status type: Type de status
 Information: Pour information
 Review: Pour revue
 As built: Tel que construit
+Is default: Par défaut
 
 #Review
 On: Le

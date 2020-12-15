@@ -22,6 +22,9 @@ class TestController extends AbstractController
 	public function index(): Response
 	{		
 		
+		$this->clearDuplicateDocuments();
+		$this->clearDuplicateVersions();
+		
 		dd(phpinfo());
 		return $this->render('test/index.html.twig', [
 			'test' => 'TestController',
@@ -63,9 +66,9 @@ class TestController extends AbstractController
 			} while ($restart);
 		}
 		
-		$entityManager->flush();
+// 		$entityManager->flush();
 		
-		dd($nb);
+		dump('documents dupliqués : ' . $nb);
 	}
 	
 	private function clearDuplicateVersions()
@@ -105,6 +108,6 @@ class TestController extends AbstractController
 		
 // 		$entityManager->flush();
 		
-		dd($nb);
+		dump('versions dupliquées : ' . $nb);
 	}
 }

@@ -458,27 +458,37 @@ class Version
 				
 			case 'version.approver':
 				return $this->getApprover();
+			
+			case 'version.firstScheduled':
+				if ($this->getIsRequired() === false) return false;
+				$date = $this->getScheduledDate();
+				foreach ($this->getDocument()->getVersions()->getValues() as $version) {
+					if ($version->getIsRequired() && ($version->getScheduledDate() > $date || ($version->getScheduledDate() == $date && $version->getName() < $this->getName()))) {
+						return false;
+					}
+				}
+				return true;
+				
+			case 'version.lastScheduled':
+				if ($this->getIsRequired() === false) return false;
+				$date = $this->getScheduledDate();
+				foreach ($this->getDocument()->getVersions()->getValues() as $version) {
+					if ($version->getIsRequired() && ($version->getScheduledDate() < $date || ($version->getScheduledDate() == $date && $version->getName() < $this->getName()))) {
+						return false;
+					}
+				}
+				return true;
 				
 			case 'version.lastDelivered':
 				if ($this->getIsRequired()) return false;
 				$date = $this->getDeliveryDate();
 				foreach ($this->getDocument()->getVersions()->getValues() as $version) {
-					if ($version->getIsRequired() == false && $version->getDeliveryDate() > $date) {
+					if ($version->getIsRequired() == false && ($version->getDeliveryDate() > $date || ($version->getDeliveryDate() == $date && $version->getName() < $this->getName()))) {
 						return false;
 					}
 				}
 				return true;
-				
-			case 'version.firstScheduled':
-				if ($this->getIsRequired() == false) return false;
-				$date = $this->getScheduledDate();
-				foreach ($this->getDocument()->getVersions()->getValues() as $version) {
-					if ($version->getIsRequired() && $version->getScheduledDate() > $date) {
-						return false;
-					}
-				}
-				return true;
-				
+								
 			default:
 				
 				if (preg_match('/version\.\w+/', $codename)) {

@@ -247,10 +247,10 @@ class FieldService
 					'write' => true
 				],
 			],
-			'version.lastDelivered' => [
-				'id' =>'version_last_delivered',
-				'codename' => 'version.lastDelivered',
-				'title' => $this->translator->trans('Last delivered'),
+			'version.firstScheduled' => [
+				'id' =>'version_first_scheduled',
+				'codename' => 'version.firstScheduled',
+				'title' => $this->translator->trans('First scheduled'),
 				'type' => Metadata::BOOLEAN,
 				'parent' => 'version',
 				'default_width' => 10,
@@ -263,10 +263,26 @@ class FieldService
 					'write' => false
 				],
 			],
-			'version.firstScheduled' => [
-				'id' =>'version_first_scheduled',
-				'codename' => 'version.firstScheduled',
-				'title' => $this->translator->trans('First scheduled'),
+			'version.lastScheduled' => [
+				'id' =>'version_last_scheduled',
+				'codename' => 'version.lastScheduled',
+				'title' => $this->translator->trans('Last scheduled'),
+				'type' => Metadata::BOOLEAN,
+				'parent' => 'version',
+				'default_width' => 10,
+				'display' => [
+					'table' => true,
+					'program' => true
+				],
+				'permissions' => [
+					'read' => true,
+					'write' => false
+				],
+			],
+			'version.lastDelivered' => [
+				'id' =>'version_last_delivered',
+				'codename' => 'version.lastDelivered',
+				'title' => $this->translator->trans('Last delivered'),
 				'type' => Metadata::BOOLEAN,
 				'parent' => 'version',
 				'default_width' => 10,
