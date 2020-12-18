@@ -48,12 +48,12 @@ class Document
     private $metadataValues;
     
     /**
-     * @ORM\OneToMany(targetEntity=Version::class, mappedBy="document", orphanRemoval=true)
+     * @ORM\OneToMany(targetEntity=Version::class, mappedBy="document", cascade={"persist"}, orphanRemoval=true)
      */
     private $versions;
 
     /**
-     * @ORM\ManyToOne(targetEntity=Serie::class, inversedBy="documents")
+     * @ORM\ManyToOne(targetEntity=Serie::class, inversedBy="documents", cascade={"persist"})
      * @ORM\JoinColumn(nullable=false)
      */
     private $serie;
