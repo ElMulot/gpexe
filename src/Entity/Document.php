@@ -366,7 +366,7 @@ class Document
     				}
     			}
     			
-    			if ($value) {
+    			if ($value != '') {
     				foreach ($codification->getCodificationItems()->getValues() as $codificationItem) {
     					if ($codificationItem->getValue() == $value) {
     						$this->addCodificationItem($codificationItem);
@@ -388,7 +388,7 @@ class Document
     			}
     			
     			if ($value != '' && preg_match('/' . $codification->getValue() . '/', $value) === 1) {
-    				if ($value) {
+    				if ($value != '') {
     					foreach ($codification->getCodificationValues()->getValues() as $codificationValue) {
     						if ($codificationValue->getValue() == $value) {
     							$this->addCodificationValue($codificationValue);
@@ -471,6 +471,7 @@ class Document
     		case Metadata::BOOLEAN:
     		case Metadata::TEXT:
     		case Metadata::DATE:
+    		case Metadata::LINK:
     			foreach ($this->getMetadataValues()->getValues() as $metadataValue) {
     				if ($metadataValue->getMetadata() == $metadata) {
     					if ($metadataValue->getValue() == $value) {
@@ -481,7 +482,7 @@ class Document
     				}
     			}
     			
-    			if ($value) {
+    			if ($value != '') {
     				foreach ($metadata->getMetadataValues()->getValues() as $metadataValue) {
     					if ($metadataValue->getValue() == $value) {
     						$this->addMetadataValue($metadataValue);
@@ -492,9 +493,9 @@ class Document
     				$metadataValue->setValue($value);
     				$metadataValue->setMetadata($metadata);
     				$this->addMetadataValue($metadataValue);
+    				$metadata->addMetadataValue($metadataValue);
     				return true;
     			}
-    			
     			break;
     			
     		case Metadata::LIST:
@@ -508,7 +509,7 @@ class Document
     				}
     			}
     			
-    			if ($value) {
+    			if ($value != '') {
     				foreach ($metadata->getMetadataItems()->getValues() as $metadataItem) {
     					if ($metadataItem->getValue() == $value) {
     						$this->addMetadataItem($metadataItem);

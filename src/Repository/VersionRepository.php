@@ -805,8 +805,8 @@ class VersionRepository extends RepositoryService
 			}
 			
 			if (array_key_exists('version_last_scheduled', $request->query->all('display'))) {
-				$qb->leftJoin(Version::class, 'vls', Join::WITH, 'version.document = vls.document AND vls.isRequired = true AND (version.deliveryDate < vls.deliveryDate OR (version.deliveryDate = vls.deliveryDate AND version.name < vls.name))')
-				->andWhere($qb->isNull('vls.deliveryDate'))
+				$qb->leftJoin(Version::class, 'vls', Join::WITH, 'version.document = vls.document AND vls.isRequired = true AND (version.scheduledDate < vls.scheduledDate OR (version.scheduledDate = vls.scheduledDate AND version.name < vls.name))')
+				->andWhere($qb->isNull('vls.scheduledDate'))
 				;
 			}
 			

@@ -2,13 +2,13 @@
     "devDependencies": {
         "@symfony/webpack-encore": "^0.31.1",
         "bootstrap": "^4.5.3",
-        "core-js": "^3.8.0",
+        "core-js": "^3.8.1",
         "jquery": "^3.5.1",
         "node-sass": "^4.14.1",
         "popper.js": "^1.16.1",
         "regenerator-runtime": "^0.13.7",
         "sass-loader": "^9.0.3",
-        "webpack-notifier": "^1.10.1"
+        "webpack-notifier": "^1.12.0"
     },
     "license": "UNLICENSED",
     "private": true,
@@ -20,7 +20,7 @@
     },
     "dependencies": {
         "@eflexsystems/colresizable": "^1.6.0-1",
-        "@popperjs/core": "^2.5.4",
+        "@popperjs/core": "^2.6.0",
         "@ungap/url-search-params": "^0.2.2",
         "@whsmith/infrastructure": "^3.5.8",
         "@wikimedia/jquery.i18n": "^1.0.7",

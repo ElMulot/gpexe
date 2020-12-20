@@ -1,6 +1,6 @@
 const $ = require('jquery');
 const popper = require('popper.js');
-require('sticky-table-headers');
+//require('sticky-table-headers');
 //const tableDragger = require('table-dragger');
 //require('jquery-resizable-columns');
 require('../css/document.scss');
@@ -993,21 +993,6 @@ $(document).ready(function() {
 	});
 	
 	//---------------------
-	// Jquery Resizable Columns
-	//---------------------
-	
-	//$('table').resizableColumns();
-	
-	//---------------------
-	// Dragtable
-	//---------------------
-	
-	/*
-	var dragger = tableDragger.default($('table').get(0), {
-        mode: 'column',
-	});
-	*/
-	//---------------------
 	// Tabs minimize
 	//---------------------
 	
@@ -1113,6 +1098,14 @@ $(document).ready(function() {
 				;
 			}
 		}
+		
+		//---------------------
+		// Dragtable
+		//---------------------
+		
+//		var dragger = tableDragger.default($('table').get(0), {
+//	        mode: 'column',
+//		});
 	
 	});
 	
@@ -1275,7 +1268,7 @@ $(document).ready(function() {
 					if (header.id == 'status_type') {
 						value = header.elements[0].filter.choices[value].text;
 					}
-					console.log(value);
+					
 					switch (header.type) {
 						case type.bool:
 							dataClass = 'text-center';
@@ -1486,7 +1479,13 @@ $(document).ready(function() {
 		urlSearch.lineChecked();
 		
 		global.ajax.fetch('#table > tbody');
-		//$('table').stickyTableHeaders();
+//		$('table').stickyTableHeaders();
+		
+		//---------------------
+		// Jquery Resizable Columns
+		//---------------------
+		
+//		$('#table').resizableColumns();
 		
 	});
 	

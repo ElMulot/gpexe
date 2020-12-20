@@ -52,3 +52,10 @@
     date: 06/12/2020
     changes:
         - Correction de bugs
+- 
+    version: 0.3.3
+    date: 20/12/2020
+    changes:
+        - Il est désormais possible de modifier les données attachés à plusieurs documents en même temps
+        - Les fenêtres peuvent être déplacées par un cliquer-glisser sur leur en-tête
+        - Correction de bugs

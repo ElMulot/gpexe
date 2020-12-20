@@ -19,6 +19,7 @@ use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\Url;
 
 class VersionType extends AbstractType
 {
@@ -209,6 +210,11 @@ class VersionType extends AbstractType
 					'attr' => [
 						'data-multiple' => $multiple,
 					],
+					'constraints' 	=> [new Url(
+						[
+							'relativeProtocol' => true,
+						]
+					)],
 				]);
 				break;
 				

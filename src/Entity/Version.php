@@ -378,6 +378,7 @@ class Version
 			case Metadata::BOOLEAN:
 			case Metadata::TEXT:
 			case Metadata::DATE:
+			case Metadata::LINK:
 				foreach ($this->getMetadataValues()->getValues() as $metadataValue) {
 					if ($metadataValue->getMetadata() == $metadata) {
 						if ($metadataValue->getValue() == $value) {
@@ -388,7 +389,7 @@ class Version
 					}
 				}
 				
-				if ($value) {
+				if ($value != '') {
 					foreach ($metadata->getMetadataValues()->getValues() as $metadataValue) {
 						if ($metadataValue->getValue() == $value) {
 							$this->addMetadataValue($metadataValue);
@@ -399,6 +400,7 @@ class Version
 					$metadataValue->setValue($value);
 					$metadataValue->setMetadata($metadata);
 					$this->addMetadataValue($metadataValue);
+					$metadata->addMetadataValue($metadataValue);
 					return true;
 				}
 				break;
@@ -414,7 +416,7 @@ class Version
 					}
 				}
 				
-				if ($value) {
+				if ($value != '') {
 					foreach ($metadata->getMetadataItems()->getValues() as $metadataItem) {
 						if ($metadataItem->getValue() == $value) {
 							$this->addMetadataItem($metadataItem);

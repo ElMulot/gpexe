@@ -25,3 +25,6 @@ Progress:
 Home:
 	Revoir les listes pour les docs à produire et à vérifier						OK
 	Créer une fonction perso pour dql DATE_DIFF prenant en compte les jours ouvrés	OK
+
+Misc:
+	Vérifier le réglage dans General>Workspace>Text file encoding (doit être UTF-8) et delimiter (windows)

@@ -196,20 +196,20 @@ $(document).ready(function() {
 				if (chart.getDatasetMeta(i).hidden !== true && dataset.label != $.i18n('all')) {
 					dataset.data.forEach((value, j) => {
 						if (progress[j] === undefined) {
-							progress[j] = parseInt(value) * dataset.serieCount;
+							progress[j] = (parseInt(value) || 0) * dataset.serieCount;
 						} else {
-							progress[j] += parseInt(value) * dataset.serieCount;
+							progress[j] += (parseInt(value) || 0) * dataset.serieCount;
 						}
 					});
 					count += parseInt(dataset.serieCount);
 				}
 			});
 			
-			progress = progress.map(value => Math.round(value / count));
+			let average = progress.map(value => Math.round(value / count));
 			
 			chart.data.datasets.forEach((dataset) => {
 				if (dataset.label == $.i18n('all')) {
-					dataset.data = progress;
+					dataset.data = average;
 				}
 			});
 			

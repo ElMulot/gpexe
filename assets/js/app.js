@@ -44,6 +44,46 @@ $.fn.exist = function () {
 	return this.length !== 0 && this;
 }
 
+$.fn.drags = function(opt) {
+
+    opt = $.extend({handle:"",cursor:"move"}, opt);
+
+    if(opt.handle === "") {
+        var $el = this;
+    } else {
+        var $el = this.find(opt.handle);
+    }
+
+    return $el.css('cursor', opt.cursor).on("mousedown", function(e) {
+        if(opt.handle === "") {
+            var $drag = $(this).addClass('draggable');
+        } else {
+            var $drag = $(this).addClass('active-handle').parent().addClass('draggable');
+        }
+        var z_idx = $drag.css('z-index'),
+            drg_h = $drag.outerHeight(),
+            drg_w = $drag.outerWidth(),
+            pos_y = $drag.offset().top + drg_h - e.pageY,
+            pos_x = $drag.offset().left + drg_w - e.pageX;
+        $drag.css('z-index', 1000).parents().on("mousemove", function(e) {
+            $('.draggable').offset({
+                top:e.pageY + pos_y - drg_h,
+                left:e.pageX + pos_x - drg_w
+            }).on("mouseup", function() {
+                $(this).removeClass('draggable').css('z-index', z_idx);
+            });
+        });
+        e.preventDefault(); // disable selection
+    }).on("mouseup", function() {
+        if(opt.handle === "") {
+            $(this).removeClass('draggable');
+        } else {
+            $(this).removeClass('active-handle').parent().removeClass('draggable');
+        }
+    });
+
+}
+
 global.remToPx = function (i) {
 	return i * parseFloat(getComputedStyle(document.documentElement).fontSize);
 }
@@ -413,12 +453,17 @@ $(document).ready(function() {
 			;
 		});
 		
-		$(e.target).on('hidden.bs.modal', function() {
+		$(e.target).on('hidden.bs.modal', function(e) {
 			$('[data-toggle="modal"]').blur();
+			$(e.target).find('.modal-content').removeAttr('style');
 		});
 		
 		$(e.target).find('button[data-dismiss]').on('click', function() {
 			$('#modal').modal('hide');
+		});
+		
+		$(e.target).find('.modal-header').each(function() {
+			$(this).closest('.modal-dialog').drags({handle:'.modal-header'});
 		});
 		
 		//---------------------
@@ -427,7 +472,7 @@ $(document).ready(function() {
 		
 		$(e.target).find('.datepicker').each(function() {
 			$(this).datepicker({'format': $.fn.datepicker.defaults.format});
-		})
+		});
 
 		
 		//---------------------
@@ -436,50 +481,29 @@ $(document).ready(function() {
 		
 		$(e.target).find("[name$='_multiple']").each(function() {
 			
-			var id;
+			let id;
 			if (id = $(this).prop('name').match(/(\S+)_multiple$/y)) {
 				
-				$(this).on('click', function(event) {
+				$(this).on('click', function() {
 					
-					if ($(this).val() == 0) {
-						
-						$("[id='" + id[1] + "']").not("[id*='multiple']").each(function() {
-							if ($(this).hasClass('datepicker')) {
-								$(this).datepicker('setDate', new Date());
-							} else if ($(this).attr('type') == 'radio') {
-								$(this).prop('checked', false);
-							} else if ($(this).attr('type') == 'checkbox') {
-								$(this).prop('checked', false);
-								$(this).prop('indeterminate', false);
-							} else if ($(this).attr('type') == 'text' || $(this).is('select')) {
-								$(this).val(null);
-							} else {
-								return;
-							}
-							$(this).attr("disabled", false);
-							$(this).attr("required", $(this).data('required'));
-						});
-						
-					} else {
-						
-						$("[id='" + id[1] + "']").not("[id*='multiple']").each(function() {
-							if ($(this).hasClass('datepicker')) {
-								$(this).datepicker('setDate', null);
-							} else if ($(this).attr('type') == 'radio') {
-								$(this).prop('checked', false);
-							} else if ($(this).attr('type') == 'checkbox') {
-								$(this).prop('checked', false);
-								$(this).prop('indeterminate', true);
-							} else if ($(this).attr('type') == 'text' || $(this).is('select')) {
-								$(this).val(null);
-							} else {
-								return;
-							}
-							$(this).attr("disabled", true);
-							$(this).attr("required", false);
-						});
-											
-					}
+					let defined = ($(this).val() != 0);
+					
+					$("[id^='" + id[1] + "']").not("[id$='multiple_0']").not("[id$='multiple_1']").each(function() {
+						if ($(this).hasClass('datepicker')) {
+							$(this).datepicker('setDate', new Date());
+						} else if ($(this).attr('type') == 'radio') {
+							$(this).prop('checked', false);
+						} else if ($(this).attr('type') == 'checkbox') {
+							$(this).prop('checked', false);
+							$(this).prop('indeterminate', false);
+						} else if ($(this).attr('type') == 'text' || $(this).is('select') || $(this).is('textarea')) {
+							$(this).val(null);
+						} else {
+							return;
+						}
+						$(this).attr("disabled", defined);
+						$(this).attr("required", $(this).data('required') && defined === false);
+					});
 					
 					$('#' + id[1] + '_multiple').val($(this).val());
 				});

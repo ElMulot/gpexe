@@ -131,7 +131,7 @@
     					{% if version.getPropertyValueToString(metadata.fullCodename) is empty  %}
     						{% trans %}n/a{% endtrans %}
     					{% else %}
-    						<a class="btn btn-primary text-nowrap" href="{{ version.getPropertyValueToString(metadata.fullCodename) }}">{% trans %}Click here{% endtrans %}</a>
+    						<a class="btn btn-sm btn-primary text-nowrap" href="{{ version.getPropertyValueToString(metadata.fullCodename) }}" target="_blank" rel="noopener noreferrer">{% trans %}Click here{% endtrans %}</a>
     					{% endif %}
     				{% endif %}
 				</div>

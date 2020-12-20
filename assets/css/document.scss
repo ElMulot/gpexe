@@ -1,6 +1,7 @@
 @import "~bootswatch/dist/slate/variables";
 @import "~bootstrap/scss/bootstrap";
 @import "~bootswatch/dist/slate/bootswatch";
+/* @import "~jquery-resizable-columns/dist/jquery.resizableColumns"; */
 
 html, body {
 	height:calc(100% - 36px);
@@ -24,9 +25,9 @@ main {
 
 #tabs {
 	position: absolute;
+	left: 2.5%;
 	width:95%;
-	padding:0.25rem;
-	/*overflow: hidden;*/
+	padding:0.25rem;	
 }
 
 #tabs .collapsing {
@@ -97,6 +98,14 @@ main {
 
 #toast ul {
 	margin-bottom: 0;
+}
+
+#modal_detail_container > div {
+	max-width: 95%;
+}
+
+#modal_detail_container > div > div {
+	height: 90vh !important;
 }
 
 #modal_container {
