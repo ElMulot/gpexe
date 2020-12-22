@@ -23,7 +23,7 @@
 	</div>
 	{% if company == app.user.company or is_granted('ROLE_ADMIN') %}
 		<div class="row justify-content-md-center">
-			<button class="btn btn-primary btn-sm w-25" data-toggle="ajax" data-url="{{ path('review_new', {'version': version.id, 'company': company.id}) }}" data-target="#review_content">{% trans %}New{% endtrans %}</button>
+			<button class="btn btn-primary w-50" data-toggle="ajax" data-url="{{ path('review_new', {'version': version.id, 'company': company.id}) }}" data-target="#review_content">{% trans %}New{% endtrans %}</button>
 		</div>
 	{% endif %}
 {% endif %}

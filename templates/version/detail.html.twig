@@ -70,7 +70,9 @@
         <div class="card col w-50 border rounded border-dark p-0 ml-2">
         	<div class="card-header font-weight-bold text-white">{% trans %}Document recieved{% endtrans %}</div>
         	<div class="card-body">
-        		<button id="save" class="btn btn-primary w-100 m-1" data-toggle="modal ajax" data-target="#modal" data-url="{{ path('version_edit', {'id[]': version.id, 'save': true}) }}">{% trans %}Save document{% endtrans %}</button>
+            	<div class="row justify-content-md-center">
+            		<button id="save" class="btn btn-primary w-50" data-toggle="modal ajax" data-target="#modal" data-url="{{ path('version_edit', {'id[]': version.id, 'save': true}) }}">{% trans %}Save document{% endtrans %}</button>
+            	</div>
         	</div>
 		</div>
     {% else %}
