@@ -48,6 +48,7 @@ class VersionType extends AbstractType
 		
 		if (count($versions) == 1) {
 			$this->builder->add('name', TextType::class, [
+				'label' => 'Version',
 				'data' => reset($versions)->getName(),
 			]);
 		}

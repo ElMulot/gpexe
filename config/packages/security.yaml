@@ -68,7 +68,8 @@ security:
         - { path: '^/project/serie/document/\d+/version/new$',                     roles: ROLE_EDIT_DOCUMENTS } #version_new
         - { path: '^/project/serie/document/version/(edit|delete)',                roles: ROLE_EDIT_DOCUMENTS } #version_edit, version_delete
         - { path: '^/project/serie/document/\d+/version/\d+/\d+/quick_new',        roles: ROLE_EDIT_DOCUMENTS } #version_quick_new
-                
+        - { path: '^/project/serie/document/version/\d+/quick_edit/',              roles: ROLE_EDIT_DOCUMENTS } #version_quick_edit
+        
         - { path: '^/project/',                                                    roles: ROLE_CONTROLLER }
         
         - { path: '^/company',                                                     roles: ROLE_ADMIN }

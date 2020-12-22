@@ -318,7 +318,9 @@ class VersionController extends AbstractController
 		$newVersion = new Version();
 		$newVersion->setDocument($document);
 		
-		$form = $this->createForm(QuickVersionType::class, $newVersion);
+		$form = $this->createForm(QuickVersionType::class, $newVersion, [
+			'new' => true,
+		]);
 		$form->handleRequest($request);
 		
 		if ($form->isSubmitted() && $form->isValid()) {
@@ -349,6 +351,24 @@ class VersionController extends AbstractController
 				'form' => $view,
 			]);
 		}
+	}
+	
+	public function quickEdit(Request $request, Version $version, string $field): Response
+	{
+		$document = $version->getDocument();
+		$serie = $document->getSerie();
+		$project = $serie->getProject();
+				
+		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
+			throw $this->createAccessDeniedException();
+		}
+		
+		$form = $this->createForm(VersionType::class, $versions, [
+			'serie' => $serie,
+			'field' => $field,
+		]);
+		
+		
 	}
 	
 	private function isMultiple($form, string $id): bool

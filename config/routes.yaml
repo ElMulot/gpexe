@@ -398,6 +398,13 @@ version_quick_new:
         company: \d+
     controller: App\Controller\VersionController::quickNew
 
+version_quick_edit:
+    path: /project/serie/document/version/{version}/quick_edit/{field}
+    requirements:
+        version: \d+
+        field: \w+
+    controller: App\Controller\VersionController::quickEdit
+
 review:
     path: /project/serie/document/version/{version}/{company}/review
     requirements:

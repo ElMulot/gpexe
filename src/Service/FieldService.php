@@ -3,7 +3,6 @@
 namespace App\Service;
 
 use Symfony\Contracts\Translation\TranslatorInterface;
-use Symfony\Component\Form\FormFactoryInterface;
 use App\Entity\Codification;
 use App\Entity\Metadata;
 use App\Entity\Project;
@@ -16,13 +15,14 @@ use App\Repository\MetadataRepository;
 use App\Repository\StatusRepository;
 use App\Repository\UserRepository;
 use App\Repository\VisaRepository;
+use Symfony\Component\Security\Core\Security;
 
 class FieldService
 {
 	
 	private $translator;
 	
-	private $formFactory;
+	private $security;
 	
 	private $companyRepository;
 	
@@ -40,10 +40,10 @@ class FieldService
 	
 	private $visaRepository;
 	
-	public function __construct(TranslatorInterface $translator, FormFactoryInterface $formFactory, CompanyRepository $companyRepository, CodificationRepository $codificationRepository, CodificationItemRepository $codificationItemRepository, MetadataRepository $metadataRepository, MetadataItemRepository $metadataItemRepository, StatusRepository $statusRepository, UserRepository $userRepository, VisaRepository $visaRepository)
+	public function __construct(TranslatorInterface $translator, Security $security, CompanyRepository $companyRepository, CodificationRepository $codificationRepository, CodificationItemRepository $codificationItemRepository, MetadataRepository $metadataRepository, MetadataItemRepository $metadataItemRepository, StatusRepository $statusRepository, UserRepository $userRepository, VisaRepository $visaRepository)
 	{
 		$this->translator = $translator;
-		$this->formFactory = $formFactory;
+		$this->security = $security;
 		$this->companyRepository = $companyRepository;
 		$this->codificationRepository = $codificationRepository;
 		$this->codificationItemRepository = $codificationItemRepository;
@@ -84,7 +84,7 @@ class FieldService
 				],
 				'permissions' => [
 					'read' => true,
-					'write' => false
+					'write' => false,
 				],
 			],
 			'version.name' => [
@@ -100,7 +100,7 @@ class FieldService
 				],
 				'permissions' => [
 					'read' => true,
-					'write' => true
+					'write' => true,
 				],
 			],
 			'document.name' => [
@@ -116,7 +116,7 @@ class FieldService
 				],
 				'permissions' => [
 					'read' => true,
-					'write' => true
+					'write' => true,
 				],
 			],
 			'version.initialScheduledDate' => [
@@ -132,7 +132,7 @@ class FieldService
 				],
 				'permissions' => [
 					'read' => true,
-					'write' => false
+					'write' => false,
 				],
 			],
 			'version.scheduledDate' => [
@@ -148,7 +148,7 @@ class FieldService
 				],
 				'permissions' => [
 					'read' => true,
-					'write' => false
+					'write' => false,
 				],
 			],
 			'version.deliveryDate' => [
@@ -164,7 +164,7 @@ class FieldService
 				],
 				'permissions' => [
 					'read' => true,
-					'write' => false
+					'write' => false,
 				],
 			],
 			'version.date' => [
@@ -175,12 +175,12 @@ class FieldService
 				'parent' => 'version',
 				'default_width' => 8,
 				'display' => [
-					'table' => true,
+					'table' => false,
 					'program' => true
 				],
 				'permissions' => [
 					'read' => false,
-					'write' => true
+					'write' => true,
 				],
 			],
 			'version.isRequired' => [
@@ -196,7 +196,7 @@ class FieldService
 				],
 				'permissions' => [
 					'read' => true,
-					'write' => true
+					'write' => true,
 				],
 			],
 			'version.writer' => [
@@ -212,7 +212,7 @@ class FieldService
 				],
 				'permissions' => [
 					'read' => true,
-					'write' => true
+					'write' => true,
 				],
 			],
 			'version.checker' => [
@@ -228,7 +228,7 @@ class FieldService
 				],
 				'permissions' => [
 					'read' => true,
-					'write' => true
+					'write' => true,
 				],
 			],
 			'version.approver' => [
@@ -244,7 +244,7 @@ class FieldService
 				],
 				'permissions' => [
 					'read' => true,
-					'write' => true
+					'write' => true,
 				],
 			],
 			'version.firstScheduled' => [
@@ -260,7 +260,7 @@ class FieldService
 				],
 				'permissions' => [
 					'read' => true,
-					'write' => false
+					'write' => false,
 				],
 			],
 			'version.lastScheduled' => [
@@ -276,7 +276,7 @@ class FieldService
 				],
 				'permissions' => [
 					'read' => true,
-					'write' => false
+					'write' => false,
 				],
 			],
 			'version.lastDelivered' => [
@@ -292,7 +292,7 @@ class FieldService
 				],
 				'permissions' => [
 					'read' => true,
-					'write' => false
+					'write' => false,
 				],
 			],
 			'serie.name' => [
@@ -308,7 +308,7 @@ class FieldService
 				],
 				'permissions' => [
 					'read' => true,
-					'write' => false
+					'write' => false,
 				],
 			],
 			'serie.company' => [
@@ -324,7 +324,7 @@ class FieldService
 				],
 				'permissions' => [
 					'read' => true,
-					'write' => false
+					'write' => false,
 				],
 			],
 			'status.value' => [
@@ -340,7 +340,7 @@ class FieldService
 				],
 				'permissions' => [
 					'read' => true,
-					'write' => true
+					'write' => true,
 				],
 			],
 			'status.type' => [
@@ -356,7 +356,7 @@ class FieldService
 				],
 				'permissions' => [
 					'read' => true,
-					'write' => true
+					'write' => false,
 				],
 			],
 			'document.versionsCount' => [
@@ -372,7 +372,7 @@ class FieldService
 				],
 				'permissions' => [
 					'read' => true,
-					'write' => false
+					'write' => false,
 				],
 			],
 		];
@@ -391,7 +391,7 @@ class FieldService
 				],
 				'permissions' => [
 					'read' => ($codification->isRegex() || $codification->isList()),
-					'write' => false
+					'write' => false,
 				],
 			];
 		}
@@ -430,7 +430,7 @@ class FieldService
 					],
 					'permissions' => [
 						'read' => true,
-						'write' => true
+						'write' => ($this->security->getUser()->getCompany() == $company || ($this->security->isGranted('ROLE_CONTROLLER') && $project->hasUser($this->security->getUser())) || $this->security->isGranted('ROLE_ADMIN')),
 					],
 				];
 				
@@ -447,7 +447,7 @@ class FieldService
 					],
 					'permissions' => [
 						'read' => true,
-						'write' => true
+						'write' => ($this->security->getUser()->getCompany() == $company || ($this->security->isGranted('ROLE_CONTROLLER') && $project->hasUser($this->security->getUser())) || $this->security->isGranted('ROLE_ADMIN')),
 					],
 				];
 				
@@ -464,7 +464,7 @@ class FieldService
 					],
 					'permissions' => [
 						'read' => true,
-						'write' => true
+						'write' => ($this->security->getUser()->getCompany() == $company || ($this->security->isGranted('ROLE_CONTROLLER') && $project->hasUser($this->security->getUser())) || $this->security->isGranted('ROLE_ADMIN')),
 					],
 				];
 			}
@@ -511,8 +511,13 @@ class FieldService
 			$fields['document.reference']['elements'][] = $element;
 		}
 		
+		$fields['version.name']['elements'][] = [
+			'id' 		=> 'version_name',
+			'title' 	=> $this->translator->trans('Révision'),
+		];
+		
 		$fields['document.name']['elements'][] = [
-			'id' 	=> 'document_name',
+			'id' 		=> 'document_name',
 			'title' 	=> $this->translator->trans('Name'),
 			'sort'		=> true,
 			'filter' 	=> [		
@@ -521,7 +526,7 @@ class FieldService
 		];
 		
 		$fields['version.initialScheduledDate']['elements'][] = [
-			'id' 	=> 'version_initial_scheduled_date',
+			'id' 		=> 'version_initial_scheduled_date',
 			'title' 	=> $this->translator->trans('Initial scheduled date'),
 			'sort'		=> true,
 			'filter'	=> [
@@ -530,7 +535,7 @@ class FieldService
 		];
 		
 		$fields['version.scheduledDate']['elements'][] = [
-			'id' 	=> 'version_scheduled_date',
+			'id' 		=> 'version_scheduled_date',
 			'title' 	=> $this->translator->trans('Scheduled date'),
 			'sort'		=> true,
 			'filter'	=> [
@@ -539,7 +544,7 @@ class FieldService
 		];
 		
 		$fields['version.deliveryDate']['elements'][] = [
-			'id' 	=> 'version_delivery_date',
+			'id' 		=> 'version_delivery_date',
 			'title' 	=> $this->translator->trans('Delivery date'),
 			'sort'		=> true,
 			'filter'	=> [
@@ -548,7 +553,7 @@ class FieldService
 		];
 		
 		$fields['version.isRequired']['elements'][] = [
-			'id' 	=> 'version_is_required',
+			'id' 		=> 'version_is_required',
 			'title' 	=> $this->translator->trans('Required'),
 			'sort'		=> true,
 			'filter'	=> [
@@ -557,7 +562,7 @@ class FieldService
 		];
 		
 		$fields['version.writer']['elements'][] = [
-			'id' 	=> 'version_writer',
+			'id' 		=> 'version_writer',
 			'title' 	=> $this->translator->trans('Writer'),
 			'sort'		=> true,
 			'filter'	=> [
@@ -567,7 +572,7 @@ class FieldService
 		];
 		
 		$fields['version.checker']['elements'][] = [
-			'id' 	=> 'version_checker',
+			'id' 		=> 'version_checker',
 			'title' 	=> $this->translator->trans('Checker'),
 			'sort'		=> true,
 			'filter'	=> [
@@ -577,7 +582,7 @@ class FieldService
 		];
 		
 		$fields['version.approver']['elements'][] = [
-			'id' 	=> 'version_approver',
+			'id' 		=> 'version_approver',
 			'title' 	=> $this->translator->trans('Approver'),
 			'sort'		=> true,
 			'filter'	=> [
@@ -587,7 +592,7 @@ class FieldService
 		];
 		
 		$fields['serie.name']['elements'][] = [
-			'id' 	=> 'serie_name',
+			'id' 		=> 'serie_name',
 			'title' 	=> $this->translator->trans('Serie name'),
 			'sort'		=> true,
 			'filter'	=> [
@@ -597,7 +602,7 @@ class FieldService
 		];
 		
 		$fields['serie.company']['elements'][] = [
-			'id' 	=> 'serie_company',
+			'id' 		=> 'serie_company',
 			'title' 	=> $this->translator->trans('Company'),
 			'sort'		=> true,
 			'filter'	=> [
@@ -607,7 +612,7 @@ class FieldService
 		];
 		
 		$fields['status.value']['elements'][] = [
-			'id' 	=> 'status_value',
+			'id' 		=> 'status_value',
 			'title' 	=> $this->translator->trans('Status value'),
 			'sort'		=> true,
 			'filter'	=> [
@@ -617,7 +622,7 @@ class FieldService
 		];
 		
 		$fields['status.type']['elements'][] = [
-			'id' 	=> 'status_type',
+			'id' 		=> 'status_type',
 			'title' 	=> $this->translator->trans('Status type'),
 			'sort'		=> true,
 			'filter'	=> [
@@ -639,7 +644,7 @@ class FieldService
 				case Metadata::TEXT:
 				case Metadata::DATE:
 					$fields[$metadata->getFullCodename()]['elements'][] = [
-						'id' 	=> $metadata->getFullId(),
+						'id' 		=> $metadata->getFullId(),
 						'title' 	=> $metadata->getName(),
 						'sort'		=> true,
 						'filter'	=> [
@@ -650,7 +655,7 @@ class FieldService
 					
 				case Metadata::LIST:
 					$fields[$metadata->getFullCodename()]['elements'][] = [
-						'id' 	=> $metadata->getFullId(),
+						'id' 		=> $metadata->getFullId(),
 						'title' 	=> $metadata->getName(),
 						'sort'		=> true,
 						'filter'	=> [
@@ -665,7 +670,7 @@ class FieldService
 		foreach ($this->companyRepository->getCheckerCompanies($project) as $checkerCompany) {
 			if ($project->getVisasByCompany($checkerCompany)->isEmpty() === false) {
 				$fields['visa.' . $checkerCompany->getCodename() . '.value']['elements'][] = [
-					'id' 	=> 'visa_' . $checkerCompany->getId(),
+					'id' 		=> 'visa_' . $checkerCompany->getId(),
 					'title' 	=> $this->translator->trans('Visa') . ' ' . $checkerCompany->getName(),
 					'sort'		=> true,
 					'filter'	=> [
