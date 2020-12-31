@@ -143,9 +143,9 @@ class VersionRepository extends RepositoryService
 						$qb->addOrderBy('status.type', $order);
 						break;
 					
-					case (preg_match('/metadata_(\d+)/', $sortedField, $result) === 1):
+					case (preg_match('/metadata_(\d+)/', $sortedField, $matches) === 1):
 						
-						$id = $result[1];
+						$id = $matches[1];
 						
 						foreach ($fields as $field) {
 							
@@ -185,9 +185,9 @@ class VersionRepository extends RepositoryService
 						}
 						break;
 						
-					case (preg_match('/visa_(\d+)/', $sortedField, $result) === 1):
+					case (preg_match('/visa_(\d+)/', $sortedField, $matches) === 1):
 						
-						$id = $result[1];
+						$id = $matches[1];
 						
 						foreach ($fields as $field) {
 							
@@ -235,9 +235,9 @@ class VersionRepository extends RepositoryService
 				
 				foreach ($fields as $field) {
 					
-					if (preg_match('/codification_(\d+)/', $field['id'], $result) === 1) {
+					if (preg_match('/codification_(\d+)/', $field['id'], $matches) === 1) {
 						
-						$id = $result[1];
+						$id = $matches[1];
 						
 						switch ($field['type']) {
 							
@@ -263,7 +263,7 @@ class VersionRepository extends RepositoryService
 			
 			foreach ($display as $name) {
 				
-				$result = null;
+				$matches = null;
 				
 				switch ($name) {
 					
@@ -337,9 +337,9 @@ class VersionRepository extends RepositoryService
 						$qb->addSelect('status.type AS status_type');
 						break;
 					
-					case (preg_match('/metadata_(\d+)/', $name, $result) === 1):
+					case (preg_match('/metadata_(\d+)/', $name, $matches) === 1):
 						
-						$id = $result[1];
+						$id = $matches[1];
 						
 						foreach ($fields as $field) {
 							
@@ -379,9 +379,9 @@ class VersionRepository extends RepositoryService
 						}
 						break;
 						
-					case (preg_match('/visa_(\d+)/', $name, $result) === 1):
+					case (preg_match('/visa_(\d+)/', $name, $matches) === 1):
 						
-						$id = $result[1];
+						$id = $matches[1];
 						
 						foreach ($fields as $field) {
 							
@@ -605,34 +605,34 @@ class VersionRepository extends RepositoryService
 							
 						case 'version_initial_scheduled_date':
 							$value = implode(',', $value);
-							$result = [];
-							if (preg_match('/>(\d{2}-\d{2}-\d{4})/', $value, $result) === 1) {
-								$qb->andWhere($qb->gte('version.initialScheduledDate', new \DateTime($result[1])));
+							$matches = [];
+							if (preg_match('/>(\d{2}-\d{2}-\d{4})/', $value, $matches) === 1) {
+								$qb->andWhere($qb->gte('version.initialScheduledDate', new \DateTime($matches[1])));
 							}
-							if (preg_match('/<(\d{2}-\d{2}-\d{4})/', $value, $result) === 1) {
-								$qb->andWhere($qb->lte('version.initialScheduledDate', new \DateTime($result[1])));
+							if (preg_match('/<(\d{2}-\d{2}-\d{4})/', $value, $matches) === 1) {
+								$qb->andWhere($qb->lte('version.initialScheduledDate', new \DateTime($matches[1])));
 							}
 							break;
 							
 						case 'version_scheduled_date':
 							$value = implode(',', $value);
-							$result = [];
-							if (preg_match('/>(\d{2}-\d{2}-\d{4})/', $value, $result) === 1) {
-								$qb->andWhere($qb->gte('version.scheduledDate', new \DateTime($result[1])));
+							$matches = [];
+							if (preg_match('/>(\d{2}-\d{2}-\d{4})/', $value, $matches) === 1) {
+								$qb->andWhere($qb->gte('version.scheduledDate', new \DateTime($matches[1])));
 							}
-							if (preg_match('/<(\d{2}-\d{2}-\d{4})/', $value, $result) === 1) {
-								$qb->andWhere($qb->lte('version.scheduledDate', new \DateTime($result[1])));
+							if (preg_match('/<(\d{2}-\d{2}-\d{4})/', $value, $matches) === 1) {
+								$qb->andWhere($qb->lte('version.scheduledDate', new \DateTime($matches[1])));
 							}
 							break;
 							
 						case 'version_delivery_date':
 							$value = implode(',', $value);
-							$result = [];
-							if (preg_match('/>(\d{2}-\d{2}-\d{4})/', $value, $result) === 1) {
-								$qb->andWhere($qb->gte('version.deliveryDate', new \DateTime($result[1])));
+							$matches = [];
+							if (preg_match('/>(\d{2}-\d{2}-\d{4})/', $value, $matches) === 1) {
+								$qb->andWhere($qb->gte('version.deliveryDate', new \DateTime($matches[1])));
 							}
-							if (preg_match('/<(\d{2}-\d{2}-\d{4})/', $value, $result) === 1) {
-								$qb->andWhere($qb->lte('version.deliveryDate', new \DateTime($result[1])));
+							if (preg_match('/<(\d{2}-\d{2}-\d{4})/', $value, $matches) === 1) {
+								$qb->andWhere($qb->lte('version.deliveryDate', new \DateTime($matches[1])));
 							}
 							break;
 							
@@ -675,9 +675,9 @@ class VersionRepository extends RepositoryService
 							$qb->andWhere($qb->in('status.type', $value));
 							break;
 						
-						case (preg_match('/codification_(\d+)/', $field['id'], $result) === 1):
+						case (preg_match('/codification_(\d+)/', $field['id'], $matches) === 1):
 							
-							$id = $result[1];
+							$id = $matches[1];
 							
 							switch ($field['type']) {
 
@@ -707,9 +707,9 @@ class VersionRepository extends RepositoryService
 							}
 							break;
 							
-						case (preg_match('/metadata_(\d+)/', $field['id'], $result) === 1):
+						case (preg_match('/metadata_(\d+)/', $field['id'], $matches) === 1):
 							
-							$id = $result[1];
+							$id = $matches[1];
 							
 							switch ($field['type']) {
 								
@@ -768,9 +768,9 @@ class VersionRepository extends RepositoryService
 							}
 							break;
 							
-						case (preg_match('/visa_(\d+)/', $field['id'], $result) === 1):
+						case (preg_match('/visa_(\d+)/', $field['id'], $matches) === 1):
 							
-							$id = $result[1];
+							$id = $matches[1];
 							
 							if ($qb->hasAlias($field['id'] . '_') === false) {
 								

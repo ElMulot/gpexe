@@ -14,6 +14,7 @@ use App\Repository\StatusRepository;
 use App\Repository\VersionRepository;
 use App\Service\AjaxRedirectService;
 use App\Service\DocumentService;
+use App\Service\FieldService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -37,7 +38,7 @@ class VersionController extends AbstractController
 	
 	private $documentService;
 	
-	public function __construct(TranslatorInterface $translator, CompanyRepository $companyRepository, DocumentRepository $documentRepository, VersionRepository $versionRepository, MetadataRepository $metadataRepository, StatusRepository $statusRepository, AjaxRedirectService $ajaxRedirectService, DocumentService $documentService)
+	public function __construct(TranslatorInterface $translator, CompanyRepository $companyRepository, DocumentRepository $documentRepository, VersionRepository $versionRepository, MetadataRepository $metadataRepository, StatusRepository $statusRepository, AjaxRedirectService $ajaxRedirectService, DocumentService $documentService, FieldService $fieldService)
 	{
 		$this->translator = $translator;
 		$this->companyRepository = $companyRepository;
@@ -47,6 +48,7 @@ class VersionController extends AbstractController
 		$this->statusRepository = $statusRepository;
 		$this->ajaxRedirectService = $ajaxRedirectService;
 		$this->documentService = $documentService;
+		$this->fieldService = $fieldService;
 	}
 	
 	public function detail(Version $version): Response
@@ -318,9 +320,7 @@ class VersionController extends AbstractController
 		$newVersion = new Version();
 		$newVersion->setDocument($document);
 		
-		$form = $this->createForm(QuickVersionType::class, $newVersion, [
-			'new' => true,
-		]);
+		$form = $this->createForm(QuickVersionType::class, $newVersion);
 		$form->handleRequest($request);
 		
 		if ($form->isSubmitted() && $form->isValid()) {
@@ -353,7 +353,7 @@ class VersionController extends AbstractController
 		}
 	}
 	
-	public function quickEdit(Request $request, Version $version, string $field): Response
+	public function quickEdit(Request $request, Version $version, string $fieldId): Response
 	{
 		$document = $version->getDocument();
 		$serie = $document->getSerie();
@@ -363,11 +363,37 @@ class VersionController extends AbstractController
 			throw $this->createAccessDeniedException();
 		}
 		
-		$form = $this->createForm(VersionType::class, $versions, [
-			'serie' => $serie,
-			'field' => $field,
-		]);
+		$fields = $this->fieldService->getFields($project);
 		
+		foreach ($fields as $field) {
+			if ($field['id'] == $fieldId && $field['display']['table'] && $field['permissions']['write']) {
+				
+				$form = $this->createForm(QuickVersionType::class, $version, [
+					'field' => $field,
+				]);
+				
+				$form->handleRequest($request);
+				
+				if ($form->isSubmitted() && $form->isValid()) {
+					
+					$version->setPropertyValue($field['codename'], $form->get($field['id'])->getData());
+					$entityManager = $this->getDoctrine()->getManager();
+					$entityManager->persist($version);
+					$entityManager->flush();
+					
+					return new Response('');
+				} else {
+					$view = $form->createView();
+					return $this->render('generic/form.html.twig', [
+						'form' => $view,
+					]);
+				}
+				
+				break;
+			}
+		}
+		
+		return new Response('');
 		
 	}
 	

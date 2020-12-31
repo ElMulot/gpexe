@@ -998,9 +998,12 @@ $(document).ready(function() {
 	
 	$('#tabs').trigger('show.bs.tab');
 	
-
+	//---------------------
+	// Table_container
+	//---------------------
+	
 	$('#table_container, #vues, #table').on('ajax.beforeSend', function(e, result, textStatus, jqXHR) {
-		
+		console.log(e.target);
 		e.stopPropagation();
 		$('#table').hide();
 		
@@ -1010,10 +1013,6 @@ $(document).ready(function() {
 			.append(global.icon.loading)
 		;
 	});
-	
-	//---------------------
-	// Table_container
-	//---------------------
 	
 	$('#table_container').on('ajax.success', function(e, result, textStatus, jqXHR) {
 		
@@ -1026,7 +1025,7 @@ $(document).ready(function() {
 	
 	$('#table_container').on('ajax.completed', function(e, result, textStatus, jqXHR) {
 		
-		e.stopImmediatePropagation();
+		e.stopPropagation();
 		fillSeriesPannel();
 		fillDisplayPannel();
 		
@@ -1315,6 +1314,17 @@ $(document).ready(function() {
 					tr.append(create.td).children().last()
 						.addClass(dataClass)
 						.text(value)
+						.on('dblclick', function() {
+							global.ajax.set(this, '/gpexe/project/serie/document/version/' + data['version_id'] + '/quick_edit/' + header.id);
+						})
+						.on('ajax.beforeSend', function(e, result, textStatus, jqXHR) {
+							e.stopPropagation();
+					    	$(e.target)
+								.show()
+								.empty()
+								.append(global.icon.loading)
+							;
+						})
 					;
 					
 				} else {
@@ -1492,6 +1502,12 @@ $(document).ready(function() {
 	$('#table').on('ajax.completed', function(e, result, textStatus, jqXHR) {
 		e.stopPropagation();
 	});
+	
+	//---------------------
+	// Quick edit
+	//---------------------
+	
+
 	
 	//---------------------
 	// Modal

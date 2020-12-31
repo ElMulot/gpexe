@@ -399,10 +399,10 @@ version_quick_new:
     controller: App\Controller\VersionController::quickNew
 
 version_quick_edit:
-    path: /project/serie/document/version/{version}/quick_edit/{field}
+    path: /project/serie/document/version/{version}/quick_edit/{fieldId}
     requirements:
         version: \d+
-        field: \w+
+        fieldId: \w+
     controller: App\Controller\VersionController::quickEdit
 
 review:
