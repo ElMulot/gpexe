@@ -581,54 +581,66 @@ class Version
 				}
 				
 			case 'version.writer':
-				foreach ($this->getDocument()->getSerie()->getCompany()->getUsers()->getValues() as $user) {
-					if (preg_match('/^[\w\-\.]+@[\w\-\.]+\.[a-zA-Z]{2,5}$/', $value) == 1) {
-						if ($user->getEmail() == $value) {
-							$this->setWriter($user);
-							return true;
-						}
-					} else {
-						if ($user->getName() == $value) {
-							$this->setWriter($user);
-							return true;
+				if ($value) {
+					foreach ($this->getDocument()->getSerie()->getCompany()->getUsers()->getValues() as $user) {
+						if (preg_match('/^[\w\-\.]+@[\w\-\.]+\.[a-zA-Z]{2,5}$/', $value) == 1) {
+							if ($user->getEmail() == $value) {
+								$this->setWriter($user);
+								return true;
+							}
+						} else {
+							if ($user->getName() == $value) {
+								$this->setWriter($user);
+								return true;
+							}
 						}
 					}
+				} else {
+					$this->setWriter(null);
 				}
 				break;
 				
 			case 'version.checker':
-				foreach ($this->getDocument()->getSerie()->getProject()->getUsers()->getValues() as $user) {
-					if ($user->getCompany()->isMainContractor() || $user->getCompany()->isChecker()) {
-						if (preg_match('/^[\w\-\.]+@[\w\-\.]+\.[a-zA-Z]{2,5}$/', $value) == 1) {
-							if ($user->getEmail() == $value) {
-								$this->setChecker($user);
-								return true;
-							}
-						} else {
-							if ($user->getName() == $value) {
-								$this->setChecker($user);
-								return true;
+				if ($value) {
+					foreach ($this->getDocument()->getSerie()->getProject()->getUsers()->getValues() as $user) {
+						if ($user->getCompany()->isMainContractor() || $user->getCompany()->isChecker()) {
+							if (preg_match('/^[\w\-\.]+@[\w\-\.]+\.[a-zA-Z]{2,5}$/', $value) == 1) {
+								if ($user->getEmail() == $value) {
+									$this->setChecker($user);
+									return true;
+								}
+							} else {
+								if ($user->getName() == $value) {
+									$this->setChecker($user);
+									return true;
+								}
 							}
 						}
 					}
+				} else {
+					$this->setChecker(null);
 				}
 				break;
 				
 			case 'version.approver':
-				foreach ($this->getDocument()->getSerie()->getProject()->getUsers()->getValues() as $user) {
-					if ($user->getCompany()->isMainContractor() || $user->getCompany()->isChecker()) {
-						if (preg_match('/^[\w\-\.]+@[\w\-\.]+\.[a-zA-Z]{2,5}$/', $value) == 1) {
-							if ($user->getEmail() == $value) {
-								$this->setApprover($user);
-								return true;
-							}
-						} else {
-							if ($user->getName() == $value) {
-								$this->setApprover($user);
-								return true;
+				if ($value) {
+					foreach ($this->getDocument()->getSerie()->getProject()->getUsers()->getValues() as $user) {
+						if ($user->getCompany()->isMainContractor() || $user->getCompany()->isChecker()) {
+							if (preg_match('/^[\w\-\.]+@[\w\-\.]+\.[a-zA-Z]{2,5}$/', $value) == 1) {
+								if ($user->getEmail() == $value) {
+									$this->setApprover($user);
+									return true;
+								}
+							} else {
+								if ($user->getName() == $value) {
+									$this->setApprover($user);
+									return true;
+								}
 							}
 						}
 					}
+				} else {
+					$this->setApprover(null);
 				}
 				break;
 				

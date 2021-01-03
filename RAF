@@ -1,5 +1,5 @@
 Program :
-    Vérifier les imports															vérifier que l'usage de $this->reference ne pose pas de problèmes, supprimer la modif d'une référence lorsque le doc est trouvé
+    Vérifier les imports															OK
     Vérifier les exports															OK
     Vérifier l'import zone 21														OK
     Ajouter la date et l'auteur des visas											OK
@@ -11,10 +11,13 @@ Automation:
 Vue principale :
 	Refonte search																	OK
 	Revoir le tri "dernière version".												OK
-	Bug visa javascript
+	Bug visa javascript																n/a
 	Bug version delete																n/a
 	Corriger valeur par défaut et valeurs recopiées									OK
 	Modifier "dernier à produire" par "premier à produire"							OK
+	Déplacer la méthode 'getPropertyValueToString' dans un service et modifier
+	le php et le js en conséquence
+	Rendre la modification des dates dans quick_edit possible
 	Modification de la largueur des colonnes										
 	Déplacement des colonnes														
 	

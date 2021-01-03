@@ -213,11 +213,11 @@ function setup(datas) {
 									value: -1,
 								},
 								{
-									text: $.i18n('Yes'),
+									text: $.i18n('yes'),
 									value: 1,
 								},
 								{
-									text: $.i18n('No'),
+									text: $.i18n('no'),
 									value: 0,
 								}
 							];
@@ -1003,7 +1003,11 @@ $(document).ready(function() {
 	//---------------------
 	
 	$('#table_container, #vues, #table').on('ajax.beforeSend', function(e, result, textStatus, jqXHR) {
-		console.log(e.target);
+		
+		if (e.target !== this) {
+			return;
+		}
+		
 		e.stopPropagation();
 		$('#table').hide();
 		
@@ -1016,6 +1020,10 @@ $(document).ready(function() {
 	
 	$('#table_container').on('ajax.success', function(e, result, textStatus, jqXHR) {
 		
+		if (e.target !== this) {
+			return;
+		}
+		
 		e.stopPropagation();
 		$('#spinner').empty();
 		
@@ -1024,6 +1032,10 @@ $(document).ready(function() {
 	});
 	
 	$('#table_container').on('ajax.completed', function(e, result, textStatus, jqXHR) {
+		
+		if (e.target !== this) {
+			return;
+		}
 		
 		e.stopPropagation();
 		fillSeriesPannel();
@@ -1041,6 +1053,10 @@ $(document).ready(function() {
 	//---------------------
 	
 	$('#vues').on('ajax.success', function(e, result, textStatus, jqXHR) {
+		
+		if (e.target !== this) {
+			return;
+		}
 		
 		e.stopPropagation();	
 		$('#vues').empty();
@@ -1109,6 +1125,11 @@ $(document).ready(function() {
 	});
 	
 	$('#vues').on('ajax.completed', function(e, result, textStatus, jqXHR) {
+		
+		if (e.target !== this) {
+			return;
+		}
+		
 		e.stopPropagation();
 		urlSearch.fetch();
 	});
@@ -1123,6 +1144,10 @@ $(document).ready(function() {
 	//---------------------
 	
 	$('#table').on('ajax.success', function(e, result, textStatus, jqXHR) {
+		
+		if (e.target !== this) {
+			return;
+		}
 		
 		e.stopPropagation();
 		
@@ -1271,8 +1296,8 @@ $(document).ready(function() {
 					switch (header.type) {
 						case type.bool:
 							dataClass = 'text-center';
-							if (value == 0) value = 'No';
-							if (value == 1) value = 'Yes';
+							if (value == 0 || value == null) value = $.i18n('no');
+							if (value == 1) value = $.i18n('yes');
 							break;
 						case type.date:
 							dataClass = 'text-center';
@@ -1317,13 +1342,54 @@ $(document).ready(function() {
 						.on('dblclick', function() {
 							global.ajax.set(this, '/gpexe/project/serie/document/version/' + data['version_id'] + '/quick_edit/' + header.id);
 						})
-						.on('ajax.beforeSend', function(e, result, textStatus, jqXHR) {
-							e.stopPropagation();
-					    	$(e.target)
-								.show()
-								.empty()
-								.append(global.icon.loading)
-							;
+						.on('ajax.completed', function(e, result, textStatus, jqXHR) {
+							
+							let $form = $(this).find('form').children().first();
+							
+							if ($form.exist()) {
+								$form.on('keypress', function(e) {
+									if (e.which == 13) {
+										$(this).parent().submit();
+									}
+								});
+								
+								$('body').on('click', function(e) {
+									if ($form.is(e.target) === false && $form.has(e.target).exist() === false) {
+										$form.trigger('submit');
+									}
+								});
+							} else {
+								switch (header.type) {
+									case type.bool:
+										if (result == 0 || result == null) result = $.i18n('no');
+										if (result == 1) result = $.i18n('yes');
+										break;
+									case type.date:
+										
+										result = result.toDate();
+										$(this).parent().removeAttr('class');
+										
+										//highlight
+										if (urlSearch.get('highlight').toString() == header.id) {
+											if (result !== null) {
+												if (result < new Date()) {
+													$(this).parent().addClass('highlight-late');
+												} else if (result.addDays(-15) < new Date()) {
+													$(this).parent().addClass('highlight-15');
+												} else if (result.addDays(-30) < new Date()) {
+													$(this).parent().addClass('highlight-30');
+												} else {
+													$(this).parent().addClass('highlight-ok');
+												}
+											}
+										}
+										result = result.format();
+										break;
+								}
+								
+								$('body').off('click');
+							}
+							
 						})
 					;
 					
@@ -1500,14 +1566,17 @@ $(document).ready(function() {
 	});
 	
 	$('#table').on('ajax.completed', function(e, result, textStatus, jqXHR) {
+
+		if (e.target !== this) {
+			return;
+		}
+		
 		e.stopPropagation();
 	});
 	
 	//---------------------
 	// Quick edit
 	//---------------------
-	
-
 	
 	//---------------------
 	// Modal

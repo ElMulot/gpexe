@@ -1,0 +1,8 @@
+{% form_theme form 'ajax/layout.html.twig' %}
+
+{{ form_start(form, { 'attr': {'data-toggle': 'ajax', 'data-url': app.request.uri}}) }}
+{% for child in form %}
+    {{ form_widget(child) }}
+{% endfor %}
+{{ form_end(form) }}
+

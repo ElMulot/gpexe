@@ -269,6 +269,30 @@ global.ajax = {
 			
 		});
 		
+		$(container).find('form[data-toggle*="ajax"]').each(function() {
+			
+			$(this).on('submit', function(e) {
+				let url = $(this).data('url');
+				let target = $(this).data('target') || $(this).parent();
+				
+				if ($(this).find('input[type="file"]').exist()) {
+					var method = 'POST';
+					var data = new FormData($(this).get(0));
+				} else {
+					var method = $(this).attr('method') || 'GET';
+					var data = $(this).serializeArray();
+				}
+				
+				that.set(target, url, {method: method, from: this, data: data});
+				return false;
+			});
+			
+			if ($(this).hasClass('active')) {
+				$(this).trigger('submit');
+			}
+			
+		});
+		
 		$(container).find('div[data-toggle*="ajax"]').each(function(e) {
 			let target = $(this).data('target') || this;
 			let url = $(this).data('url');

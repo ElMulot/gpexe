@@ -366,30 +366,35 @@ class VersionController extends AbstractController
 		$fields = $this->fieldService->getFields($project);
 		
 		foreach ($fields as $field) {
-			if ($field['id'] == $fieldId && $field['display']['table'] && $field['permissions']['write']) {
+			
+			if ($field['id'] == $fieldId) {
 				
-				$form = $this->createForm(QuickVersionType::class, $version, [
-					'field' => $field,
-				]);
+				if ($field['display']['table'] && $field['permissions']['write']) {
 				
-				$form->handleRequest($request);
-				
-				if ($form->isSubmitted() && $form->isValid()) {
-					
-					$version->setPropertyValue($field['codename'], $form->get($field['id'])->getData());
-					$entityManager = $this->getDoctrine()->getManager();
-					$entityManager->persist($version);
-					$entityManager->flush();
-					
-					return new Response('');
-				} else {
-					$view = $form->createView();
-					return $this->render('generic/form.html.twig', [
-						'form' => $view,
+					$form = $this->createForm(QuickVersionType::class, $version, [
+						'field' => $field,
 					]);
+					
+					$form->handleRequest($request);
+					
+					if ($form->isSubmitted() && $form->isValid()) {
+						
+						$version->setPropertyValue($field['codename'], $form->get($field['id'])->getData());
+						$entityManager = $this->getDoctrine()->getManager();
+						$entityManager->persist($version);
+						$entityManager->flush();
+						
+						return new Response($version->getPropertyValueToString($field['codename']));
+					} else {
+						$view = $form->createView();
+						return $this->render('version/quick_edit.html.twig', [
+							'form' => $view,
+						]);
+					}
+					
+				} else {
+					return new Response($version->getPropertyValueToString($field['codename']));
 				}
-				
-				break;
 			}
 		}
 		

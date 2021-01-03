@@ -17,6 +17,7 @@ use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use App\Repository\MetadataRepository;
+use App\Repository\UserRepository;
 use App\Repository\VisaRepository;
 
 class QuickVersionType extends AbstractType
@@ -28,11 +29,14 @@ class QuickVersionType extends AbstractType
 	
 	private $metadataRepository;
 	
+	private $userRepository;
+	
 	private $visaRepository;
 	
-	public function __construct(MetadataRepository $metadataRepository, VisaRepository $visaRepository)
+	public function __construct(MetadataRepository $metadataRepository, UserRepository $userRepository, VisaRepository $visaRepository)
 	{
 		$this->metadataRepository = $metadataRepository;
+		$this->userRepository = $userRepository;
 		$this->visaRepository = $visaRepository;
 	}
 	
@@ -51,8 +55,10 @@ class QuickVersionType extends AbstractType
 		
 		} else {									//quick edit
 			
+			$serie = $version->getDocument()->getSerie();
+			$project = $serie->getProject();
 			$field = $options['field'];
-					
+			
 			$options = [];
 			
 			switch ($field['id']) {
