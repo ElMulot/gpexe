@@ -262,17 +262,17 @@ class Program
 	
 	public function isTypeExport(): bool
 	{
-		return $this->getType() ?? '' == 'export';
+		return $this->getType() === self::EXPORT;
 	}
 	
 	public function isTypeImport(): bool
 	{
-		return $this->getType() ?? '' == 'import';
+		return $this->getType() === self::IMPORT;
 	}
 
 	public function isTypeProgress(): bool
 	{
-		return $this->getType() ?? '' == 'progress';
+		return $this->getType() === self::PROGRESS;
 	}
 	
 	public function __toString(): string

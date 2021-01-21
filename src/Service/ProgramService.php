@@ -1024,8 +1024,12 @@ private function evaluate($expression)
 	$expression = str_replace('user.name', $this->security->getUser(), $expression);
 	$matches = [];
 	
-	if (preg_match('/^"([^"]+)"\s(matches)\s"([^"]+)/', $expression, $matches) === 1) {
-		$expression = "preg_match('{$matches[3]}', \"{$matches[1]}\")";
+	if (preg_match('/(.+)\s+matches\s+\"(\/\S*\/)\"/', $expression, $matches) === 1) {
+		
+		$subExpr = $this->evaluate($matches[1]);
+		$pattern = $matches[2];
+		
+		$expression = "preg_match('{$subExpr}', {$pattern})";
 	}
 	
 	try {

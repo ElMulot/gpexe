@@ -128,7 +128,7 @@ class FieldService
 				'default_width' => 8,
 				'display' => [
 					'table' => true,
-					'program' => false
+					'program' => true,
 				],
 				'permissions' => [
 					'read' => true,
@@ -144,7 +144,7 @@ class FieldService
 				'default_width' => 8,
 				'display' => [
 					'table' => true,
-					'program' => false
+					'program' => true,
 				],
 				'permissions' => [
 					'read' => true,
@@ -160,7 +160,7 @@ class FieldService
 				'default_width' => 8,
 				'display' => [
 					'table' => true,
-					'program' => false
+					'program' => true,
 				],
 				'permissions' => [
 					'read' => true,
@@ -176,7 +176,7 @@ class FieldService
 				'default_width' => 8,
 				'display' => [
 					'table' => false,
-					'program' => true
+					'program' => true,
 				],
 				'permissions' => [
 					'read' => false,

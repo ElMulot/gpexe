@@ -263,14 +263,16 @@ class ProgramController extends AbstractController
 				
 				case Program::EXPORT:
 					$filePath = $this->cacheService->get('program.file_path');
+					$pathParts = pathinfo($filePath);
+					
 					$this->programService->unload($program);
 					return $this->render('program/export.html.twig', [
 						'program' => $program,
-						'file_path' => $filePath,
+						'file_path' => $this->getParameter('uploads_directory') . '/' . $pathParts['basename'],
 					]);
 					
 				case Program::IMPORT:
-					if ($this->cacheService->get('program.ready_to_persist')) {				//launch import
+					if ($this->cacheService->get('program.ready_to_persist')) {					//launch import
 						
 						$this->programService->unload($program);
 						return $this->render('program/import.html.twig', [
