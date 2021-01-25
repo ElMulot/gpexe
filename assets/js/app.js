@@ -9,13 +9,17 @@ require ('@wikimedia/jquery.i18n/src/jquery.i18n.messagestore.js');
 require('../css/global.scss');
 
 String.prototype.toDate = function () {
-	if (s = /\d{4}-\d{2}-\d{2}/g.exec(this)) {
-		const [year, month, day] = s[0].split("-");
+	if (s = /\d{2}-\d{2}-\d{4}/g.exec(this)) {
+		const [day, month, year] = s[0].split("-");
 		d = new Date(year, month - 1, day);
 		return (d instanceof Date && isNaN(d) === false)?d:null;
 	}
 	return null;
 };
+
+String.prototype.htmlDecode = function () {
+	return $("<div/>").html(this).text();
+}
 
 Date.prototype.format = function() {
 	
@@ -84,8 +88,12 @@ $.fn.drags = function(opt) {
 
 }
 
-global.remToPx = function (i) {
+global.remToPx = function(i) {
 	return i * parseFloat(getComputedStyle(document.documentElement).fontSize);
+}
+
+global.pxToRem = function(i) {
+	return i / parseFloat(getComputedStyle(document.documentElement).fontSize);
 }
 
 global.create = {
@@ -550,24 +558,52 @@ $(document).ready(function() {
 		//---------------------
 		
 		bsCustomFileInput.init();
+		
     });
     
     $(document).on('ajax.error', function(e, jqXHR, textStatus, errorThrown) {
-		
-    	let result = '<div class="alert alert-danger">' +
-						'<h6 class="alert-heading font-weight-bold">' + $.i18n('error') + ' ' + jqXHR.status + ' : ' + jqXHR.statusText + '</h6>';
-		
-		if ((m = /<title>(.+)<\/title>/.exec(jqXHR.responseText)) !== null) {
-			result += '<p>' + m[1] + '</p>';
+    	
+		if ((m = /<!--\s(.+)\s-->/.exec(jqXHR.responseText)) !== null) {
+			title = m[1].htmlDecode();
+		} else {
+			title = $.i18n('error');
 		}
-    			
-		result += '<button type="button" class="btn btn-sm btn-primary" >' + $.i18n('reload') + '</button>' +
-					'</div>';
-		$(e.target).html(result);
 		
-		$(e.target).find('button').on('click', function() {
-			global.ajax.set(e.target, jqXHR.settings.url, {data: jqXHR.settings.data})
-		});
+    	let div = $(e.target).append(global.create.div()).children().last()
+    		.addClass('alert alert-danger')
+    	;
+    	
+    	div.append(global.create.div).children().last()
+    		.addClass('alert-heading font-weight-bold')
+    		.text($.i18n('error') + ' ' + jqXHR.status + ' : ' + jqXHR.statusText)
+    	;
+		
+    	div.append(global.create.p).children().last()
+			.text(title)
+		;
+    	
+    	div.append(global.create.smallButton).children().last()
+			.addClass('btn-primary mt-2')
+			.text($.i18n('reload'))
+			.on('click', function() {
+				global.ajax.set(e.target, jqXHR.settings.url, {data: jqXHR.settings.data})
+			})
+		;
+    	
+    	div.append(global.create.smallButton).children().last()
+			.addClass('btn-primary mt-2')
+			.text($.i18n('details'))
+			.on('click', function() {
+				let resultWindow = window.open('', '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
+				if ((m = /<head>(.+?)<\/head>/s.exec(jqXHR.responseText)) !== null) {
+					$(resultWindow.document.head).append(m[1]);
+				}
+				if ((m = /<body>(.+?)<\/body>/s.exec(jqXHR.responseText)) !== null) {
+					$(resultWindow.document.body).append(m[1]);
+				}
+			})
+		;
+    	
     });
     
     $(document).trigger('ajax.success');

@@ -19,6 +19,13 @@ App\Entity\CodificationItem:
         name:
             - Regex: '/^[^$"]+$/'
             - NotBlank: ~
+        value:
+            - Regex: '/^[^$"]+$/'
+            
+App\Entity\CodificationValue:
+    properties:
+        name:
+            - Regex: '/^[^$"]+$/'
 
 App\Entity\Company:
     constraints:
@@ -67,6 +74,17 @@ App\Entity\MetadataItem:
     constraints:
         - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity:
             fields: ['value', 'metadata']
+    properties:
+        name:
+            - Regex: '/^[^$"]+$/'
+            - NotBlank: ~
+        value:
+            - Regex: '/^[^$"]+$/'
+            
+App\Entity\MetadataValue:
+    properties:
+        value:
+            - Regex: '/^[^$"]+$/'
 
 App\Entity\Profil:
     constraints:

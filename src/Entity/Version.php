@@ -461,17 +461,16 @@ class Version
 			case 'version.approver':
 				return $this->getApprover();
 			
-			case 'version.firstScheduled':
-				if ($this->getIsRequired() === false) return false;
-				$date = $this->getScheduledDate();
+			case 'version.first':
+				$date = $this->getDate();
 				foreach ($this->getDocument()->getVersions()->getValues() as $version) {
-					if ($version->getIsRequired() && ($version->getScheduledDate() > $date || ($version->getScheduledDate() == $date && $version->getName() < $this->getName()))) {
+					if ($version->getDate() < $date || ($version->getDate() == $date && $version->getName() < $this->getName())) {
 						return false;
 					}
 				}
 				return true;
 				
-			case 'version.lastScheduled':
+			case 'version.firstScheduled':
 				if ($this->getIsRequired() === false) return false;
 				$date = $this->getScheduledDate();
 				foreach ($this->getDocument()->getVersions()->getValues() as $version) {
@@ -481,11 +480,40 @@ class Version
 				}
 				return true;
 				
+			case 'version.firstDelivered':
+				if ($this->getIsRequired()) return false;
+				$date = $this->getDeliveryDate();
+				foreach ($this->getDocument()->getVersions()->getValues() as $version) {
+					if ($version->getIsRequired() == false && ($version->getDeliveryDate() < $date || ($version->getDeliveryDate() == $date && $version->getName() < $this->getName()))) {
+						return false;
+					}
+				}
+				return true;
+			
+			case 'version.last':
+				$date = $this->getDate();
+				foreach ($this->getDocument()->getVersions()->getValues() as $version) {
+					if ($version->getDate() > $date || ($version->getDate() == $date && $version->getName() > $this->getName())) {
+						return false;
+					}
+				}
+				return true;
+			
+			case 'version.lastScheduled':
+				if ($this->getIsRequired() === false) return false;
+				$date = $this->getScheduledDate();
+				foreach ($this->getDocument()->getVersions()->getValues() as $version) {
+					if ($version->getIsRequired() && ($version->getScheduledDate() > $date || ($version->getScheduledDate() == $date && $version->getName() > $this->getName()))) {
+						return false;
+					}
+				}
+				return true;
+				
 			case 'version.lastDelivered':
 				if ($this->getIsRequired()) return false;
 				$date = $this->getDeliveryDate();
 				foreach ($this->getDocument()->getVersions()->getValues() as $version) {
-					if ($version->getIsRequired() == false && ($version->getDeliveryDate() > $date || ($version->getDeliveryDate() == $date && $version->getName() < $this->getName()))) {
+					if ($version->getIsRequired() == false && ($version->getDeliveryDate() > $date || ($version->getDeliveryDate() == $date && $version->getName() > $this->getName()))) {
 						return false;
 					}
 				}
@@ -555,7 +583,13 @@ class Version
 				}
 			
 			case 'version.date':
-				if ($date = \DateTime::createFromFormat('d-m-Y', $value)) {
+				if ($value instanceof \DateTime) {
+					if ($value > new \DateTime('now')) {
+						$this->isRequired = true;
+					}
+					$this->setDate($value);
+					return true;
+				} elseif ($date = \DateTime::createFromFormat('d-m-Y', $value)) {
 					if ($date > new \DateTime('now')) {
 						$this->isRequired = true;
 					}
@@ -565,13 +599,13 @@ class Version
 				return false;
 				
 			case 'version.isRequired':
-				switch ($value) {
-					case false:
+				switch ((string)$value) {
+					case '':
 					case 'false':
 					case 'no':
 						$this->setIsRequired(false);
 						return true;
-					case true:
+					case '1':
 					case 'true':
 					case 'yes':
 						$this->setIsRequired(true);
@@ -733,39 +767,6 @@ class Version
 		}
 		
 		return false;
-	}
-	
-	public function getPropertyValueToString(string $codename): string
-	{
-		$value = $this->getPropertyValue($codename);
-		
-		switch (gettype($value)) {
-			case 'boolean':
-				return ($value)?'Yes':'No';
-				
-			case 'object':
-				if ($value instanceof \DateTime) {
-					return $value->format('d-m-Y');
-				} else if ($value instanceof User) {
-					return $value->getName();
-				} else if ($value instanceof MetadataItem || $value instanceof MetadataValue) {
-					switch (gettype($value->getValue())) {
-						case 'boolean':
-							return ($value->getValue())?'Yes':'No';
-							
-						case 'object':
-							return $value->getValue()->format('d-m-Y');
-							
-						default:
-							return $value->getValue();
-					}
-				} else {
-					return (string)$value;
-				}
-				
-			default:
-				return (string)$value;
-		}
 	}
 	
 	public function __toString(): string

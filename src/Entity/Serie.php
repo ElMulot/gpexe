@@ -382,35 +382,6 @@ class Serie
     	return false;
     }
     
-    public function getPropertyValueToString(string $codename): string
-    {
-    	$value = $this->getPropertyValue($codename);
-    	
-    	switch (gettype($value)) {
-    		case 'boolean':
-    			return ($value)?'Yes':'No';
-    			
-    		case 'object':
-    			if ($value instanceof MetadataItem || $value instanceof MetadataValue) {
-    				switch (gettype($value->getValue())) {
-    					case 'boolean':
-    						return ($value->getValue())?'Yes':'No';
-    						break;
-    					case 'object':
-    						return $value->getValue()->format('d-m-Y');
-    						break;
-    					default:
-    						return $value->getValue();
-    				}
-    			} else {
-    				return (string)$value;
-    			}
-    			
-    		default:
-    			return (string)$value;
-    	}
-    }
-    
     public function __toString(): string
     {
     	return (string)$this->getName();

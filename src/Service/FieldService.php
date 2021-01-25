@@ -80,7 +80,7 @@ class FieldService
 				'default_width' => 15,
 				'display' => [
 					'table' => true,
-					'program' => true
+					'program' => true,
 				],
 				'permissions' => [
 					'read' => true,
@@ -93,10 +93,10 @@ class FieldService
 				'title' => $this->translator->trans('Version'),
 				'type' => Metadata::TEXT,
 				'parent' => 'version',
-				'default_width' => 3,
+				'default_width' => 4,
 				'display' => [
 					'table' => true,
-					'program' => true
+					'program' => true,
 				],
 				'permissions' => [
 					'read' => true,
@@ -112,7 +112,7 @@ class FieldService
 				'default_width' => 30,
 				'display' => [
 					'table' => true,
-					'program' => true
+					'program' => true,
 				],
 				'permissions' => [
 					'read' => true,
@@ -128,7 +128,7 @@ class FieldService
 				'default_width' => 8,
 				'display' => [
 					'table' => true,
-					'program' => false
+					'program' => true,
 				],
 				'permissions' => [
 					'read' => true,
@@ -144,7 +144,7 @@ class FieldService
 				'default_width' => 8,
 				'display' => [
 					'table' => true,
-					'program' => false
+					'program' => true,
 				],
 				'permissions' => [
 					'read' => true,
@@ -160,7 +160,7 @@ class FieldService
 				'default_width' => 8,
 				'display' => [
 					'table' => true,
-					'program' => false
+					'program' => true,
 				],
 				'permissions' => [
 					'read' => true,
@@ -175,11 +175,11 @@ class FieldService
 				'parent' => 'version',
 				'default_width' => 8,
 				'display' => [
-					'table' => false,
-					'program' => true
+					'table' => true,
+					'program' => true,
 				],
 				'permissions' => [
-					'read' => false,
+					'read' => true,
 					'write' => true,
 				],
 			],
@@ -192,7 +192,7 @@ class FieldService
 				'default_width' => 8,
 				'display' => [
 					'table' => true,
-					'program' => true
+					'program' => true,
 				],
 				'permissions' => [
 					'read' => true,
@@ -208,7 +208,7 @@ class FieldService
 				'default_width' => 10,
 				'display' => [
 					'table' => true,
-					'program' => true
+					'program' => true,
 				],
 				'permissions' => [
 					'read' => true,
@@ -224,7 +224,7 @@ class FieldService
 				'default_width' => 10,
 				'display' => [
 					'table' => true,
-					'program' => true
+					'program' => true,
 				],
 				'permissions' => [
 					'read' => true,
@@ -240,11 +240,27 @@ class FieldService
 				'default_width' => 10,
 				'display' => [
 					'table' => true,
-					'program' => true
+					'program' => true,
 				],
 				'permissions' => [
 					'read' => true,
 					'write' => true,
+				],
+			],
+			'version.first' => [
+				'id' =>'version_first',
+				'codename' => 'version.first',
+				'title' => $this->translator->trans('First'),
+				'type' => Metadata::BOOLEAN,
+				'parent' => 'version',
+				'default_width' => 10,
+				'display' => [
+					'table' => true,
+					'program' => true,
+				],
+				'permissions' => [
+					'read' => true,
+					'write' => false,
 				],
 			],
 			'version.firstScheduled' => [
@@ -256,7 +272,23 @@ class FieldService
 				'default_width' => 10,
 				'display' => [
 					'table' => true,
-					'program' => true
+					'program' => true,
+				],
+				'permissions' => [
+					'read' => true,
+					'write' => false,
+				],
+			],
+			'version.firstDelivered' => [
+				'id' =>'version_first_delivered',
+				'codename' => 'version.firstDelivered',
+				'title' => $this->translator->trans('First delivered'),
+				'type' => Metadata::BOOLEAN,
+				'parent' => 'version',
+				'default_width' => 10,
+				'display' => [
+					'table' => true,
+					'program' => true,
 				],
 				'permissions' => [
 					'read' => true,
@@ -272,7 +304,7 @@ class FieldService
 				'default_width' => 10,
 				'display' => [
 					'table' => true,
-					'program' => true
+					'program' => true,
 				],
 				'permissions' => [
 					'read' => true,
@@ -288,7 +320,23 @@ class FieldService
 				'default_width' => 10,
 				'display' => [
 					'table' => true,
-					'program' => true
+					'program' => true,
+				],
+				'permissions' => [
+					'read' => true,
+					'write' => false,
+				],
+			],
+			'version.last' => [
+				'id' =>'version_last',
+				'codename' => 'version.last',
+				'title' => $this->translator->trans('Last'),
+				'type' => Metadata::BOOLEAN,
+				'parent' => 'version',
+				'default_width' => 10,
+				'display' => [
+					'table' => true,
+					'program' => true,
 				],
 				'permissions' => [
 					'read' => true,
@@ -304,7 +352,7 @@ class FieldService
 				'default_width' => 10,
 				'display' => [
 					'table' => true,
-					'program' => true
+					'program' => true,
 				],
 				'permissions' => [
 					'read' => true,
@@ -320,7 +368,7 @@ class FieldService
 				'default_width' => 10,
 				'display' => [
 					'table' => true,
-					'program' => true
+					'program' => true,
 				],
 				'permissions' => [
 					'read' => true,
@@ -336,7 +384,7 @@ class FieldService
 				'default_width' => 10,
 				'display' => [
 					'table' => true,
-					'program' => true
+					'program' => true,
 				],
 				'permissions' => [
 					'read' => true,
@@ -352,7 +400,7 @@ class FieldService
 				'default_width' => 10,
 				'display' => [
 					'table' => true,
-					'program' => true
+					'program' => true,
 				],
 				'permissions' => [
 					'read' => true,
@@ -368,7 +416,7 @@ class FieldService
 				'default_width' => 0,
 				'display' => [
 					'table' => false,
-					'program' => true
+					'program' => true,
 				],
 				'permissions' => [
 					'read' => true,
@@ -387,7 +435,7 @@ class FieldService
 				'default_width' => 10,
 				'display' => [
 					'table' => false,
-					'program' => true
+					'program' => true,
 				],
 				'permissions' => [
 					'read' => ($codification->isRegex() || $codification->isList()),
@@ -406,11 +454,11 @@ class FieldService
 				'default_width' => 10,
 				'display' => [
 					'table' => true,
-					'program' => true
+					'program' => true,
 				],
 				'permissions' => [
 					'read' => true,
-					'write' => true
+					'write' => true,
 				],
 			];
 		}
@@ -426,7 +474,7 @@ class FieldService
 					'default_width' => 10,
 					'display' => [
 						'table' => true,
-						'program' => true
+						'program' => true,
 					],
 					'permissions' => [
 						'read' => true,
@@ -443,7 +491,7 @@ class FieldService
 					'default_width' => 0,
 					'display' => [
 						'table' => false,
-						'program' => true
+						'program' => true,
 					],
 					'permissions' => [
 						'read' => true,
@@ -460,7 +508,7 @@ class FieldService
 					'default_width' => 0,
 					'display' => [
 						'table' => false,
-						'program' => true
+						'program' => true,
 					],
 					'permissions' => [
 						'read' => true,
@@ -546,6 +594,15 @@ class FieldService
 		$fields['version.deliveryDate']['elements'][] = [
 			'id' 		=> 'version_delivery_date',
 			'title' 	=> $this->translator->trans('Delivery date'),
+			'sort'		=> true,
+			'filter'	=> [
+				'type'		=> Metadata::DATE,
+			]
+		];
+		
+		$fields['version.date']['elements'][] = [
+			'id' 		=> 'version_date',
+			'title' 	=> $this->translator->trans('Date'),
 			'sort'		=> true,
 			'filter'	=> [
 				'type'		=> Metadata::DATE,

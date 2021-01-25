@@ -105,12 +105,10 @@ $(document).ready(function() {
 		
 		//recorded progress
 		for (let progress of result.progress) {
-			if (progress.date instanceof Object) {
-				date = progress.date.date.toDate().format();
-				if (dates.indexOf(date) === -1) {
-					dates.push(date);
-					continue;
-				}
+			date = progress.date.toDate().format();
+			if (dates.indexOf(date) === -1) {
+				dates.push(date);
+				continue;
 			}
 		}
 		
@@ -252,10 +250,8 @@ $(document).ready(function() {
 		
 		function getProgress(date, serieId) {
 			for (let progress of result.progress) {
-				if (progress.date instanceof Object) {
-					if (progress.serieId == serieId && progress.date.date.toDate().format() == date) {
-						return Math.round(progress.value);
-					}
+				if (progress.serieId == serieId && progress.date == date) {
+					return Math.round(progress.value);
 				}
 			}
 			return null;

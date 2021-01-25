@@ -384,7 +384,9 @@ class VersionController extends AbstractController
 						$entityManager->persist($version);
 						$entityManager->flush();
 						
-						return new Response($version->getPropertyValueToString($field['codename']));
+						return $this->render('version/quick_edit.html.twig', [
+							'property' => $version->getPropertyValue($field['codename']),
+						]);
 					} else {
 						$view = $form->createView();
 						return $this->render('version/quick_edit.html.twig', [
@@ -393,7 +395,9 @@ class VersionController extends AbstractController
 					}
 					
 				} else {
-					return new Response($version->getPropertyValueToString($field['codename']));
+					return $this->render('version/quick_edit.html.twig', [
+						'property' => $version->getPropertyValue($field['codename']),
+					]);
 				}
 			}
 		}

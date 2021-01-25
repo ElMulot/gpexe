@@ -104,11 +104,11 @@ class VersionType extends AbstractType
 		if ($versions) {
 			foreach ($versions as $version) {
 				if (isset($value)) {
-					if ($value != $version->getPropertyValueToString($codename)) {
+					if ($value != $version->getPropertyValue($codename)) {
 						return true;
 					}
 				} else {
-					$value = $version->getPropertyValueToString($codename);
+					$value = $version->getPropertyValue($codename);
 				}
 			}
 		}

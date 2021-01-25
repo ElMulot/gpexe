@@ -19,6 +19,8 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Serializer\Serializer;
+use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 
@@ -237,10 +239,12 @@ class ProgramController extends AbstractController
 						return $this->render('program/error.html.twig');
 					}
 					
+					$serializer = new Serializer([new DateTimeNormalizer(['datetime_format' => 'd-m-Y'])]);
+					
 					return new JsonResponse([
 						'series' => $this->serieRepository->getSeriesByProjectAsArray($project),
 						'current_progress' => $this->programService->progress($program),
-						'progress' => $this->progressRepository->getProgressAsArray($program),
+						'progress' => $serializer->normalize($this->progressRepository->getProgressAsArray($program)),
 					]);
 					
 				default:
@@ -263,14 +267,16 @@ class ProgramController extends AbstractController
 				
 				case Program::EXPORT:
 					$filePath = $this->cacheService->get('program.file_path');
+					$pathParts = pathinfo($filePath);
+					
 					$this->programService->unload($program);
 					return $this->render('program/export.html.twig', [
 						'program' => $program,
-						'file_path' => $filePath,
+						'file_path' => $this->getParameter('uploads_directory') . '/' . $pathParts['basename'],
 					]);
 					
 				case Program::IMPORT:
-					if ($this->cacheService->get('program.ready_to_persist')) {				//launch import
+					if ($this->cacheService->get('program.ready_to_persist')) {					//launch import
 						
 						$this->programService->unload($program);
 						return $this->render('program/import.html.twig', [

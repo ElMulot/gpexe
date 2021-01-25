@@ -102,11 +102,11 @@ class DocumentType extends AbstractType
 		if ($documents) {
 			foreach ($documents as $document) {
 				if (isset($value)) {
-					if ($value != $document->getPropertyValueToString($codename)) {
+					if ($value != $document->getPropertyValue($codename)) {
 						return true;
 					}
 				} else {
-					$value = $document->getPropertyValueToString($codename);
+					$value = $document->getPropertyValue($codename);
 				}
 			}
 		}

@@ -11,6 +11,8 @@ var gpexe = {
 	series: [],
 	table: null,
 	chxCheckall: null,
+	colResize: {},
+	colDrag: {},
 }
 
 const type = {
@@ -189,6 +191,7 @@ function setup(datas) {
 				id: field.id,
 				title: field.title,
 				type: field.type,
+				permissions: field.permissions,
 				defaultWidth: field.default_width,
 				hasSort: (field.elements && field.elements.some(v => v.sort === true)),
 				hasFilter: (field.elements && field.elements.some(v => v.filter)),
@@ -361,6 +364,7 @@ function setup(datas) {
 			;
 			
 		}
+
 	}
 	
 	tr.append(create.th).children().last()
@@ -369,6 +373,53 @@ function setup(datas) {
 	;
 	
 	let tbody = $('#table').append(create.tbody).children().last();
+	
+	//---------------------
+	// Col Resize
+	//---------------------
+	
+	for (let header of gpexe.headers) {
+		colResize(header);
+	}
+	
+	$('body').on('mousemove', function(e) {
+		if ($.isEmptyObject(gpexe.colResize) === false) {
+			let width = Math.max(1, Math.round(pxToRem(gpexe.colResize.currentWidth + (e.pageX - gpexe.colResize.currentPosition))));
+			gpexe.colResize.th.css('width', width + 'rem');
+		}
+		
+//		if ($.isEmptyObject(gpexe.colDrag) === false) {
+//			gpexe.colDrag.th.addClass('col-drag-handle')
+//		}
+		
+	});
+	
+	$('body').on('mouseup', function(e) {
+		if ($.isEmptyObject(gpexe.colResize) === false) {
+			for (let header of gpexe.headers) {
+				if (gpexe.colResize.th.is(header.th)) {
+					let width = Math.max(1, Math.round(pxToRem(gpexe.colResize.th.width())));
+					urlSearch.delete('display[' + header.id + ']');
+					urlSearch.append('display[' + header.id + ']', width);
+					break;
+				}
+			}
+			gpexe.colResize = {};
+		}
+		
+//		if ($.isEmptyObject(gpexe.colDrag) === false) {
+//			gpexe.colDrag.th.removeClass('col-drag-handle')
+//		}
+	});
+	
+	
+	//---------------------
+	// Col Drag
+	//---------------------
+	
+//	for (let header of gpexe.headers) {
+//		colDrag(header);
+//	}
 	
 	
 	function createMenu(header) {
@@ -868,6 +919,54 @@ function setup(datas) {
 		}
 	}
 	
+	function colResize(header) {
+		
+		if (header.th) {
+			header.th.append(create.div).children().last()
+				.css('right', '0')
+				.addClass('col-resize-handle')
+				.on('mousedown', function(e) {
+					gpexe.colResize = {
+						th: $(e.target).parent(),
+						currentPosition: e.pageX,
+						currentWidth: $(e.target).parent().width(),
+					};
+				})
+			;
+			
+			header.th.next().append(create.div).children().last()
+				.css('left', '0')
+				.addClass('col-resize-handle')
+				.on('mousedown', function(e) {
+					console.log(e);
+					gpexe.colResize = {
+						th: $(e.target).parent().prevAll(':visible').first(),
+						currentPosition: e.pageX,
+						currentWidth: $(e.target).parent().prevAll(':visible').first().width(),
+					};
+				})
+			;
+			
+		}
+		
+	}
+	
+	function colDrag(header) {
+		
+		if (header.th) {
+			
+			header.th.find('button[type="button"]').first()
+				.on('mousedown', function(e) {
+					gpexe.colDrag = {
+						id: header.id,
+						th: header.th,
+						currentPosition: e.pageX,
+					};
+				})
+			;
+		}
+		
+	}
 }
 
 
@@ -1301,14 +1400,13 @@ $(document).ready(function() {
 							break;
 						case type.date:
 							dataClass = 'text-center';
-							
-							if (value instanceof Object) {
+							if (value !== null) {
+								value = value.toDate();
 								
-								value = value.date.toDate();
-								
-								//highlight
-								if (urlSearch.get('highlight').toString() == header.id) {
-									if (value !== null) {
+								if (value !== null) {
+									//highlight
+									if (urlSearch.get('highlight').toString() == header.id
+										|| (urlSearch.get('highlight').toString() == 'version_date' && header.id == 'version_scheduled_date')) {
 										if (value < new Date()) {
 											tr.addClass('highlight-late');
 										} else if (value.addDays(-15) < new Date()) {
@@ -1319,8 +1417,8 @@ $(document).ready(function() {
 											tr.addClass('highlight-ok');
 										}
 									}
+									value = value.format();
 								}
-								value = value.format();
 							}
 							break;
 						case type.link:
@@ -1336,13 +1434,17 @@ $(document).ready(function() {
 					}
 					if (value === null) value = '';
 					
-					tr.append(create.td).children().last()
+					let td = tr.append(create.td).children().last()
 						.addClass(dataClass)
 						.text(value)
-						.on('dblclick', function() {
+					;
+					
+					if (header.permissions.write) {
+						td.on('dblclick', function() {
 							global.ajax.set(this, '/gpexe/project/serie/document/version/' + data['version_id'] + '/quick_edit/' + header.id);
-						})
-						.on('ajax.completed', function(e, result, textStatus, jqXHR) {
+						});
+						
+						td.on('ajax.completed', function(e, result, textStatus, jqXHR) {
 							
 							let $form = $(this).find('form').children().first();
 							
@@ -1369,9 +1471,11 @@ $(document).ready(function() {
 										result = result.toDate();
 										$(this).parent().removeAttr('class');
 										
-										//highlight
-										if (urlSearch.get('highlight').toString() == header.id) {
-											if (result !== null) {
+										if (result !== null) {
+											
+											//highlight
+											if (urlSearch.get('highlight').toString() == header.id
+												|| (urlSearch.get('highlight').toString() == 'version_scheduled_date' && header.id == 'version_date')) {												
 												if (result < new Date()) {
 													$(this).parent().addClass('highlight-late');
 												} else if (result.addDays(-15) < new Date()) {
@@ -1382,16 +1486,16 @@ $(document).ready(function() {
 													$(this).parent().addClass('highlight-ok');
 												}
 											}
+											result = result.format();
 										}
-										result = result.format();
 										break;
 								}
 								
 								$('body').off('click');
 							}
 							
-						})
-					;
+						});
+					}
 					
 				} else {
 					
@@ -1555,13 +1659,7 @@ $(document).ready(function() {
 		urlSearch.lineChecked();
 		
 		global.ajax.fetch('#table > tbody');
-//		$('table').stickyTableHeaders();
-		
-		//---------------------
-		// Jquery Resizable Columns
-		//---------------------
-		
-//		$('#table').resizableColumns();
+//		$('table').stickyTableHeaders()
 		
 	});
 	

@@ -69,7 +69,7 @@ class QuickVersionType extends AbstractType
 						'choices' 	=> $project->getStatuses(),
 					];
 					break;
-				
+					
 				case (preg_match('/metadata_(\d+)/', $field['id'], $matches) === 1):
 					
 					foreach ($this->metadataRepository->getMetadatasForVersion($project) as $metadata) {
@@ -129,6 +129,14 @@ class QuickVersionType extends AbstractType
 			
 			switch ($field['type']) {
 				
+				
+				case ($field['codename'] == 'document.name' || $field['codename'] == 'version.name'):
+					$builder->add($field['id'], TextType::class, $options + [
+						'mapped' => false,
+						'data' => $version->getPropertyValue($field['codename']),
+					]);
+					break;
+				
 				case Metadata::BOOLEAN:
 					$builder->add($field['id'], ChoiceType::class, $options + [
 						'choices' => [
@@ -141,6 +149,7 @@ class QuickVersionType extends AbstractType
 					break;
 					
 				case Metadata::TEXT:
+				case Metadata::LINK:
 					$builder->add($field['id'], TextareaType::class, $options + [
 						'mapped' => false,
 						'data' => $version->getPropertyValue($field['codename']),

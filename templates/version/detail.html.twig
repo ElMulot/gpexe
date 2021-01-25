@@ -117,24 +117,14 @@
 					{{ metadata.name }} :
 				</div>
 				<div class="col-8">
-					{% if metadata.isBoolean %}
-    					{% if version.getPropertyValueToString(metadata.fullCodename) is empty  %}
-    						{% trans %}No{% endtrans %}
-    					{% else %}
-    						{% trans %}Yes{% endtrans %}
-    					{% endif %}
-    				{% elseif metadata.isText or metadata.isDate or metadata.isList %}
-    					{% if version.getPropertyValueToString(metadata.fullCodename) is empty  %}
+    				{% if metadata.isLink %}
+    					{% if version.getPropertyValue(metadata.fullCodename) is empty  %}
     						{% trans %}n/a{% endtrans %}
     					{% else %}
-    						{{ version.getPropertyValueToString(metadata.fullCodename) }}
+    						<a class="btn btn-sm btn-primary text-nowrap" href="{{ version.getPropertyValue(metadata.fullCodename)|to_string }}" target="_blank" rel="noopener noreferrer">{% trans %}Click here{% endtrans %}</a>
     					{% endif %}
-    				{% elseif metadata.isLink %}
-    					{% if version.getPropertyValueToString(metadata.fullCodename) is empty  %}
-    						{% trans %}n/a{% endtrans %}
-    					{% else %}
-    						<a class="btn btn-sm btn-primary text-nowrap" href="{{ version.getPropertyValueToString(metadata.fullCodename) }}" target="_blank" rel="noopener noreferrer">{% trans %}Click here{% endtrans %}</a>
-    					{% endif %}
+    				{% else %}
+    					{{ version.getPropertyValue(metadata.fullCodename)|to_string }}
     				{% endif %}
 				</div>
     		{% endfor %}

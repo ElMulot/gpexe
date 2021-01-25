@@ -1,29 +1,32 @@
 <?php
 namespace App\Controller;
 
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Contracts\Translation\TranslatorInterface;
-use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\Serializer\SerializerInterface;
+use App\Entity\Document;
 use App\Entity\Project;
 use App\Entity\Serie;
-use App\Entity\Document;
 use App\Entity\Version;
 use App\Form\DocumentType;
 use App\Form\SerieChangeType;
-use App\Service\DocumentService;
-use App\Service\FieldService;
-use App\Repository\CompanyRepository;
-use App\Repository\UserRepository;
 use App\Repository\CodificationRepository;
-use App\Repository\MetadataRepository;
-use App\Repository\StatusRepository;
-use App\Repository\SerieRepository;
+use App\Repository\CompanyRepository;
 use App\Repository\DocumentRepository;
+use App\Repository\MetadataRepository;
+use App\Repository\SerieRepository;
+use App\Repository\StatusRepository;
+use App\Repository\UserRepository;
 use App\Repository\VersionRepository;
 use App\Repository\VueRepository;
+use App\Service\DocumentService;
+use App\Service\FieldService;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Serializer\Serializer;
+use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
+use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
+use Symfony\Contracts\Translation\TranslatorInterface;
+use Symfony\Component\Serializer\Normalizer\GetSetMethodNormalizer;
 
 class DocumentController extends AbstractController
 {
@@ -170,14 +173,16 @@ class DocumentController extends AbstractController
 		
 		$versions = $this->versionRepository->getVersionsAsArray($codifications, $fields, $series, $project, $request);
 		
-		return new JsonResponse([
-			'datas' => $versions,
-			'pageMax' => $pageMax,
-			'query' => $request->query->all(),
-			'serie' => $serieId,
-			'flash' =>$this->get('session')->getFlashBag()->all(),
-		]);
+		$serializer = new Serializer([new DateTimeNormalizer(['datetime_format' => 'd-m-Y'])]);
 		
+		return new JsonResponse([
+				'datas' => $serializer->normalize($versions),
+				'pageMax' => $pageMax,
+				'query' => $request->query->all(),
+				'serie' => $serieId,
+				'flash' =>$this->get('session')->getFlashBag()->all(),
+			]
+		);
 	}
 	
 	public function detail(Version $version): Response

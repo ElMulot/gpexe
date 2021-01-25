@@ -4,14 +4,37 @@ namespace App\Service;
 
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\ORM\Query\Expr;
+use Doctrine\ORM\Query\QueryException;
 
 class QueryBuilderService extends QueryBuilder
 {
 	
 	private $uid;
 	
+	private $aliases = [];
+	
+	public function addSelect($select = null)
+	{
+		if (empty($select)) {
+			return $this;
+		}
+		
+		$selects = is_array($select) ? $select : func_get_args();
+		
+		array_walk($selects, function($item) {
+			if (is_string($item)) {
+				if (preg_match('/\s+AS\s+([^\s]+)$/i', $item, $matches) === 1) {
+					$this->addAlias($matches[1]);
+				}
+			}
+		});
+		
+		return parent::addSelect($select);
+	}
+	
 	public function addNestedSelect(QueryBuilderService $qb, $alias): self
 	{
+		$this->addAlias($alias);
 		return $this->addSelect('(' . $qb->getDQL() . ') AS ' . $alias);
 	}
 	
@@ -100,12 +123,18 @@ class QueryBuilderService extends QueryBuilder
 	
 	public function count(string $x, string $alias = null): string
 	{
+		$this->addAlias($alias);
 		return $this->expr()->count($x) . (($alias === null)?'':' AS ' . $alias);
 	}
 	
 	public function hasAlias(string $alias): bool
 	{
 		return in_array($alias, $this->getAllAliases());
+	}
+	
+	public function getAllAliases()
+	{
+		return array_merge(parent::getAllAliases(), $this->aliases);
 	}
 	
 	public function getRunnableQuery(): string
@@ -117,6 +146,19 @@ class QueryBuilderService extends QueryBuilder
 		}
 		
 		return $sql;		
+	}
+	
+	private function addAlias($alias)
+	{
+		if ($alias == false) {
+			return;
+		}
+		
+		if (in_array($alias, $this->aliases) === true) {
+			throw new QueryException(sprintf('Specified alias %s is already defined.', $alias));
+		}
+		
+		$this->aliases[] = $alias;
 	}
 	
 	private function getValueToString($value): string

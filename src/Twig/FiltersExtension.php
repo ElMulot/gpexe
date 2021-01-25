@@ -1,18 +1,30 @@
 <?php
 namespace App\Twig;
 
-use Twig\Extension\AbstractExtension;
-use Twig\TwigFilter;
 use Twig\Environment;
+use Twig\TwigFilter;
+use Twig\Extension\AbstractExtension;
+use App\Service\PropertyService;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 class FiltersExtension extends AbstractExtension
 {
-
+	
+	private $translator;
+	
+	private $propertyService;
+	
+	public function __construct(TranslatorInterface $translator, PropertyService $propertyService) {
+		$this->translator = $translator;
+		$this->propertyService = $propertyService;
+	}
+	
 	public function getFilters()
 	{
 		return [
 			new TwigFilter('short_name', [$this, 'getShortName']),
 			new TwigFilter('truncate', [$this, 'truncateFilter'], ['needs_environment' => true]),
+			new TwigFilter('to_string', [$this, 'toString']),
 		];
 	}
 
@@ -22,7 +34,7 @@ class FiltersExtension extends AbstractExtension
 		return (strtolower(preg_replace("#([A-Z])#", '_$1', lcfirst($reflect->getShortName()))));
     }
     
-    function truncateFilter(Environment $env, $value, $length = 30, $preserve = false, $separator = '...')
+    public function truncateFilter(Environment $env, $value, $length = 30, $preserve = false, $separator = '...')
     {
     	if (mb_strlen($value, $env->getCharset()) > $length) {
     		if ($preserve) {
@@ -38,6 +50,11 @@ class FiltersExtension extends AbstractExtension
     	}
     	
     	return $value;
+    }
+    
+    public function toString($property)
+    {
+    	return $this->propertyService->toString($property);
     }
 }
 
