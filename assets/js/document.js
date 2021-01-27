@@ -23,6 +23,39 @@ const type = {
 	list: 15,
 };
 
+
+//---------------
+//Header
+//---------------
+
+function Header(field) {
+	this.id = field.id;
+	this.title = field.title;
+	this.type = field.type;
+	this.permissions = field.permissions;
+	this.defaultWidth = field.default_width;
+	this.hasSort = (field.elements && field.elements.some(v => v.sort === true));
+	this.hasFilter = (field.elements && field.elements.some(v => v.filter));
+	this.elements = [];
+}
+
+Header.prototype = {
+	
+	setWidth: function(width) {
+		if (this.th) {
+			this.th.css('width', width + 'rem');
+			this.th.css('min-width', width + 'rem');
+			this.th.css('max-width', width + 'rem');
+			let index = this.th.index() + 1;
+			$(this.th).parents('table').find('td:nth-child(' + index + ')').each(function() {
+				$(this).css('max-width', width + 'rem');
+			});
+		}
+	},
+	
+}
+
+
 //---------------
 //UrlSearch
 //---------------
@@ -187,16 +220,7 @@ function setup(datas) {
 		
 		if (field.display.table) {
 		
-			let header = {
-				id: field.id,
-				title: field.title,
-				type: field.type,
-				permissions: field.permissions,
-				defaultWidth: field.default_width,
-				hasSort: (field.elements && field.elements.some(v => v.sort === true)),
-				hasFilter: (field.elements && field.elements.some(v => v.filter)),
-				elements: [],
-			}
+			var header = new Header(field);
 			
 			$.each(field.elements, function (j, element) {
 				
@@ -276,10 +300,9 @@ function setup(datas) {
 	
 	for (let header of gpexe.headers) {
 		
-		header.th = tr.append(create.th).children().last()
-			.css('width', header.defaultWidth + 'em')
-		;
-				
+		header.th = tr.append(create.th).children().last();
+		header.setWidth(header.defaultWidth);
+		
 		if (header.hasSort || header.hasFilter) {
 			
 			//main button group
@@ -378,6 +401,9 @@ function setup(datas) {
 	// Col Resize
 	//---------------------
 	
+	//supprimer width=100% dans le css
+	//sur le th (min-width, max-width) et sur les td (max-width)
+	
 	for (let header of gpexe.headers) {
 		colResize(header);
 	}
@@ -385,25 +411,15 @@ function setup(datas) {
 	$('body').on('mousemove', function(e) {
 		if ($.isEmptyObject(gpexe.colResize) === false) {
 			let width = Math.max(1, Math.round(pxToRem(gpexe.colResize.currentWidth + (e.pageX - gpexe.colResize.currentPosition))));
-			gpexe.colResize.th.css('width', width + 'rem');
+			gpexe.colResize.header.setWidth(width);
 		}
-		
-//		if ($.isEmptyObject(gpexe.colDrag) === false) {
-//			gpexe.colDrag.th.addClass('col-drag-handle')
-//		}
-		
 	});
 	
 	$('body').on('mouseup', function(e) {
 		if ($.isEmptyObject(gpexe.colResize) === false) {
-			for (let header of gpexe.headers) {
-				if (gpexe.colResize.th.is(header.th)) {
-					let width = Math.max(1, Math.round(pxToRem(gpexe.colResize.th.width())));
-					urlSearch.delete('display[' + header.id + ']');
-					urlSearch.append('display[' + header.id + ']', width);
-					break;
-				}
-			}
+			let width = gpexe.colResize.header.th.width();
+			urlSearch.delete('display[' + gpexe.colResize.header.id + ']');
+			urlSearch.append('display[' + gpexe.colResize.header.id + ']', pxToRem(width));
 			gpexe.colResize = {};
 		}
 		
@@ -926,11 +942,15 @@ function setup(datas) {
 				.css('right', '0')
 				.addClass('col-resize-handle')
 				.on('mousedown', function(e) {
-					gpexe.colResize = {
-						th: $(e.target).parent(),
-						currentPosition: e.pageX,
-						currentWidth: $(e.target).parent().width(),
-					};
+					for (let header of gpexe.headers) {
+						if ($(e.target).parent().is(header.th)) {
+							gpexe.colResize = {
+								header: header,
+								currentPosition: e.pageX,
+								currentWidth: header.th.width(),
+							};
+						}
+					}
 				})
 			;
 			
@@ -938,12 +958,15 @@ function setup(datas) {
 				.css('left', '0')
 				.addClass('col-resize-handle')
 				.on('mousedown', function(e) {
-					console.log(e);
-					gpexe.colResize = {
-						th: $(e.target).parent().prevAll(':visible').first(),
-						currentPosition: e.pageX,
-						currentWidth: $(e.target).parent().prevAll(':visible').first().width(),
-					};
+					for (let header of gpexe.headers) {
+						if ($(e.target).parent().prevAll(':visible').first().is(header.th)) {
+							gpexe.colResize = {
+								header: header,
+								currentPosition: e.pageX,
+								currentWidth: header.th.width(),
+							};
+						}
+					}
 				})
 			;
 			
@@ -967,6 +990,7 @@ function setup(datas) {
 		}
 		
 	}
+	
 }
 
 
@@ -1293,7 +1317,7 @@ $(document).ready(function() {
 				header.aDisplay.addClass('btn-outline-primary');
 				header.aDisplay.removeClass('btn-primary');
 				header.chxDisplay.prop('checked', true);
-				header.th.css('width', display + 'em');
+				header.setWidth(display);
 				header.th.show();
 				
 				//headers
