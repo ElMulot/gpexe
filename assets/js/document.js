@@ -189,6 +189,7 @@ function setup(datas) {
 	let thead = $('#table').append(create.thead).children().last();
 	let tr = thead.append(create.tr).children().last();
 	let th = tr.append(create.th).children().last()
+		.attr('id', 'selector')	
 		.css('width', '2em')
 	;
 	
@@ -413,6 +414,73 @@ function setup(datas) {
 			let width = Math.max(1, Math.round(pxToRem(gpexe.colResize.currentWidth + (e.pageX - gpexe.colResize.currentPosition))));
 			gpexe.colResize.header.setWidth(width);
 		}
+		if ($.isEmptyObject(gpexe.colDrag) === false) {
+			
+			if ($.isEmptyObject(gpexe.colDrag.$ul) && Math.abs(e.pageX - gpexe.colDrag.currentPosition) > 10) {
+			
+				let $table = gpexe.colDrag.header.th.parents('table');
+				
+				gpexe.colDrag.$ul = $table.parent().prepend(create.ul).children().first()
+					.addClass('col-drag-container')
+					.css('width', $table.outerWidth() + 1)
+				;
+				
+				$table.find('th:visible').each(function() {
+					
+					if (gpexe.colDrag.header.th.is(this)) {
+						gpexe.colDrag.$liPlaceholder = gpexe.colDrag.$ul.append(create.li).children().last()
+							.addClass('col-drag-placeholder')
+						;
+						gpexe.colDrag.$liPlaceholder.append(create.div).children().last()
+							.css('width', $(this).width())
+							.css('height', $table.height())
+						;
+					}
+					
+					let $li = gpexe.colDrag.$ul.append(create.li).children().last();
+					
+					if ($(this).is('#selector, #detail')) {
+						$li.addClass('no-drag');
+					}
+					
+					if (gpexe.colDrag.header.th.is(this)) {
+						$li.addClass('col-drag-helper');
+						gpexe.colDrag.$liHelper = $li;
+					}
+					
+					$li.append(create.table).children().last()
+						.addClass($table.attr('class'))
+						.append(create.thead).children().last()
+						.append($(this).clone())
+					;
+					
+					let $tbody = $li.children().last().append(create.tbody).children().last();
+					let index = $(this).index() + 1;
+					
+					$table.find('td:nth-child(' + index + ')').each(function() {
+						$tbody.append(create.tr).children().last()
+							.addClass($(this).parent().attr('class'))
+							.css('height', $(this).parent().outerHeight())
+							.append($(this).clone())
+						;
+					});
+				});
+				
+				$table.hide();
+			}
+			
+			if ($.isEmptyObject(gpexe.colDrag.$liPlaceholder) === false) {
+				let left = gpexe.colDrag.currentLeft + e.pageX - gpexe.colDrag.currentPosition;
+				gpexe.colDrag.$liHelper.css('left', left);
+				
+				if (left > gpexe.colDrag.$liPlaceholder.position().left + gpexe.colDrag.$liPlaceholder.nextAll().not('.col-drag-helper, .no-drag').first().width()) {
+					gpexe.colDrag.$liPlaceholder.nextAll().not('.col-drag-helper, .no-drag').first().insertBefore(gpexe.colDrag.$liPlaceholder);
+				} else if (left < gpexe.colDrag.$liPlaceholder.position().left - gpexe.colDrag.$liPlaceholder.prevAll().not('.col-drag-helper, .no-drag').first().width()) {
+					gpexe.colDrag.$liPlaceholder.prevAll().not('.col-drag-helper, .no-drag').first().insertAfter(gpexe.colDrag.$liPlaceholder);
+				}
+				
+			}
+		}
 	});
 	
 	$('body').on('mouseup', function(e) {
@@ -433,9 +501,9 @@ function setup(datas) {
 	// Col Drag
 	//---------------------
 	
-//	for (let header of gpexe.headers) {
-//		colDrag(header);
-//	}
+	for (let header of gpexe.headers) {
+		colDrag(header);
+	}
 	
 	
 	function createMenu(header) {
@@ -977,13 +1045,12 @@ function setup(datas) {
 	function colDrag(header) {
 		
 		if (header.th) {
-			
 			header.th.find('button[type="button"]').first()
 				.on('mousedown', function(e) {
 					gpexe.colDrag = {
-						id: header.id,
-						th: header.th,
+						header: header,
 						currentPosition: e.pageX,
+						currentLeft: header.th.position().left,
 					};
 				})
 			;
@@ -992,7 +1059,6 @@ function setup(datas) {
 	}
 	
 }
-
 
 //---------------
 // fillSeriesPannel
@@ -1383,10 +1449,9 @@ $(document).ready(function() {
 				header.chxDisplay.prop('checked', false);
 				header.th.hide();
 			}
-			
 		}
 		
-		//tbody
+		
 		for (let data of result.datas) {
 			
 			let tr = $('#table > tbody').append(create.tr).children().last();
@@ -1524,6 +1589,9 @@ $(document).ready(function() {
 				} else {
 					
 					header.th.hide();
+					tr.append(create.td).children().last()
+						.hide()
+					;
 					
 				}
 			}

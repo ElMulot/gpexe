@@ -171,6 +171,12 @@ global.create = {
 		;
 	},
 	
+	table: function() {
+		return $(document.createElement('table'))
+		
+		;
+	},
+	
 	thead: function() {
 		return $(document.createElement('thead'))
 		

@@ -22,10 +22,10 @@ class TestController extends AbstractController
 	public function index(): Response
 	{		
 		
-		$this->clearDuplicateDocuments();
-		$this->clearDuplicateVersions();
+// 		$this->clearDuplicateDocuments();
+// 		$this->clearDuplicateVersions();
 		
-		dd();
+		dd(phpinfo());
 		return $this->render('test/index.html.twig', [
 			'test' => 'TestController',
 		]);

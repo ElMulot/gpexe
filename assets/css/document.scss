@@ -5,6 +5,7 @@
 
 html, body {
 	height:calc(100% - 36px);
+	overflow: hidden;
 }
 
 body > .container-fluid {
@@ -238,7 +239,32 @@ textarea {
 	background-color: red;
 }
 
-.col-drag-handle {
-	cursor: move !important;
-	user-select: none;
+.col-drag-container {
+	background-color: $body-bg;
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+	-moz-user-select: none;
+	cursor: move;
+	
+	li {
+		float: left;
+		margin: 0;
+		padding: 0;
+	}
+}
+
+.col-drag-placeholder {
+	background-color: $body-bg;
+    -moz-box-shadow: 5px 4px 4px $table-border-color inset;
+    -webkit-box-shadow: 5px 4px 4px $table-border-color inset;
+    box-shadow: 5px 4px 4px $table-border-color inset;
+	border-bottom: 1px solid $table-border-color;
+    border-right: 1px solid $table-border-color;
+}
+
+.col-drag-helper {
+	position: absolute;
+	z-index: $zindex-fixed;
+	background-color: $body-bg;
 }

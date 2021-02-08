@@ -3,6 +3,6 @@
     <destination path="Mulot-PC.ftp.cluster030.hosting.ovh.net:/www"/>
     <options createDirectoryStructure="true" createSelectedOnly="false" descriptionFilePath="/gpexe/export.rexpfd" overWriteExistingFiles="true" reviewSynchronize="false" saveSettings="true"/>
     <selectedElements>
-        <file path="/gpexe/export.rexpfd"/>
+        <file path="/gpexe/src/Controller/TestController.php"/>
     </selectedElements>
 </rexpfd>
