@@ -3,9 +3,8 @@
     "app": {
       "js": [
         "/gpexe/build/runtime.js",
-        "/gpexe/build/vendors~app~dashboard~document~program.js",
-        "/gpexe/build/vendors~app~dashboard~document.js",
-        "/gpexe/build/vendors~app~document.js",
+        "/gpexe/build/vendors~app~dashboard~program.js",
+        "/gpexe/build/vendors~app~dashboard.js",
         "/gpexe/build/vendors~app.js",
         "/gpexe/build/app.js"
       ],
@@ -17,20 +16,13 @@
     "document": {
       "js": [
         "/gpexe/build/runtime.js",
-        "/gpexe/build/vendors~app~dashboard~document~program.js",
-        "/gpexe/build/vendors~app~dashboard~document.js",
-        "/gpexe/build/vendors~app~document.js",
-        "/gpexe/build/vendors~document.js",
         "/gpexe/build/document.js"
-      ],
-      "css": [
-        "/gpexe/build/document.css"
       ]
     },
     "program": {
       "js": [
         "/gpexe/build/runtime.js",
-        "/gpexe/build/vendors~app~dashboard~document~program.js",
+        "/gpexe/build/vendors~app~dashboard~program.js",
         "/gpexe/build/vendors~program.js",
         "/gpexe/build/program.js"
       ],
@@ -42,8 +34,8 @@
     "dashboard": {
       "js": [
         "/gpexe/build/runtime.js",
-        "/gpexe/build/vendors~app~dashboard~document~program.js",
-        "/gpexe/build/vendors~app~dashboard~document.js",
+        "/gpexe/build/vendors~app~dashboard~program.js",
+        "/gpexe/build/vendors~app~dashboard.js",
         "/gpexe/build/vendors~dashboard.js",
         "/gpexe/build/dashboard.js"
       ],

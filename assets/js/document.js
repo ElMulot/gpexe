@@ -13,6 +13,23 @@ var gpexe = {
 	chxCheckall: null,
 	colResize: {},
 	colDrag: {},
+	
+	sortHeaders: function() {
+		
+		for (let header of gpexe.headers) {
+			header.
+		}
+		
+		gpexe.headers.sort(function (a, b) {
+			if (a.getOrder() > b.getOrder()) {
+				return -1;
+			}
+			if (a.getOrder() < b.getOrder()) {
+				return 1;
+			}
+			return 0;
+		});
+	}
 }
 
 const type = {
@@ -28,28 +45,117 @@ const type = {
 //Header
 //---------------
 
-function Header(field) {
+function Header(parent, field) {
 	this.id = field.id;
 	this.title = field.title;
 	this.type = field.type;
 	this.permissions = field.permissions;
-	this.defaultWidth = field.default_width;
+	this._visible = false;
+	this._order = 0;
+	this._defaultWidth = field.default_width;
+	this._width = 0;
 	this.hasSort = (field.elements && field.elements.some(v => v.sort === true));
 	this.hasFilter = (field.elements && field.elements.some(v => v.filter));
 	this.elements = [];
+	this.parent = parent;
 }
 
 Header.prototype = {
 	
+	setVisible: function(visible) {
+		this._visible = visible;
+	},
+	
+	getVisible: function() {
+		return this._visible || this.getWidth() == 0;
+	},
+	
 	setWidth: function(width) {
-		if (this.th) {
-			this.th.css('width', width + 'rem');
-			this.th.css('min-width', width + 'rem');
-			this.th.css('max-width', width + 'rem');
-			let index = this.th.index() + 1;
-			$(this.th).parents('table').find('td:nth-child(' + index + ')').each(function() {
-				$(this).css('max-width', width + 'rem');
+		this._width = width;
+	},
+	
+	getWidth: function() {
+		return (this._width)?this._width:this._defaultWidth;
+	},
+	
+	setOrder: function(order) {
+		
+		let $table = gpexe.colDrag.header.th.parents('table');
+		let currentOrder = this.getOrder();
+		this._order = order;
+		
+		if (order > this.getOrder()) {
+			for (let header of this.parent.headers) {
+				if (header._order != 0 && header.getOrder() < order) {
+					header._order--;
+				}
+			}
+			$table.find('tr').each(function() {
+				$(this).children(':visible').eq(currentOrder).insertBefore($(this).children(':visible').eq(order));
 			});
+		} else if (order < currentOrder) {
+			for (let header of this.parent.headers) {
+				if (header._order != 0 && header.getOrder() > order) {
+					header._order++;
+				}
+			}
+			$table.find('tr').each(function() {
+				$(this).children(':visible').eq(currentOrder).insertAfter($(this).children(':visible').eq(order));
+			});
+		}
+	},
+	
+	getOrder: function() {
+		
+		if (this._order > 0) {
+			return this._order
+		} else {
+			for (let i in this.parent.headers) {
+				if (this.parent.headers[i].id == this.id) {
+					return i;
+				}
+			}	
+		}
+	},
+	
+	update: function() {
+		
+		if (this._visible === true) {
+			
+			if (this.aDisplay && this.chxDisplay) {			
+				this.aDisplay.addClass('btn-outline-primary');
+				this.aDisplay.removeClass('btn-primary');
+				this.chxDisplay.prop('checked', true);
+			}
+			
+			if (this.th) {
+				this.th.show();
+				let width = this.getWidth();
+				this.th.css('width', width + 'rem');
+				this.th.css('min-width', width + 'rem');
+				this.th.css('max-width', width + 'rem');
+				let index = this.th.index() + 1;
+				$('#table').find('td:nth-child(' + index + ')').each(function() {
+					$(this).show();
+					$(this).css('max-width', width + 'rem');
+				});
+			}
+			
+		} else {
+			
+			if (this.aDisplay && this.chxDisplay) {			
+				this.aDisplay.addClass('btn-primary');
+				this.aDisplay.removeClass('btn-outline-primary');
+				this.chxDisplay.prop('checked', false);
+			}
+			
+			if (this.th) {
+				this.th.hide();
+				let index = this.th.index() + 1;
+				$('#table').find('td:nth-child(' + index + ')').each(function() {
+					$(this).hide();
+				});
+			}
 		}
 	},
 	
@@ -221,7 +327,7 @@ function setup(datas) {
 		
 		if (field.display.table) {
 		
-			var header = new Header(field);
+			var header = new Header(gpexe, field);
 			
 			$.each(field.elements, function (j, element) {
 				
@@ -302,7 +408,6 @@ function setup(datas) {
 	for (let header of gpexe.headers) {
 		
 		header.th = tr.append(create.th).children().last();
-		header.setWidth(header.defaultWidth);
 		
 		if (header.hasSort || header.hasFilter) {
 			
@@ -402,9 +507,6 @@ function setup(datas) {
 	// Col Resize
 	//---------------------
 	
-	//supprimer width=100% dans le css
-	//sur le th (min-width, max-width) et sur les td (max-width)
-	
 	for (let header of gpexe.headers) {
 		colResize(header);
 	}
@@ -440,7 +542,7 @@ function setup(datas) {
 					let $li = gpexe.colDrag.$ul.append(create.li).children().last();
 					
 					if ($(this).is('#selector, #detail')) {
-						$li.addClass('no-drag');
+						$li.addClass('col-drag-disabled');
 					}
 					
 					if (gpexe.colDrag.header.th.is(this)) {
@@ -473,10 +575,10 @@ function setup(datas) {
 				let left = gpexe.colDrag.currentLeft + e.pageX - gpexe.colDrag.currentPosition;
 				gpexe.colDrag.$liHelper.css('left', left);
 				
-				if (left > gpexe.colDrag.$liPlaceholder.position().left + gpexe.colDrag.$liPlaceholder.nextAll().not('.col-drag-helper, .no-drag').first().width()) {
-					gpexe.colDrag.$liPlaceholder.nextAll().not('.col-drag-helper, .no-drag').first().insertBefore(gpexe.colDrag.$liPlaceholder);
-				} else if (left < gpexe.colDrag.$liPlaceholder.position().left - gpexe.colDrag.$liPlaceholder.prevAll().not('.col-drag-helper, .no-drag').first().width()) {
-					gpexe.colDrag.$liPlaceholder.prevAll().not('.col-drag-helper, .no-drag').first().insertAfter(gpexe.colDrag.$liPlaceholder);
+				if (left > gpexe.colDrag.$liPlaceholder.position().left + gpexe.colDrag.$liPlaceholder.nextAll().not('.col-drag-helper, .col-drag-disabled').first().width()) {
+					gpexe.colDrag.$liPlaceholder.nextAll().not('.col-drag-helper, .col-drag-disabled').first().insertBefore(gpexe.colDrag.$liPlaceholder);
+				} else if (left < gpexe.colDrag.$liPlaceholder.position().left - gpexe.colDrag.$liPlaceholder.prevAll().not('.col-drag-helper, .col-drag-disabled').first().width()) {
+					gpexe.colDrag.$liPlaceholder.prevAll().not('.col-drag-helper, .col-drag-disabled').first().insertAfter(gpexe.colDrag.$liPlaceholder);
 				}
 				
 			}
@@ -484,16 +586,32 @@ function setup(datas) {
 	});
 	
 	$('body').on('mouseup', function(e) {
+		
 		if ($.isEmptyObject(gpexe.colResize) === false) {
-			let width = gpexe.colResize.header.th.width();
-			urlSearch.delete('display[' + gpexe.colResize.header.id + ']');
-			urlSearch.append('display[' + gpexe.colResize.header.id + ']', pxToRem(width));
+			let width = pxToRem(gpexe.colResize.header.th.width());
+			gpexe.colResize.header.setWidth(width);
 			gpexe.colResize = {};
 		}
 		
-//		if ($.isEmptyObject(gpexe.colDrag) === false) {
-//			gpexe.colDrag.th.removeClass('col-drag-handle')
-//		}
+		if ($.isEmptyObject(gpexe.colDrag) === false) {
+			let $table = gpexe.colDrag.header.th.parents('table');
+			let newIndex = gpexe.colDrag.$ul.children().not('.col-drag-helper').index(gpexe.colDrag.$liPlaceholder);
+			gpexe.colDrag.header.setOrder(newIndex);
+			
+			
+			gpexe.colDrag.$ul.remove();
+			$table.show();
+			
+			$table.find('tr').each(function() {
+				if (gpexe.colDrag.currentIndex < newIndex) {
+					$(this).children(':visible').eq(gpexe.colDrag.currentIndex).insertAfter($(this).children(':visible').eq(newIndex));
+				} else if (gpexe.colDrag.currentIndex > newIndex) {
+					$(this).children(':visible').eq(gpexe.colDrag.currentIndex).insertBefore($(this).children(':visible').eq(newIndex));
+				}
+			});
+			gpexe.colDrag = {};
+		}
+		
 	});
 	
 	
@@ -1049,12 +1167,31 @@ function setup(datas) {
 				.on('mousedown', function(e) {
 					gpexe.colDrag = {
 						header: header,
+						currentIndex: header.th.parents('table').find('th:visible').index(header.th),
 						currentPosition: e.pageX,
 						currentLeft: header.th.position().left,
 					};
 				})
 			;
 		}
+		
+	}
+	
+	function setHeaderOrder() {
+		
+		for (let header of gpexe.headers) {
+			urlSearch.delete('display[' + header.id + ']');
+		}
+		
+		$('#table').find('th').not('#selector, #detail').each(function () {
+			
+			for (let header of gpexe.headers) {
+				if (header.th.is(this) && header.visible === true) {
+					urlSearch.append('display[' + header.id + ']', header.getWidth());
+				}
+			}
+			
+		});
 		
 	}
 	
@@ -1103,7 +1240,7 @@ function fillDisplayPannel() {
 				
 				if (header.chxDisplay.is(':checked')) {
 					if (display == false) {
-						urlSearch.append('display[' + header.id + ']', header.defaultWidth);
+						urlSearch.append('display[' + header.id + ']', header.getWidth());
 					}
 				}
 				urlSearch.delete('vue');
@@ -1375,21 +1512,34 @@ $(document).ready(function() {
 		}
 		
 		for (let header of gpexe.headers) {
+			if (header.id in result.query.display) {
+				header.setVisible(true);
+				header.setWidth(result.query.display[header.id]);
+			} else {
+				header.setVisible(false);
+				header.setWidth(0);
+			}
+			if (result.query.order) {
+				header.setOrder(result.query.order[header.id]);
+			}
+		}
+		
+		for (let header of gpexe.headers) {
+			console.log(header.getOrder());
+		}
+		
+		
+		
+		for (let header of gpexe.headers) {
+			console.log(header.id);
+		}
+		
+		
+		for (let header of gpexe.headers) {
 			
-			//display
-			
-			if (display = result.query.display[header.id]) {
-
-				header.aDisplay.addClass('btn-outline-primary');
-				header.aDisplay.removeClass('btn-primary');
-				header.chxDisplay.prop('checked', true);
-				header.setWidth(display);
-				header.th.show();
-				
-				//headers
+			if (header.getVisible()) {
 				
 				header.btnDropdown.empty();
-				
 				header.isFiltered = false;
 				header.isSortedAsc = false;
 				header.isSortedDesc = false;
@@ -1443,14 +1593,8 @@ $(document).ready(function() {
 					header.btnDropdown.append(global.icon.arrowDown);
 				}
 				
-			} else {
-				header.aDisplay.addClass('btn-primary');
-				header.aDisplay.removeClass('btn-outline-primary');
-				header.chxDisplay.prop('checked', false);
-				header.th.hide();
 			}
 		}
-		
 		
 		for (let data of result.datas) {
 			
@@ -1473,12 +1617,12 @@ $(document).ready(function() {
 			
 			for (let header of gpexe.headers) {
 				
-				value = data[header.id];
-				
-				if (value !== undefined) {
+				if (header.getVisible()) {
 					
 					if (header.id == 'status_type') {
-						value = header.elements[0].filter.choices[value].text;
+						value = header.elements[0].filter.choices[data[header.id] || 0].text;
+					} else {
+						value = data[header.id];
 					}
 					
 					switch (header.type) {
@@ -1489,25 +1633,23 @@ $(document).ready(function() {
 							break;
 						case type.date:
 							dataClass = 'text-center';
+							value = value.toDate();
+							
 							if (value !== null) {
-								value = value.toDate();
-								
-								if (value !== null) {
-									//highlight
-									if (urlSearch.get('highlight').toString() == header.id
-										|| (urlSearch.get('highlight').toString() == 'version_date' && header.id == 'version_scheduled_date')) {
-										if (value < new Date()) {
-											tr.addClass('highlight-late');
-										} else if (value.addDays(-15) < new Date()) {
-											tr.addClass('highlight-15');
-										} else if (value.addDays(-30) < new Date()) {
-											tr.addClass('highlight-30');
-										} else {
-											tr.addClass('highlight-ok');
-										}
+								//highlight
+								if (urlSearch.get('highlight').toString() == header.id
+									|| (urlSearch.get('highlight').toString() == 'version_date' && header.id == 'version_scheduled_date')) {
+									if (value < new Date()) {
+										tr.addClass('highlight-late');
+									} else if (value.addDays(-15) < new Date()) {
+										tr.addClass('highlight-15');
+									} else if (value.addDays(-30) < new Date()) {
+										tr.addClass('highlight-30');
+									} else {
+										tr.addClass('highlight-ok');
 									}
-									value = value.format();
 								}
+								value = value.format();
 							}
 							break;
 						case type.link:
@@ -1521,7 +1663,10 @@ $(document).ready(function() {
 									dataClass = 'text-left';
 							}
 					}
-					if (value === null) value = '';
+					
+					if (value === null || value === undefined) {
+						value = '';
+					}
 					
 					let td = tr.append(create.td).children().last()
 						.addClass(dataClass)
@@ -1605,6 +1750,11 @@ $(document).ready(function() {
 					.text($.i18n('details'))
 			;
 			
+		}
+		return;
+		//width
+		for (let header of gpexe.headers) {
+			header.update();
 		}
 		
 		//pagination
