@@ -16,7 +16,8 @@ class Program
 	
 	const EXPORT	= 1;
 	const IMPORT	= 2;
-	const PROGRESS	= 3;
+	const TASK		= 3;
+	const PROGRESS	= 4;
 
 	/**
 	 * @ORM\Id()
@@ -105,6 +106,9 @@ class Program
 				case 'import':
 					$this->type = self::IMPORT;
 					break;
+				case 'task':
+					$this->type = self::TASK;
+					break;
 				case 'progress':
 					$this->type = self::PROGRESS;
 					break;
@@ -122,6 +126,8 @@ class Program
 				return 'export';
 			case self::IMPORT:
 				return 'import';
+			case self::TASK:
+				return 'task';
 			case self::PROGRESS:
 				return 'progress';
 			default:
@@ -233,7 +239,7 @@ class Program
 		return $this;
 	}
 	
-	public function getParsedCode(?string $key = null): array
+	public function getParsedCode(?string $key = null)
 	{
 		if ($this->parsedCode === null) {
 			try {
@@ -269,7 +275,12 @@ class Program
 	{
 		return $this->getType() === self::IMPORT;
 	}
-
+	
+	public function isTypeTask(): bool
+	{
+		return $this->getType() === self::TASK;
+	}
+	
 	public function isTypeProgress(): bool
 	{
 		return $this->getType() === self::PROGRESS;

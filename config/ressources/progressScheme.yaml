@@ -1,6 +1,10 @@
 type: 
     default: 'progress'
 
+frequency:
+    regex: '\d+'
+    default: 7
+
 exclude:
     -
         regex: '.+'
@@ -14,8 +18,3 @@ rules:
             regex: '\d+'
         value:
             regex: '\d+'
-
-option:
-    frequency:
-        regex: '\d+'
-        default: 7

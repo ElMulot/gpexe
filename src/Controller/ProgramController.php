@@ -85,12 +85,13 @@ class ProgramController extends AbstractController
 			}
 			
 			$this->container->get('session')->getFlashBag()->clear();
+			$this->programService->unload($program);
 			
 			switch ($program->getType()) {
 				
 				case Program::EXPORT:
 				case Program::IMPORT:
-					$this->programService->unload($program);
+				case Program::TASK:
 					return $this->render('program/dashboard.html.twig', [
 						'program' => $program,
 						'route_back' =>  $this->generateUrl('project_view', [
@@ -100,10 +101,10 @@ class ProgramController extends AbstractController
 					
 				case Program::PROGRESS:
 					return $this->render('program/progress.html.twig', [
-					'program' => $program,
-					'route_back' =>  $this->generateUrl('project_view', [
-					'project' => $project->getId(),
-					]),
+						'program' => $program,
+						'route_back' =>  $this->generateUrl('project_view', [
+							'project' => $project->getId(),
+						]),
 					]);
 					
 				default:
@@ -126,12 +127,12 @@ class ProgramController extends AbstractController
 			
 			switch ($program->getType()) {
 				
-				case Program::EXPORT:													//launch export
+				case Program::EXPORT:														//launch export
 					$form = $this->createForm(LauncherType::class, $program);
 					break;
 					
 				case Program::IMPORT:
-					if ($this->cacheService->get('program.ready_to_persist')) {			//launch import
+					if ($this->cacheService->get('program.ready_to_persist')) {				//launch import
 						if ($this->programService->preload($program, $request)) {
 							return $this->render('program/preload.html.twig', [
 								'program' => $program,
@@ -143,6 +144,10 @@ class ProgramController extends AbstractController
 					} else {																//check import
 						$form = $this->createForm(LauncherType::class, $program);
 					}
+					break;
+					
+				case Program::TASK:															//launch task
+					$form = $this->createForm(LauncherType::class, $program);
 					break;
 					
 				default:																	//error
@@ -179,6 +184,16 @@ class ProgramController extends AbstractController
 							$this->addFlash('danger', 'Erreur interne');
 						}
 						break;
+						
+					case Program::TASK:														//launch task
+						if ($this->programService->preload($program, $request)) {
+							return $this->render('program/preload.html.twig', [
+								'program' => $program,
+							]);
+						} else {
+							$this->addFlash('danger', 'Erreur interne');
+						}
+						break;
 				}
 			}
 			
@@ -202,7 +217,7 @@ class ProgramController extends AbstractController
 			
 			switch ($program->getType()) {
 				
-				case Program::EXPORT:													//launch export
+				case Program::EXPORT:														//launch export
 					if ($this->programService->load($program) === false) {
 						$this->programService->unload($program);
 						return $this->redirectToRoute('program_preload', [
@@ -215,7 +230,7 @@ class ProgramController extends AbstractController
 					
 					
 				case Program::IMPORT:
-					if ($this->cacheService->get('program.ready_to_persist')) {			//launch import
+					if ($this->cacheService->get('program.ready_to_persist')) {				//launch import
 						$this->programService->load($program);
 						return $this->render('program/load.html.twig', [
 							'program' => $program,
@@ -233,7 +248,18 @@ class ProgramController extends AbstractController
 						]);
 					}
 					
-				case Program::PROGRESS:
+				case Program::TASK:															//launch task
+					if ($this->programService->load($program) === false) {
+						$this->programService->unload($program);
+						return $this->redirectToRoute('program_preload', [
+							'program' => $program->getId(),
+						]);
+					}
+					return $this->render('program/load.html.twig', [
+						'program' => $program,
+					]);
+					
+				case Program::PROGRESS:														//launch progress
 					if ($this->programService->load($program) === false) {
 						$this->addFlash('danger', 'Erreur interne');
 						return $this->render('program/error.html.twig');
@@ -293,6 +319,27 @@ class ProgramController extends AbstractController
 						]);
 					}
 					
+				case Program::TASK:
+					if ($this->cacheService->get('program.ready_to_persist')) {					//launch task
+						
+						$this->programService->unload($program);
+						return $this->render('program/preload.html.twig', [
+							'program' => $program,
+						]);
+					} else {																	//check task
+						$this->cacheService->set('program.ready_to_persist', true);
+						return $this->render('program/check.html.twig', [
+							'program' => $program,
+						]);
+					}
+					
+					
+					
+					$this->programService->unload($program);
+					return $this->render('program/preload.html.twig', [
+						'program' => $program,
+					]);
+					
 				default:
 					$this->addFlash('danger', 'Programme invalide');
 					return $this->redirectToRoute('project_view', [
@@ -313,12 +360,7 @@ class ProgramController extends AbstractController
 			
 			switch ($this->cacheService->get('program.state')) {
 				case 'new_batch':
-					if ($program->isTypeImport()) {
-						$success = $this->programService->import($program);
-					} elseif ($program->isTypeExport())  {
-						$success = $this->programService->export($program);
-					}
-					
+					$success = $this->programService->execute($program);
 					if ($success) {
 						$redirect = $this->cacheService->get('program.state');
 					} else {
@@ -363,10 +405,14 @@ class ProgramController extends AbstractController
 						case Program::IMPORT:
 							$program->setCode($this->parseService->getValidatedCode('type: import'));
 							break;
+						case Program::TASK:
+							$program->setCode($this->parseService->getValidatedCode('type: task'));
+							break;
 						case Program::PROGRESS:
 							$program->setCode($this->parseService->getValidatedCode('type: progress'));
 							break;
 						default:
+							$form = $this->createForm(ProgramType::class, null);
 							$view = $form->createView();
 							return $this->render('generic/form.html.twig', [
 								'form' => $view
@@ -386,14 +432,14 @@ class ProgramController extends AbstractController
 						'fields' => $fields,
 					]);
 					
-				} elseif ($request->request->get('program')['name']) {									//validation du formulaire principal
+				} elseif ($request->request->get('program')['name']) {				//validation du formulaire principal
 					
 					$program = new Program();
 					$form = $this->createForm(ProgramType::class, $program);
 					
 				}
 				
-			} else {																					//affichage du type de programme
+			} else {																//affichage du type de programme
 				
 				$form = $this->createForm(ProgramType::class, null);
 				
@@ -409,21 +455,6 @@ class ProgramController extends AbstractController
 				
 				$entityManager = $this->getDoctrine()->getManager();
 				$entityManager->persist($program);
-				$entityManager->flush();
-				
-				//create automation
-				if ($program->getType() === Program::PROGRESS) {
-					$options = $program->getParsedCode('option');
-					$nextRun = (new \DateTime('now'))->add(new \DateInterval('P' . $options['frequency'] . 'D'));
-					$automation = new Automation;
-					$automation->setEnabled($program->getEnabled());
-					$automation->setNextRun($nextRun);
-					$automation->setRoute(ProgramService::class . '::automation');
-					$automation->setParameters(['program' => $program->getId()]);
-					$automation->setProject($project);
-					$entityManager->persist($automation);
-				}
-				
 				$entityManager->flush();
 				
 				$this->addFlash('success', 'Nouveau programme créé');
@@ -464,27 +495,6 @@ class ProgramController extends AbstractController
 				$program->setLastModifiedBy($this->getUser());
 				
 				$entityManager = $this->getDoctrine()->getManager();
-				
-				//update automation
-				if ($program->getType() === Program::PROGRESS) {
-					$options = $program->getParsedCode('option');
-					$nextRun = (new \DateTime('now'))->add(new \DateInterval('P' . $options['frequency'] . 'D'));
-					
-					if ($automation = $this->automationRepository->getAutomationByRouteAndByParameters(ProgramService::class . '::automation', ['program' => $program->getId()])) {
-						$automation->setEnabled($program->getEnabled());
-						$automation->setNextRun($nextRun);
-						$entityManager->persist($automation);
-					} else {
-						$automation = new Automation;
-						$automation->setEnabled($program->getEnabled());
-						$automation->setNextRun($nextRun);
-						$automation->setRoute(ProgramService::class . '::automation');
-						$automation->setParameters(['program' => $program->getId()]);
-						$automation->setProject($project);
-						$entityManager->persist($automation);
-					}
-				}
-				
 				$entityManager->flush();
 				$this->addFlash('success', 'Programme mis à jour');
 				
@@ -526,12 +536,12 @@ class ProgramController extends AbstractController
 				$entityManager = $this->getDoctrine()->getManager();
 				$entityManager->remove($program);
 				
-				//delete automation
-				if ($program->getType() === Program::PROGRESS) {
-					if ($automation = $this->automationRepository->getAutomationByRouteAndByParameters(ProgramService::class . '::automation', ['program' => $program->getId()])) {
-						$entityManager->remove($automation);
-					}
-				}
+// 				//delete automation
+// 				if ($program->getType() === Program::PROGRESS) {
+// 					if ($automation = $this->automationRepository->getAutomationByRouteAndByParameters(ProgramService::class . '::automation', ['program' => $program->getId()])) {
+// 						$entityManager->remove($automation);
+// 					}
+// 				}
 				$entityManager->flush();
 				
 				$this->addFlash('success', 'Programme supprimé');

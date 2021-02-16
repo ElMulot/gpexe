@@ -200,6 +200,10 @@ Table: Résultats
 All: Tout
 MDR Only: MDR seulement
 SDR Only: SDR seulement
+Export: Exportation
+Import: Importation
+Task: Tâche
+Progress: Avancement
 
 #Automations
 Automations: Tâches automatisées

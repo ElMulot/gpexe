@@ -28,6 +28,9 @@ class ParseService
 			case 'import':
 				$structure = self::getImportScheme();
 				break;
+			case 'task':
+				$structure = self::getTaskScheme();
+				break;
 			case 'progress':
 				$structure = self::getProgressScheme();
 				break;
@@ -48,6 +51,11 @@ class ParseService
 	public function getImportScheme(): array
 	{
 		return Yaml::parseFile($this->ressourcesDirectory . 'importScheme.yaml');
+	}
+	
+	public function getTaskScheme(): array
+	{
+		return Yaml::parseFile($this->ressourcesDirectory . 'taskScheme.yaml');
 	}
 
 	public function getProgressScheme(): array

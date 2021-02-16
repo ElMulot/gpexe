@@ -33,6 +33,32 @@ services:
         resource: '../src/Controller/'
         tags: ['controller.service_arguments']
 
+    App\EventListener\LogListener:
+        arguments:
+            $disableLog: '%disable_log%'
+        tags:
+            -
+                name: 'doctrine.event_listener'
+                event: 'onFlush'
+
+    App\EventListener\ProgramListener:
+        tags:
+            -
+                name: 'doctrine.orm.entity_listener'
+                event: 'postPersist'
+                entity: 'App\Entity\Program'
+                lazy: true
+            -
+                name: 'doctrine.orm.entity_listener'
+                event: 'postUpdate'
+                entity: 'App\Entity\Program'
+                lazy: true
+            -
+                name: 'doctrine.orm.entity_listener'
+                event: 'preRemove'
+                entity: 'App\Entity\Program'
+                lazy: true
+
     App\EventListener\StatusListener:
         tags:
             -
@@ -52,14 +78,6 @@ services:
                 event: 'postRemove'
                 entity: 'App\Entity\Status'
                 lazy: true
-                
-    App\EventListener\LogListener:
-        arguments:
-            $disableLog: '%disable_log%'
-        tags:
-            -
-                name: 'doctrine.event_listener'
-                event: 'onFlush'
 
 #    App\EventListener\LogoutListener:
 #        tags:

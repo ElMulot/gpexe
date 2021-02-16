@@ -40,11 +40,38 @@
 		<ul class="navbar-nav ml-auto">
 			<li id="program_menu" class="nav-item dropdown" style="{{ block('nav_item') }}">
 			    {% if programs is not empty %}
+			    	
+			    	{% set export_programs = programs|filter(v => v.type == constant('App\\Entity\\Program::EXPORT')) %}
+			    	{% set import_programs = programs|filter(v => v.type == constant('App\\Entity\\Program::IMPORT')) %}
+			    	{% set task_programs = programs|filter(v => v.type == constant('App\\Entity\\Program::TASK')) %}
+			    	{% set progress_programs = programs|filter(v => v.type == constant('App\\Entity\\Program::PROGRESS')) %}
+			    	
     				<a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{% trans %}Programs{% endtrans %}</a>
     				<div class="dropdown-menu" style="{{ block('nav_item') }}">
-    					{% for program in programs %}
-    						<a class="dropdown-item" href="{{ path('program_dashboard', {'program': program.id}) }}">{{ program.name }}</a>
-    					{% endfor %}
+    					{% if export_programs is not empty  %}
+    						<a class="dropdown-item disabled pl-2 bg-dark font-weight-bold text-light" href="#">{% trans %}Export{% endtrans %}</a>
+    			            {% for program in export_programs %}
+        						<a class="dropdown-item" href="{{ path('program_dashboard', {'program': program.id}) }}">{{ program.name }}</a>
+        					{% endfor %}
+        				{% endif %}
+    					{% if import_programs is not empty  %}
+    						<a class="dropdown-item disabled pl-2 bg-dark font-weight-bold text-light" href="#">{% trans %}Import{% endtrans %}</a>
+    			            {% for program in import_programs %}
+        						<a class="dropdown-item" href="{{ path('program_dashboard', {'program': program.id}) }}">{{ program.name }}</a>
+        					{% endfor %}
+        				{% endif %}
+    					{% if task_programs is not empty  %}
+    						<a class="dropdown-item disabled pl-2 bg-dark font-weight-bold text-light" href="#">{% trans %}Task{% endtrans %}</a>
+    			            {% for program in task_programs %}
+        						<a class="dropdown-item" href="{{ path('program_dashboard', {'program': program.id}) }}">{{ program.name }}</a>
+        					{% endfor %}
+        				{% endif %}
+    					{% if progress_programs is not empty  %}
+    						<a class="dropdown-item disabled pl-2 bg-dark font-weight-bold text-light" href="#">{% trans %}Progress{% endtrans %}</a>
+    			            {% for program in progress_programs %}
+        						<a class="dropdown-item" href="{{ path('program_dashboard', {'program': program.id}) }}">{{ program.name }}</a>
+        					{% endfor %}
+        				{% endif %}
     				</div>
 			    {% endif %}
 			</li>

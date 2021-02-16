@@ -30,6 +30,7 @@ class ProgramType extends AbstractType
     				'choices' => [
     					'Export' => Program::EXPORT,
     					'Import' => Program::IMPORT,
+    					'Task' => Program::TASK,
     					'Progress' => Program::PROGRESS,
     				],
     				'expanded' => true,

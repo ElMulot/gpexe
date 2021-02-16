@@ -18,7 +18,5 @@
   "build/vendors~dashboard.js": "/gpexe/build/vendors~dashboard.js",
   "build/vendors~document.js": "/gpexe/build/vendors~document.js",
   "build/vendors~program.css": "/gpexe/build/vendors~program.css",
-  "build/vendors~program.js": "/gpexe/build/vendors~program.js",
-  "build/vendors~app~dashboard.js": "/gpexe/build/vendors~app~dashboard.js",
-  "build/vendors~app~dashboard~program.js": "/gpexe/build/vendors~app~dashboard~program.js"
+  "build/vendors~program.js": "/gpexe/build/vendors~program.js"
 }

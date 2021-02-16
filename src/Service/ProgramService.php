@@ -100,30 +100,39 @@ class ProgramService
 		$options = $this->parsedCode['option'] ?? [];
 		
 		switch ($program->getType()) {
-			
-			case Program::EXPORT:
-				foreach ($options as $key => $option) {
-					$option = $request->request->get('launcher')[$key] ?? false;
-					$this->cacheService->set('program.' . $key, $option);
-				}
-				break;
 				
 			case Program::IMPORT:
-				$firstRow = $this->parsedCode['first_row'];
+// 				$firstRow = $this->parsedCode['first_row'];
 				
-				if ($this->cacheService->get('program.ready_to_persist')) {
-					$this->cacheService->set('program.current_row', $firstRow);
-					$this->cacheService->set('program.state', 'new_batch');
-					return true;
+// 				if ($this->cacheService->get('program.ready_to_persist')) {
+// 					$this->cacheService->set('program.current_row', $firstRow);
+// 					$this->cacheService->set('program.state', 'new_batch');
+// 					return true;
+// 				}
+				
+				if ($file !== null) {
+					
+					//upload file
+					try {
+						$file = $file->move($this->targetDirectory, 'GPEXE Import.' . $file->getClientOriginalExtension());
+					} catch (FileException $e) {
+						$this->flashBag->add('danger', $e->getMessage());
+						return false;
+					}
+					$this->cacheService->set('program.file_path', $file->getPathname());
 				}
 				
+			case Program::EXPORT:
+			case Program::TASK:
 				foreach ($options as $key => $option) {
 					$option = $request->request->get('launcher')[$key] ?? false;
 					$this->cacheService->set('program.' . $key, $option);
 				}
-				break;
+				$this->cacheService->set('program.state', 'load');
+				return true;
 				
 			case Program::PROGRESS:
+				$this->cacheService->set('program.state', 'load');
 				return true;
 				
 			default:
@@ -131,20 +140,6 @@ class ProgramService
 				return false;
 		}
 		
-		if ($file !== null) {
-			
-			//upload file
-			try {
-				$file = $file->move($this->targetDirectory, 'GPEXE Import.' . $file->getClientOriginalExtension());
-			} catch (FileException $e) {
-				$this->flashBag->add('danger', $e->getMessage());
-				return false;
-			}
-			$this->cacheService->set('program.file_path', $file->getPathname());
-		}
-		
-		$this->cacheService->set('program.state', 'load');
-		return true;
 	}
 	
 	public function load(Program $program): bool
@@ -248,51 +243,75 @@ class ProgramService
 				$this->cacheService->set('program.file_path', $this->workbook->getPath());
 				$this->cacheService->set('program.state', 'new_batch');
 				return true;
-					
-		case Program::PROGRESS:
+		
+			case Program::TASK:
+				$this->cacheService->set('program.state', 'new_batch');
+				return true;	
+				
+			case Program::PROGRESS:
 			
-			//sort rules by value descending order
-			usort($this->parsedCode['rules'], function ($a, $b) {
-				if ($a['value'] == $b['value']) {
-					return 0;
-				} else {
-					return ($a['value'] > $b['value'])?-1:1;
-				}
-			});
+				//sort rules by value descending order
+				usort($this->parsedCode['rules'], function ($a, $b) {
+					if ($a['value'] == $b['value']) {
+						return 0;
+					} else {
+						return ($a['value'] > $b['value'])?-1:1;
+					}
+				});
+				$this->cacheService->set('program.state', 'new_batch');
 				return true;
 				
-		default:
-			$this->flashBag->add('error', 'Erreur : programme invalide');
-			return false;
+			default:
+				$this->flashBag->add('error', 'Erreur : programme invalide');
+				return false;
 			
+		}
+	}
+	
+	public function execute(Program $program): bool
+	{
+		switch ($program->getType()) {
+			case Program::EXPORT:
+				return $this->export($program);
+			case Program::IMPORT:
+				return $this->import($program);
+			case Program::TASK:
+				return $this->task($program);
+			case Program::PROGRESS:
+				return $this->progress($program);
+			default:
+				return false;
 		}
 	}
 	
 	public function unload(Program $program): bool
 	{
 		
-		$this->cacheService->delete('program.state');
-		$this->cacheService->delete('program.library');
-		$this->cacheService->delete('program.date_format');
-		$this->cacheService->delete('program.current_row');
-		$this->cacheService->delete('program.file_path');
-		$this->cacheService->delete('program.count_processed');
-		
 		$options = $this->parsedCode['option'] ?? [];
 		foreach (array_keys($options) as $key) {
 			$this->cacheService->delete('program.' . $key);
 		}
 		
+		$this->cacheService->delete('program.state');
+		
 		switch ($program->getType()) {
 			
+			case Program::IMPORT:
+				$this->cacheService->delete('program.ready_to_persist');
+				$this->cacheService->delete('program.documents_created');
+				$this->cacheService->delete('program.versions_created');
 			case Program::EXPORT:
+				$this->cacheService->delete('program.library');
+				$this->cacheService->delete('program.date_format');
+				$this->cacheService->delete('program.current_row');
+				$this->cacheService->delete('program.file_path');
+				$this->cacheService->delete('program.count_processed');
+				return true;
+				
+			case Program::TASK:
 				return true;
 				
 			case Program::IMPORT:
-				
-				$this->cacheService->delete('program.documents_created');
-				$this->cacheService->delete('program.versions_created');
-				$this->cacheService->delete('program.ready_to_persist');
 				return true;
 				
 			default:
@@ -350,11 +369,11 @@ class ProgramService
 				foreach ($document->getVersions() as $version) {
 					$row = $sheet->getRow($currentRow);
 					
-					// 					A faire : reprendre les versions là s'est arrêté le précédent batch
-					// 					if ($row->getAddress() - $currentRow + 1 >= self::MAX_LINES_PROCESSED) {
-					// 						$newBatch = true;
-					// 						break 3;
-					// 					}
+// 					A faire : reprendre les versions là s'est arrêté le précédent batch
+// 					if ($row->getAddress() - $currentRow + 1 >= self::MAX_LINES_PROCESSED) {
+// 						$newBatch = true;
+// 						break 3;
+// 					}
 					
 					//exclude
 					foreach ($this->parsedCode['exclude'] as $exclude) {
@@ -810,6 +829,116 @@ class ProgramService
 		return true;
 	}
 	
+	public function task(Program $program): bool
+	{
+		$this->stopWatch->start('export');
+		
+		$project = $program->getProject();
+		$this->parsedCode = $program->getParsedCode();
+		$readyToPersist = $this->cacheService->get('program.ready_to_persist');
+		$matches = null;
+		
+		$options = [];
+		foreach (array_keys($this->parsedCode['option'] ?? []) as $key) {
+			$options[$key] = $this->cacheService->get('program.' . $key);
+		}
+		
+		$this->setDateFormat('d-m-Y');
+		$countProcessed = 0;
+		$countUpdated = 0;
+		$newBatch = false;
+		
+		//load datas
+		$series = $this->serieRepository->getHydratedSeries($project);
+// 		$series = [];
+		
+		foreach ($series as $serie) {
+			foreach ($serie->getDocuments() as $document) {
+				foreach ($document->getVersions() as $version) {
+					
+					//exclude
+					foreach ($this->parsedCode['exclude'] as $exclude) {
+						if ($this->compare($exclude, $version)) {
+							$countProcessed++;
+							continue 2;
+						}
+					}
+					
+					$versionEdited = false;
+					
+					foreach ($this->parsedCode['update'] as $update) {
+						
+						if ($update['condition'] == '' || $this->compare($update['condition'], $version)) {
+							
+							foreach ($update['then'] as $then) {
+								
+								if (preg_match('/(?:\(([^()]+)\)\?)*\[(\w+[.\w+]+)\]\s*\=\s*(.+)/', $then, $matches) === 1) {
+									
+									if ($matches[1] && $this->compare($matches[1], $version, $row) === false) {
+										continue;
+									}
+									
+									if ($version->setPropertyValue($matches[2], $this->get($matches[3], $version))) {
+										$versionEdited = true;
+									}
+									
+								}
+								
+							}
+							
+						} else {
+							
+							foreach ($update['else'] as $else) {
+								
+								if (preg_match('/(?:\(([^()]+)\)\?)*\[(\w+[.\w+]+)\]\s*\=\s*(.+)/', $else, $matches) === 1) {
+									
+									if ($matches[1] && $this->compare($matches[1], $version, $row) === false) {
+										continue;
+									}
+									
+									if ($version->setPropertyValue($matches[2], $this->get($matches[3], $version))) {
+										$versionEdited = true;
+									}
+									
+								}
+								
+							}
+							
+						}
+						
+					}
+					
+					$countProcessed++;
+					if ($versionEdited === true) {
+						$countUpdated++;
+					}
+				}
+			}
+		}
+		
+		$event = $this->stopWatch->stop('export');
+		
+		if ($newBatch === false) {
+			
+			$this->cacheService->set('program.state', 'completed');
+			
+			if ($readyToPersist) {
+				$this->entityManager->flush();
+				$this->flashBag->add('success', 'Tâche réussie. ' . $countUpdated . '/' .  $countProcessed . ' entrées modifiées (' . $event->getDuration()/1000 . ' s; ' . $event->getMemory()/1048576 . ' Mo)');
+			} else {
+				$this->flashBag->add('success', 'Vérification terminée. ' . $countUpdated . '/' .  $countProcessed . ' entrées seront modifiées (' . $event->getDuration()/1000 . ' s; ' . $event->getMemory()/1048576 . ' Mo)');
+			}
+			
+		} else {
+			
+			$this->cacheService->set('program.state', 'new_batch');
+			$this->cacheService->set('program.count_processed', $countProcessed);
+			
+		}
+		
+		return true;
+	}
+	
 	public function progress(Program $program): array
 	{
 		
@@ -946,7 +1075,7 @@ class ProgramService
 				$expression = str_replace('$', '', $expression);
 				$expression = str_ireplace(' and ', ' && ', $expression);
 				$expression = str_ireplace(' or ', ' || ', $expression);
-				$expression = str_ireplace('[user.name]', $this->security->getUser(), $expression);
+				$expression = str_ireplace('[user.name]', '"' . $this->security->getUser() . '"', $expression);
 				$expression = str_replace('[date.now]', '"' . (new \DateTime())->format('d-m-Y') . '"', $expression);
 				
 				//regex (syntax: "/regex/" or /regex/)
@@ -1030,7 +1159,7 @@ class ProgramService
 			return 'preg_match("' . $pattern . '", "' . $subExpr . '")';
 		}, $expression);
 		
-		return $this->evaluate($expression);
+		return (bool)$this->evaluate($expression);
 		
 	}
 	
