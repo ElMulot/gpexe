@@ -53,6 +53,11 @@ class LauncherType extends AbstractType
 					],
 				]);
 				break;
+			
+			case Program::TASK:
+				$scheme = $this->parseService->getTaskScheme();
+				break;
+				
 			default:
 				return;
 		}
