@@ -26,7 +26,6 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 class ProgramService
 {
 	
-	const MAX_LINES_PROCESSED 	= 1000;
 	const IGNORE_COLOR 			= 'C8C8C8';
 	const WARNING_COLOR 		= 'FFE591';
 	const ERROR_COLOR 			= 'FF9191';
@@ -311,7 +310,7 @@ class ProgramService
 			case Program::TASK:
 				return true;
 				
-			case Program::IMPORT:
+			case Program::PROGRESS:
 				return true;
 				
 			default:
@@ -322,7 +321,7 @@ class ProgramService
 	
 	public function export(Program $program): bool
 	{
-		set_time_limit(500);
+// 		set_time_limit(500);
 		$this->stopWatch->start('export');
 		
 		$project = $program->getProject();
@@ -368,12 +367,6 @@ class ProgramService
 			foreach ($serie->getDocuments() as $document) {
 				foreach ($document->getVersions() as $version) {
 					$row = $sheet->getRow($currentRow);
-					
-// 					A faire : reprendre les versions là s'est arrêté le précédent batch
-// 					if ($row->getAddress() - $currentRow + 1 >= self::MAX_LINES_PROCESSED) {
-// 						$newBatch = true;
-// 						break 3;
-// 					}
 					
 					//exclude
 					foreach ($this->parsedCode['exclude'] as $exclude) {
@@ -422,7 +415,7 @@ class ProgramService
 	
 	public function import(Program $program): bool
 	{
-// 		set_time_limit(500);
+		set_time_limit(500);
 		$this->stopWatch->start('import');
 		$project = $program->getProject();
 		$this->parsedCode = $program->getParsedCode();
@@ -473,7 +466,7 @@ class ProgramService
 		
 		//load datas
 		$series = $this->serieRepository->getHydratedSeries($project);
-		// 		$series = [];
+		//$series = [];
 		
 		while ($row = $sheet->getRow($currentRow)) {
 			
@@ -481,7 +474,7 @@ class ProgramService
 				break;
 			}
 			
-			if ($row->getAddress() - $this->cacheService->get('program.current_row') >= self::MAX_LINES_PROCESSED) {
+			if ($row->getAddress() - $this->cacheService->get('program.current_row') >= $this->cacheService->get('program.rows_per_batch')) {
 				$newBatch = true;
 				break;
 			}
@@ -831,6 +824,8 @@ class ProgramService
 	
 	public function task(Program $program): bool
 	{
+// 		set_time_limit(500);
+
 		$this->stopWatch->start('export');
 		
 		$project = $program->getProject();
@@ -941,13 +936,15 @@ class ProgramService
 	
 	public function progress(Program $program): array
 	{
-		
+// 		set_time_limit(500);
 		$project = $program->getProject();
+		$this->parsedCode = $program->getParsedCode();
 		$progress = [];
+		$this->setDateFormat('d-m-Y');
 		
 		//load datas
 		$series = $this->serieRepository->getHydratedSeries($project);
-		// 		$series = [];
+// 		$series = [];
 		foreach ($series as $serie) {
 			
 			$countProcessed = 0;
@@ -1138,10 +1135,6 @@ class ProgramService
 		if ($expression == false) return false;
 		
 		$expression = $this->prepare($expression, $entity, false, $row);
-		
-// 		if (strpos($expression, '!= "ACC"') === false && strpos($expression, '"" != ""') === false) {
-// 			dd($expression);
-// 		}
 		
 		//dates comparison
 		$expression = preg_replace('/"(\d{2}-\d{2}-\d{4})"/', '(new \DateTime("$1"))', $expression);

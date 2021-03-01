@@ -237,7 +237,6 @@ textarea {
 	cursor: col-resize;
 	user-select: none;
 	z-index: $zindex-fixed;
-	background-color: red;
 }
 
 .col-drag-container {
@@ -268,4 +267,8 @@ textarea {
 	position: absolute;
 	z-index: $zindex-fixed;
 	background-color: $body-bg;
+}
+
+.col-drag-hidden {
+	display: none;
 }

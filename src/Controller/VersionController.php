@@ -96,10 +96,21 @@ class VersionController extends AbstractController
 			throw $this->createAccessDeniedException();
 		}
 		
-		$status = $this->statusRepository->getDefaultStatus($project);
 		$version = new Version();
 		$version->setDocument($document);
-		$version->setStatus($status);
+		if ($lastVersion = $document->getLastVersion()) {
+			$version->setStatus($lastVersion->getStatus());
+			$version->setWriter($lastVersion->getWriter());
+			$version->setChecker($lastVersion->getChecker());
+			$version->setApprover($lastVersion->getApprover());
+			foreach ($this->metadataRepository->getMetadatasForVersion($project) as $metadata) {
+				if ($metadata->isBoolean() || $metadata->isList() || $metadata->getIsMandatory()) {
+					$version->setMetadataValue($metadata, $lastVersion->getMetadataValue($metadata));
+				}
+			}
+		} else {
+			$version->setStatus($this->statusRepository->getDefaultStatus($project));
+		}
 		
 		$form = $this->createForm(VersionType::class, $version, [
 			'serie' => $serie,

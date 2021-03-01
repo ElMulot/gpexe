@@ -66,3 +66,7 @@ option:
         regex: '[djDlSzFMmnYyaAhgGHisvu\s#;:\/\.,\-\(\)]+'
         default: 'd-m-Y'
         type: 'text'
+    rows_per_batch:
+        regex: '\d+'
+        default: 1000
+        type: 'text'

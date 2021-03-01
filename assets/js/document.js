@@ -7,29 +7,263 @@ require('../css/document.scss');
 const URLSearchParams = require('@ungap/url-search-params/cjs');
 
 var gpexe = {
-	headers: new Array(),
+	_headers: [],
 	series: [],
-	table: null,
+	$table: null,
 	chxCheckall: null,
 	colResize: {},
 	colDrag: {},
 	
-	sortHeaders: function() {
+	addHeader: function(field) {
+		let header = {
+			id: field.id,
+			title: field.title,
+			type: field.type,
+			permissions: field.permissions,
+			_visible: true,
+			_defaultOrder: this._headers.length + 1,
+			_order: 0,
+			_defaultWidth: field.default_width,
+			_width: 0,
+			hasSort: (field.elements && field.elements.some(v => v.sort === true)),
+			hasFilter: (field.elements && field.elements.some(v => v.filter)),
+			elements: [],
+			$colResizeHandleLeft: null,
+			$colResizeHandleRight: null,
+			_parent: this,
+			
+			setVisible: function(visible) {
+				if (this._visible != visible) {
+					this._visible = visible;
+					this.update();
+				}
+			},
+			
+			getVisible: function() {
+				return this._visible || this.getWidth() == 0;
+			},
+			
+			setWidth: function(width) {
+				if (this._width != width) {
+					this._width = width;
+					this.update();
+				}
+			},
+			
+			getWidth: function() {
+				return (this._width)?this._width:this._defaultWidth;
+			},
+			
+			setOrder: function(order) {
+				
+				
+				if (order > 0) {
+					
+					let currentOrder = this._parent.getHeaders(true).indexOf(this) + 1;
+					
+//					console.log('order: ' + order);
+//					console.log('currentOrder: ' + currentOrder);
+					
+					if (currentOrder > order) {
+						for (let header of this._parent.getHeaders()) {
+							if (header._order > 0 && header._order >= order && header._order <= currentOrder && header != this) {
+								header._order++;
+								urlSearch.set('order[' + header.id + ']', header._order);
+							}
+						}
+					} else if (currentOrder < order) {
+						for (let header of this._parent.getHeaders()) {
+							if (header._order > 0 && header._order <= order && header._order >= currentOrder && header != this) {
+								header._order--;
+								urlSearch.set('order[' + header.id + ']', header._order);
+							}
+						}
+					}
+					
+					this._order = parseInt(order);
+					urlSearch.set('order[' + this.id + ']', order);
+					
+				} else if (order == 0) {
+					this._order = 0;
+				} else {
+					return;
+				}
+				
+				if (this.th) {
+					let currentIndex = this._parent.$table.find('th').index(this.th);
+					let index;
+					if (order > 0) {
+						index = this._parent.$table.find('th').index(this._parent.$table.find('th').not('#selector, #detail').eq(order - 1));
+					} else {
+						index = this._defaultOrder
+							- this._parent.getHeaders().filter(v => v._order > 0 && v._defaultOrder < this._defaultOrder).length
+							+ this._parent.getHeaders().filter(v => v._order > 0 && v._defaultOrder > this._defaultOrder).length;
+					}
+					
+					if (currentIndex > index) {
+						this._parent.$table.find('tr').each(function() {
+							$(this).children().eq(currentIndex).insertBefore($(this).children().eq(index));
+						});
+					} else if (currentIndex < index) {
+						this._parent.$table.find('tr').each(function() {
+							$(this).children().eq(currentIndex).insertAfter($(this).children().eq(index));
+						});
+					}
+				}
+			},
+			
+			getOrder: function() {
+				return this._order;
+			},
+			
+			update: function() {
+				
+				if (this._visible === true) {
+					
+					if (this.aDisplay && this.chxDisplay) {			
+						this.aDisplay.addClass('btn-outline-primary');
+						this.aDisplay.removeClass('btn-primary');
+						this.chxDisplay.prop('checked', true);
+					}
+					
+					if (this.th) {
+						this.th.show();
+						let width = this.getWidth();
+						this.th.css('width', width + 'rem');
+						this.th.css('min-width', width + 'rem');
+						this.th.css('max-width', width + 'rem');
+						let index = this.th.index() + 1;
+						$('#table').find('td:nth-child(' + index + ')').each(function() {
+							$(this).show();
+							$(this).css('max-width', width + 'rem');
+						});
+					}
+					
+				} else {
+					
+					if (this.aDisplay && this.chxDisplay) {			
+						this.aDisplay.addClass('btn-primary');
+						this.aDisplay.removeClass('btn-outline-primary');
+						this.chxDisplay.prop('checked', false);
+					}
+					
+					if (this.th) {
+						this.th.hide();
+						
+						let index = this.th.index() + 1;
+						$('#table').find('td:nth-child(' + index + ')').each(function() {
+							$(this).hide();
+						});
+					}
+				}
+			},
+		};
 		
-		for (let header of gpexe.headers) {
-			header.
+		$.each(field.elements, function () {
+			
+			e = {
+				id: this.id,
+				title: this.title,
+				sort: this.sort,
+			};
+			
+			if (this.filter) {
+				
+				switch (this.filter.type) {
+					case type.bool:
+						var c = [
+							{
+								text: $.i18n('notApplicable'),
+								value: -1,
+							},
+							{
+								text: $.i18n('yes'),
+								value: 1,
+							},
+							{
+								text: $.i18n('no'),
+								value: 0,
+							}
+						];
+						break;
+
+					case type.list:
+						var c = [];
+						
+						$.each(this.filter.choices, function (key, value) {
+							if (typeof value === 'object') {
+								c.push({
+									text: value.name || value.value,
+									value: value.id,
+								});
+							} else {
+								c.push({
+									text: value,
+									value: key,
+								});
+							}
+						});
+						
+						c.sort(function (a, b) {
+							if (a.text < b.text) {
+								return -1;
+							}
+							if (a.text > b.text) {
+								return 1;
+							}
+							return 0;
+						});
+						
+						c.unshift({
+							text: $.i18n('selectAll'),
+							value: -1,
+						});
+				}
+				
+				e.filter = {
+						type: this.filter.type,
+						choices: c,
+				};
+			}
+			
+			header.elements.push(e);
+		});
+		
+		this._headers.push(header);
+		
+	},
+	
+	getHeaders: function(sort = false) {
+		
+		if (sort === true) {
+			let headers = [];
+			for (let header of this._headers) {
+				if (header._order > 0) {
+					headers[header._order - 1] = header;
+				}
+			}
+			let i = 0;
+			for (let header of this._headers) {
+				if (header._order == 0) {
+					while (headers[i] != undefined && i < this._headers.length) {
+						i++;
+					}
+					
+					headers[i] = header;
+				}
+			}
+			return headers;
+		} else {
+			return this._headers;
 		}
-		
-		gpexe.headers.sort(function (a, b) {
-			if (a.getOrder() > b.getOrder()) {
-				return -1;
-			}
-			if (a.getOrder() < b.getOrder()) {
-				return 1;
-			}
-			return 0;
+	},
+	
+	retoreOrder: function() {
+		$(this._headers).each(function() {
+			this.setOrder(0);
 		});
 	}
+	
 }
 
 const type = {
@@ -39,127 +273,6 @@ const type = {
 	link: 14,
 	list: 15,
 };
-
-
-//---------------
-//Header
-//---------------
-
-function Header(parent, field) {
-	this.id = field.id;
-	this.title = field.title;
-	this.type = field.type;
-	this.permissions = field.permissions;
-	this._visible = false;
-	this._order = 0;
-	this._defaultWidth = field.default_width;
-	this._width = 0;
-	this.hasSort = (field.elements && field.elements.some(v => v.sort === true));
-	this.hasFilter = (field.elements && field.elements.some(v => v.filter));
-	this.elements = [];
-	this.parent = parent;
-}
-
-Header.prototype = {
-	
-	setVisible: function(visible) {
-		this._visible = visible;
-	},
-	
-	getVisible: function() {
-		return this._visible || this.getWidth() == 0;
-	},
-	
-	setWidth: function(width) {
-		this._width = width;
-	},
-	
-	getWidth: function() {
-		return (this._width)?this._width:this._defaultWidth;
-	},
-	
-	setOrder: function(order) {
-		
-		let $table = gpexe.colDrag.header.th.parents('table');
-		let currentOrder = this.getOrder();
-		this._order = order;
-		
-		if (order > this.getOrder()) {
-			for (let header of this.parent.headers) {
-				if (header._order != 0 && header.getOrder() < order) {
-					header._order--;
-				}
-			}
-			$table.find('tr').each(function() {
-				$(this).children(':visible').eq(currentOrder).insertBefore($(this).children(':visible').eq(order));
-			});
-		} else if (order < currentOrder) {
-			for (let header of this.parent.headers) {
-				if (header._order != 0 && header.getOrder() > order) {
-					header._order++;
-				}
-			}
-			$table.find('tr').each(function() {
-				$(this).children(':visible').eq(currentOrder).insertAfter($(this).children(':visible').eq(order));
-			});
-		}
-	},
-	
-	getOrder: function() {
-		
-		if (this._order > 0) {
-			return this._order
-		} else {
-			for (let i in this.parent.headers) {
-				if (this.parent.headers[i].id == this.id) {
-					return i;
-				}
-			}	
-		}
-	},
-	
-	update: function() {
-		
-		if (this._visible === true) {
-			
-			if (this.aDisplay && this.chxDisplay) {			
-				this.aDisplay.addClass('btn-outline-primary');
-				this.aDisplay.removeClass('btn-primary');
-				this.chxDisplay.prop('checked', true);
-			}
-			
-			if (this.th) {
-				this.th.show();
-				let width = this.getWidth();
-				this.th.css('width', width + 'rem');
-				this.th.css('min-width', width + 'rem');
-				this.th.css('max-width', width + 'rem');
-				let index = this.th.index() + 1;
-				$('#table').find('td:nth-child(' + index + ')').each(function() {
-					$(this).show();
-					$(this).css('max-width', width + 'rem');
-				});
-			}
-			
-		} else {
-			
-			if (this.aDisplay && this.chxDisplay) {			
-				this.aDisplay.addClass('btn-primary');
-				this.aDisplay.removeClass('btn-outline-primary');
-				this.chxDisplay.prop('checked', false);
-			}
-			
-			if (this.th) {
-				this.th.hide();
-				let index = this.th.index() + 1;
-				$('#table').find('td:nth-child(' + index + ')').each(function() {
-					$(this).hide();
-				});
-			}
-		}
-	},
-	
-}
 
 
 //---------------
@@ -213,23 +326,35 @@ UrlSearch.prototype = {
 		}
 	},
 	
-	toUrl: function(key = '') {
+	toUrl: function() {
 		let url = '';
-		if (key == '') {
+		if (arguments.length == 0) {
 			url = this._paramsArray.toString();
 		} else {
-			values = this.get(key);
-			for (i in values) {
-				values[i] = key + '=' + values[i];
+			let urlArray = [];
+			for (let i=0; i<arguments.length; i++) {
+				values = this.get(arguments[i]);
+				if (Array.isArray(values)) {
+					for (let j=0; j<values.length; j++) {
+						values[j] = arguments[i] + '[]=' + values[j];
+					}
+					urlArray[i] = values.join('&');
+				} else {
+					urlArray[i] = arguments[i] + '=' + values;
+				}
 			}
-			url = values.join('&');
+			url = urlArray.join('&');
 		}
 		return (url)?'?' + url:'';
 	},
 	
 	fetch: function() {
 		
-		let url = $('#table').data('url') + this.toUrl();
+		if (this.get('vue')) {
+			var url = $('#table').data('url') + this.toUrl('vue', 'page');
+		} else {
+			var url = $('#table').data('url') + this.toUrl();
+		}
 		global.ajax.set('#table', url);
 		
 	},
@@ -290,7 +415,8 @@ UrlSearch.prototype = {
 
 function setup(datas) {
 	
-	$('#table').show();
+	gpexe.$table = $('#table');
+	gpexe.$table.show();
 	
 	let thead = $('#table').append(create.thead).children().last();
 	let tr = thead.append(create.tr).children().last();
@@ -326,86 +452,12 @@ function setup(datas) {
 		field = datas.fields[i];
 		
 		if (field.display.table) {
-		
-			var header = new Header(gpexe, field);
-			
-			$.each(field.elements, function (j, element) {
-				
-				e = {
-					id: element.id,
-					title: element.title,
-					sort: element.sort,
-				};
-				
-				if (element.filter) {
-					
-					switch (element.filter.type) {
-						case type.bool:
-							var c = [
-								{
-									text: $.i18n('notApplicable'),
-									value: -1,
-								},
-								{
-									text: $.i18n('yes'),
-									value: 1,
-								},
-								{
-									text: $.i18n('no'),
-									value: 0,
-								}
-							];
-							break;
-	
-						case type.list:
-							var c = [];
-							
-							$.each(element.filter.choices, function (key, value) {
-								if (typeof value === 'object') {
-									c.push({
-										text: value.name || value.value,
-										value: value.id,
-									});
-								} else {
-									c.push({
-										text: value,
-										value: key,
-									});
-								}
-							});
-							
-							c.sort(function (a, b) {
-								if (a.text < b.text) {
-									return -1;
-								}
-								if (a.text > b.text) {
-									return 1;
-								}
-								return 0;
-							});
-							
-							c.unshift({
-								text: $.i18n('selectAll'),
-								value: -1,
-							});
-					}
-					
-					e.filter = {
-						type: element.filter.type,
-						choices: c,
-					};
-				}
-				
-				header.elements.push(e);
-			});
-		
-			gpexe.headers.push(header);
-		
+			gpexe.addHeader(field);
 		}
 		
 	}
 	
-	for (let header of gpexe.headers) {
+	for (let header of gpexe.getHeaders()) {
 		
 		header.th = tr.append(create.th).children().last();
 		
@@ -504,12 +556,27 @@ function setup(datas) {
 	let tbody = $('#table').append(create.tbody).children().last();
 	
 	//---------------------
-	// Col Resize
+	// Col Resize & Col Drag
 	//---------------------
 	
-	for (let header of gpexe.headers) {
+	for (let header of gpexe.getHeaders()) {
 		colResize(header);
 	}
+	$('#detail').append(create.div).children().last()
+		.css('left', '0')
+		.addClass('col-resize-handle')
+		.on('mousedown', function(e) {
+			for (let header of gpexe.getHeaders()) {
+				if ($(e.target).parent().prevAll(':visible').first().is(header.th)) {
+					gpexe.colResize = {
+						header: header,
+						currentPosition: e.pageX,
+						currentWidth: header.th.width(),
+					};
+				}
+			}
+		})
+	;
 	
 	$('body').on('mousemove', function(e) {
 		if ($.isEmptyObject(gpexe.colResize) === false) {
@@ -519,15 +586,13 @@ function setup(datas) {
 		if ($.isEmptyObject(gpexe.colDrag) === false) {
 			
 			if ($.isEmptyObject(gpexe.colDrag.$ul) && Math.abs(e.pageX - gpexe.colDrag.currentPosition) > 10) {
-			
-				let $table = gpexe.colDrag.header.th.parents('table');
 				
-				gpexe.colDrag.$ul = $table.parent().prepend(create.ul).children().first()
+				gpexe.colDrag.$ul = gpexe.$table.parent().prepend(create.ul).children().first()
 					.addClass('col-drag-container')
-					.css('width', $table.outerWidth() + 1)
+					.css('width', gpexe.$table.outerWidth() + 1)
 				;
 				
-				$table.find('th:visible').each(function() {
+				gpexe.$table.find('th').each(function() {
 					
 					if (gpexe.colDrag.header.th.is(this)) {
 						gpexe.colDrag.$liPlaceholder = gpexe.colDrag.$ul.append(create.li).children().last()
@@ -535,7 +600,7 @@ function setup(datas) {
 						;
 						gpexe.colDrag.$liPlaceholder.append(create.div).children().last()
 							.css('width', $(this).width())
-							.css('height', $table.height())
+							.css('height', gpexe.$table.height())
 						;
 					}
 					
@@ -545,30 +610,35 @@ function setup(datas) {
 						$li.addClass('col-drag-disabled');
 					}
 					
-					if (gpexe.colDrag.header.th.is(this)) {
-						$li.addClass('col-drag-helper');
-						gpexe.colDrag.$liHelper = $li;
-					}
+					if ($(this).is(':visible')) {
 					
-					$li.append(create.table).children().last()
-						.addClass($table.attr('class'))
-						.append(create.thead).children().last()
-						.append($(this).clone())
-					;
-					
-					let $tbody = $li.children().last().append(create.tbody).children().last();
-					let index = $(this).index() + 1;
-					
-					$table.find('td:nth-child(' + index + ')').each(function() {
-						$tbody.append(create.tr).children().last()
-							.addClass($(this).parent().attr('class'))
-							.css('height', $(this).parent().outerHeight())
+						if (gpexe.colDrag.header.th.is(this)) {
+							$li.addClass('col-drag-helper');
+							gpexe.colDrag.$liHelper = $li;
+						}
+						
+						$li.append(create.table).children().last()
+							.addClass(gpexe.$table.attr('class'))
+							.append(create.thead).children().last()
 							.append($(this).clone())
 						;
-					});
+						
+						let $tbody = $li.children().last().append(create.tbody).children().last();
+						let index = $(this).index() + 1;
+						gpexe.$table.find('td:nth-child(' + index + ')').each(function() {
+							$tbody.append(create.tr).children().last()
+								.addClass($(this).parent().attr('class'))
+								.css('height', $(this).parent().outerHeight())
+								.append($(this).clone())
+							;
+						});
+						
+					} else {
+						$li.addClass('col-drag-hidden');
+					}
 				});
 				
-				$table.hide();
+				gpexe.$table.hide();
 			}
 			
 			if ($.isEmptyObject(gpexe.colDrag.$liPlaceholder) === false) {
@@ -590,25 +660,23 @@ function setup(datas) {
 		if ($.isEmptyObject(gpexe.colResize) === false) {
 			let width = pxToRem(gpexe.colResize.header.th.width());
 			gpexe.colResize.header.setWidth(width);
+			
+			urlSearch.set('display[' + gpexe.colResize.header.id + ']', width);
+			urlSearch.delete('vue');
+			
 			gpexe.colResize = {};
 		}
 		
 		if ($.isEmptyObject(gpexe.colDrag) === false) {
-			let $table = gpexe.colDrag.header.th.parents('table');
-			let newIndex = gpexe.colDrag.$ul.children().not('.col-drag-helper').index(gpexe.colDrag.$liPlaceholder);
-			gpexe.colDrag.header.setOrder(newIndex);
-			
-			
+			let newOrder = gpexe.colDrag.$ul.children().not('.col-drag-helper, .col-drag-disabled').index(gpexe.colDrag.$liPlaceholder) + 1;
 			gpexe.colDrag.$ul.remove();
-			$table.show();
+			gpexe.$table.show();
 			
-			$table.find('tr').each(function() {
-				if (gpexe.colDrag.currentIndex < newIndex) {
-					$(this).children(':visible').eq(gpexe.colDrag.currentIndex).insertAfter($(this).children(':visible').eq(newIndex));
-				} else if (gpexe.colDrag.currentIndex > newIndex) {
-					$(this).children(':visible').eq(gpexe.colDrag.currentIndex).insertBefore($(this).children(':visible').eq(newIndex));
-				}
-			});
+			gpexe.colDrag.header.setOrder(newOrder);
+			
+			urlSearch.set('order[' + gpexe.colDrag.header.id + ']', newOrder);
+			urlSearch.delete('vue');
+			
 			gpexe.colDrag = {};
 		}
 		
@@ -619,7 +687,7 @@ function setup(datas) {
 	// Col Drag
 	//---------------------
 	
-	for (let header of gpexe.headers) {
+	for (let header of gpexe.getHeaders()) {
 		colDrag(header);
 	}
 	
@@ -672,7 +740,7 @@ function setup(datas) {
 					} else {
 						urlSearch.set('sortDesc', element.id);
 					}
-					
+					urlSearch.delete('vue');
 					element.filter.divFilter.trigger('click');
 				})
 			;
@@ -705,6 +773,7 @@ function setup(datas) {
 							} else if (urlSearch.get('highlight').toString() == element.id) {
 								urlSearch.delete('highlight');
 							}
+							urlSearch.delete('vue');
 						})
 						.on('click', function() {
 							for (let element of header.elements) {
@@ -729,6 +798,7 @@ function setup(datas) {
 							
 							if (searchValue != '') {
 								urlSearch.set('filter[' + element.id + ']', searchValue);
+								urlSearch.delete('vue');
 							}
 						})
 						.on('click', function() {
@@ -784,7 +854,8 @@ function setup(datas) {
 					} else {
 						urlSearch.set('sortAsc', element.id);
 					}
-
+					urlSearch.delete('vue');
+					
 					element.filter.divFilter.trigger('click');
 				})
 			;
@@ -843,9 +914,9 @@ function setup(datas) {
 										}
 									}
 									
-									urlSearch.set('filter[' + element.id + ']', choice.value);
-									
 									header.btnDropdown.dropdown('hide');
+									
+									urlSearch.set('filter[' + element.id + ']', choice.value);
 									urlSearch.delete('vue');
 									urlSearch.fetch();
 								})
@@ -1124,11 +1195,11 @@ function setup(datas) {
 	function colResize(header) {
 		
 		if (header.th) {
-			header.th.append(create.div).children().last()
+			header.$colResizeHandleRight = header.th.append(create.div).children().last()
 				.css('right', '0')
 				.addClass('col-resize-handle')
 				.on('mousedown', function(e) {
-					for (let header of gpexe.headers) {
+					for (let header of gpexe.getHeaders()) {
 						if ($(e.target).parent().is(header.th)) {
 							gpexe.colResize = {
 								header: header,
@@ -1140,11 +1211,11 @@ function setup(datas) {
 				})
 			;
 			
-			header.th.next().append(create.div).children().last()
+			header.$colResizeHandleLeft = header.th.append(create.div).children().last()
 				.css('left', '0')
 				.addClass('col-resize-handle')
 				.on('mousedown', function(e) {
-					for (let header of gpexe.headers) {
+					for (let header of gpexe.getHeaders()) {
 						if ($(e.target).parent().prevAll(':visible').first().is(header.th)) {
 							gpexe.colResize = {
 								header: header,
@@ -1179,13 +1250,13 @@ function setup(datas) {
 	
 	function setHeaderOrder() {
 		
-		for (let header of gpexe.headers) {
+		for (let header of gpexe.getHeaders()) {
 			urlSearch.delete('display[' + header.id + ']');
 		}
 		
 		$('#table').find('th').not('#selector, #detail').each(function () {
 			
-			for (let header of gpexe.headers) {
+			for (let header of gpexe.getHeaders()) {
 				if (header.th.is(this) && header.visible === true) {
 					urlSearch.append('display[' + header.id + ']', header.getWidth());
 				}
@@ -1226,7 +1297,7 @@ function fillDisplayPannel() {
 			.addClass('col')
 	;
 	
-	for (let header of gpexe.headers) {
+	for (let header of gpexe.getHeaders()) {
 		
 		header.aDisplay = divCol.append(create.a).children().last()
 			.addClass('btn btn-sm btn-outline-primary col-2 m-1 text-left text-nowrap')
@@ -1457,7 +1528,7 @@ $(document).ready(function() {
 		}
 		
 		e.stopPropagation();
-		urlSearch.fetch();
+		urlSearch.fetch(false);
 	});
 	
 	$('#vue_new').on('click', function() {
@@ -1511,33 +1582,30 @@ $(document).ready(function() {
 			}
 		}
 		
-		for (let header of gpexe.headers) {
-			if (header.id in result.query.display) {
-				header.setVisible(true);
-				header.setWidth(result.query.display[header.id]);
-			} else {
-				header.setVisible(false);
-				header.setWidth(0);
-			}
+		//visible & order
+
+		gpexe.retoreOrder();
+		
+		if (result.query.order) {
+			$(result.query.order).sort();
+		}
+		
+		for (let header of gpexe.getHeaders()) {
+			header.setVisible(result.query.display[header.id] > 0);
 			if (result.query.order) {
 				header.setOrder(result.query.order[header.id]);
 			}
 		}
 		
-		for (let header of gpexe.headers) {
-			console.log(header.getOrder());
-		}
-		
-		
-		
-		for (let header of gpexe.headers) {
-			console.log(header.id);
-		}
-		
-		
-		for (let header of gpexe.headers) {
+		for (let header of gpexe.getHeaders()) {
 			
 			if (header.getVisible()) {
+				
+				if (gpexe.$table.find('th:visible').not('#selector').eq(0).is(header.th)) {
+					header.$colResizeHandleLeft.hide();
+				} else {
+					header.$colResizeHandleLeft.show();
+				}
 				
 				header.btnDropdown.empty();
 				header.isFiltered = false;
@@ -1615,7 +1683,9 @@ $(document).ready(function() {
 				.attr('for', 'c_' + data.version_id)
 			;
 			
-			for (let header of gpexe.headers) {
+			for (let header of gpexe.getHeaders(true)) {
+				
+				let td = tr.append(create.td).children().last();
 				
 				if (header.getVisible()) {
 					
@@ -1633,7 +1703,9 @@ $(document).ready(function() {
 							break;
 						case type.date:
 							dataClass = 'text-center';
-							value = value.toDate();
+							if (value != null) {
+								value = value.toDate();
+							}
 							
 							if (value !== null) {
 								//highlight
@@ -1664,14 +1736,12 @@ $(document).ready(function() {
 							}
 					}
 					
-					if (value === null || value === undefined) {
+					if (value == null) {
 						value = '';
 					}
 					
-					let td = tr.append(create.td).children().last()
-						.addClass(dataClass)
-						.text(value)
-					;
+					td.addClass(dataClass);
+					td.text(value);
 					
 					if (header.permissions.write) {
 						td.on('dblclick', function() {
@@ -1732,12 +1802,7 @@ $(document).ready(function() {
 					}
 					
 				} else {
-					
-					header.th.hide();
-					tr.append(create.td).children().last()
-						.hide()
-					;
-					
+					td.hide();
 				}
 			}
 			
@@ -1751,10 +1816,12 @@ $(document).ready(function() {
 			;
 			
 		}
-		return;
+		
 		//width
-		for (let header of gpexe.headers) {
-			header.update();
+		for (let header of gpexe.getHeaders()) {
+			if (header.id in result.query.display) {
+				header.setWidth(result.query.display[header.id]);
+			}
 		}
 		
 		//pagination
@@ -1784,7 +1851,7 @@ $(document).ready(function() {
 				.on('click', function() {
 					if (page > 1) {
 						urlSearch.set('page', page - 1);
-						urlSearch.delete('vue');
+//						urlSearch.delete('vue');
 						urlSearch.fetch();
 					}
 				})
@@ -1804,7 +1871,7 @@ $(document).ready(function() {
 					.addClass('page-item' + ((page == i)?' active':''))
 					.on('click', function() {
 						urlSearch.set('page', i);
-						urlSearch.delete('vue');
+//						urlSearch.delete('vue');
 						urlSearch.fetch();
 					})
 					.append(create.a).children().last()
@@ -1819,7 +1886,7 @@ $(document).ready(function() {
 				.on('click', function() {
 					if (page < pageMax) {
 						urlSearch.set('page', page + 1);
-						urlSearch.delete('vue');
+//						urlSearch.delete('vue');
 						urlSearch.fetch();
 					}
 				})

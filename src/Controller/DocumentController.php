@@ -123,6 +123,9 @@ class DocumentController extends AbstractController
 			throw $this->createAccessDeniedException();
 		}
 		
+		$page = max((int)$request->query->get('page') ?? 1, 1);
+		$request->query->remove('page');
+		
 		if ($vueId = $request->query->get('vue')) {
 			if ($vue = $this->vueRepository->getVueById($vueId)) {
 				$request->query->replace($vue->getValue());
@@ -169,7 +172,7 @@ class DocumentController extends AbstractController
 		}
 		
 		$request->query->set('results_per_page', $resultsPerPage);
-		$request->query->set('page', min($request->query->get('page') ?? 1, $pageMax));
+		$request->query->set('page', min($page, $pageMax));
 		
 		$versions = $this->versionRepository->getVersionsAsArray($codifications, $fields, $series, $project, $request);
 		
