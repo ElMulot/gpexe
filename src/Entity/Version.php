@@ -367,8 +367,15 @@ class Version
 				$value = ($value)?true:false;
 				break;
 			case Metadata::DATE:
-				if ($value instanceof \DateTime) {
+				if (is_string($value)) {
+					$date = \DateTime::createFromFormat('d-m-Y', $value);
+					if ($date == false || $date->format('d-m-Y') !== $value) {
+						$value = '';
+					}
+				} elseif ($value instanceof \DateTime) {
 					$value = $value->format('d-m-Y');
+				} else {
+					$value = '';
 				}
 				break;
 		}
