@@ -257,6 +257,8 @@ class ProgramService
 						return ($a['value'] > $b['value'])?-1:1;
 					}
 				});
+				
+				$this->cacheService->set('program.code', $this->parsedCode);
 				$this->cacheService->set('program.state', 'new_batch');
 				return true;
 				
@@ -291,6 +293,7 @@ class ProgramService
 			$this->cacheService->delete('program.' . $key);
 		}
 		
+		$this->cacheService->delete('program.code');
 		$this->cacheService->delete('program.state');
 		
 		switch ($program->getType()) {
@@ -938,9 +941,11 @@ class ProgramService
 	{
 // 		set_time_limit(500);
 		$project = $program->getProject();
-		$this->parsedCode = $program->getParsedCode();
 		$progress = [];
+		
+		//cache
 		$this->setDateFormat('d-m-Y');
+		$this->parsedCode = $this->cacheService->get('program.code');
 		
 		//load datas
 		$series = $this->serieRepository->getHydratedSeries($project);
@@ -982,7 +987,6 @@ class ProgramService
 						
 						if ($countValidated[$key] >= $rule['count']) {
 							$maxValue = max($maxValue, $rule['value']);
-							
 							break;
 						}
 					}

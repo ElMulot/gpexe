@@ -19,6 +19,10 @@ var gpexe = {
 			id: field.id,
 			title: field.title,
 			type: field.type,
+			displayed: {
+				'display': field.displayed.display,
+				'table': field.displayed.table
+			},
 			permissions: field.permissions,
 			_visible: true,
 			_defaultOrder: this._headers.length + 1,
@@ -34,13 +38,13 @@ var gpexe = {
 			
 			setVisible: function(visible) {
 				if (this._visible != visible) {
-					this._visible = visible;
+					this._visible = visible && this.displayed.table;
 					this.update();
 				}
 			},
 			
 			getVisible: function() {
-				return this._visible || this.getWidth() == 0;
+				return this._visible && this.displayed.table && this.getWidth() != 0;
 			},
 			
 			setWidth: function(width) {
@@ -235,16 +239,19 @@ var gpexe = {
 	
 	getHeaders: function(sort = false) {
 		
+		//sort=false: display all headers
+		//sort=true: display only headers where displayed.table == true in the right order
+		
 		if (sort === true) {
 			let headers = [];
 			for (let header of this._headers) {
-				if (header._order > 0) {
+				if (header._order > 0 && header.displayed.table) {
 					headers[header._order - 1] = header;
 				}
 			}
 			let i = 0;
 			for (let header of this._headers) {
-				if (header._order == 0) {
+				if (header._order == 0 && header.displayed.table) {
 					while (headers[i] != undefined && i < this._headers.length) {
 						i++;
 					}
@@ -451,7 +458,7 @@ function setup(datas) {
 		
 		field = datas.fields[i];
 		
-		if (field.display.table) {
+		if (field.displayed.display || field.displayed.table) {
 			gpexe.addHeader(field);
 		}
 		
@@ -459,93 +466,95 @@ function setup(datas) {
 	
 	for (let header of gpexe.getHeaders()) {
 		
-		header.th = tr.append(create.th).children().last();
+		if (header.displayed.table) {
 		
-		if (header.hasSort || header.hasFilter) {
+			header.th = tr.append(create.th).children().last();
 			
-			//main button group
-			let divDropdownGroup = header.th.append(create.div).children().last()
-				.addClass('btn-group w-100')
-				.attr('role', 'group')
-				.on('hide.bs.dropdown', function (e) {
-					
-					if(e.clickEvent && $.contains(e.relatedTarget.parentNode, e.clickEvent.target)) {
-						e.preventDefault()
-					} else {
-						header.divDropdownMenu.empty();
-					}
-				})
-			;
-			
-			//title
-			divDropdownGroup.append(create.menuButton).children().last()
-				.addClass('text-truncate w-100')
-				.attr('type', 'button')
-				.text(header.title)
-				.on('click', function() {
-					if (header.hasFilter) {
-						for (element of header.elements) {
-							if (urlSearch.get('sortAsc') == element.id) {
-								urlSearch.delete('sortAsc');
-								urlSearch.set('sortDesc', element.id);
-								urlSearch.delete('vue');
-								urlSearch.fetch();
-								return;
-							}
-							if (urlSearch.get('sortDesc') == element.id) {
-								urlSearch.delete('sortDesc');
-								urlSearch.set('sortAsc', element.id);
-								urlSearch.delete('vue');
-								urlSearch.fetch();
-								return;
-							}
+			if (header.hasSort || header.hasFilter) {
+				
+				//main button group
+				let divDropdownGroup = header.th.append(create.div).children().last()
+					.addClass('btn-group w-100')
+					.attr('role', 'group')
+					.on('hide.bs.dropdown', function (e) {
+						
+						if(e.clickEvent && $.contains(e.relatedTarget.parentNode, e.clickEvent.target)) {
+							e.preventDefault()
+						} else {
+							header.divDropdownMenu.empty();
 						}
-						for (element of header.elements) {
-							if (element.sort) {
-								urlSearch.set('sortAsc', element.id);
-								urlSearch.delete('vue');
-								urlSearch.fetch();
-								return;
+					})
+				;
+				
+				//title
+				divDropdownGroup.append(create.menuButton).children().last()
+					.addClass('text-truncate w-100')
+					.attr('type', 'button')
+					.text(header.title)
+					.on('click', function() {
+						if (header.hasFilter) {
+							for (element of header.elements) {
+								if (urlSearch.get('sortAsc') == element.id) {
+									urlSearch.delete('sortAsc');
+									urlSearch.set('sortDesc', element.id);
+									urlSearch.delete('vue');
+									urlSearch.fetch();
+									return;
+								}
+								if (urlSearch.get('sortDesc') == element.id) {
+									urlSearch.delete('sortDesc');
+									urlSearch.set('sortAsc', element.id);
+									urlSearch.delete('vue');
+									urlSearch.fetch();
+									return;
+								}
 							}
-						}	
-					}
-				})
-			;
-			
-			//dropDown button
-			header.btnDropdown = divDropdownGroup.append(create.menuButton).children().last()
-				.addClass('px-0')
-				.css('width', '3em')
-				.attr('type', 'button')
-				.attr('id', 'b_' + header.id)
-				.attr('data-toggle', 'dropdown')
-				.attr('data-display', 'static')
-				.attr('aria-haspopup', true)
-				.attr('aria-expanded', false)
-			;
-			
-			//dropDown menu
-			header.divDropdownMenu = divDropdownGroup.append(create.div).children().last()
-				.addClass('dropdown-menu dropdown-menu-left')
-				.attr('aria-labelledby', 'b_' + header.id)
-				.append(create.div).children().last()
-					.addClass('d-flex flex-row')
-			;
-			
-			divDropdownGroup.on('show.bs.dropdown', function() {
-				createMenu(header);
-			});
-			
-		} else {
-			
-			header.btnDropdown = header.th.append(create.menuButton).children().last()
-				.addClass('text-truncate w-100')
-				.text(header.title).children().last()
-				.append(create.div)
-			;
-			
+							for (element of header.elements) {
+								if (element.sort) {
+									urlSearch.set('sortAsc', element.id);
+									urlSearch.delete('vue');
+									urlSearch.fetch();
+									return;
+								}
+							}	
+						}
+					})
+				;
+				
+				//dropDown button
+				header.btnDropdown = divDropdownGroup.append(create.menuButton).children().last()
+					.addClass('px-0')
+					.css('width', '3em')
+					.attr('type', 'button')
+					.attr('id', 'b_' + header.id)
+					.attr('data-toggle', 'dropdown')
+					.attr('data-display', 'static')
+					.attr('aria-haspopup', true)
+					.attr('aria-expanded', false)
+				;
+				
+				//dropDown menu
+				header.divDropdownMenu = divDropdownGroup.append(create.div).children().last()
+					.addClass('dropdown-menu dropdown-menu-left')
+					.attr('aria-labelledby', 'b_' + header.id)
+					.append(create.div).children().last()
+						.addClass('d-flex flex-row')
+				;
+				
+				divDropdownGroup.on('show.bs.dropdown', function() {
+					createMenu(header);
+				});
+				
+			} else {
+				
+				header.btnDropdown = header.th.append(create.menuButton).children().last()
+					.addClass('text-truncate w-100')
+					.text(header.title).children().last()
+					.append(create.div)
+				;
+				
+			}
 		}
-
 	}
 	
 	tr.append(create.th).children().last()
@@ -562,6 +571,7 @@ function setup(datas) {
 	for (let header of gpexe.getHeaders()) {
 		colResize(header);
 	}
+	
 	$('#detail').append(create.div).children().last()
 		.css('left', '0')
 		.addClass('col-resize-handle')
@@ -1248,24 +1258,6 @@ function setup(datas) {
 		
 	}
 	
-	function setHeaderOrder() {
-		
-		for (let header of gpexe.getHeaders()) {
-			urlSearch.delete('display[' + header.id + ']');
-		}
-		
-		$('#table').find('th').not('#selector, #detail').each(function () {
-			
-			for (let header of gpexe.getHeaders()) {
-				if (header.th.is(this) && header.visible === true) {
-					urlSearch.append('display[' + header.id + ']', header.getWidth());
-				}
-			}
-			
-		});
-		
-	}
-	
 }
 
 //---------------
@@ -1299,43 +1291,44 @@ function fillDisplayPannel() {
 	
 	for (let header of gpexe.getHeaders()) {
 		
-		header.aDisplay = divCol.append(create.a).children().last()
-			.addClass('btn btn-sm btn-outline-primary col-2 m-1 text-left text-nowrap')
-			.on('click', function() {
-				
-				header.chxDisplay.prop('checked', !header.chxDisplay.is(':checked'));
-				
-				let display = urlSearch.get('display[' + header.id + ']');
-				
-				urlSearch.delete('display[' + header.id + ']');
-				
-				if (header.chxDisplay.is(':checked')) {
-					if (display == false) {
+		if (header.displayed.display) {
+		
+			header.aDisplay = divCol.append(create.a).children().last()
+				.addClass('btn btn-sm btn-outline-primary col-2 m-1 text-left text-nowrap')
+				.on('click', function() {
+					
+//					header.chxDisplay.prop('checked', !header.chxDisplay.is(':checked'));
+					
+					let display = urlSearch.get('display[' + header.id + ']');
+					
+					urlSearch.delete('display[' + header.id + ']');
+					
+					if (header.chxDisplay.not(':checked') && display == false) {
 						urlSearch.append('display[' + header.id + ']', header.getWidth());
 					}
-				}
-				urlSearch.delete('vue');
-				urlSearch.fetch();
-				return false;
-			})
-		;
+					urlSearch.delete('vue');
+					urlSearch.fetch();
+					return false;
+				})
+			;
+			
+			let div = header.aDisplay.append(create.div).children().last()
+					.addClass('custom-control custom-checkbox')
+			;
+			
+			header.chxDisplay = div.append(create.checkbox).children().last()
+				.attr('id', 'h_' + header.id)
+				.on('change click', function() {
+					return false;
+				})
+			;
+			
+			div.append(create.label).children().last()
+				.attr('for', 'h_' + header.id)
+				.text(header.title)
+			;
 		
-		let div = header.aDisplay.append(create.div).children().last()
-				.addClass('custom-control custom-checkbox')
-		;
-		
-		header.chxDisplay = div.append(create.checkbox).children().last()
-			.attr('id', 'h_' + header.id)
-			.on('change click', function() {
-				return false;
-			})
-		;
-		
-		div.append(create.label).children().last()
-			.attr('for', 'h_' + header.id)
-			.text(header.title)
-		;
-		
+		}
 		
 	}
 	
