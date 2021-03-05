@@ -77,62 +77,6 @@ class AutomationController extends AbstractController
 		
 		$entityManager = $this->getDoctrine()->getManager();
 		
-		/*
-		$nb_c = 0;
-		$nb_ms = 0;
-		$nb_md = 0;
-		$nb_mv = 0;
-		
-		set_time_limit(0);
-		
-		foreach ($this->getDoctrine()->getRepository(Project::class)->getAllProjects() as $project) {
-			
-			$series = $this->getDoctrine()->getRepository(Serie::class)->getHydratedSeries($project);
-			
-			do {
-				
-				$restart = false;
-				
-				foreach ($series as $serie1) {
-					foreach ($serie1->getDocuments()->getValues() as $document1) {
-						foreach ($document1->getVersions()->getValues() as $version1) {
-						
-							foreach ($version1->getMetadataValues()->getValues() as $cv1) {
-								
-								foreach ($series as $serie2) {
-									foreach ($serie2->getDocuments()->getValues() as $document2) {
-										
-										foreach ($document2->getVersions()->getValues() as $version2) {
-										
-											foreach ($version2->getMetadataValues()->getValues() as $cv2) {
-												
-												if ($cv1->getId() != $cv2->getId() && $cv1->getMetadata()->getId() == $cv2->getMetadata()->getId() && $cv1->getValue() == $cv2->getValue()) {
-													
-													$version2->removeMetadataValue($cv2);
-													$version2->addMetadataValue($cv1);
-													$entityManager->persist($version2);
-													$restart = true;
-													$nb_c++;
-													
-												}
-											}
-										}
-										
-									}
-								}
-								
-								break;
-								
-								
-							}	
-						}
-					}
-				}
-					
-			} while ($restart);
-		}
-		*/
-		
 		$this->getDoctrine()->getRepository(MetadataValue::class)->deleteMetadataValueOrphans();
 		$this->getDoctrine()->getRepository(CodificationValue::class)->deleteCodificationValueOrphans();
 		
@@ -149,7 +93,7 @@ class AutomationController extends AbstractController
 					
 					$this->getDoctrine()->getRepository(Progress::class)->deleteProgressByProgramAndByDate($program, $automation->getNextRun());
 					
-					$interval = new \DateInterval('P' . $program->getParsedCode('option')['frequency'] . 'D');
+					$interval = new \DateInterval('P' . $program->getParsedCode('frequency') . 'D');
 					
 					if (call_user_func_array(array($this->programService, 'automation'), [$program])) {
 						

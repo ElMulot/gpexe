@@ -78,7 +78,8 @@ class FieldService
 				'type' => Metadata::LIST,
 				'parent' => 'document',
 				'default_width' => 15,
-				'display' => [
+				'displayed' => [
+					'display' => true,
 					'table' => true,
 					'program' => true,
 				],
@@ -94,7 +95,8 @@ class FieldService
 				'type' => Metadata::TEXT,
 				'parent' => 'version',
 				'default_width' => 4,
-				'display' => [
+				'displayed' => [
+					'display' => true,
 					'table' => true,
 					'program' => true,
 				],
@@ -110,7 +112,8 @@ class FieldService
 				'type' => Metadata::TEXT,
 				'parent' => 'document',
 				'default_width' => 30,
-				'display' => [
+				'displayed' => [
+					'display' => true,
 					'table' => true,
 					'program' => true,
 				],
@@ -126,7 +129,8 @@ class FieldService
 				'type' => Metadata::DATE,
 				'parent' => 'version',
 				'default_width' => 8,
-				'display' => [
+				'displayed' => [
+					'display' => true,
 					'table' => true,
 					'program' => true,
 				],
@@ -142,7 +146,8 @@ class FieldService
 				'type' => Metadata::DATE,
 				'parent' => 'version',
 				'default_width' => 8,
-				'display' => [
+				'displayed' => [
+					'display' => true,
 					'table' => true,
 					'program' => true,
 				],
@@ -158,7 +163,8 @@ class FieldService
 				'type' => Metadata::DATE,
 				'parent' => 'version',
 				'default_width' => 8,
-				'display' => [
+				'displayed' => [
+					'display' => true,
 					'table' => true,
 					'program' => true,
 				],
@@ -174,7 +180,8 @@ class FieldService
 				'type' => Metadata::DATE,
 				'parent' => 'version',
 				'default_width' => 8,
-				'display' => [
+				'displayed' => [
+					'display' => true,
 					'table' => true,
 					'program' => true,
 				],
@@ -190,7 +197,8 @@ class FieldService
 				'type' => Metadata::BOOLEAN,
 				'parent' => 'version',
 				'default_width' => 8,
-				'display' => [
+				'displayed' => [
+					'display' => true,
 					'table' => true,
 					'program' => true,
 				],
@@ -206,7 +214,8 @@ class FieldService
 				'type' => Metadata::LIST,
 				'parent' => 'version',
 				'default_width' => 10,
-				'display' => [
+				'displayed' => [
+					'display' => true,
 					'table' => true,
 					'program' => true,
 				],
@@ -222,7 +231,8 @@ class FieldService
 				'type' => Metadata::LIST,
 				'parent' => 'version',
 				'default_width' => 10,
-				'display' => [
+				'displayed' => [
+					'display' => true,
 					'table' => true,
 					'program' => true,
 				],
@@ -238,7 +248,8 @@ class FieldService
 				'type' => Metadata::LIST,
 				'parent' => 'version',
 				'default_width' => 10,
-				'display' => [
+				'displayed' => [
+					'display' => true,
 					'table' => true,
 					'program' => true,
 				],
@@ -254,8 +265,9 @@ class FieldService
 				'type' => Metadata::BOOLEAN,
 				'parent' => 'version',
 				'default_width' => 10,
-				'display' => [
-					'table' => true,
+				'displayed' => [
+					'display' => true,
+					'table' => false,
 					'program' => true,
 				],
 				'permissions' => [
@@ -270,8 +282,9 @@ class FieldService
 				'type' => Metadata::BOOLEAN,
 				'parent' => 'version',
 				'default_width' => 10,
-				'display' => [
-					'table' => true,
+				'displayed' => [
+					'display' => true,
+					'table' => false,
 					'program' => true,
 				],
 				'permissions' => [
@@ -286,8 +299,9 @@ class FieldService
 				'type' => Metadata::BOOLEAN,
 				'parent' => 'version',
 				'default_width' => 10,
-				'display' => [
-					'table' => true,
+				'displayed' => [
+					'display' => true,
+					'table' => false,
 					'program' => true,
 				],
 				'permissions' => [
@@ -302,8 +316,9 @@ class FieldService
 				'type' => Metadata::BOOLEAN,
 				'parent' => 'version',
 				'default_width' => 10,
-				'display' => [
-					'table' => true,
+				'displayed' => [
+					'display' => true,
+					'table' => false,
 					'program' => true,
 				],
 				'permissions' => [
@@ -318,8 +333,9 @@ class FieldService
 				'type' => Metadata::BOOLEAN,
 				'parent' => 'version',
 				'default_width' => 10,
-				'display' => [
-					'table' => true,
+				'displayed' => [
+					'display' => true,
+					'table' => false,
 					'program' => true,
 				],
 				'permissions' => [
@@ -334,8 +350,9 @@ class FieldService
 				'type' => Metadata::BOOLEAN,
 				'parent' => 'version',
 				'default_width' => 10,
-				'display' => [
-					'table' => true,
+				'displayed' => [
+					'display' => true,
+					'table' => false,
 					'program' => true,
 				],
 				'permissions' => [
@@ -350,7 +367,8 @@ class FieldService
 				'type' => Metadata::LIST,
 				'parent' => 'serie',
 				'default_width' => 10,
-				'display' => [
+				'displayed' => [
+					'display' => true,
 					'table' => true,
 					'program' => true,
 				],
@@ -366,7 +384,8 @@ class FieldService
 				'type' => Metadata::LIST,
 				'parent' => 'serie',
 				'default_width' => 10,
-				'display' => [
+				'displayed' => [
+					'display' => true,
 					'table' => true,
 					'program' => true,
 				],
@@ -382,7 +401,8 @@ class FieldService
 				'type' => Metadata::LIST,
 				'parent' => 'status',
 				'default_width' => 10,
-				'display' => [
+				'displayed' => [
+					'display' => true,
 					'table' => true,
 					'program' => true,
 				],
@@ -398,7 +418,8 @@ class FieldService
 				'type' => Metadata::LIST,
 				'parent' => 'status',
 				'default_width' => 10,
-				'display' => [
+				'displayed' => [
+					'display' => true,
 					'table' => true,
 					'program' => true,
 				],
@@ -414,7 +435,8 @@ class FieldService
 				'type' => Metadata::TEXT,
 				'parent' => 'document',
 				'default_width' => 0,
-				'display' => [
+				'displayed' => [
+					'display' => false,
 					'table' => false,
 					'program' => true,
 				],
@@ -433,7 +455,8 @@ class FieldService
 				'type' => $codification->getType(),
 				'parent' => 'codification',
 				'default_width' => 10,
-				'display' => [
+				'displayed' => [
+					'display' => false,
 					'table' => false,
 					'program' => true,
 				],
@@ -452,7 +475,8 @@ class FieldService
 				'type' => $metadata->getType(),
 				'parent' => $metadata->getParentName(),
 				'default_width' => 10,
-				'display' => [
+				'displayed' => [
+					'display' => true,
 					'table' => true,
 					'program' => true,
 				],
@@ -472,7 +496,8 @@ class FieldService
 					'type' => Metadata::LIST,
 					'parent' => 'visa',
 					'default_width' => 10,
-					'display' => [
+					'displayed' => [
+						'display' => true,
 						'table' => true,
 						'program' => true,
 					],
@@ -489,7 +514,8 @@ class FieldService
 					'type' => Metadata::LIST,
 					'parent' => 'visa',
 					'default_width' => 0,
-					'display' => [
+					'displayed' => [
+						'display' => false,
 						'table' => false,
 						'program' => true,
 					],
@@ -506,7 +532,8 @@ class FieldService
 					'type' => Metadata::LIST,
 					'parent' => 'visa',
 					'default_width' => 0,
-					'display' => [
+					'displayed' => [
+						'display' => false,
 						'table' => false,
 						'program' => true,
 					],
