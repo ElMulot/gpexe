@@ -8,6 +8,7 @@ const URLSearchParams = require('@ungap/url-search-params/cjs');
 
 var gpexe = {
 	_headers: [],
+	_selectors: [],
 	series: [],
 	$table: null,
 	chxCheckall: null,
@@ -19,10 +20,6 @@ var gpexe = {
 			id: field.id,
 			title: field.title,
 			type: field.type,
-			displayed: {
-				'display': field.displayed.display,
-				'table': field.displayed.table
-			},
 			permissions: field.permissions,
 			_visible: true,
 			_defaultOrder: this._headers.length + 1,
@@ -34,17 +31,18 @@ var gpexe = {
 			elements: [],
 			$colResizeHandleLeft: null,
 			$colResizeHandleRight: null,
+			menu: {},
 			_parent: this,
 			
 			setVisible: function(visible) {
 				if (this._visible != visible) {
-					this._visible = visible && this.displayed.table;
+					this._visible = visible;
 					this.update();
 				}
 			},
 			
 			getVisible: function() {
-				return this._visible && this.displayed.table && this.getWidth() != 0;
+				return this._visible && this.getWidth() != 0;
 			},
 			
 			setWidth: function(width) {
@@ -124,10 +122,10 @@ var gpexe = {
 				
 				if (this._visible === true) {
 					
-					if (this.aDisplay && this.chxDisplay) {			
-						this.aDisplay.addClass('btn-outline-primary');
-						this.aDisplay.removeClass('btn-primary');
-						this.chxDisplay.prop('checked', true);
+					if (this.menu.$a && this.menu.$chx) {			
+						this.menu.$a.addClass('btn-outline-primary');
+						this.menu.$a.removeClass('btn-primary');
+						this.menu.$chx.prop('checked', true);
 					}
 					
 					if (this.th) {
@@ -145,10 +143,10 @@ var gpexe = {
 					
 				} else {
 					
-					if (this.aDisplay && this.chxDisplay) {			
-						this.aDisplay.addClass('btn-primary');
-						this.aDisplay.removeClass('btn-outline-primary');
-						this.chxDisplay.prop('checked', false);
+					if (this.menu.$a  && this.menu.$chx) {			
+						this.menu.$a.addClass('btn-primary');
+						this.menu.$a.removeClass('btn-outline-primary');
+						this.menu.$chx.prop('checked', false);
 					}
 					
 					if (this.th) {
@@ -240,18 +238,18 @@ var gpexe = {
 	getHeaders: function(sort = false) {
 		
 		//sort=false: display all headers
-		//sort=true: display only headers where displayed.table == true in the right order
+		//sort=true: display headers in the right order
 		
 		if (sort === true) {
 			let headers = [];
 			for (let header of this._headers) {
-				if (header._order > 0 && header.displayed.table) {
+				if (header._order > 0) {
 					headers[header._order - 1] = header;
 				}
 			}
 			let i = 0;
 			for (let header of this._headers) {
-				if (header._order == 0 && header.displayed.table) {
+				if (header._order == 0) {
 					while (headers[i] != undefined && i < this._headers.length) {
 						i++;
 					}
@@ -269,6 +267,25 @@ var gpexe = {
 		$(this._headers).each(function() {
 			this.setOrder(0);
 		});
+	},
+	
+	addSelector: function(field) {
+		let selector = {
+			id: field.id,
+			title: field.title,
+			menu: {},
+		};
+		
+		this._selectors.push(selector);
+		
+	},
+	
+	getSelectors: function() {
+		return this._selectors;
+	},
+	
+	hasSelector: function() {
+		return this._selectors.some(v => urlSearch.get('filter[' + v.id + ']') == 1);
 	}
 	
 }
@@ -458,108 +475,176 @@ function setup(datas) {
 		
 		field = datas.fields[i];
 		
-		if (field.displayed.display || field.displayed.table) {
+		if (field.display.header) {
 			gpexe.addHeader(field);
+		} else if (field.display.selector) {
+			gpexe.addSelector(field);
 		}
-		
 	}
 	
 	for (let header of gpexe.getHeaders()) {
-		
-		if (header.displayed.table) {
-		
-			header.th = tr.append(create.th).children().last();
+				
+		header.th = tr.append(create.th).children().last();
+		if (header.hasSort || header.hasFilter) {
 			
-			if (header.hasSort || header.hasFilter) {
-				
-				//main button group
-				let divDropdownGroup = header.th.append(create.div).children().last()
-					.addClass('btn-group w-100')
-					.attr('role', 'group')
-					.on('hide.bs.dropdown', function (e) {
-						
-						if(e.clickEvent && $.contains(e.relatedTarget.parentNode, e.clickEvent.target)) {
-							e.preventDefault()
-						} else {
-							header.divDropdownMenu.empty();
-						}
-					})
-				;
-				
-				//title
-				divDropdownGroup.append(create.menuButton).children().last()
-					.addClass('text-truncate w-100')
-					.attr('type', 'button')
-					.text(header.title)
-					.on('click', function() {
-						if (header.hasFilter) {
-							for (element of header.elements) {
-								if (urlSearch.get('sortAsc') == element.id) {
-									urlSearch.delete('sortAsc');
-									urlSearch.set('sortDesc', element.id);
-									urlSearch.delete('vue');
-									urlSearch.fetch();
-									return;
-								}
-								if (urlSearch.get('sortDesc') == element.id) {
-									urlSearch.delete('sortDesc');
-									urlSearch.set('sortAsc', element.id);
-									urlSearch.delete('vue');
-									urlSearch.fetch();
-									return;
-								}
-							}
-							for (element of header.elements) {
-								if (element.sort) {
-									urlSearch.set('sortAsc', element.id);
-									urlSearch.delete('vue');
-									urlSearch.fetch();
-									return;
-								}
-							}	
-						}
-					})
-				;
-				
-				//dropDown button
-				header.btnDropdown = divDropdownGroup.append(create.menuButton).children().last()
-					.addClass('px-0')
-					.css('width', '3em')
-					.attr('type', 'button')
-					.attr('id', 'b_' + header.id)
-					.attr('data-toggle', 'dropdown')
-					.attr('data-display', 'static')
-					.attr('aria-haspopup', true)
-					.attr('aria-expanded', false)
-				;
-				
-				//dropDown menu
-				header.divDropdownMenu = divDropdownGroup.append(create.div).children().last()
-					.addClass('dropdown-menu dropdown-menu-left')
-					.attr('aria-labelledby', 'b_' + header.id)
-					.append(create.div).children().last()
-						.addClass('d-flex flex-row')
-				;
-				
-				divDropdownGroup.on('show.bs.dropdown', function() {
+			//main button group
+			let divDropdownGroup = header.th.append(create.div).children().last()
+				.addClass('btn-group w-100')
+				.attr('role', 'group')
+				.on('hide.bs.dropdown', function (e) {
+					if(e.clickEvent && $.contains(e.relatedTarget.parentNode, e.clickEvent.target)) {
+						e.preventDefault();
+					} else {
+						header.divDropdownMenu.empty();
+					}
+				})
+				.on('show.bs.dropdown', function() {
 					createMenu(header);
-				});
-				
-			} else {
-				
-				header.btnDropdown = header.th.append(create.menuButton).children().last()
-					.addClass('text-truncate w-100')
-					.text(header.title).children().last()
-					.append(create.div)
-				;
-				
-			}
+				})
+			;
+			
+			//title
+			divDropdownGroup.append(create.menuButton).children().last()
+				.addClass('text-truncate w-100')
+				.attr('type', 'button')
+				.text(header.title)
+				.on('click', function() {
+					if (header.hasFilter) {
+						for (element of header.elements) {
+							if (urlSearch.get('sortAsc') == element.id) {
+								urlSearch.delete('sortAsc');
+								urlSearch.set('sortDesc', element.id);
+								urlSearch.delete('vue');
+								urlSearch.fetch();
+								return;
+							}
+							if (urlSearch.get('sortDesc') == element.id) {
+								urlSearch.delete('sortDesc');
+								urlSearch.set('sortAsc', element.id);
+								urlSearch.delete('vue');
+								urlSearch.fetch();
+								return;
+							}
+						}
+						for (element of header.elements) {
+							if (element.sort) {
+								urlSearch.set('sortAsc', element.id);
+								urlSearch.delete('vue');
+								urlSearch.fetch();
+								return;
+							}
+						}	
+					}
+				})
+			;
+			
+			//dropDown button
+			header.btnDropdown = divDropdownGroup.append(create.menuButton).children().last()
+				.addClass('px-0')
+				.css('width', '3em')
+				.attr('type', 'button')
+				.attr('id', 'b_' + header.id)
+				.attr('data-toggle', 'dropdown')
+				.attr('data-display', 'static')
+				.attr('aria-haspopup', true)
+				.attr('aria-expanded', false)
+			;
+			
+			//dropDown menu
+			header.divDropdownMenu = divDropdownGroup.append(create.div).children().last()
+				.addClass('dropdown-menu dropdown-menu-left')
+				.attr('aria-labelledby', 'b_' + header.id)
+				.append(create.div).children().last()
+					.addClass('d-flex flex-row')
+			;
+			
+		} else {
+			
+			header.btnDropdown = header.th.append(create.menuButton).children().last()
+				.addClass('text-truncate w-100')
+				.text(header.title).children().last()
+				.append(create.div)
+			;
+			
 		}
 	}
 	
-	tr.append(create.th).children().last()
+	let $thDetail = tr.append(create.th).children().last()
 		.attr('id', 'detail')
-		.css('width', '6em')
+		.addClass('d-flex justify-content-center')
+		.css('width', '6rem')
+	;
+	
+	gpexe.$divHeadersDropdown = $thDetail.append(create.div).children().last()
+		.addClass('dropdown')
+		.on('hide.bs.dropdown', function (e) {
+			if(e.clickEvent && $.contains(e.relatedTarget.parentNode, e.clickEvent.target)) {
+				e.preventDefault();
+			} else {
+				gpexe.$divHeadersDropdown.children('div').empty();
+			}
+		})
+		.on('show.bs.dropdown', function() {
+			createHeadersMenu();
+		})
+	;
+	
+	gpexe.$divHeadersDropdown.append(create.menuButton).children().last()
+		.addClass('mx-1')
+		.css('width', '2.5rem')
+		.attr('type', 'button')
+		.attr('id', 'b_headers')
+		.attr('data-toggle', 'dropdown')
+		.attr('data-display', 'static')
+		.attr('aria-haspopup', true)
+		.attr('aria-expanded', false)
+		.append(global.icon.display)
+	;
+	
+	gpexe.$divHeadersDropdown.append(create.div).children().last()
+		.addClass('dropdown-menu dropdown-menu-right p-2')
+		.css('max-height', '20em')
+		.css('overflow-x', 'hidden')
+		.css('overflow-y', 'visible')
+		.attr('aria-labelledby', 'b_headers')
+		.append(create.div).children().last()
+		.addClass('d-flex flex-row')
+	;
+	
+	gpexe.$divSelectorsDropdown = $thDetail.append(create.div).children().last()
+		.addClass('dropdown')
+		.on('hide.bs.dropdown', function (e) {
+			if(e.clickEvent && $.contains(e.relatedTarget.parentNode, e.clickEvent.target)) {
+				e.preventDefault();
+			} else {
+				gpexe.$divSelectorsDropdown.children('div').empty();
+			}
+		})
+		.on('show.bs.dropdown', function() {
+			createSelectorsMenu();
+		})
+	;
+	
+	gpexe.$divSelectorsDropdown.append(create.menuButton).children().last()
+		.addClass('mx-1')
+		.css('width', '2.5rem')
+		.attr('type', 'button')
+		.attr('id', 'b_selectors')
+		.attr('data-toggle', 'dropdown')
+		.attr('data-display', 'static')
+		.attr('aria-haspopup', true)
+		.attr('aria-expanded', false)
+		.append(global.icon.filter)
+	;
+	
+	gpexe.$divSelectorsDropdown.append(create.div).children().last()
+		.addClass('dropdown-menu dropdown-menu-right px-2')
+		.css('max-height', '20em')
+		.css('overflow-x', 'hidden')
+		.css('overflow-y', 'visible')
+		.attr('aria-labelledby', 'b_headers')
+		.append(create.div).children().last()
+		.addClass('d-flex flex-row')
 	;
 	
 	let tbody = $('#table').append(create.tbody).children().last();
@@ -1278,58 +1363,85 @@ function fillSeriesPannel() {
 }
 
 //---------------
-//fillDisplayPannel
+//createHeadersMenu
 //---------------
 
-function fillDisplayPannel() {
+function createHeadersMenu() {
 	
-	let divCol = $('#display_panel').append(create.div).children().last()
-		.addClass('row py-2')
-		.append(create.div).children().last()
-			.addClass('col')
-	;
+	let $divDropdownMenu = gpexe.$divHeadersDropdown.children('div');
+	$divDropdownMenu.empty();
 	
 	for (let header of gpexe.getHeaders()) {
 		
-		if (header.displayed.display) {
+		let $div = $divDropdownMenu.append(create.div).children().last()
+			.addClass('custom-control custom-checkbox pr-2')
+		;
 		
-			header.aDisplay = divCol.append(create.a).children().last()
-				.addClass('btn btn-sm btn-outline-primary col-2 m-1 text-left text-nowrap')
-				.on('click', function() {
-					
-//					header.chxDisplay.prop('checked', !header.chxDisplay.is(':checked'));
-					
-					let display = urlSearch.get('display[' + header.id + ']');
-					
-					urlSearch.delete('display[' + header.id + ']');
-					
-					if (header.chxDisplay.not(':checked') && display == false) {
-						urlSearch.append('display[' + header.id + ']', header.getWidth());
-					}
-					urlSearch.delete('vue');
-					urlSearch.fetch();
-					return false;
-				})
-			;
-			
-			let div = header.aDisplay.append(create.div).children().last()
-					.addClass('custom-control custom-checkbox')
-			;
-			
-			header.chxDisplay = div.append(create.checkbox).children().last()
-				.attr('id', 'h_' + header.id)
-				.on('change click', function() {
-					return false;
-				})
-			;
-			
-			div.append(create.label).children().last()
-				.attr('for', 'h_' + header.id)
-				.text(header.title)
-			;
+		header.menu.$chx = $div.append(create.checkbox).children().last()
+			.attr('id', 'h_' + header.id)
+			.prop('checked', (urlSearch.get('display[' + header.id + ']') > 0))
+			.on('click change', function() {
+				
+				let display = urlSearch.get('display[' + header.id + ']');
+				
+				urlSearch.delete('display[' + header.id + ']');
+				
+				if (header.menu.$chx.not(':checked') && display == false) {
+					urlSearch.append('display[' + header.id + ']', header.getWidth());
+				}
+				
+				gpexe.$divHeadersDropdown.children('button').dropdown('hide');
+				urlSearch.delete('vue');
+				urlSearch.fetch();
+				return false;
+			})
+		;
 		
-		}
+		$div.append(create.label).children().last()
+			.attr('for', 'h_' + header.id)
+			.text(header.title)
+		;
+	}
+	
+}
+
+//---------------
+//createSelectorsMenu
+//---------------
+
+function createSelectorsMenu() {
+	
+	let $divDropdownMenu = gpexe.$divSelectorsDropdown.children('div');
+	$divDropdownMenu.empty();
+	
+	for (let selector of gpexe.getSelectors()) {
 		
+		let $div = $divDropdownMenu.append(create.div).children().last()
+			.addClass('custom-control custom-checkbox pr-2')
+		;
+		
+		selector.menu.$chx = $div.append(create.checkbox).children().last()
+			.attr('id', 'h_' + selector.id)
+			.prop('checked', (urlSearch.get('filter[' + selector.id + ']') == 1))
+			.on('click', function() {
+				
+				gpexe.getSelectors().forEach(v => urlSearch.delete('filter[' + v.id + ']'));
+				
+				if (selector.menu.$chx.not(':checked')) {
+					urlSearch.append('filter[' + selector.id + ']', 1);
+				}
+				
+				gpexe.$divSelectorsDropdown.children('button').dropdown('hide');
+				urlSearch.delete('vue');
+				urlSearch.fetch();
+				return false;
+			})
+		;
+		
+		$div.append(create.label).children().last()
+			.attr('for', 'h_' + selector.id)
+			.text(selector.title)
+		;
 	}
 	
 }
@@ -1429,7 +1541,6 @@ $(document).ready(function() {
 		
 		e.stopPropagation();
 		fillSeriesPannel();
-		fillDisplayPannel();
 		
 		//setup url
 		urlSearch.setFromUrl(window.location.search);
@@ -1590,6 +1701,9 @@ $(document).ready(function() {
 			}
 		}
 		
+		//selector icon
+		gpexe.$divSelectorsDropdown.children('button').html(gpexe.hasSelector()?global.icon.filterFill:global.icon.filter);
+		
 		for (let header of gpexe.getHeaders()) {
 			
 			if (header.getVisible()) {
@@ -1738,7 +1852,7 @@ $(document).ready(function() {
 					
 					if (header.permissions.write) {
 						td.on('dblclick', function() {
-							global.ajax.set(this, '/gpexe/project/serie/document/version/' + data['version_id'] + '/quick_edit/' + header.id);
+							global.ajax.set(this, window.location.href.match(/(.+)\/project/)[1] + '/project/serie/document/version/' + data['version_id'] + '/quick_edit/' + header.id);
 						});
 						
 						td.on('ajax.completed', function(e, result, textStatus, jqXHR) {

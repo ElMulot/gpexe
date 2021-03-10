@@ -222,6 +222,9 @@
             "./config/packages/sensio_framework_extra.yaml"
         ]
     },
+    "spatie/regex": {
+        "version": "1.4.2"
+    },
     "symfony/apache-pack": {
         "version": "1.0",
         "recipe": {

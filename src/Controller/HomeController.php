@@ -65,6 +65,7 @@ class HomeController extends AbstractController
 				'version_is_required' => 1,
 				'status_value' => $this->statusRepository->getNonCancelledStatuses($project),
 				'version_writer' => [$this->getUser()->getId()],
+				'version_last_delivered' => 1,
 			],
 			'highlight' => 'version_scheduled_date',
 			'results_per_page' => 50,
@@ -82,13 +83,13 @@ class HomeController extends AbstractController
 					'status_value' => $fields['status.value']['default_width'],
 					'version_checker' => $fields['version.checker']['default_width'],
 					'version_delivery_date' => $fields['version.deliveryDate']['default_width'],
-					'version_last_delivered' => $fields['version.lastDelivered']['default_width'],
 					'visa_' . $company->getId() => $fields['visa.' . $company->getCodename() . '.value']['default_width'],
 				],
 				'filter' => [
 					'version_is_required' => 0,
 					'status_value' => $this->statusRepository->getNonCancelledStatuses($project),
 					'version_checker' => [$this->getUser()->getId()],
+					''
 				],
 				'results_per_page' => 50,
 				'sortAsc' => 'visa_' . $company->getId(),

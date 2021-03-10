@@ -822,77 +822,75 @@ class VersionRepository extends RepositoryService
 							}
 							$qb->andWhere($qb->in($field['id'] . '_.id', $value));
 							break;
+							
+						case 'version_first':
+							$qb->leftJoin(Version::class, 'vf', Join::WITH,
+									'version.document = vf.document AND (
+										IF(version.isRequired = false, version.deliveryDate, version.scheduledDate) > IF(vf.isRequired = false, vf.deliveryDate, vf.scheduledDate) OR (
+											IF(version.isRequired = false, version.deliveryDate, version.scheduledDate) = IF(vf.isRequired = false, vf.deliveryDate, vf.scheduledDate) AND version.name > vf.name
+										)
+									)')
+								->andWhere($qb->andX($qb->isNull('vf.scheduledDate'), $qb->isNull('vf.deliveryDate')))
+							;
+							break;
+							
+						case 'version_first_scheduled':
+							$qb->leftJoin(Version::class, 'vfs', Join::WITH,
+									'version.document = vfs.document AND vfs.isRequired = true AND (
+										version.scheduledDate > vfs.scheduledDate OR (
+											version.scheduledDate = vfs.scheduledDate AND version.name > vfs.name
+										)
+									)')
+								->andWhere($qb->isNull('vfs.scheduledDate'), $qb->eq('version.isRequired', true))
+							;
+							break;
+						
+						case 'version_first_delivered':
+							$qb->leftJoin(Version::class, 'vfd', Join::WITH,
+									'version.document = vfd.document AND vfd.isRequired = false AND (
+										version.deliveryDate > vfd.deliveryDate OR (
+											version.deliveryDate = vfd.deliveryDate AND version.name > vfd.name
+										)
+									)')
+								->andWhere($qb->isNull('vfd.deliveryDate'), $qb->eq('version.isRequired', false))
+							;
+							break;
+						
+						case 'version_last':
+							$qb->leftJoin(Version::class, 'vl', Join::WITH,
+									'version.document = vl.document AND (
+										IF(version.isRequired = false, version.deliveryDate, version.scheduledDate) < IF(vl.isRequired = false, vl.deliveryDate, vl.scheduledDate) OR (
+											IF(version.isRequired = false, version.deliveryDate, version.scheduledDate) = IF(vl.isRequired = false, vl.deliveryDate, vl.scheduledDate) AND version.name < vl.name
+										)
+									)')
+								->andWhere($qb->isNull('vl.scheduledDate'), $qb->isNull('vl.deliveryDate'))
+							;
+							break;
+						
+						case 'version_last_scheduled':
+							$qb->leftJoin(Version::class, 'vls', Join::WITH,
+									'version.document = vls.document AND vls.isRequired = true AND (
+										version.scheduledDate < vls.scheduledDate OR (
+											version.scheduledDate = vls.scheduledDate AND version.name < vls.name
+										)
+									)')
+								->andWhere($qb->isNull('vls.scheduledDate'), $qb->eq('version.isRequired', true))
+							;
+							break;
+						
+						case 'version_last_delivered':
+							$qb->leftJoin(Version::class, 'vld', Join::WITH,
+									'version.document = vld.document AND vld.isRequired = false AND (
+										version.deliveryDate < vld.deliveryDate OR (
+											version.deliveryDate = vld.deliveryDate AND version.name < vld.name
+										)
+									)')
+								->andWhere($qb->isNull('vld.deliveryDate'), $qb->eq('version.isRequired', false))
+							;
+							break;
+						
 					}
 				}
-			}
-		}
-		
-		if ($request->query->all('display')) {
-			
-			if (array_key_exists('version_first', $request->query->all('display'))) {
-				$qb->leftJoin(Version::class, 'vf', Join::WITH,
-						'version.document = vf.document AND (
-							IF(version.isRequired = false, version.deliveryDate, version.scheduledDate) > IF(vf.isRequired = false, vf.deliveryDate, vf.scheduledDate) OR (
-								IF(version.isRequired = false, version.deliveryDate, version.scheduledDate) = IF(vf.isRequired = false, vf.deliveryDate, vf.scheduledDate) AND version.name > vf.name
-							)
-						)')
-					->andWhere($qb->andX($qb->isNull('vf.scheduledDate'), $qb->isNull('vf.deliveryDate')))
-				;
-			}
-			
-			if (array_key_exists('version_first_scheduled', $request->query->all('display'))) {
-				$qb->leftJoin(Version::class, 'vfs', Join::WITH, 
-						'version.document = vfs.document AND vfs.isRequired = true AND (
-							version.scheduledDate > vfs.scheduledDate OR (
-								version.scheduledDate = vfs.scheduledDate AND version.name > vfs.name
-							)
-						)')
-					->andWhere($qb->isNull('vfs.scheduledDate'), $qb->eq('version.isRequired', true))
-				;
-			}
-			
-			if (array_key_exists('version_first_delivered', $request->query->all('display'))) {
-				$qb->leftJoin(Version::class, 'vfd', Join::WITH,
-						'version.document = vfd.document AND vfd.isRequired = false AND (
-							version.deliveryDate > vfd.deliveryDate OR (
-								version.deliveryDate = vfd.deliveryDate AND version.name > vfd.name
-							)
-						)')
-					->andWhere($qb->isNull('vfd.deliveryDate'), $qb->eq('version.isRequired', false))
-				;
-			}
-			
-			if (array_key_exists('version_last', $request->query->all('display'))) {
-				$qb->leftJoin(Version::class, 'vl', Join::WITH, 
-						'version.document = vl.document AND (
-							IF(version.isRequired = false, version.deliveryDate, version.scheduledDate) < IF(vl.isRequired = false, vl.deliveryDate, vl.scheduledDate) OR (
-								IF(version.isRequired = false, version.deliveryDate, version.scheduledDate) = IF(vl.isRequired = false, vl.deliveryDate, vl.scheduledDate) AND version.name < vl.name
-							)
-						)')
-					->andWhere($qb->isNull('vl.scheduledDate'), $qb->isNull('vl.deliveryDate'))
-				;
-			}
-			
-			if (array_key_exists('version_last_scheduled', $request->query->all('display'))) {
-				$qb->leftJoin(Version::class, 'vls', Join::WITH, 
-						'version.document = vls.document AND vls.isRequired = true AND (
-							version.scheduledDate < vls.scheduledDate OR (
-								version.scheduledDate = vls.scheduledDate AND version.name < vls.name
-							)
-						)')
-					->andWhere($qb->isNull('vls.scheduledDate'), $qb->eq('version.isRequired', true))
-				;
-			}
-			
-			if (array_key_exists('version_last_delivered', $request->query->all('display'))) {
-				$qb->leftJoin(Version::class, 'vld', Join::WITH, 
-						'version.document = vld.document AND vld.isRequired = false AND (
-							version.deliveryDate < vld.deliveryDate OR (
-								version.deliveryDate = vld.deliveryDate AND version.name < vld.name
-							)
-						)')
-					->andWhere($qb->isNull('vld.deliveryDate'), $qb->eq('version.isRequired', false))
-				;
 			}
 		}
 		

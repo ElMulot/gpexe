@@ -547,11 +547,11 @@ class Version
 								switch ($matches[2]) {
 									
 									case 'value':
-										return $review->getVisa()->getName();
+										return $review->getVisa();
 										break;
 										
 									case 'username':
-										return $review->getUser()->getName();
+										return $review->getUser();
 										break;
 										
 									case 'date':

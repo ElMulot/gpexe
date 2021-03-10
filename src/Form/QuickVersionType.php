@@ -2,28 +2,29 @@
 
 namespace App\Form;
 
-use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\FormBuilderInterface;
-use Symfony\Component\Form\Extension\Core\Type\DateType;
-use Symfony\Component\Form\Extension\Core\Type\TextType;
-use Symfony\Component\OptionsResolver\OptionsResolver;
 use App\Entity\Metadata;
 use App\Entity\MetadataItem;
 use App\Entity\Status;
 use App\Entity\User;
 use App\Entity\Version;
 use App\Entity\Visa;
-use Symfony\Bridge\Doctrine\Form\Type\EntityType;
-use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
-use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use App\Repository\MetadataRepository;
 use App\Repository\UserRepository;
 use App\Repository\VisaRepository;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
+use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\DateType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Extension\Core\Type\TextareaType;
+use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Security\Core\Security;
 
 class QuickVersionType extends AbstractType
 {
 	
-	private $builder;
+	private $security;
 	
 	private $documentService;
 	
@@ -33,8 +34,11 @@ class QuickVersionType extends AbstractType
 	
 	private $visaRepository;
 	
-	public function __construct(MetadataRepository $metadataRepository, UserRepository $userRepository, VisaRepository $visaRepository)
+	private $builder;
+	
+	public function __construct(Security $security, MetadataRepository $metadataRepository, UserRepository $userRepository, VisaRepository $visaRepository)
 	{
+		$this->security = $security;
 		$this->metadataRepository = $metadataRepository;
 		$this->userRepository = $userRepository;
 		$this->visaRepository = $visaRepository;
@@ -112,12 +116,13 @@ class QuickVersionType extends AbstractType
 				case (preg_match('/visa_(\d+)/', $field['id'], $matches) === 1):
 					
 					foreach ($version->getDocument()->getSerie()->getProject()->getVisas()->getValues() as $visa) {
-						if ($visa->getCompany()->getCodename() == $matches[1]) {
+						
+						if ($visa->getCompany()->getId() == $matches[1]) {
 							if ($this->security->getUser()->getCompany() == $visa->getCompany() || ($this->security->isGranted('ROLE_CONTROLLER') && $project->hasUser($this->security->getUser())) || $this->security->isGranted('ROLE_ADMIN')) {
 								$options = [
 									'required'	=> false,
-									'class' => Visa::class,
-									'choices' => $this->visaRepository->getVisasByCompany($project, $visa->getCompany()),
+									'class'		=> Visa::class,
+									'choices' 	=> $this->visaRepository->getVisasByCompany($project, $visa->getCompany()),
 								];
 							}
 							break;

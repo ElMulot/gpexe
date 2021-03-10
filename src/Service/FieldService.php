@@ -78,9 +78,9 @@ class FieldService
 				'type' => Metadata::LIST,
 				'parent' => 'document',
 				'default_width' => 15,
-				'displayed' => [
-					'display' => true,
-					'table' => true,
+				'display' => [
+					'header' => true,
+					'selector' => false,
 					'program' => true,
 				],
 				'permissions' => [
@@ -95,9 +95,9 @@ class FieldService
 				'type' => Metadata::TEXT,
 				'parent' => 'version',
 				'default_width' => 4,
-				'displayed' => [
-					'display' => true,
-					'table' => true,
+				'display' => [
+					'header' => true,
+					'selector' => false,
 					'program' => true,
 				],
 				'permissions' => [
@@ -112,9 +112,9 @@ class FieldService
 				'type' => Metadata::TEXT,
 				'parent' => 'document',
 				'default_width' => 30,
-				'displayed' => [
-					'display' => true,
-					'table' => true,
+				'display' => [
+					'header' => true,
+					'selector' => false,
 					'program' => true,
 				],
 				'permissions' => [
@@ -129,9 +129,9 @@ class FieldService
 				'type' => Metadata::DATE,
 				'parent' => 'version',
 				'default_width' => 8,
-				'displayed' => [
-					'display' => true,
-					'table' => true,
+				'display' => [
+					'header' => true,
+					'selector' => false,
 					'program' => true,
 				],
 				'permissions' => [
@@ -146,9 +146,9 @@ class FieldService
 				'type' => Metadata::DATE,
 				'parent' => 'version',
 				'default_width' => 8,
-				'displayed' => [
-					'display' => true,
-					'table' => true,
+				'display' => [
+					'header' => true,
+					'selector' => false,
 					'program' => true,
 				],
 				'permissions' => [
@@ -163,9 +163,9 @@ class FieldService
 				'type' => Metadata::DATE,
 				'parent' => 'version',
 				'default_width' => 8,
-				'displayed' => [
-					'display' => true,
-					'table' => true,
+				'display' => [
+					'header' => true,
+					'selector' => false,
 					'program' => true,
 				],
 				'permissions' => [
@@ -180,9 +180,9 @@ class FieldService
 				'type' => Metadata::DATE,
 				'parent' => 'version',
 				'default_width' => 8,
-				'displayed' => [
-					'display' => true,
-					'table' => true,
+				'display' => [
+					'header' => true,
+					'selector' => false,
 					'program' => true,
 				],
 				'permissions' => [
@@ -197,9 +197,9 @@ class FieldService
 				'type' => Metadata::BOOLEAN,
 				'parent' => 'version',
 				'default_width' => 8,
-				'displayed' => [
-					'display' => true,
-					'table' => true,
+				'display' => [
+					'header' => true,
+					'selector' => false,
 					'program' => true,
 				],
 				'permissions' => [
@@ -214,9 +214,9 @@ class FieldService
 				'type' => Metadata::LIST,
 				'parent' => 'version',
 				'default_width' => 10,
-				'displayed' => [
-					'display' => true,
-					'table' => true,
+				'display' => [
+					'header' => true,
+					'selector' => false,
 					'program' => true,
 				],
 				'permissions' => [
@@ -231,9 +231,9 @@ class FieldService
 				'type' => Metadata::LIST,
 				'parent' => 'version',
 				'default_width' => 10,
-				'displayed' => [
-					'display' => true,
-					'table' => true,
+				'display' => [
+					'header' => true,
+					'selector' => false,
 					'program' => true,
 				],
 				'permissions' => [
@@ -248,116 +248,14 @@ class FieldService
 				'type' => Metadata::LIST,
 				'parent' => 'version',
 				'default_width' => 10,
-				'displayed' => [
-					'display' => true,
-					'table' => true,
+				'display' => [
+					'header' => true,
+					'selector' => false,
 					'program' => true,
 				],
 				'permissions' => [
 					'read' => true,
 					'write' => true,
-				],
-			],
-			'version.first' => [
-				'id' =>'version_first',
-				'codename' => 'version.first',
-				'title' => $this->translator->trans('First'),
-				'type' => Metadata::BOOLEAN,
-				'parent' => 'version',
-				'default_width' => 10,
-				'displayed' => [
-					'display' => true,
-					'table' => false,
-					'program' => true,
-				],
-				'permissions' => [
-					'read' => true,
-					'write' => false,
-				],
-			],
-			'version.firstScheduled' => [
-				'id' =>'version_first_scheduled',
-				'codename' => 'version.firstScheduled',
-				'title' => $this->translator->trans('First scheduled'),
-				'type' => Metadata::BOOLEAN,
-				'parent' => 'version',
-				'default_width' => 10,
-				'displayed' => [
-					'display' => true,
-					'table' => false,
-					'program' => true,
-				],
-				'permissions' => [
-					'read' => true,
-					'write' => false,
-				],
-			],
-			'version.firstDelivered' => [
-				'id' =>'version_first_delivered',
-				'codename' => 'version.firstDelivered',
-				'title' => $this->translator->trans('First delivered'),
-				'type' => Metadata::BOOLEAN,
-				'parent' => 'version',
-				'default_width' => 10,
-				'displayed' => [
-					'display' => true,
-					'table' => false,
-					'program' => true,
-				],
-				'permissions' => [
-					'read' => true,
-					'write' => false,
-				],
-			],
-			'version.lastScheduled' => [
-				'id' =>'version_last_scheduled',
-				'codename' => 'version.lastScheduled',
-				'title' => $this->translator->trans('Last scheduled'),
-				'type' => Metadata::BOOLEAN,
-				'parent' => 'version',
-				'default_width' => 10,
-				'displayed' => [
-					'display' => true,
-					'table' => false,
-					'program' => true,
-				],
-				'permissions' => [
-					'read' => true,
-					'write' => false,
-				],
-			],
-			'version.lastDelivered' => [
-				'id' =>'version_last_delivered',
-				'codename' => 'version.lastDelivered',
-				'title' => $this->translator->trans('Last delivered'),
-				'type' => Metadata::BOOLEAN,
-				'parent' => 'version',
-				'default_width' => 10,
-				'displayed' => [
-					'display' => true,
-					'table' => false,
-					'program' => true,
-				],
-				'permissions' => [
-					'read' => true,
-					'write' => false,
-				],
-			],
-			'version.last' => [
-				'id' =>'version_last',
-				'codename' => 'version.last',
-				'title' => $this->translator->trans('Last'),
-				'type' => Metadata::BOOLEAN,
-				'parent' => 'version',
-				'default_width' => 10,
-				'displayed' => [
-					'display' => true,
-					'table' => false,
-					'program' => true,
-				],
-				'permissions' => [
-					'read' => true,
-					'write' => false,
 				],
 			],
 			'serie.name' => [
@@ -367,9 +265,9 @@ class FieldService
 				'type' => Metadata::LIST,
 				'parent' => 'serie',
 				'default_width' => 10,
-				'displayed' => [
-					'display' => true,
-					'table' => true,
+				'display' => [
+					'header' => true,
+					'selector' => false,
 					'program' => true,
 				],
 				'permissions' => [
@@ -384,9 +282,9 @@ class FieldService
 				'type' => Metadata::LIST,
 				'parent' => 'serie',
 				'default_width' => 10,
-				'displayed' => [
-					'display' => true,
-					'table' => true,
+				'display' => [
+					'header' => true,
+					'selector' => false,
 					'program' => true,
 				],
 				'permissions' => [
@@ -401,9 +299,9 @@ class FieldService
 				'type' => Metadata::LIST,
 				'parent' => 'status',
 				'default_width' => 10,
-				'displayed' => [
-					'display' => true,
-					'table' => true,
+				'display' => [
+					'header' => true,
+					'selector' => false,
 					'program' => true,
 				],
 				'permissions' => [
@@ -418,9 +316,9 @@ class FieldService
 				'type' => Metadata::LIST,
 				'parent' => 'status',
 				'default_width' => 10,
-				'displayed' => [
-					'display' => true,
-					'table' => true,
+				'display' => [
+					'header' => true,
+					'selector' => false,
 					'program' => true,
 				],
 				'permissions' => [
@@ -435,9 +333,9 @@ class FieldService
 				'type' => Metadata::TEXT,
 				'parent' => 'document',
 				'default_width' => 0,
-				'displayed' => [
-					'display' => false,
-					'table' => false,
+				'display' => [
+					'header' => false,
+					'selector' => false,
 					'program' => true,
 				],
 				'permissions' => [
@@ -455,9 +353,9 @@ class FieldService
 				'type' => $codification->getType(),
 				'parent' => 'codification',
 				'default_width' => 10,
-				'displayed' => [
-					'display' => false,
-					'table' => false,
+				'display' => [
+					'header' => true,
+					'selector' => false,
 					'program' => true,
 				],
 				'permissions' => [
@@ -475,9 +373,9 @@ class FieldService
 				'type' => $metadata->getType(),
 				'parent' => $metadata->getParentName(),
 				'default_width' => 10,
-				'displayed' => [
-					'display' => true,
-					'table' => true,
+				'display' => [
+					'header' => true,
+					'selector' => false,
 					'program' => true,
 				],
 				'permissions' => [
@@ -496,9 +394,9 @@ class FieldService
 					'type' => Metadata::LIST,
 					'parent' => 'visa',
 					'default_width' => 10,
-					'displayed' => [
-						'display' => true,
-						'table' => true,
+					'display' => [
+						'header' => true,
+						'selector' => false,
 						'program' => true,
 					],
 					'permissions' => [
@@ -514,9 +412,9 @@ class FieldService
 					'type' => Metadata::LIST,
 					'parent' => 'visa',
 					'default_width' => 0,
-					'displayed' => [
-						'display' => false,
-						'table' => false,
+					'display' => [
+						'header' => false,
+						'selector' => false,
 						'program' => true,
 					],
 					'permissions' => [
@@ -532,9 +430,9 @@ class FieldService
 					'type' => Metadata::LIST,
 					'parent' => 'visa',
 					'default_width' => 0,
-					'displayed' => [
-						'display' => false,
-						'table' => false,
+					'display' => [
+						'header' => false,
+						'selector' => false,
 						'program' => true,
 					],
 					'permissions' => [
@@ -544,6 +442,75 @@ class FieldService
 				];
 			}
 		}
+		
+		$fields += [
+			'version.first' => [
+				'id' =>'version_first',
+				'codename' => 'version.first',
+				'title' => $this->translator->trans('First'),
+				'parent' => 'version',
+				'display' => [
+					'header' => false,
+					'selector' => true,
+					'program' => true,
+				],
+			],
+			'version.firstScheduled' => [
+				'id' =>'version_first_scheduled',
+				'codename' => 'version.firstScheduled',
+				'title' => $this->translator->trans('First scheduled'),
+				'parent' => 'version',
+				'display' => [
+					'header' => false,
+					'selector' => true,
+					'program' => true,
+				],
+			],
+			'version.firstDelivered' => [
+				'id' =>'version_first_delivered',
+				'codename' => 'version.firstDelivered',
+				'title' => $this->translator->trans('First delivered'),
+				'parent' => 'version',
+				'display' => [
+					'header' => false,
+					'selector' => true,
+					'program' => true,
+				],
+			],
+			'version.lastScheduled' => [
+				'id' =>'version_last_scheduled',
+				'codename' => 'version.lastScheduled',
+				'title' => $this->translator->trans('Last scheduled'),
+				'parent' => 'version',
+				'display' => [
+					'header' => false,
+					'selector' => true,
+					'program' => true,
+				],
+			],
+			'version.lastDelivered' => [
+				'id' =>'version_last_delivered',
+				'codename' => 'version.lastDelivered',
+				'title' => $this->translator->trans('Last delivered'),
+				'parent' => 'version',
+				'display' => [
+					'header' => false,
+					'selector' => true,
+					'program' => true,
+				],
+			],
+			'version.last' => [
+				'id' =>'version_last',
+				'codename' => 'version.last',
+				'title' => $this->translator->trans('Last'),
+				'parent' => 'version',
+				'display' => [
+					'header' => false,
+					'selector' => true,
+					'program' => true,
+				],
+			],
+		];
 		
 		return $fields;
 	}
