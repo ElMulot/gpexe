@@ -26,20 +26,20 @@ get_document:
         regex: '.+' 
     then:
         -
-            regex: '(\([^()]+\)\?)*\[\w+\b(?!(\b\.reference))[.\w+]+\]\s*\=\s*.+'
+            regex: '\[\w+\b(?!(\b\.reference))[.\w+]+\]\s*\=\s*.+'
     else:
         -
-            regex: '(\([^()]+\)\?)*\[\w+[.\w+]+\]\s*\=\s*.+'
+            regex: '\[\w+[.\w+]+\]\s*\=\s*.+'
    
 get_version:
     condition:
         regex: '.+' 
     then:
         -
-            regex: '(\([^()]+\)\?)*\[\w+[.\w+]+\]\s*\=\s*.+'
+            regex: '\[\w+[.\w+]+\]\s*\=\s*.+'
     else:
         -
-            regex: '(\([^()]+\)\?)*\[\w+[.\w+]+\]\s*\=\s*.+'
+            regex: '\[\w+[.\w+]+\]\s*\=\s*.+'
         
 option:
     move_from_mdr:

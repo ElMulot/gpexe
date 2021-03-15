@@ -15,10 +15,10 @@ update:
             regex: '.+' 
         then:
             -
-                regex: '(\([^()]+\)\?)*\[\w+\b(?!(\b\.reference))[.\w+]+\]\s*\=\s*.+'
+                regex: '\[\w+\b(?!(\b\.reference))[.\w+]+\]\s*\=\s*.+'
         else:
             -
-                regex: '(\([^()]+\)\?)*\[\w+[.\w+]+\]\s*\=\s*.+'
+                regex: '\[\w+[.\w+]+\]\s*\=\s*.+'
 option:
     move_from_mdr:
         regex: 'true|false'

@@ -14,25 +14,28 @@ class Node
 	
 	private $value;
 	
-	public function __construct(int $type, string $value)
+	private $isRegex;
+	
+	public function __construct(int $type, string $value, bool $isRegex = false)
 	{
 		$this->type = $type;
-		$this->value = $value;
+		$this->isRegex = $isRegex;
+		$this->value = ($isRegex)?preg_quote($value):$value;
 	}
 	
-	public static function newCodeNode(string $value)
+	public static function newCodeNode(string $value, bool $inRegex)
 	{
-		return new self(self::CODE, $value);
+		return new self(self::CODE, $value, $inRegex);
 	}
 	
-	public static function newFieldNode(string $value)
+	public static function newFieldNode(string $value, bool $inRegex)
 	{
-		return new self(self::FIELD, $value);
+		return new self(self::FIELD, $value, $inRegex);
 	}
 	
-	public static function newExcelNode(string $value)
+	public static function newExcelNode(string $value, bool $inRegex)
 	{
-		return new self(self::EXCEL, $value);
+		return new self(self::EXCEL, $value, $inRegex);
 	}
 	
 	public function getType(): int

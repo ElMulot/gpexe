@@ -27,6 +27,39 @@ class TestController extends AbstractController
 	public function index(): Response
 	{
 		
+		$s = new Stopwatch();
+		$s->start('a');
+		
+		for ($i=0; $i<100000; $i++) {
+			$date = null;
+			$date = new \DateTime('10-01-2020');
+		}
+		
+		$event = $s->stop('a');
+		echo $i . '  (' . $event->getDuration()/1000 . ' s; ' . $event->getMemory()/1048576 . ' Mo)<br><br>';
+		
+		$s->start('a');
+		
+		for ($i=0; $i<100000; $i++) {
+			$date = null;
+			$date = \DateTime::createFromFormat('d-m-Y', '10-01-2020');
+		}
+		
+		$event = $s->stop('a');
+		echo $i . '  (' . $event->getDuration()/1000 . ' s; ' . $event->getMemory()/1048576 . ' Mo)<br><br>';
+		
+		$s->start('a');
+		
+		for ($i=0; $i<100000; $i++) {
+			$date = null;
+			$date = strtotime('2020-10-01');
+		}
+		
+		$event = $s->stop('a');
+		echo $i . '  (' . $event->getDuration()/1000 . ' s; ' . $event->getMemory()/1048576 . ' Mo)<br><br>';
+		
+		
+		
 // 		$a = "[i] + 10";
 		
 // 		$b[] = Node::newExcelNode("i");
@@ -180,7 +213,7 @@ class TestController extends AbstractController
 // 		$this->clearDuplicateDocuments();
 // 		$this->clearDuplicateVersions();
 		
-		dd(phpinfo());
+// 		dd(phpinfo());
 // 		return $this->render('test/index.html.twig', [
 // 			'test' => 'TestController',
 // 		]);
