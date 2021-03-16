@@ -7,6 +7,7 @@ use App\Service\CacheService;
 use Spatie\Regex\Regex;
 use Spatie\Regex\MatchResult;
 use Symfony\Component\Security\Core\Security;
+use App\Service\DateService;
 
 
 class ProgramData
@@ -18,6 +19,8 @@ class ProgramData
 	const COMPLETED	= 3;
 	
 	private $cacheService;
+	
+	private $dateService;
 	
 	private $security;
 	
@@ -31,9 +34,10 @@ class ProgramData
 	
 	private $options; //library, dateFormat
 	
-	public function __construct(CacheService $cacheService, Security $security)
+	public function __construct(CacheService $cacheService, DateService $dateService, Security $security)
 	{
 		$this->cacheService = $cacheService;
+		$this->dateService = $dateService;
 		$this->security = $security;
 		$this->status = self::PRELOAD;
 		$this->parameters = [];
@@ -279,16 +283,6 @@ class ProgramData
 			}
 		}
 		
-	}
-	
-	private function getDateFromFormat($expression, $format): ?\DateTime
-	{
-		$date = \DateTime::createFromFormat($format, $expression);
-		if ($date && $date->format($format) === $expression) {
-			return $date;
-		}
-		
-		return null;
 	}
 }
 

@@ -58,8 +58,7 @@ class HomeController extends AbstractController
 				'status_value' => $fields['status.value']['default_width'],
 				'version_writer' => $fields['version.writer']['default_width'],
 				'version_checker' => $fields['version.checker']['default_width'],
-				'version_initial_scheduled_date' => $fields['version.initialScheduledDate']['default_width'],
-				'version_scheduled_date' => $fields['version.scheduledDate']['default_width'],
+				'version_date' => $fields['version.date']['default_width'],
 			],
 			'filter' => [
 				'version_is_required' => 1,
@@ -67,11 +66,10 @@ class HomeController extends AbstractController
 				'version_writer' => [$this->getUser()->getId()],
 				'version_last_delivered' => 1,
 			],
-			'highlight' => 'version_scheduled_date',
+			'highlight' => 'version_date',
 			'results_per_page' => 50,
-			'sortAsc' => 'version_scheduled_date',
+			'sortAsc' => 'version_date',
 			'page' => 1,
-			
 		];
 		
 		if ($project->getVisasByCompany($company)->isEmpty() === false) {
@@ -82,18 +80,18 @@ class HomeController extends AbstractController
 					'document_name' => $fields['document.name']['default_width'],
 					'status_value' => $fields['status.value']['default_width'],
 					'version_checker' => $fields['version.checker']['default_width'],
-					'version_delivery_date' => $fields['version.deliveryDate']['default_width'],
+					'version_date' => $fields['version.date']['default_width'],
 					'visa_' . $company->getId() => $fields['visa.' . $company->getCodename() . '.value']['default_width'],
 				],
 				'filter' => [
 					'version_is_required' => 0,
 					'status_value' => $this->statusRepository->getNonCancelledStatuses($project),
 					'version_checker' => [$this->getUser()->getId()],
-					''
+					'version_first_scheduled' => 1,
 				],
 				'results_per_page' => 50,
 				'sortAsc' => 'visa_' . $company->getId(),
-				'page' => 1,				
+				'page' => 1,
 			];
 		} else {
 			$checkSettings = [];

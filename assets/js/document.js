@@ -571,12 +571,12 @@ function setup(datas) {
 	
 	let $thDetail = tr.append(create.th).children().last()
 		.attr('id', 'detail')
-		.addClass('d-flex justify-content-center')
 		.css('width', '6rem')
+		.css('min-width', '6rem')
 	;
 	
 	gpexe.$divHeadersDropdown = $thDetail.append(create.div).children().last()
-		.addClass('dropdown')
+		.addClass('dropdown float-left')
 		.on('hide.bs.dropdown', function (e) {
 			if(e.clickEvent && $.contains(e.relatedTarget.parentNode, e.clickEvent.target)) {
 				e.preventDefault();
@@ -612,7 +612,7 @@ function setup(datas) {
 	;
 	
 	gpexe.$divSelectorsDropdown = $thDetail.append(create.div).children().last()
-		.addClass('dropdown')
+		.addClass('dropdown float-right')
 		.on('hide.bs.dropdown', function (e) {
 			if(e.clickEvent && $.contains(e.relatedTarget.parentNode, e.clickEvent.target)) {
 				e.preventDefault();
@@ -1814,20 +1814,11 @@ $(document).ready(function() {
 								value = value.toDate();
 							}
 							
+							if (data['highlight']) {
+								tr.css('background-color', '#' + data['highlight']);
+							}
+							
 							if (value !== null) {
-								//highlight
-								if (urlSearch.get('highlight').toString() == header.id
-									|| (urlSearch.get('highlight').toString() == 'version_date' && header.id == 'version_scheduled_date')) {
-									if (value < new Date()) {
-										tr.addClass('highlight-late');
-									} else if (value.addDays(-15) < new Date()) {
-										tr.addClass('highlight-15');
-									} else if (value.addDays(-30) < new Date()) {
-										tr.addClass('highlight-30');
-									} else {
-										tr.addClass('highlight-ok');
-									}
-								}
 								value = value.format();
 							}
 							break;

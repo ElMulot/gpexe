@@ -6,6 +6,7 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\ORM\Query\Expr\Join;
 use App\Service\RepositoryService;
+use App\Service\DateService;
 use App\Service\QueryBuilderService;
 use App\Entity\Codification;
 use App\Entity\Metadata;
@@ -42,6 +43,10 @@ class VersionRepository extends RepositoryService
 	public function getVersionsCount($codifications, $fields, $series, $project, $request=null): int
 	{
 		
+		if ($request->query == false) {
+			return [];
+		}
+		
 		$qb = $this->getCoreQB($codifications, $fields, $series, $project, $request);
 		
 		return $qb
@@ -57,216 +62,222 @@ class VersionRepository extends RepositoryService
 	 */
 	public function getVersionsAsArray($codifications, $fields, $series, $project, $request=null): array
 	{
+		if ($request == null || $request->query == false) {
+			return [];
+		}
 		
 		$qb = $this->getCoreQB($codifications, $fields, $series, $project, $request);
+
+		//highlight
+		if ($request->query->has('highlight')) {
+			if ($qb->hasAlias('version_is_required') === false) {
+				$qb->addSelect('version.isRequired AS version_is_required');
+			}
+		}
 		
-		if ($request->query) {
+		if ($request->query->has('sortAsc') || $request->query->has('sortDesc')) {
+			$sortedField = $request->query->get('sortAsc') ?? $request->query->get('sortDesc');
+			$order = ($request->query->get('sortAsc'))?'ASC':'DESC';
 			
-			if ($request->query->get('sortAsc') || $request->query->get('sortDesc')) {
-				$sortedField = $request->query->get('sortAsc') ?? $request->query->get('sortDesc');
-				$order = ($request->query->get('sortAsc'))?'ASC':'DESC';
-				
-				switch ($sortedField) {
-					case 'version_name':
-						$qb->addOrderBy('version.name', $order);
-						break;
-						
-					case 'document_name':
-						$qb->addOrderBy('document.name', $order);
-						break;
-						
-					case 'version_initial_scheduled_date':
-						$qb->addOrderBy('version.initialScheduledDate', $order);
-						break;
-					case 'version_scheduled_date':
-						$qb->addOrderBy('version.scheduledDate', $order);
-						break;
-						
-					case 'version_delivery_date':
-						$qb->addOrderBy('version.deliveryDate', $order);
-						break;
-						
-					case 'version_date':
-						if ($qb->hasAlias('version_date') === false) {
-							$qb->addSelect('IF(version.isRequired = false, version.deliveryDate, version.scheduledDate) AS version_date');
-						}
-						
-						$qb->addOrderBy('version_date', $order);
-						break;
-						
-					case 'version_writer':
-						if ($qb->hasAlias('writer') === false) {
-							$qb->leftJoin('version.writer', 'writer');
-						}
-						$qb->addOrderBy('writer.name', $order);
-						break;
-						
-					case 'version_checker':
-						if ($qb->hasAlias('checker') === false) {
-							$qb->leftJoin('version.checker', 'checker');
-						}
-						$qb->addOrderBy('checker.name', $order);
-						break;
-						
-					case 'version_approver':
-						if ($qb->hasAlias('approver') === false) {
-							$qb->leftJoin('approver.checker', 'approver');
-						}
-						$qb->addOrderBy('approver.name', $order);
-						break;
-						
-					case 'serie_name':
-						$qb->addOrderBy('serie.name', $order);
-						break;
-						
-					case 'serie_company':
-						if ($qb->hasAlias('company') === false) {
-							$qb->leftJoin('serie.company', 'company');
-						}
-						$qb->addOrderBy('company.name', $order);
-						break;
-						
-					case 'status_name':
-						$qb->addNestedSelect(
-							$this->newQB()
-								->select('status2.name')
-								->from(Status::class, 'status2')
-								->where('status2.id = version.status'),
-							'status_name'
-						);
-						$qb->addOrderBy('status_name', $order);
-						break;
-						
-					case 'status_value':
-						if ($qb->hasAlias('status') === false) {
-							$qb->leftJoin('version.status', 'status');
-						}
-						$qb->addOrderBy('status.value', $order);
-						break;
-						
-					case 'status_type':
-						if ($qb->hasAlias('status') === false) {
-							$qb->leftJoin('version.status', 'status');
-						}
-						$qb->addOrderBy('status.type', $order);
-						break;
+			switch ($sortedField) {
+				case 'version_name':
+					$qb->addOrderBy('version.name', $order);
+					break;
 					
-					case (preg_match('/metadata_(\d+)/', $sortedField, $matches) === 1):
+				case 'document_name':
+					$qb->addOrderBy('document.name', $order);
+					break;
+					
+				case 'version_initial_scheduled_date':
+					$qb->addOrderBy('version.initialScheduledDate', $order);
+					break;
+				case 'version_scheduled_date':
+					$qb->addOrderBy('version.scheduledDate', $order);
+					break;
+					
+				case 'version_delivery_date':
+					$qb->addOrderBy('version.deliveryDate', $order);
+					break;
+					
+				case 'version_date':
+					if ($qb->hasAlias('version_date') === false) {
+						$qb->addSelect("IF(version.isRequired = false, version.deliveryDate, version.scheduledDate) AS version_date");
+					}
+					
+					$qb->addOrderBy('version_date', $order);
+					break;
+					
+				case 'version_writer':
+					if ($qb->hasAlias('writer') === false) {
+						$qb->leftJoin('version.writer', 'writer');
+					}
+					$qb->addOrderBy('writer.name', $order);
+					break;
+					
+				case 'version_checker':
+					if ($qb->hasAlias('checker') === false) {
+						$qb->leftJoin('version.checker', 'checker');
+					}
+					$qb->addOrderBy('checker.name', $order);
+					break;
+					
+				case 'version_approver':
+					if ($qb->hasAlias('approver') === false) {
+						$qb->leftJoin('approver.checker', 'approver');
+					}
+					$qb->addOrderBy('approver.name', $order);
+					break;
+					
+				case 'serie_name':
+					$qb->addOrderBy('serie.name', $order);
+					break;
+					
+				case 'serie_company':
+					if ($qb->hasAlias('company') === false) {
+						$qb->leftJoin('serie.company', 'company');
+					}
+					$qb->addOrderBy('company.name', $order);
+					break;
+					
+				case 'status_name':
+					$qb->addNestedSelect(
+						$this->newQB()
+							->select('status2.name')
+							->from(Status::class, 'status2')
+							->where('status2.id = version.status'),
+						'status_name'
+					);
+					$qb->addOrderBy('status_name', $order);
+					break;
+					
+				case 'status_value':
+					if ($qb->hasAlias('status') === false) {
+						$qb->leftJoin('version.status', 'status');
+					}
+					$qb->addOrderBy('status.value', $order);
+					break;
+					
+				case 'status_type':
+					if ($qb->hasAlias('status') === false) {
+						$qb->leftJoin('version.status', 'status');
+					}
+					$qb->addOrderBy('status.type', $order);
+					break;
+				
+				case (preg_match('/metadata_(\d+)/', $sortedField, $matches) === 1):
+					
+					$id = $matches[1];
+					
+					foreach ($fields as $field) {
 						
-						$id = $matches[1];
-						
-						foreach ($fields as $field) {
+						if ($sortedField == $field['id']) {
 							
-							if ($sortedField == $field['id']) {
+							switch ($field['type']) {
 								
-								switch ($field['type']) {
-									
-									case Metadata::BOOLEAN:
-									case Metadata::TEXT:
-									case Metadata::DATE:
-									case Metadata::LINK:
-										if ($qb->hasAlias($field['id'] . '_') === false) {
-											$qb->leftJoin($field['parent'] . '.metadataValues', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id));
-										}
-										$qb
-											->groupBy('version.id')
-											->addOrderBy("MAX({$field['id']}_.value)", $order)
-										;
-										break;
-										
-									case Metadata::LIST:
-										
-										if ($qb->hasAlias($field['id'] . '_') === false) {
-											$qb
-												->leftJoin($field['parent'] . '.metadataItems', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
-											;
-										}
-										$qb
-											->groupBy('version.id')
-											->addOrderBy("MAX({$field['id']}_.value)", $order)
-										;
-										break;
-										
-								}
-								break;
-							}
-						}
-						break;
-						
-					case (preg_match('/visa_(\d+)/', $sortedField, $matches) === 1):
-						
-						$id = $matches[1];
-						
-						foreach ($fields as $field) {
-							
-							if ($sortedField == $field['id']) {
-								if ($qb->hasAlias($field['id'] . '_') === false) {
-									
-									$subQb = $this->newQB('');
-									$visas = $subQb
-										->select('visa.id')
-										->from(Visa::class, 'visa')
-										->andWhere($subQb->eq('visa.project', $project))
-										->andWhere($subQb->eq('visa.company', $id))
-										->getQuery()
-										->getArrayResult()
-									;
-									
+								case Metadata::BOOLEAN:
+								case Metadata::TEXT:
+								case Metadata::DATE:
+								case Metadata::LINK:
+									if ($qb->hasAlias($field['id'] . '_') === false) {
+										$qb->leftJoin($field['parent'] . '.metadataValues', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id));
+									}
 									$qb
-										->leftJoin('version.reviews', 'review_' . $id, Join::WITH, $qb->in("review_{$id}.visa", $visas))
-										->leftJoin("review_{$id}.visa", $field['id'] . '_')
+										->groupBy('version.id')
+										->addOrderBy("MAX({$field['id']}_.value)", $order)
 									;
+									break;
 									
-								}
-								$qb->addOrderBy("{$field['id']}_.name", $order);
-								break;
+								case Metadata::LIST:
+									
+									if ($qb->hasAlias($field['id'] . '_') === false) {
+										$qb
+											->leftJoin($field['parent'] . '.metadataItems', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
+										;
+									}
+									$qb
+										->groupBy('version.id')
+										->addOrderBy("MAX({$field['id']}_.value)", $order)
+									;
+									break;
+									
 							}
-							
+							break;
 						}
-						
-						break;
-				}
-			}
-			
-			//page
-			$page = $request->query->get('page');
-			
-			if ($request->query->get('results_per_page') > 0) {
-				$qb
-					->setFirstResult(($page -1) * $request->query->get('results_per_page'))
-					->setMaxResults($request->query->get('results_per_page'));
-			}
-			
-			$display = array_keys($request->query->all('display') ?? []);
-			
-			if (array_search('document_reference', $display) !== false || preg_grep('/codification_(\d+)/', $display)) {
-				
-				foreach ($fields as $field) {
+					}
+					break;
 					
-					if (preg_match('/codification_(\d+)/', $field['id'], $matches) === 1) {
+				case (preg_match('/visa_(\d+)/', $sortedField, $matches) === 1):
+					
+					$id = $matches[1];
+					
+					foreach ($fields as $field) {
 						
-						$id = $matches[1];
-						
-						switch ($field['type']) {
-							
-							case Codification::LIST:
-								if ($qb->hasAlias($field['id'] . '_') === false) {
-									$qb->innerJoin('document.codificationItems', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.codification', $id));
-								}
-								$qb->addSelect("{$field['id']}_.value AS {$field['id']}");
-								break;
+						if ($sortedField == $field['id']) {
+							if ($qb->hasAlias($field['id'] . '_') === false) {
 								
-							case Codification::REGEX:
-								if ($qb->hasAlias($field['id']. '_') === false) {
-									$qb->innerJoin('document.codificationValues', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.codification', $id));
-								}
-								$qb->addSelect("{$field['id']}_.value AS {$field['id']}");
-								break;
+								$subQb = $this->newQB('');
+								$visas = $subQb
+									->select('visa.id')
+									->from(Visa::class, 'visa')
+									->andWhere($subQb->eq('visa.project', $project))
+									->andWhere($subQb->eq('visa.company', $id))
+									->getQuery()
+									->getArrayResult()
+								;
+								
+								$qb
+									->leftJoin('version.reviews', 'review_' . $id, Join::WITH, $qb->in("review_{$id}.visa", $visas))
+									->leftJoin("review_{$id}.visa", $field['id'] . '_')
+								;
+								
+							}
+							$qb->addOrderBy("{$field['id']}_.name", $order);
+							break;
 						}
 						
 					}
-				}
+					
+					break;
+			}
+		}
+		
+		//page
+		$page = $request->query->get('page');
+		
+		if ($request->query->get('results_per_page') > 0) {
+			$qb
+				->setFirstResult(($page -1) * $request->query->get('results_per_page'))
+				->setMaxResults($request->query->get('results_per_page'));
+		}
+		
+		$display = array_keys($request->query->all('display') ?? []);
+		
+		if (array_search('document_reference', $display) !== false || preg_grep('/codification_(\d+)/', $display)) {
+			
+			foreach ($fields as $field) {
 				
+				if (preg_match('/codification_(\d+)/', $field['id'], $matches) === 1) {
+					
+					$id = $matches[1];
+					
+					switch ($field['type']) {
+						
+						case Codification::LIST:
+							if ($qb->hasAlias($field['id'] . '_') === false) {
+								$qb->innerJoin('document.codificationItems', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.codification', $id));
+							}
+							$qb->addSelect("{$field['id']}_.value AS {$field['id']}");
+							break;
+							
+						case Codification::REGEX:
+							if ($qb->hasAlias($field['id']. '_') === false) {
+								$qb->innerJoin('document.codificationValues', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.codification', $id));
+							}
+							$qb->addSelect("{$field['id']}_.value AS {$field['id']}");
+							break;
+					}
+					
+				}
 			}
 			
 			foreach ($display as $name) {
@@ -297,33 +308,35 @@ class VersionRepository extends RepositoryService
 						
 					case 'version_date':
 						if ($qb->hasAlias('version_date') === false) {
-							$qb->addSelect('IF(version.isRequired = false, version.deliveryDate, version.scheduledDate) AS version_date');
+							$qb->addSelect("IF(version.isRequired = false, version.deliveryDate, version.scheduledDate) AS version_date");
 						}
 						break;
 						
 					case 'version_is_required':
-						$qb->addSelect('version.isRequired as version_is_required');
+						if ($qb->hasAlias('version_is_required') === false) {
+							$qb->addSelect('version.isRequired AS version_is_required');
+						}
 						break;
 						
 					case 'version_writer':
 						if ($qb->hasAlias('writer') === false) {
 							$qb->leftJoin('version.writer', 'writer');
 						}
-						$qb->addSelect('writer.name as version_writer');
+						$qb->addSelect('writer.name AS version_writer');
 						break;
 						
 					case 'version_checker':
 						if ($qb->hasAlias('checker') === false) {
 							$qb->leftJoin('version.checker', 'checker');
 						}
-						$qb->addSelect('checker.name as version_checker');
+						$qb->addSelect('checker.name AS version_checker');
 						break;
 						
 					case 'version_approver':
 						if ($qb->hasAlias('approver') === false) {
 							$qb->leftJoin('version.approver', 'approver');
 						}
-						$qb->addSelect('approver.name as version_approver');
+						$qb->addSelect('approver.name AS version_approver');
 						break;
 					
 					case 'serie_name':
@@ -473,9 +486,24 @@ class VersionRepository extends RepositoryService
 			
 		}
 		
-		array_walk($results, function(&$item) {
+		array_walk($results, function(&$item) use ($request, $project) {
 			if (array_key_exists('version_date', $item)) {
 				$item['version_date'] = preg_replace('/(\d{4})-(\d{2})-(\d{2})/', '${3}-${2}-${1}', $item['version_date']);
+			}
+			
+			if ($highlight = $request->query->get('highlight')) {
+				if ($item['version_is_required'] && array_key_exists($highlight, $item) && $date = DateService::fromFormat($item[$highlight])) {
+					if ($date < new \DateTime()) {
+						$item['highlight'] = 'FF919180';
+					} elseif (DateService::getWorkingDays($date, new \DateTime()) <= $project->getProdWarningLimit()) {
+						$item['highlight'] = 'FFE59180';
+					} elseif (DateService::getWorkingDays($date, new \DateTime()) <= $project->getProdDangerLimit()) {
+						$item['highlight'] = 'FFFF9180';
+					} else {
+						$item['highlight'] = 'CBFF9180';
+					}
+				}
+				
 			}
 			$item['detailUrl'] = $this->router->generate('document_detail', [
 				'version' => $item['version_id']
@@ -655,7 +683,7 @@ class VersionRepository extends RepositoryService
 							
 						case 'version_date':
 							if ($qb->hasAlias('version_date') === false) {
-								$qb->addSelect('IF(version.isRequired = false, version.deliveryDate, version.scheduledDate) AS version_date');
+								$qb->addSelect("IF(version.isRequired = false, version.deliveryDate, version.scheduledDate) AS version_date");
 							}
 							$value = implode(',', $value);
 							$matches = [];

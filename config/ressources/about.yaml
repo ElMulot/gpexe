@@ -67,3 +67,10 @@
         - Il est désormais possible de déplacer et de modifier la largeur des colonnes. Les modifications peuvent être sauvegardées dans la vue
         - Lors de la création d'une nouvelle version, les métadonnées sont copiées de la dernière version créée
         - Correction de bugs
+- 
+    version: 0.4.1
+    date: 17/03/2021
+    changes:
+        - Refonte de la vue principale
+        - Modification de la façon dont est gérée le surlignage des lignes par date
+        - Correction de bugs
