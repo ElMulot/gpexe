@@ -176,7 +176,7 @@ class QueryBuilderService extends QueryBuilder
 			return $value?'TRUE':'FALSE';
 		}
 		
-		if ($value instanceof \DateTime || $value instanceof \DateTimeInterface) {
+		if ($value instanceof \DateTimeInterface) {
 			return $value;
 		}
 		

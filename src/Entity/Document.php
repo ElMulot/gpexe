@@ -460,7 +460,7 @@ class Document
     			$value = ($value)?true:false;
     			break;
     		case Metadata::DATE:
-    			if ($value instanceof \DateTime) {
+    			if ($value instanceof \DateTimeInterface) {
     				$value = $value->format('d-m-Y');
     			}
     			break;

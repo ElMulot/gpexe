@@ -97,7 +97,7 @@ class ReviewController extends AbstractController
 			if ($form->isSubmitted() && $form->isValid()) {
 				
 				$review->setUser($this->getUser());
-				$review->setDate(new \DateTime);
+				$review->setDate(new \DateTime());
 				$entityManager = $this->getDoctrine()->getManager();
 				$entityManager->flush();
 				

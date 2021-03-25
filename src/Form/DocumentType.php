@@ -194,7 +194,7 @@ class DocumentType extends AbstractType
 					}
 					
 					if ($data === null && ($options['required'] ?? true)) {
-						$data = new \DateTime('now');
+						$data = new \DateTime();
 					}
 				}
 				

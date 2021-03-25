@@ -40,6 +40,17 @@ class ParseService
 		
 		$parsedCode = self::validateStructure($structure, $parsedCode);
 		
+		if ($parsedCode['type'] == 'progress') {
+			//sort rules by value descending order
+			usort($parsedCode['rules'], function ($a, $b) {
+				if ($a['value'] == $b['value']) {
+					return 0;
+				} else {
+					return ($a['value'] > $b['value'])?-1:1;
+				}
+			});
+		}
+		
 		return Yaml::dump($parsedCode, 10, 4);
 	}
 	

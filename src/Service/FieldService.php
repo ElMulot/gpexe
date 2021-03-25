@@ -454,6 +454,10 @@ class FieldService
 					'selector' => true,
 					'program' => true,
 				],
+				'permissions' => [
+					'read' => true,
+					'write' => false,
+				],
 			],
 			'version.firstScheduled' => [
 				'id' =>'version_first_scheduled',
@@ -464,6 +468,10 @@ class FieldService
 					'header' => false,
 					'selector' => true,
 					'program' => true,
+				],
+				'permissions' => [
+					'read' => true,
+					'write' => false,
 				],
 			],
 			'version.firstDelivered' => [
@@ -476,6 +484,10 @@ class FieldService
 					'selector' => true,
 					'program' => true,
 				],
+				'permissions' => [
+					'read' => true,
+					'write' => false,
+				],
 			],
 			'version.lastScheduled' => [
 				'id' =>'version_last_scheduled',
@@ -486,6 +498,10 @@ class FieldService
 					'header' => false,
 					'selector' => true,
 					'program' => true,
+				],
+				'permissions' => [
+					'read' => true,
+					'write' => false,
 				],
 			],
 			'version.lastDelivered' => [
@@ -498,6 +514,10 @@ class FieldService
 					'selector' => true,
 					'program' => true,
 				],
+				'permissions' => [
+					'read' => true,
+					'write' => false,
+				],
 			],
 			'version.last' => [
 				'id' =>'version_last',
@@ -508,6 +528,10 @@ class FieldService
 					'header' => false,
 					'selector' => true,
 					'program' => true,
+				],
+				'permissions' => [
+					'read' => true,
+					'write' => false,
 				],
 			],
 		];

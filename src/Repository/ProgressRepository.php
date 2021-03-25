@@ -40,7 +40,7 @@ class ProgressRepository extends RepositoryService
      * @return Progress[]
      *
      */
-    public function deleteProgressByProgramAndByDate(Program $program, \DateTime $date)
+    public function deleteProgressByProgramAndByDate(Program $program, \DateTimeInterface $date)
     {
     	
     	$qb = $this->newQB();

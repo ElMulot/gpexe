@@ -44,7 +44,7 @@ class AutomationRepository extends RepositoryService
     	$qb = $this->newQB('a');
     	return $qb
 	    	->andWhere($qb->eq('a.enabled', true))
-	    	->andWhere($qb->lte('a.nextRun', new \DateTime('now')))
+	    	->andWhere($qb->lte('a.nextRun', new \DateTime('')))
 	    	->getQuery()
 	    	->getResult()
     	;

@@ -7,6 +7,7 @@ use App\Entity\MetadataValue;
 use App\Entity\MetadataItem;
 use App\Entity\User;
 use Symfony\Contracts\Translation\TranslatorInterface;
+use App\Helpers\Date;
 
 class PropertyService
 {
@@ -23,7 +24,7 @@ class PropertyService
 				return $this->translator->trans(($value)?'Yes':'No');
 				
 			case 'object':
-				if ($value instanceof \DateTime) {
+				if ($value instanceof \DateTimeInterface) {
 					return $value->format($dateFormat);
 				} else if ($value instanceof User) {
 					return $value->getName();
@@ -37,7 +38,7 @@ class PropertyService
 						case Metadata::TEXT:
 							return $value->getValue();
 						case Metadata::DATE:
-							return \DateTime::createFromFormat('d-m-Y', $value->getValue())->format($dateFormat);
+							return Date::fromFormat($value->getValue())->format($dateFormat);
 						case Metadata::LINK:
 							return $value->getValue();
 					}

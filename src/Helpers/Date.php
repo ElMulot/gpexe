@@ -1,15 +1,35 @@
 <?php
 
-namespace App\Service;
+namespace App\Helpers;
 
 
-class DateService {
+class Date extends \DateTime {
+	
+	public function format($format = 'd-m-Y'): string
+	{
+		return parent::format($format);
+	}
+	
+	public function add($interval)
+	{
+		$dateInterval = new \DateInterval($interval);
+		parent::add($dateInterval);
+		return $this;
+	}
+	
+	public function sub($interval)
+	{
+		$dateInterval = new \DateInterval($interval);
+		parent::sub($dateInterval);
+		return $this;
+	}
 	
 	public static function fromFormat($expression, $format = 'd-m-Y'): ?\DateTime
 	{
+		
 		$date = \DateTime::createFromFormat($format, $expression);
 		if ($date && $date->format($format) === $expression) {
-			return $date;
+			return new static($date->format(\DateTime::ATOM));
 		}
 		return null;
 	}
@@ -57,6 +77,11 @@ class DateService {
 		//The no. of business days is: (number of weeks between the two dates) * (5 working days) + the remainder
 		//---->february in none leap years gave a remainder of 0 but still calculated weekends between first and last day, this is one way to fix it
 		return $nbFullWeeks * 5 + max($nbRemainingDays, 0);
+	}
+	
+	public function __toString()
+	{
+		return $this->format();
 	}
 }
 

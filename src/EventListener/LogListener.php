@@ -120,7 +120,7 @@ class LogListener
 			return '[array]';
 		} elseif (is_object($value) === false) {
 			return (string)$value;
-		} elseif ($value instanceof \DateTime) {
+		} elseif ($value instanceof \DateTimeInterface) {
 			return $value->format('d-m-Y');
 		} else {
 			return '[' . $value->__toString() . ']';

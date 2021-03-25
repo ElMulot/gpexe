@@ -9,6 +9,7 @@ use App\Entity\Program;
 use App\Repository\AutomationRepository;
 use App\Repository\StatusRepository;
 use App\Service\ProgramService;
+use App\Helpers\Date;
 
 class ProgramListener
 {
@@ -30,7 +31,7 @@ class ProgramListener
 			case Program::TASK:
 			case Program::PROGRESS:
 				$frequency = $program->getParsedCode('frequency') ?? 7;
-				$nextRun = (new \DateTime('now'))->add(new \DateInterval('P' . $frequency . 'D'));
+				$nextRun = (new Date())->add('P' . $frequency . 'D');
 				$automation = new Automation;
 				$automation->setEnabled($program->getEnabled());
 				$automation->setNextRun($nextRun);
@@ -50,7 +51,7 @@ class ProgramListener
 			case Program::TASK:
 			case Program::PROGRESS:
 				$frequency = $program->getParsedCode('frequency') ?? 7;
-				$nextRun = (new \DateTime('now'))->add(new \DateInterval('P' . $frequency . 'D'));
+				$nextRun = (new Date('now'))->add('P' . $frequency . 'D');
 				
 				if ($automation = $this->automationRepository->getAutomationByRouteAndByParameters(ProgramService::class . '::automation', ['program' => $program->getId()])) {
 					$automation->setEnabled($program->getEnabled());

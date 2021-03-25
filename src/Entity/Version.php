@@ -5,6 +5,7 @@ namespace App\Entity;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use App\Helpers\Date;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\VersionRepository")
@@ -90,7 +91,7 @@ class Version
 	public function __construct()
 	{
 		$this->isRequired = true;
-		$this->deliveryDate = new \DateTime('now');
+		$this->deliveryDate = new \DateTime();
 		$this->metadataItems = new ArrayCollection();
 		$this->metadataValues = new ArrayCollection();
 	 	$this->reviews = new ArrayCollection();
@@ -368,11 +369,10 @@ class Version
 				break;
 			case Metadata::DATE:
 				if (is_string($value)) {
-					$date = \DateTime::createFromFormat('d-m-Y', $value);
-					if ($date == false || $date->format('d-m-Y') !== $value) {
+					if (($date = Date::fromFormat($value, 'd-m-Y')) === null) {
 						$value = '';
 					}
-				} elseif ($value instanceof \DateTime) {
+				} elseif ($value instanceof \DateTimeInterface) {
 					$value = $value->format('d-m-Y');
 				} else {
 					$value = '';
@@ -590,14 +590,14 @@ class Version
 				}
 			
 			case 'version.date':
-				if ($value instanceof \DateTime) {
-					if ($value > new \DateTime('now')) {
+				if ($value instanceof \DateTimeInterface) {
+					if ($value > new Date()) {
 						$this->isRequired = true;
 					}
 					$this->setDate($value);
 					return true;
-				} elseif ($date = \DateTime::createFromFormat('d-m-Y', $value)) {
-					if ($date > new \DateTime('now')) {
+				} elseif ($date = Date::fromFormat($value, 'd-m-Y')) {
+					if ($date > new Date()) {
 						$this->isRequired = true;
 					}
 					$this->setDate($date);
@@ -734,7 +734,7 @@ class Version
 												}
 											}
 											
-											$review->setDate(new \DateTime('now'));
+											$review->setDate(new Date());
 											$review->setVisa($visa);
 											$this->addReview($review);
 											return true;
@@ -758,7 +758,7 @@ class Version
 									
 								case 'date':
 									if ($review = $this->getReviewByCompany($visa->getCompany())) {
-										if ($date = \DateTime::createFromFormat('d-m-Y', $value)) {
+										if ($date = Date::fromFormat($value, 'd-m-Y')) {
 											$review->setDate($date);
 											return true;
 										}

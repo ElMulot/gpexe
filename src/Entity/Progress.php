@@ -41,7 +41,7 @@ class Progress
 
 	public function __construct()
 	{
-		$this->date = new \DateTime('now');
+		$this->date = new \DateTime();
 	}
 	
 	public function getId(): ?int

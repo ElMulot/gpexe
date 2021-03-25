@@ -6,7 +6,7 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\ORM\Query\Expr\Join;
 use App\Service\RepositoryService;
-use App\Service\DateService;
+use App\Helpers\Date;
 use App\Service\QueryBuilderService;
 use App\Entity\Codification;
 use App\Entity\Metadata;
@@ -18,7 +18,6 @@ use App\Entity\User;
 use App\Entity\Version;
 use App\Entity\Visa;
 use Symfony\Component\Stopwatch\Stopwatch;
-
 
 /**
  * @method Version|null find($id, $lockMode = null, $lockVersion = null)
@@ -492,12 +491,12 @@ class VersionRepository extends RepositoryService
 			}
 			
 			if ($highlight = $request->query->get('highlight')) {
-				if ($item['version_is_required'] && array_key_exists($highlight, $item) && $date = DateService::fromFormat($item[$highlight])) {
-					if ($date < new \DateTime()) {
+				if ($item['version_is_required'] && array_key_exists($highlight, $item) && $date = Date::fromFormat($item[$highlight])) {
+					if ($date < new Date()) {
 						$item['highlight'] = 'FF919180';
-					} elseif (DateService::getWorkingDays($date, new \DateTime()) <= $project->getProdWarningLimit()) {
+					} elseif (Date::getWorkingDays($date, new Date()) <= $project->getProdWarningLimit()) {
 						$item['highlight'] = 'FFE59180';
-					} elseif (DateService::getWorkingDays($date, new \DateTime()) <= $project->getProdDangerLimit()) {
+					} elseif (Date::getWorkingDays($date, new Date()) <= $project->getProdDangerLimit()) {
 						$item['highlight'] = 'FFFF9180';
 					} else {
 						$item['highlight'] = 'CBFF9180';
@@ -811,9 +810,9 @@ class VersionRepository extends RepositoryService
 									foreach ($value as $v) {
 										$r = [];
 										if (preg_match('/>(\d{2}-\d{2}-\d{4})/', $v, $r) === 1) {
-											$qb->andWhere($qb->gte("STR_TO_DATE({$field['id']}_.value, '%d-%m-%Y')", \DateTime::createFromFormat('d-m-Y', $r[1])));
+											$qb->andWhere($qb->gte("STR_TO_DATE({$field['id']}_.value, '%d-%m-%Y')", Date::fromFormat($r[1], 'd-m-Y')));
 										} elseif (preg_match('/<(\d{2}-\d{2}-\d{4})/', $v, $r) === 1) {
-											$qb->andWhere($qb->lte("STR_TO_DATE({$field['id']}_.value, '%d-%m-%Y')", \DateTime::createFromFormat('d-m-Y', $r[1])));
+											$qb->andWhere($qb->lte("STR_TO_DATE({$field['id']}_.value, '%d-%m-%Y')", Date::fromFormat($r[1], 'd-m-Y')));
 										}
 									}
 									

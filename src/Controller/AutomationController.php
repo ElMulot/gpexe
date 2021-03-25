@@ -21,6 +21,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use App\Repository\ProgramRepository;
 use App\Entity\CodificationValue;
+use App\Helpers\Date;
 
 class AutomationController extends AbstractController
 {
@@ -93,14 +94,12 @@ class AutomationController extends AbstractController
 					
 					$this->getDoctrine()->getRepository(Progress::class)->deleteProgressByProgramAndByDate($program, $automation->getNextRun());
 					
-					$interval = new \DateInterval('P' . $program->getParsedCode('frequency') . 'D');
-					
 					if (call_user_func_array(array($this->programService, 'automation'), [$program])) {
 						
-						$automation->setLastRun(new \DateTime('now'));
+						$automation->setLastRun(new Date());
 						$nextRun = clone $automation->getNextRun();
-						while ($nextRun < (new \DateTime('now'))->add($interval)) {
-							$automation->setNextRun($nextRun->add($interval));
+						while ($nextRun < (new Date())->add('P' . $program->getParsedCode('frequency') . 'D')) {
+							$automation->setNextRun($nextRun->add('P' . $program->getParsedCode('frequency') . 'D'));
 						}
 						$entityManager->persist($automation);
 					}

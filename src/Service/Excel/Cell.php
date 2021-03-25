@@ -5,9 +5,10 @@ namespace App\Service\Excel;
 use Box\Spout\Writer\Common\Creator\Style\BorderBuilder;
 use Box\Spout\Writer\Common\Creator\Style\StyleBuilder;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
-use PhpOffice\PhpSpreadsheet\Shared\Date;
+use PhpOffice\PhpSpreadsheet\Shared\Date as DateManager;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
+use App\Helpers\Date;
 
 
 class Cell
@@ -43,7 +44,7 @@ class Cell
 	{
 		switch ($this->row->getSheet()->getWorkbook()->getLibrary()) {
 			case Workbook::SPOUT:
-				if ($this->_cell->getValue() instanceof \DateTime) {
+				if ($this->_cell->getValue() instanceof \DateTimeInterface) {
 					$dateFormat = $this->row->getSheet()->getWorkbook()->getDateFormat();
 					return $this->_cell->getValue()->format($dateFormat);
 				} else {
@@ -177,29 +178,27 @@ class Cell
 		
 	}
 	
-	public function getDateTime(): ?\DateTime
+	public function getDateTime(): ?\DateTimeInterface
 	{
 		switch ($this->row->getSheet()->getWorkbook()->getLibrary()) {
 			case Workbook::SPOUT:
-				if ($this->_cell->getValue() instanceof \DateTime) {
+				if ($this->_cell->getValue() instanceof \DateTimeInterface) {
 					return $this->_cell->getValue();
 				} else {
 					
 					$dateFormat = $this->row->getSheet()->getWorkbook()->getDateFormat();
-					$date = \DateTime::createFromFormat($dateFormat, $this->_cell->getValue());
-					if ($date && $date->format($dateFormat) === $this->_cell->getValue()) {
+					if ($date = Date::fromFormat($this->_cell->getValue(), $dateFormat)) {
 						return $date;
 					}
 				}
 				break;
 				
 			case Workbook::PHPSPREADSHEET:
-				if (Date::isDateTime($this->_cell)) {
-					return Date::excelToDateTimeObject($this->getValue());
+				if (DateManager::isDateTime($this->_cell)) {
+					return DateManager::excelToDateTimeObject($this->getValue());
 				} else {
 					$dateFormat = $this->row->getSheet()->getWorkbook()->getDateFormat();
-					$date = \DateTime::createFromFormat($dateFormat, $this->getValue());
-					if ($date && $date->format($dateFormat) === $this->getValue()) {
+					if ($date = Date::fromFormat($this->getValue(), $dateFormat)) {
 						return $date;
 					}
 				}

@@ -22,6 +22,10 @@ use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Stopwatch\Stopwatch;
 use Symfony\Contracts\Translation\TranslatorInterface;
+use App\Service\Code\ProgramCache;
+use App\Helpers\Date;
+use App\Helpers\Cache;
+
 
 class ProgramService
 {
@@ -43,8 +47,6 @@ class ProgramService
 	private $statusRespository;
 	
 	private $versionRepository;
-	
-	private $cacheService;
 	
 	private $documentService;
 	
@@ -70,7 +72,7 @@ class ProgramService
 	
 	private $stopWatch;
 	
-	public function __construct(SessionInterface $session, TranslatorInterface $translator, EntityManagerInterface $entityManager, DocumentRepository $documentRepository, SerieRepository $serieRepository, StatusRepository $statusRespository, VersionRepository $versionRepository, CacheService $cacheService, DocumentService $documentService, FieldService $fieldService, PropertyService $propertyService, Security $security, string $targetDirectory)
+	public function __construct(SessionInterface $session, TranslatorInterface $translator, EntityManagerInterface $entityManager, DocumentRepository $documentRepository, SerieRepository $serieRepository, StatusRepository $statusRespository, VersionRepository $versionRepository, DocumentService $documentService, FieldService $fieldService, PropertyService $propertyService, Security $security, string $targetDirectory)
 	{
 		$this->flashBag = $session->getFlashBag();
 		$this->translator = $translator;
@@ -79,7 +81,6 @@ class ProgramService
 		$this->serieRepository = $serieRepository;
 		$this->statusRespository = $statusRespository;
 		$this->versionRepository = $versionRepository;
-		$this->cacheService = $cacheService;
 		$this->documentService = $documentService;
 		$this->fieldService = $fieldService;
 		$this->propertyService = $propertyService;
@@ -92,25 +93,22 @@ class ProgramService
 	public function preload(Program $program, Request $request, File $file = null): bool
 	{
 		$this->flashBag->add('info', 'Démarrage de l\'opération');
-		$this->parsedCode = $program->getParsedCode();
 		
 		//setting up cache
+		$programCache = new ProgramCache($this->fieldService);
+		$programCache->setParameter('current_user', $this->security->getUser()->getName());
+		$programCache->setProgram($program);
 		
-		$options = $this->parsedCode['option'] ?? [];
+		foreach ($request->request->get('launcher') as $key => $option) {
+			if ($programCache->getOption($key)) {
+				$programCache->setOption($key, $option);
+			}
+		}
 		
 		switch ($program->getType()) {
 				
 			case Program::IMPORT:
-// 				$firstRow = $this->parsedCode['first_row'];
-				
-// 				if ($this->cacheService->get('program.ready_to_persist')) {
-// 					$this->cacheService->set('program.current_row', $firstRow);
-// 					$this->cacheService->set('program.state', 'new_batch');
-// 					return true;
-// 				}
-				
 				if ($file !== null) {
-					
 					//upload file
 					try {
 						$file = $file->move($this->targetDirectory, 'GPEXE Import.' . $file->getClientOriginalExtension());
@@ -118,20 +116,13 @@ class ProgramService
 						$this->flashBag->add('danger', $e->getMessage());
 						return false;
 					}
-					$this->cacheService->set('program.file_path', $file->getPathname());
+					$programCache->setParameter('program.file_path', $file->getPathname());
 				}
 				
 			case Program::EXPORT:
 			case Program::TASK:
-				foreach ($options as $key => $option) {
-					$option = $request->request->get('launcher')[$key] ?? false;
-					$this->cacheService->set('program.' . $key, $option);
-				}
-				$this->cacheService->set('program.state', 'load');
-				return true;
-				
 			case Program::PROGRESS:
-				$this->cacheService->set('program.state', 'load');
+				$programCache->setStatus(ProgramCache::LOAD);
 				return true;
 				
 			default:
@@ -143,17 +134,16 @@ class ProgramService
 	
 	public function load(Program $program): bool
 	{
-		
-		$this->parsedCode = $program->getParsedCode();
+		$programCache = new ProgramCache($this->fieldService);
 		
 		switch ($program->getType()) {
 			
 			case Program::EXPORT:
-				$firstRow = $this->parsedCode['first_row'];
+				$firstRow = $programCache->getParameter('first_row');
 				$mainColumn = null;
 				$commentsColumn = null;
-				$library = $this->cacheService->get('program.library');
-				$dateFormat = $this->cacheService->get('program.date_format');
+				$library = $programCache->getOption('library');
+				$dateFormat = $programCache->getOption('date_format_input');
 				
 				//create workbook
 				try {
@@ -174,10 +164,12 @@ class ProgramService
 				$fields = [];
 				$row = $sheet->getRow($firstRow);
 				
-				foreach ($this->parsedCode['write'] as $write) {
+				dd($programCache->getNode(null, 'write', 1, 'title'));
+				
+				foreach ($programCache->getExpression('write') as $write) {
 					if (array_key_exists($write['title'], $fields)) {
-						$row->getCell($write['to'])->setValue($fields[$write['title']]['title']);
-					} elseif ($write['title'] != '') {
+						$row->getCell($write['to']->getValue())->setValue($fields[$write['title']->getValue()]['title']);
+					} elseif ($write['title']->getValue() != '') {
 						$row->getCell($write['to'])->setValue($write['title']);
 					} elseif (array_key_exists($write['value'], $fields)) {
 						$row->getCell($write['to'])->setValue($fields[$write['value']]['title']);
@@ -195,20 +187,20 @@ class ProgramService
 					return false;
 				}
 				
-				$this->cacheService->set('program.current_row', $firstRow + 1);
-				$this->cacheService->set('program.file_path', $this->workbook->getPath());
-				$this->cacheService->set('program.state', 'new_batch');
+				$programCache->setParameter('current_row', $firstRow + 1);
+				$programCache->setParameter('file_path', $this->workbook->getPath());
+				$programCache->setStatus(ProgramCache::NEW_BATCH);
 				return true;
 				
 			case Program::IMPORT:
 				
-				$firstRow = $this->parsedCode['first_row'];
-				$mainColumn = $this->parsedCode['main_column'];
-				$commentsColumn = $this->parsedCode['comments_column'];
-				$library = $this->cacheService->get('program.library');
-				$dateFormat = $this->cacheService->get('program.date_format');
+				$firstRow = $programCache->getParameter('first_row');
+				$mainColumn = $programCache->getParameter('main_column');
+				$commentsColumn = $programCache->getParameter('comments_column');
+				$library = $programCache->getOption('library');
+				$dateFormat = $programCache->getOption('date_format_input');
 				
-				$readyToPersist = $this->cacheService->get('program.ready_to_persist');
+				$readyToPersist = $programCache->getOption('ready_to_persist');
 				
 				//open workbook
 				try {
@@ -219,7 +211,7 @@ class ProgramService
 				}
 				
 				try {
-					$this->workbook->open($this->cacheService->get('program.file_path'), $readyToPersist);
+					$this->workbook->open($programCache->getParameter('file_path'), $readyToPersist);
 				} catch (Exception $e) {
 					$this->flashBag->add('danger', $e->getMessage());
 					return false;
@@ -238,28 +230,18 @@ class ProgramService
 					return false;
 				}
 				
-				$this->cacheService->set('program.current_row', $firstRow);
-				$this->cacheService->set('program.file_path', $this->workbook->getPath());
-				$this->cacheService->set('program.state', 'new_batch');
+				$programCache->setParameter('current_row', $firstRow);
+				$programCache->setParameter('file_path', $this->workbook->getPath());
+				$programCache->setStatus(ProgramCache::NEW_BATCH);
 				return true;
 		
 			case Program::TASK:
-				$this->cacheService->set('program.state', 'new_batch');
+				$programCache->setStatus(ProgramCache::NEW_BATCH);
 				return true;	
 				
 			case Program::PROGRESS:
-			
-				//sort rules by value descending order
-				usort($this->parsedCode['rules'], function ($a, $b) {
-					if ($a['value'] == $b['value']) {
-						return 0;
-					} else {
-						return ($a['value'] > $b['value'])?-1:1;
-					}
-				});
 				
-				$this->cacheService->set('program.code', $this->parsedCode);
-				$this->cacheService->set('program.state', 'new_batch');
+				$programCache->setStatus(ProgramCache::NEW_BATCH);
 				return true;
 				
 			default:
@@ -287,39 +269,8 @@ class ProgramService
 	
 	public function unload(Program $program): bool
 	{
-		
-		$options = $this->parsedCode['option'] ?? [];
-		foreach (array_keys($options) as $key) {
-			$this->cacheService->delete('program.' . $key);
-		}
-		
-		$this->cacheService->delete('program.code');
-		$this->cacheService->delete('program.state');
-		
-		switch ($program->getType()) {
-			
-			case Program::IMPORT:
-				$this->cacheService->delete('program.ready_to_persist');
-				$this->cacheService->delete('program.documents_created');
-				$this->cacheService->delete('program.versions_created');
-			case Program::EXPORT:
-				$this->cacheService->delete('program.library');
-				$this->cacheService->delete('program.date_format');
-				$this->cacheService->delete('program.current_row');
-				$this->cacheService->delete('program.file_path');
-				$this->cacheService->delete('program.count_processed');
-				return true;
-				
-			case Program::TASK:
-				return true;
-				
-			case Program::PROGRESS:
-				return true;
-				
-			default:
-				$this->flashBag->add('error', 'Erreur : programme invalide');
-				return false;
-		}
+		ProgramCache::clear();
+		return true;
 	}
 	
 	public function export(Program $program): bool
@@ -327,8 +278,10 @@ class ProgramService
 // 		set_time_limit(500);
 		$this->stopWatch->start('export');
 		
+		$programCache = new ProgramCache($this->fieldService);
 		$project = $program->getProject();
 		$this->parsedCode = $program->getParsedCode();
+		dd($programCache);
 		
 		$firstRow = $this->parsedCode['first_row'];
 		$mainColumn = $this->parsedCode['main_column'] ?? null;
@@ -420,6 +373,7 @@ class ProgramService
 	{
 		set_time_limit(500);
 		$this->stopWatch->start('import');
+		$programCache = new ProgramCache($this->fieldService);
 		$project = $program->getProject();
 		$this->parsedCode = $program->getParsedCode();
 		
@@ -831,9 +785,10 @@ class ProgramService
 
 		$this->stopWatch->start('export');
 		
+		$programCache = new ProgramCache($this->fieldService);
 		$project = $program->getProject();
 		$this->parsedCode = $program->getParsedCode();
-		$readyToPersist = $this->cacheService->get('program.ready_to_persist');
+		$readyToPersist = $programCache->getParameter('.ready_to_persist');
 		$matches = null;
 		
 		$options = [];
@@ -940,6 +895,7 @@ class ProgramService
 	public function progress(Program $program): array
 	{
 // 		set_time_limit(500);
+		$programCache = new ProgramCache($this->fieldService);
 		$project = $program->getProject();
 		$progress = [];
 		
@@ -1045,7 +1001,7 @@ class ProgramService
 				
 				//convert any litteral date (syntax: "date" according to dateFormat)
 				$expression = preg_replace_callback($this->dateRegex, function ($matches) {
-					$date = \DateTime::createFromFormat($this->dateFormat, $matches[1]);
+					$date = Date::FromFormat($matches[1], $this->dateFormat);
 					if ($date && $date->format($this->dateFormat) === $matches[1]) {
 						return preg_quote($date->format('d-m-Y'));
 					}

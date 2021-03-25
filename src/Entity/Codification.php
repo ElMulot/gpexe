@@ -98,7 +98,7 @@ class Codification
     
     public function setCodename(string $codename): self
     {
-    	$this->codename = $codename;
+    	$this->codename = strtolower($codename);
     	
     	return $this;
     }

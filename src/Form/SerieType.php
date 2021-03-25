@@ -61,7 +61,7 @@ class SerieType extends AbstractType
         			if ($data instanceof MetadataValue) {
         				$data = new \DateTime($data->getValue());
         			} elseif ($metadata->getIsMandatory()) {
-        				$data = new \DateTime('now');
+        				$data = new \DateTime();
         			}
         			
         			$builder->add($metadata->getCodeName(), DateType::class, [

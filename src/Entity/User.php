@@ -83,7 +83,7 @@ class User implements UserInterface
     public function __construct()
     {
     	$this->locale = 'fr_FR';
-        $this->lastConnected = new \DateTime;
+        $this->lastConnected = new \DateTime();
     	$this->projects = new ArrayCollection();
      	$this->versions = new ArrayCollection();
       $this->vues = new ArrayCollection();

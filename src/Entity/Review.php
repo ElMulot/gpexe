@@ -41,7 +41,7 @@ class Review
     
     public function __construct()
     {
-    	$this->date = new \DateTime;
+    	$this->date = new \DateTime();
     }
 
     public function getId(): ?int
