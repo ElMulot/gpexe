@@ -51,9 +51,13 @@ class Sheet
 			$this->_rowIterator->rewind();
 		}
 		
-		while ($this->getRowIteratorKey() != $rowAddress - 1) {
+		while ($this->getRowIteratorKey() < $rowAddress - 1) {
+			if ($this->workbook->getLibrary() === Workbook::SPOUT && $this->_rowIterator->current()->getCells()) {
+				$this->workbook->addRow($this->_rowIterator->current());
+			}
 			$this->_rowIterator->next();
 		}
+		
 		return $this->row = new Row($this->_rowIterator->current(), $rowAddress, $this);
 	}
 

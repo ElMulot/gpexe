@@ -115,6 +115,7 @@ class ProgramController extends AbstractController
 	
 	public function preload(Request $request, Program $program): Response
 	{
+		$programCache = new ProgramCache($this->fieldService);
 		$project = $program->getProject();
 		
 		if ($this->isGranted('ROLE_ADMIN') === false &&
@@ -130,7 +131,7 @@ class ProgramController extends AbstractController
 					break;
 					
 				case Program::IMPORT:
-					if ($this->program->get('program.ready_to_persist')) {				//launch import
+					if ($programCache->getOption('ready_to_persist')) {						//launch import
 						if ($this->programService->preload($program, $request)) {
 							return $this->render('program/preload.html.twig', [
 								'program' => $program,
@@ -204,7 +205,7 @@ class ProgramController extends AbstractController
 	
 	public function load(Program $program): Response
 	{
-// 		$programCache = new ProgramCache($this->fieldService);
+		$programCache = new ProgramCache($this->fieldService);
 		$project = $program->getProject();
 		
 		if ($this->isGranted('ROLE_ADMIN') === false &&
@@ -281,7 +282,7 @@ class ProgramController extends AbstractController
 	
 	public function completed(Request $request, Program $program): Response
 	{
-// 		$programCache = new ProgramCache($this->fieldService);
+		$programCache = new ProgramCache($this->fieldService);
 		$project = $program->getProject();
 		
 		if ($this->isGranted('ROLE_ADMIN') === false &&
@@ -295,6 +296,7 @@ class ProgramController extends AbstractController
 					$filePath = $programCache->getParameter('file_path');
 					$pathParts = pathinfo($filePath);
 					
+					unset($programCache);
 					$this->programService->unload($program);
 					return $this->render('program/export.html.twig', [
 						'program' => $program,
@@ -304,6 +306,7 @@ class ProgramController extends AbstractController
 				case Program::IMPORT:
 					if ($programCache->getOption('ready_to_persist')) {					//launch import
 						
+						unset($programCache);
 						$this->programService->unload($program);
 						return $this->render('program/import.html.twig', [
 							'program' => $program,
@@ -322,6 +325,7 @@ class ProgramController extends AbstractController
 				case Program::TASK:
 					if ($programCache->getOption('ready_to_persist')) {					//launch task
 						
+						unset($programCache);
 						$this->programService->unload($program);
 						return $this->render('program/preload.html.twig', [
 							'program' => $program,
@@ -333,8 +337,7 @@ class ProgramController extends AbstractController
 						]);
 					}
 					
-					
-					
+					unset($programCache);
 					$this->programService->unload($program);
 					return $this->render('program/preload.html.twig', [
 						'program' => $program,
@@ -361,6 +364,10 @@ class ProgramController extends AbstractController
 		}
 			
 		switch ($programCache->getStatus()) {
+			case ProgramCache::LOAD:
+				$redirect = ProgramCache::LOAD;
+				break;
+				
 			case ProgramCache::NEW_BATCH:
 				$success = $this->programService->execute($program);
 				if ($success) {
@@ -371,8 +378,8 @@ class ProgramController extends AbstractController
 				}
 				break;
 				
-			case ProgramCache::LOAD:
-				$redirect = ProgramCache::LOAD;
+			case ProgramCache::COMPLETED:
+				$redirect = ProgramCache::COMPLETED;
 				break;
 				
 			default:

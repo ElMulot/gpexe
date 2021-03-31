@@ -239,7 +239,7 @@ class Program
 		return $this;
 	}
 	
-	public function getParsedCode(?string $key = null)
+	public function getParsedCode(...$keys)
 	{
 		if ($this->parsedCode === null) {
 			try {
@@ -251,10 +251,14 @@ class Program
 			$this->parseError = false;
 		}
 		
-		if ($key === null) {
+		if ($keys == false) {
 			return $this->parsedCode ?? [];
 		} else {
-			return $this->parsedCode[$key] ?? [];
+			$parsedCode = $this->parsedCode;
+			foreach ($keys as $key) {
+				$parsedCode = $parsedCode[$key] ?? [];
+			}
+			return $parsedCode;
 		}
 	}
 	

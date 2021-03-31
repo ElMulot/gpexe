@@ -185,7 +185,6 @@ class Cell
 				if ($this->_cell->getValue() instanceof \DateTimeInterface) {
 					return $this->_cell->getValue();
 				} else {
-					
 					$dateFormat = $this->row->getSheet()->getWorkbook()->getDateFormat();
 					if ($date = Date::fromFormat($this->_cell->getValue(), $dateFormat)) {
 						return $date;

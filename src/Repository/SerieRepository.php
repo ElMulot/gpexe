@@ -92,7 +92,7 @@ class SerieRepository extends RepositoryService
 			->innerJoin('serie.company', 'company')
 			->innerJoin('serie.project', 'project')
 			->andWhere($qb->eq('serie.project', $project))
-// 			->andWhere($qb->eq('serie.id', '29'))
+			->andWhere($qb->eq('serie.id', '29'))
 			->getQuery()
 			->getResult()
 		;

@@ -8,7 +8,7 @@ App\Entity\Codification:
             - Regex: '/^[^$"]+$/'
             - NotBlank: ~
         codename:
-            - Regex: '/^[A-Za-z]+$/'
+            - Regex: '/^\w+$/'
             - NotBlank: ~
 
 App\Entity\CodificationItem:
@@ -36,7 +36,7 @@ App\Entity\Company:
             - Regex: '/^[^$"]+$/'
             - NotBlank: ~
         codename:
-            - Regex: '/^[A-Za-z]+$/'
+            - Regex: '/^\w+$/'
             - NotBlank: ~
 
 App\Entity\Document:
@@ -54,7 +54,7 @@ App\Entity\Metadata:
             - Regex: '/^[^$"]+$/'
             - NotBlank: ~
         codename:
-          - Regex: '/^[A-Za-z]+$/'
+          - Regex: '/^\w+$/'
           - NotBlank: ~
           - NotEqualTo: 'name'
           - NotEqualTo: 'reference'
@@ -149,7 +149,7 @@ App\Entity\Version:
             fields: ['name', 'document']
     properties:
         name:
-            - Regex: '/^[\w]+$/'
+            - Regex: '/^\w+$/'
             - NotBlank: ~
 
 App\Entity\Visa:

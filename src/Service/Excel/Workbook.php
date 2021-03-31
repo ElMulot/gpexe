@@ -9,6 +9,7 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Filesystem\Exception\IOExceptionInterface;
 use Symfony\Component\String\Slugger\AsciiSlugger;
+use App\Service\Code\ProgramCache;
 
 class Workbook
 {
@@ -50,18 +51,17 @@ class Workbook
 // 	Open	| PhpSpreadsheet   | Defined | Defined (if readOnly !== false)
 // 	---------------------------------------------------------------------------
 	
-	public function __construct(string $library, int $firstRow, $mainColumn = 'A', $commentsColumn = 'Z', string $dateFormat = 'd/m/Y')
+	public function __construct(ProgramCache $programCache)
 	{
 		$this->fileSystem = new Filesystem();
+		$this->mainColumn = $programCache->getParameter('main_column') ?? 'A';
+		$this->firstRow = (int)$programCache->getParameter('first_row') ?? 1;
+		$this->dateFormat = $programCache->getOption('date_format_input') ?? 'd-m-Y';
 		
-		if ($mainColumn == false) $mainColumn = 'A';
-		if ($commentsColumn == false) $commentsColumn = 'Z';
-		if ($dateFormat == false) $dateFormat = 'd/m/Y';
-		
-		switch ($library) {
+		switch ($programCache->getOption('library')) {
 			case 'spout':
 				$this->library = self::SPOUT;
-				$this->commentsColumn = $commentsColumn;
+				$this->commentsColumn = $programCache->getParameter('comments_column') ?? 'A';;
 				break;
 		
 			case 'phpspreadsheet':
@@ -69,13 +69,8 @@ class Workbook
 				break;
 		
 			default:
-				throw new Exception(sprintf('La librarie "%s" n\'est pas supportée.', $library));
+				throw new Exception(sprintf('La librarie "%s" n\'est pas supportée.', $programCache->getOption('library')));
 		}
-		
-		$this->firstRow = $firstRow;
-		$this->mainColumn = $mainColumn;
-		$this->dateFormat = $dateFormat;
-		
 	}
 	
 	public function new(string $fileName, string $dirName, string $extensionName = '.xlsx')

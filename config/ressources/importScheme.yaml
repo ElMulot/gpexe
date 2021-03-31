@@ -26,20 +26,20 @@ get_document:
         regex: '.+' 
     then:
         -
-            regex: '\[\w+\b(?!(\b\.reference))[.\w+]+\]\s*\=\s*.+'
+            regex: '.+'
     else:
         -
-            regex: '\[\w+[.\w+]+\]\s*\=\s*.+'
+            regex: '.+'
    
 get_version:
     condition:
         regex: '.+' 
     then:
         -
-            regex: '\[\w+[.\w+]+\]\s*\=\s*.+'
+            regex: '.+'
     else:
         -
-            regex: '\[\w+[.\w+]+\]\s*\=\s*.+'
+            regex: '.+'
         
 option:
     move_from_mdr:

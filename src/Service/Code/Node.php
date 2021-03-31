@@ -3,17 +3,38 @@
 namespace App\Service\Code;
 
 
+use App\Entity\Metadata;
+use App\Entity\MetadataItem;
+use App\Entity\MetadataValue;
+use App\Entity\User;
+use App\Service\PropertyService;
+
 class Node extends AbstractNode
 {
-	public function getValue($entity): string
+	public function getValue($entity, $row): string
 	{
 		switch ($this->type) {
 			case self::CODE:
+				
 				return $this->value;
+				
 			case self::FIELD:
-				return $entity->getPropertyValue($this->value);
+				
+				$value = $entity->getPropertyValue($this->value);
+				if ($value instanceof \DateTimeInterface) {
+					return '\'' . $value->format('d-m-Y') . '\'';
+				} else {
+					return '\'' . addslashes($value) . '\'';
+				}
+				
 			case self::EXCEL:
-				return $entity->getCell($this->value)->getValue();
+				
+				$cell = $row->getCell($this->value);
+				if ($date = $cell->getDateTime()) {
+					return '(new Date(\'' . $date->format('d-m-Y') . '\'))';
+				} else {
+					return '\'' . addslashes($cell->getValue()) . '\'';
+				}
 		}
 	}
 }

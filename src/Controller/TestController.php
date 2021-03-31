@@ -29,6 +29,62 @@ class TestController extends AbstractController
 	{
 		
 		
+		set_time_limit(100);
+		
+		$count = 10000;
+		$search_index_end = $count * 1.5;
+		$search_index_start = $count * .5;
+		
+		$array = array();
+		
+		for ($i = 0; $i < $count; $i++)
+			$array[md5($i)] = $i;
+			
+			$start = microtime(true);
+			for ($i = $search_index_start; $i < $search_index_end; $i++) {
+				$key = md5($i);
+				$test = isset($array[$key]) ? $array[$key] : null;
+			}
+			$end = microtime(true);
+			echo ($end - $start) . " seconds<br/>";
+			
+			$start = microtime(true);
+			for ($i = $search_index_start; $i < $search_index_end; $i++) {
+				$key = md5($i);
+				$test = array_key_exists($key, $array) ? $array[$key] : null;
+			}
+			$end = microtime(true);
+			echo ($end - $start) . " seconds<br/>";
+			
+			
+			$start = microtime(true);
+			for ($i = $search_index_start; $i < $search_index_end; $i++) {
+				$key = md5($i);
+				$test = @$array[$key];
+			}
+			$end = microtime(true);
+			echo ($end - $start) . " seconds<br/>";
+			
+			$error_reporting = error_reporting();
+			error_reporting(0);
+			$start = microtime(true);
+			for ($i = $search_index_start; $i < $search_index_end; $i++) {
+				$key = md5($i);
+				$test = $array[$key];
+			}
+			$end = microtime(true);
+			echo ($end - $start) . " seconds<br/>";
+			error_reporting($error_reporting);
+			
+			$start = microtime(true);
+			for ($i = $search_index_start; $i < $search_index_end; $i++) {
+				$key = md5($i);
+				$tmp = &$array[$key];
+				$test = isset($tmp) ? $tmp : null;
+			}
+			$end = microtime(true);
+			echo ($end - $start) . " seconds<br/>";
+		
 		return new Response();
 	}
 	

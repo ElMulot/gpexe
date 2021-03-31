@@ -28,16 +28,16 @@ class ProgramCache
 	
 	private $parameters; //currentRow, filePath, documents_created, versions_created, count_processed
 	
-	private $options; //library, dateFormat
+	private $options; //library, dateFormat, move_from_mdr, move_from_sdr, rows_per_batch
 	
-	private $tree = [];
+	private $cache = [];
 	
 	public function __construct(FieldService $fieldService)
 	{
 		$this->fieldService = $fieldService;
 		$this->status = Cache::get('program.status') ?? self::PRELOAD;
 		$this->parameters = Cache::get('program.parameters') ?? [];
-		$this->tree = Cache::get('program.tree') ?? [];
+		$this->cache = Cache::get('program.cache') ?? [];
 		$this->options = Cache::get('program.options') ?? [
 			'date_format_input' => 'd-m-Y',
 			'date_format_output' => 'd-m-Y',
@@ -51,7 +51,7 @@ class ProgramCache
 		//save cache
 		Cache::set('program.status', $this->status);
 		Cache::set('program.parameters', $this->parameters);
-		Cache::set('program.tree', $this->tree);
+		Cache::set('program.cache', $this->cache);
 		Cache::set('program.options', $this->options);
 // 		Cache::set('program.type');
 // 		Cache::set('program.fields');
@@ -80,6 +80,9 @@ class ProgramCache
 		
 		//options
 		foreach ($program->getParsedCode('option') as $name => $value) {
+			$value = ($value == 'true')?1:$value;
+			$value = ($value == 'false')?0:$value;
+			
 			$this->setOption($name, $value);
 			if ($name === 'date_format') {
 				switch ($this->type) {
@@ -93,26 +96,63 @@ class ProgramCache
 			}
 		}
 		
-		//tree
+		//cache
 		switch ($this->type) {
 			case Program::EXPORT:
-				$this->tree['exclude'] = $this->walk($program->getParsedCode('exclude'));
-				$this->tree['write'] = $this->walk($program->getParsedCode('write'));
+				$this->cache['exclude'] = $this->walk($program->getParsedCode('exclude'), false);
+				foreach ($program->getParsedCode('write') as $write) {
+					$this->cache['write'][] = [
+						'condition'	=> $this->walk($write['condition'], true),
+						'to'		=> $this->walk($write['to']),
+						'value'		=> $this->walk($write['value']),
+						'title'		=> $this->walk($write['title']),
+					];
+				}
+				
 				break;
+				
 			case Program::IMPORT:
-				$this->tree['exclude'] = $this->walk($program->getParsedCode('exclude'));
-				$this->tree['get_serie'] = $this->walk($program->getParsedCode('get_serie'));
-				$this->tree['get_document'] = $this->walk($program->getParsedCode('get_document'));
-				$this->tree['get_version'] = $this->walk($program->getParsedCode('get_version'));
+				$this->cache['exclude'] = $this->walk($program->getParsedCode('exclude'), false);
+				$this->cache['get_serie'] = $this->walk($program->getParsedCode('get_serie'), true);
+				$this->cache['get_document'] = [
+					'condition'	=> $this->walk($program->getParsedCode('get_document', 'condition'), true),
+					'then'		=> $this->walk($program->getParsedCode('get_document', 'then')),
+					'else'		=> $this->walk($program->getParsedCode('get_document', 'else')),
+				];
+				$this->cache['get_version'] = [
+					'condition'	=> $this->walk($program->getParsedCode('get_version', 'condition'), true),
+					'then'		=> $this->walk($program->getParsedCode('get_version', 'then')),
+					'else'		=> $this->walk($program->getParsedCode('get_version', 'else')),
+				];
+				
+				//remove lines which doesn't have variable
+				$this->removeLinesWithErrors($this->cache['get_document']['then']);
+				$this->removeLinesWithErrors($this->cache['get_document']['else']);
+				$this->removeLinesWithErrors($this->cache['get_version']['then']);
+				$this->removeLinesWithErrors($this->cache['get_version']['else']);
+				
 				break;
+				
 			case Program::TASK:
-// 				$this->tree['exclude'] = $this->walk($program->getParsedCode('exclude'));
-				$this->tree['update'] = $this->walk($program->getParsedCode('update'));
+				$this->cache['exclude'] = $this->walk($program->getParsedCode('exclude'), false);
+				$this->cache['update'] = [
+					'condition'	=> $this->walk($program->getParsedCode('update', 'condition'), true),
+					'then'		=> $this->walk($program->getParsedCode('update', 'then')),
+					'else'		=> $this->walk($program->getParsedCode('update', 'else')),
+				];
+				
+				//remove lines which doesn't have variable
+				$this->removeLinesWithErrors($this->cache['update']['then']);
+				$this->removeLinesWithErrors($this->cache['update']['else']);
+				
 				break;
+				
 			case Program::PROGRESS:
-				$this->tree['exclude'] = $this->walk($program->getParsedCode('exclude'));
-				$this->tree['rules'] = $this->walk($program->getParsedCode('rules'));
+				$this->cache['exclude'] = $this->walk($program->getParsedCode('exclude'), false);
+				$this->cache['rules'] = $this->walk($program->getParsedCode('rules'), true);
+				
 				break;
+				
 		}
 	}
 	
@@ -153,9 +193,7 @@ class ProgramCache
 	
 	public function setOption(string $name, $value)
 	{
-		if ($value) {
-			$this->options[$name] = $value;
-		}
+		$this->options[$name] = $value;
 	}
 	
 	public function getStatus(): int
@@ -183,45 +221,40 @@ class ProgramCache
 		return $this->status === self::COMPLETED;
 	}
 	
-	private function walk($codeArray): array
+	private function walk($code, $valueIfEmpty = '')
 	{
-		$tree = [];
-		foreach ($codeArray as $key => $code) {
-			if (is_array($code)) {
-				$tree[$key] = $this->walk($code);
-			} else {
-				$tree[$key] = new Expression($code, $this);
+		if (is_array($code)) {
+			$cache = [];
+			foreach ($code as $key => $item) {
+				$cache[$key] = $this->walk($item, $valueIfEmpty);
+			}
+		} elseif ($code) {
+			$cache = new Expression($code, $this);
+		} else {
+			$cache = new Expression($valueIfEmpty, $this);
+		}
+		return $cache;
+	}
+	
+	private function removeLinesWithErrors(&$array)
+	{
+		foreach ($array as $key => $item) {
+			if ($item->hasVariable() === false) {
+				unset($array[$key]);
 			}
 		}
-		return $tree;
 	}
 	
-	public function getNode($entity, ...$keys)
+	public function getCache()
 	{
-		$tree = $this->tree;
-		foreach ($keys as $key) {
-			$tree = $tree[$key];
-		}
-		dd($tree);
-		dd($tree->getNode($entity));
-		
-	}
-	
-	public function getVariable(...$keys)
-	{
-		$tree = $this->tree;
-		foreach ($key as $keys) {
-			$tree = $tree[$key];
-		}
-		
-		return $tree->getVariable();
-			
+		return $this->cache;
 	}
 	
 	public static function clear()
 	{
 		Cache::delete('program.status');
 		Cache::delete('program.parameters');
+		Cache::delete('program.cache');
 		Cache::delete('program.tree');
 		Cache::delete('program.options');
 	}
