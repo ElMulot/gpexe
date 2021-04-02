@@ -76,38 +76,6 @@ class AutomationController extends AbstractController
 	public function cron(): Response
 	{
 		
-		$entityManager = $this->getDoctrine()->getManager();
-		
-		$this->getDoctrine()->getRepository(MetadataValue::class)->deleteMetadataValueOrphans();
-		$this->getDoctrine()->getRepository(CodificationValue::class)->deleteCodificationValueOrphans();
-		
-		$automations = $this->automationRepository->getAutomationsToRun();
-		
-		foreach ($automations as $automation) {
-			switch ($automation->getRoute()) {
-				case ProgramService::class . '::automation':
-					
-					$program = $this->getDoctrine()->getRepository(Program::class)->find($automation->getParameters()['program'] ?? 0);					
-					if ($program === null) {
-						continue;
-					}
-					
-					$this->getDoctrine()->getRepository(Progress::class)->deleteProgressByProgramAndByDate($program, $automation->getNextRun());
-					
-					if (call_user_func_array(array($this->programService, 'automation'), [$program])) {
-						
-						$automation->setLastRun(new Date());
-						$nextRun = clone $automation->getNextRun();
-						while ($nextRun < (new Date())->add('P' . $program->getParsedCode('frequency') . 'D')) {
-							$automation->setNextRun($nextRun->add('P' . $program->getParsedCode('frequency') . 'D'));
-						}
-						$entityManager->persist($automation);
-					}
-					break;
-			}
-		}
-		
-		$entityManager->flush();
 		return new Response();
 	}
 }

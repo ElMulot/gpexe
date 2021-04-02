@@ -14,6 +14,7 @@ use Spatie\Regex\Regex;
 use App\Service\Code\Node;
 use App\Service\RegexService;
 use App\Helpers\Date;
+use Symfony\Component\Validator\Constraints\Count;
 
 class TestController extends AbstractController
 {
@@ -28,64 +29,38 @@ class TestController extends AbstractController
 	public function index(): Response
 	{
 		
+		$entityManager = $this->getDoctrine()->getManager();
 		
-		set_time_limit(100);
+		foreach ($this->getDoctrine()->getRepository(Project::class)->getAllProjects() as $project) {
+			
+			$series = $this->getDoctrine()->getRepository(Serie::class)->getHydratedSeries($project);
+				
+			foreach ($series as $serie) {
+				foreach ($serie->getDocuments()->getValues() as $d) {
+					
+					$n = 0;
+					foreach ($d->getVersions()->getValues() as $v) {
+						if ($v->getIsRequired() === true) $n++;
+					}
+					if ($n > 1) {
+						foreach ($d->getVersions()->getValues() as $v) {
+							if ($v->getName() == "A0" && $v->getIsRequired() === true) {
+								dump($d->getReference() . ' - ' . $v->getName());
+								$d->removeVersion($v);
+								$entityManager->persist($d);
+								break;
+							}
+						}
+					}
+					
+				}
+			}
+		}
 		
-		$count = 10000;
-		$search_index_end = $count * 1.5;
-		$search_index_start = $count * .5;
-		
-		$array = array();
-		
-		for ($i = 0; $i < $count; $i++)
-			$array[md5($i)] = $i;
-			
-			$start = microtime(true);
-			for ($i = $search_index_start; $i < $search_index_end; $i++) {
-				$key = md5($i);
-				$test = isset($array[$key]) ? $array[$key] : null;
-			}
-			$end = microtime(true);
-			echo ($end - $start) . " seconds<br/>";
-			
-			$start = microtime(true);
-			for ($i = $search_index_start; $i < $search_index_end; $i++) {
-				$key = md5($i);
-				$test = array_key_exists($key, $array) ? $array[$key] : null;
-			}
-			$end = microtime(true);
-			echo ($end - $start) . " seconds<br/>";
-			
-			
-			$start = microtime(true);
-			for ($i = $search_index_start; $i < $search_index_end; $i++) {
-				$key = md5($i);
-				$test = @$array[$key];
-			}
-			$end = microtime(true);
-			echo ($end - $start) . " seconds<br/>";
-			
-			$error_reporting = error_reporting();
-			error_reporting(0);
-			$start = microtime(true);
-			for ($i = $search_index_start; $i < $search_index_end; $i++) {
-				$key = md5($i);
-				$test = $array[$key];
-			}
-			$end = microtime(true);
-			echo ($end - $start) . " seconds<br/>";
-			error_reporting($error_reporting);
-			
-			$start = microtime(true);
-			for ($i = $search_index_start; $i < $search_index_end; $i++) {
-				$key = md5($i);
-				$tmp = &$array[$key];
-				$test = isset($tmp) ? $tmp : null;
-			}
-			$end = microtime(true);
-			echo ($end - $start) . " seconds<br/>";
+// 		$entityManager->flush();
 		
 		return new Response();
+		
 	}
 	
 	private function clearDuplicateDocuments()
