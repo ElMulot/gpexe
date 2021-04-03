@@ -24,7 +24,7 @@ App\Entity\CodificationItem:
             
 App\Entity\CodificationValue:
     properties:
-        name:
+        value:
             - Regex: '/^[^$"]+$/'
 
 App\Entity\Company:
@@ -75,9 +75,6 @@ App\Entity\MetadataItem:
         - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity:
             fields: ['value', 'metadata']
     properties:
-        name:
-            - Regex: '/^[^$"]+$/'
-            - NotBlank: ~
         value:
             - Regex: '/^[^$"]+$/'
             

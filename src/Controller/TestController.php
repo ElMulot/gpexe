@@ -29,35 +29,27 @@ class TestController extends AbstractController
 	public function index(): Response
 	{
 		
-		$entityManager = $this->getDoctrine()->getManager();
+		$d = Date::fromFormat('');
 		
-		foreach ($this->getDoctrine()->getRepository(Project::class)->getAllProjects() as $project) {
-			
-			$series = $this->getDoctrine()->getRepository(Serie::class)->getHydratedSeries($project);
-				
-			foreach ($series as $serie) {
-				foreach ($serie->getDocuments()->getValues() as $d) {
-					
-					$n = 0;
-					foreach ($d->getVersions()->getValues() as $v) {
-						if ($v->getIsRequired() === true) $n++;
-					}
-					if ($n > 1) {
-						foreach ($d->getVersions()->getValues() as $v) {
-							if ($v->getName() == "A0" && $v->getIsRequired() === true) {
-								dump($d->getReference() . ' - ' . $v->getName());
-								$d->removeVersion($v);
-								$entityManager->persist($d);
-								break;
-							}
-						}
-					}
-					
-				}
-			}
-		}
+		dump($d->isValid());
 		
-// 		$entityManager->flush();
+		
+// 		$s = new Stopwatch();
+		
+// 		$s->start('a');
+		
+// 		for ($i=0; $i<10000; $i++) {
+// 			$d1 = null;
+// 			$d1 = Date::fromFormat('');
+// 		}
+		
+// 		$e = $s->stop('a');
+// 		dump((string)$d1, $e->getDuration());
+
+		dd();
+
+		
+// 		dump($d->format());
 		
 		return new Response();
 		

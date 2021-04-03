@@ -22,6 +22,7 @@ class Expression
 	
 	public function __construct($expression, ProgramCache $programCache)
 	{
+		
 		//security
 		$expression = str_replace('$', '', $expression);
 		
@@ -29,7 +30,7 @@ class Expression
 		$expression = Regex::replace('/((?:get|match)\s+\/\S*)(?<!\\\\)"(\S*\/)/', '$1\\\\"$2', $expression)->result();
 		
 		//extract strings inside " and replace it by a reference
-		$expression = Regex::replace('/(?<!\\\\)"(.+?)(?<!\\\\)"/', function(MatchResult $result) {
+		$expression = Regex::replace('/(?<!\\\\)"(.*?)(?<!\\\\)"/', function(MatchResult $result) {
 			$this->strings[] = $result->group(1);
 			return '[s' . (sizeof($this->strings) - 1) . ']';
 		}, $expression)->result();
@@ -87,14 +88,14 @@ class Expression
 		//rewrite date for fields (eg [version.date])
 		$expression = Regex::replace('/\[(\w+(?:\.\w+)+)\]/', function(MatchResult $result) use ($programCache) {
 			if ($programCache->getFieldType($result->group(1)) === Metadata::DATE) {
-				return '(new Date(' .  $result->result() . '))';
+				return 'Date::fromFormat(' .  $result->result() . ')';
 			} else {
 				return $result->result();
 			}
 		}, $expression)->result();
 		
 		//replace keywords
-		$expression = str_replace('[date.now]', '(new Date())', $expression);
+		$expression = str_replace('[date.now]', '(new Date(\'now\'))', $expression);
 		$expression = str_replace('[user.name]', '\'' . $programCache->getParameter('current_user') . '\'', $expression);
 		$expression = str_ireplace(' and ', ' && ', $expression);
 		$expression = str_ireplace(' or ', ' || ', $expression);
@@ -117,7 +118,8 @@ class Expression
 	private function getString(int $id): string
 	{
 		$string = $this->strings[$id] ?? '';
-		if ($date = Date::fromFormat($string, 'd-m-Y')) {
+		$date = Date::fromFormat($string, 'd-m-Y');
+		if ($date->isValid() === true) {
 			return '(new Date(\'' . $date->format('d-m-Y') . '\'))';
 		} else {
 			return '\'' . $string . '\'';
@@ -168,13 +170,10 @@ class Expression
 		$nodes = array_map(function ($item) use ($entity, $row) {
 			return $item->getValue($entity, $row);
 		}, $this->nodes);
-			
 		try {
 			return eval('use App\Helpers\Date; return ' . join('', $nodes) . ';');
 		} catch (\ParseError $e) {
-			
-			dd($this->nodes, $nodes, $entity, 'parse error' . $e->getMessage() . " :\n" . join('', $nodes));
-// 			$this->flashBag->add('danger', $e->getMessage() . " :\n" . join('', $nodes));
+// 			$this->programCache->addToFlashBag($e->getMessage() . " :\n" . join('', $nodes));
 			return false;
 		}
 	}

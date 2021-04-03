@@ -186,7 +186,8 @@ class Cell
 					return $this->_cell->getValue();
 				} else {
 					$dateFormat = $this->row->getSheet()->getWorkbook()->getDateFormat();
-					if ($date = Date::fromFormat($this->_cell->getValue(), $dateFormat)) {
+					$date = Date::fromFormat($this->_cell->getValue(), $dateFormat);
+					if ($date->isValid() === true) {
 						return $date;
 					}
 				}
@@ -197,7 +198,8 @@ class Cell
 					return DateManager::excelToDateTimeObject($this->getValue());
 				} else {
 					$dateFormat = $this->row->getSheet()->getWorkbook()->getDateFormat();
-					if ($date = Date::fromFormat($this->getValue(), $dateFormat)) {
+					$date = Date::fromFormat($this->getValue(), $dateFormat);
+					if ($date->isValid() === true) {
 						return $date;
 					}
 				}

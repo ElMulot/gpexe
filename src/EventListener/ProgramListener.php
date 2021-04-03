@@ -31,7 +31,7 @@ class ProgramListener
 			case Program::TASK:
 			case Program::PROGRESS:
 				$frequency = $program->getParsedCode('frequency') ?? 7;
-				$nextRun = (new Date())->add('P' . $frequency . 'D');
+				$nextRun = (new Date('now'))->add('P' . $frequency . 'D');
 				$automation = new Automation;
 				$automation->setEnabled($program->getEnabled());
 				$automation->setNextRun($nextRun);

@@ -4,10 +4,8 @@ namespace App\Service\Code;
 
 use App\Entity\Program;
 use App\Service\FieldService;
-use Spatie\Regex\Regex;
-use Spatie\Regex\MatchResult;
-use Symfony\Component\Security\Core\Security;
 use App\Helpers\Cache;
+use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
 
 
 class ProgramCache
@@ -19,7 +17,9 @@ class ProgramCache
 	const COMPLETED	= 3;
 			
 	private $fieldService;
-		
+	
+	private $flashBag;
+	
 	private $type;
 	
 	private $fields;
@@ -32,9 +32,10 @@ class ProgramCache
 	
 	private $cache = [];
 	
-	public function __construct(FieldService $fieldService)
+	public function __construct(FieldService $fieldService, FlashBagInterface $flashBag)
 	{
 		$this->fieldService = $fieldService;
+		$this->flashBag = $flashBag;
 		$this->status = Cache::get('program.status') ?? self::PRELOAD;
 		$this->parameters = Cache::get('program.parameters') ?? [];
 		$this->cache = Cache::get('program.cache') ?? [];
@@ -42,8 +43,6 @@ class ProgramCache
 			'date_format_input' => 'd-m-Y',
 			'date_format_output' => 'd-m-Y',
 		];
-// 		$this->type = Cache::get('program.type') ?? null;
-// 		$this->fields = Cache::get('program.fields') ?? null;
 	}
 	
 	public function __destruct()
@@ -53,8 +52,6 @@ class ProgramCache
 		Cache::set('program.parameters', $this->parameters);
 		Cache::set('program.cache', $this->cache);
 		Cache::set('program.options', $this->options);
-// 		Cache::set('program.type');
-// 		Cache::set('program.fields');
 	}
 	
 	public function setProgram(Program $program)
@@ -125,7 +122,7 @@ class ProgramCache
 					'else'		=> $this->walk($program->getParsedCode('get_version', 'else')),
 				];
 				
-				//remove lines which doesn't have variable
+				//remove lines which don't have variable
 				$this->removeLinesWithErrors($this->cache['get_document']['then']);
 				$this->removeLinesWithErrors($this->cache['get_document']['else']);
 				$this->removeLinesWithErrors($this->cache['get_version']['then']);
@@ -135,21 +132,34 @@ class ProgramCache
 				
 			case Program::TASK:
 				$this->cache['exclude'] = $this->walk($program->getParsedCode('exclude'), false);
-				$this->cache['update'] = [
-					'condition'	=> $this->walk($program->getParsedCode('update', 'condition'), true),
-					'then'		=> $this->walk($program->getParsedCode('update', 'then')),
-					'else'		=> $this->walk($program->getParsedCode('update', 'else')),
-				];
+				foreach ($program->getParsedCode('update') as $update) {
+					$this->cache['update'][] = [
+						'condition'	=> $this->walk($update['condition'], true),
+						'then'		=> $this->walk($update['then']),
+						'else'		=> $this->walk($update['else']),
+					];
+				}
 				
-				//remove lines which doesn't have variable
-				$this->removeLinesWithErrors($this->cache['update']['then']);
-				$this->removeLinesWithErrors($this->cache['update']['else']);
+				//remove lines which don't have variable
+				foreach ($this->cache['update'] as &$update) {
+					$this->removeLinesWithErrors($update['then']);
+					$this->removeLinesWithErrors($update['else']);
+				}
 				
 				break;
 				
 			case Program::PROGRESS:
 				$this->cache['exclude'] = $this->walk($program->getParsedCode('exclude'), false);
 				$this->cache['rules'] = $this->walk($program->getParsedCode('rules'), true);
+				
+				//sort rules by value descending order
+				usort($this->cache['rules'], function ($a, $b) {
+					if ($a['value']->getValue() == $b['value']->getValue()) {
+						return 0;
+					} else {
+						return ($a['value']->getValue() > $b['value']->getValue())?-1:1;
+					}
+				});
 				
 				break;
 				
@@ -221,6 +231,19 @@ class ProgramCache
 		return $this->status === self::COMPLETED;
 	}
 	
+	public function getCache()
+	{
+		return $this->cache;
+	}
+	
+	public static function clear()
+	{
+		Cache::delete('program.status');
+		Cache::delete('program.parameters');
+		Cache::delete('program.cache');
+		Cache::delete('program.options');
+	}
+	
 	private function walk($code, $valueIfEmpty = '')
 	{
 		if (is_array($code)) {
@@ -243,20 +266,6 @@ class ProgramCache
 				unset($array[$key]);
 			}
 		}
-	}
-	
-	public function getCache()
-	{
-		return $this->cache;
-	}
-	
-	public static function clear()
-	{
-		Cache::delete('program.status');
-		Cache::delete('program.parameters');
-		Cache::delete('program.cache');
-		Cache::delete('program.tree');
-		Cache::delete('program.options');
 	}
 }
 

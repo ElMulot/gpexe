@@ -567,6 +567,16 @@ class Document
     {
     	
     	switch ($codename) {
+    		
+    		case 'serie.name':
+    			foreach ($this->getSerie()->getProject()->getSeries()->getValues() as $serie) {
+    				if ($serie->getName() == $value) {
+    					$this->setSerie($serie);
+    					return true;
+    				}
+    			}
+    			return false;
+    			
     		case 'document.name':
     			$this->setName($value);
     			return true;

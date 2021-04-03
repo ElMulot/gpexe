@@ -88,6 +88,12 @@ class ProgramService
 		$this->targetDirectory = $targetDirectory;
 		$this->comments = [];
 		$this->stopWatch = new Stopwatch();
+		$this->programCache = new ProgramCache($this->fieldService, $this->flashBag);
+	}
+	
+	public function getCache()
+	{
+		return $this->programCache;
 	}
 	
 	public function preload(Program $program, Request $request, File $file = null): bool
@@ -96,7 +102,6 @@ class ProgramService
 		$this->flashBag->add('info', 'Démarrage de l\'opération');
 		
 		//setting up cache
-		$this->programCache = new ProgramCache($this->fieldService);
 		$this->programCache->setParameter('current_user', $this->security->getUser()->getName());
 		$this->programCache->setProgram($program);
 		
@@ -133,11 +138,12 @@ class ProgramService
 				return false;
 		}
 		
+		
+		
 	}
 	
 	public function load(Program $program): bool
 	{
-		$this->programCache = new ProgramCache($this->fieldService);
 		
 		switch ($program->getType()) {
 			
@@ -185,7 +191,6 @@ class ProgramService
 					return false;
 				}
 				
-				$this->programCache->setParameter('current_row', $firstRow + 1);
 				$this->programCache->setParameter('file_path', $this->workbook->getPath());
 				$this->programCache->setStatus(ProgramCache::NEW_BATCH);
 				return true;
@@ -220,7 +225,6 @@ class ProgramService
 					return false;
 				}
 				
-// 				$this->programCache->setParameter('current_row', $firstRow);
 // 				$this->programCache->setParameter('file_path', $this->workbook->getPath());
 				$this->programCache->setStatus(ProgramCache::NEW_BATCH);
 				return true;
@@ -257,8 +261,9 @@ class ProgramService
 		}
 	}
 	
-	public function unload(Program $program): bool
+	public function unload(): bool
 	{
+		$this->programCache = null;
 		ProgramCache::clear();
 		return true;
 	}
@@ -269,11 +274,9 @@ class ProgramService
 		$this->stopWatch->start('export');
 		
 		//cache
-		$this->programCache = new ProgramCache($this->fieldService);
 		$project = $program->getProject();
 		$cache = $this->programCache->getCache();
 		$firstRow = $this->programCache->getParameter('first_row');
-		$currentRow = $this->programCache->getParameter('current_row');
 		$countProcessed = (int)$this->programCache->getParameter('count_processed');
 		$newBatch = false;
 		
@@ -295,6 +298,8 @@ class ProgramService
 		//load datas
 		$series = $this->serieRepository->getHydratedSeries($project);
 // 		$series = [];
+		
+		$currentRow = $firstRow+1;
 		
 		foreach ($series as $serie) {
 			foreach ($serie->getDocuments() as $document) {
@@ -333,7 +338,7 @@ class ProgramService
 			$this->programCache->setStatus(ProgramCache::NEW_BATCH);
 			$this->flashBag->add('success', ($row->getAddress() - $firstRow - 1) . '/' .  $countProcessed . ' lignes exportées (' . $event->getDuration()/1000 . ' s; ' . $event->getMemory()/1048576 . ' Mo)');
 			$this->programCache->setParameter('count_processed', $countProcessed);
-			$this->programCache->setParameter('current_row', $row->getAddress() + 1);
+			$this->programCache->setParameter('first_row', $currentRow + 1);
 		}
 		
 		try {
@@ -348,16 +353,15 @@ class ProgramService
 	
 	public function import(Program $program): bool
 	{
-// 		set_time_limit(500);
+		set_time_limit(500);
 		$this->stopWatch->start('import');
 		
 		//cache
-		$this->programCache = new ProgramCache($this->fieldService);
 		$project = $program->getProject();
 		$cache = $this->programCache->getCache();
 		$firstRow = $this->programCache->getParameter('first_row');
-		$currentRow = $this->programCache->getParameter('current_row') ?? $firstRow;
-		$countProcessed = (int)$this->programCache->getParameter('count_processed');
+		$countProcessed = (int)$this->programCache->getParameter('count_processed') ?? 0;
+		$countUpdated = (int)$this->programCache->getParameter('count_updated') ?? 0;
 		$documentsCreated = (int)$this->programCache->getParameter('documents_created');
 		$versionsCreated = (int)$this->programCache->getParameter('versions_created');
 		$newBatch = false;
@@ -387,13 +391,15 @@ class ProgramService
 		$series = $this->serieRepository->getHydratedSeries($project);
 // 		$series = [];
 		
+		$currentRow = $firstRow;
+		
 		while ($row = $sheet->getRow($currentRow)) {
 			
 			if ($row->getCell($this->workbook->getMainColumn())->isEmpty()) {
 				break;
 			}
 			
-			if ($row->getAddress() - $currentRow >= $this->programCache->getOption('rows_per_batch')) {
+			if ($currentRow - $firstRow >= $this->programCache->getOption('rows_per_batch')) {
 				$newBatch = true;
 				break;
 			}
@@ -404,6 +410,7 @@ class ProgramService
 					$row->setBackgroundColor(self::IGNORE_COLOR);
 					$this->addComment('ignore', "Ligne exclue via l'instruction 'Exclude'.");
 					$this->writeComments($row);
+					$countProcessed++;
 					$currentRow++;
 					continue 2;
 				}
@@ -431,6 +438,7 @@ class ProgramService
 				if ($currentDocument === null) {
 					$this->addComment('error', "Ligne exclue : document non trouvé.");
 					$this->writeComments($row);
+					$countProcessed++;
 					$currentRow++;
 					continue;
 				}
@@ -448,6 +456,7 @@ class ProgramService
 				if ($currentSerie === null) {
 					$this->addComment('error', "Ligne exclue : série non trouvée.");
 					$this->writeComments($row);
+					$countProcessed++;
 					$currentRow++;
 					continue;
 				}
@@ -474,6 +483,7 @@ class ProgramService
 									} else {
 										$this->addComment('error', "Document trouvé dans une autre série du MDR.");
 										$this->writeComments($row);
+										$countProcessed++;
 										$currentRow++;
 										continue(3);
 									}
@@ -487,6 +497,7 @@ class ProgramService
 									} else {
 										$this->addComment('error', "Document trouvé dans une autre série du SDR.");
 										$this->writeComments($row);
+										$countProcessed++;
 										$currentRow++;
 										continue(3);
 									}
@@ -509,7 +520,7 @@ class ProgramService
 					
 				}
 				
-			} elseif ($this->programCache->getOption('update_only') === false) {
+			} elseif ($this->programCache->getOption('update_only') == false) {
 				
 				foreach ($cache['get_document']['else'] as $else) {
 					
@@ -531,6 +542,7 @@ class ProgramService
 						$documentsCreated--;
 						
 						$this->writeComments($row);
+						$countProcessed++;
 						$currentRow++;
 						continue 2;
 					} else {
@@ -544,6 +556,7 @@ class ProgramService
 				
 				$this->addComment('error', "Ligne exclue : document non trouvé.");
 				$this->writeComments($row);
+				$countProcessed++;
 				$currentRow++;
 				continue;
 				
@@ -561,7 +574,7 @@ class ProgramService
 			if ($currentVersion !== null) {
 				
 				foreach ($cache['get_version']['then'] as $then) {
-					
+										
 					if ($currentVersion->setPropertyValue($then->getVariable(), $then->eval($currentVersion, $row)) === true) {
 						$this->addComment('valid', "Champ '{$then->getVariable()}' mis à jour.");
 					} else {
@@ -570,7 +583,7 @@ class ProgramService
 					
 				}
 				
-			} elseif ($this->programCache->getOption('update_only') === false) {
+			} elseif ($this->programCache->getOption('update_only') == false) {
 				
 				
 				foreach ($cache['get_version']['else'] as $else) {
@@ -625,6 +638,7 @@ class ProgramService
 						
 						$versionsCreated--;
 						$this->writeComments($row);
+						$countProcessed++;
 						$currentRow++;
 						continue 2;
 					} else {
@@ -637,12 +651,13 @@ class ProgramService
 				
 				$this->addComment('warning', "Version non trouvée.");
 				$this->writeComments($row);
+				$countProcessed++;
 				$currentRow++;
 				continue;
 				
 			}
 			
-			if ($this->programCache->getParameter('ready_to_persist') === true) {
+			if ($this->programCache->getParameter('ready_to_persist') == true) {
 				if ($currentVersion !== null) {
 					$this->entityManager->persist($currentVersion);
 				} elseif ($currentDocument !== null) {
@@ -654,6 +669,7 @@ class ProgramService
 			
 			$this->writeComments($row);
 			$countProcessed++;
+			$countUpdated++;
 			$currentRow++;
 		}
 		
@@ -664,15 +680,16 @@ class ProgramService
 			
 			$this->programCache->setStatus(ProgramCache::COMPLETED);
 			
-			if ($this->programCache->getOption('ready_to_persist')) {
+			if ($this->programCache->getOption('ready_to_persist') == true) {
 				$this->entityManager->flush();
-				$this->flashBag->add('success', 'Import terminé : ' . $countProcessed . '/' . ($currentRow - $firstRow) . ' lignes ont été exploitées');
+				$this->flashBag->add('success', 'Import terminé : ' . $countUpdated . '/' . $countProcessed . ' lignes ont été exploitées');
 				$this->flashBag->add('success', $documentsCreated . ' documents ont été créés');
 				$this->flashBag->add('success', $versionsCreated . ' révisions ont été créées');
 			} else {
-				$this->flashBag->add('success', 'Vérification terminée : ' . $countProcessed . '/' . ($currentRow - $firstRow) . ' lignes peuvent être importées');
+				$this->flashBag->add('success', 'Vérification terminée : ' . $countUpdated . '/' . $countProcessed . ' lignes peuvent être importées');
 				$this->flashBag->add('success', $documentsCreated . ' documents peuvent être créés');
 				$this->flashBag->add('success', $versionsCreated . ' révisions peuvent être créées');
+				
 				try {
 					$this->workbook->save();
 				} catch (Exception $e) {
@@ -683,10 +700,11 @@ class ProgramService
 		} else {
 			
 			$this->programCache->setStatus(ProgramCache::NEW_BATCH);
+			$this->programCache->setParameter('first_row', $currentRow);
 			$this->programCache->setParameter('count_processed', $countProcessed);
-			$this->programCache->setParameter('current_row', $currentRow);
+			$this->programCache->setParameter('count_updated', $countUpdated);
 			
-			if ($this->programCache->getOption('ready_to_persist')) {
+			if ($this->programCache->getOption('ready_to_persist') == true) {
 				$this->entityManager->flush();
 			} else {
 				try {
@@ -704,9 +722,8 @@ class ProgramService
 	public function task(Program $program): bool
 	{
 // 		set_time_limit(500);
-		$this->stopWatch->start('export');
+		$this->stopWatch->start('task');
 		
-		$this->programCache = new ProgramCache($this->fieldService);
 		$project = $program->getProject();
 		$cache = $this->programCache->getCache();
 		$countProcessed = 0;
@@ -733,7 +750,7 @@ class ProgramService
 					
 					foreach ($cache['update'] as $update) {
 						
-						if ($update->eval($version) == true) {
+						if ($update['condition']->eval($version) == true) {
 							
 							foreach ($update['then'] as $then) {
 								if ($version->setPropertyValue($then->getVariable(), $then->eval($version)) === true) {
@@ -761,13 +778,13 @@ class ProgramService
 			}
 		}
 		
-		$event = $this->stopWatch->stop('export');
+		$event = $this->stopWatch->stop('task');
 		
 		if ($newBatch === false) {
 			
 			$this->programCache->setStatus(ProgramCache::COMPLETED);
 			
-			if ($this->programCache->getOption('ready_to_persist')) {
+			if ($this->programCache->getOption('ready_to_persist') == true) {
 				$this->entityManager->flush();
 				$this->flashBag->add('success', 'Tâche réussie. ' . $countUpdated . '/' .  $countProcessed . ' entrées modifiées (' . $event->getDuration()/1000 . ' s; ' . $event->getMemory()/1048576 . ' Mo)');
 			} else {
@@ -789,7 +806,6 @@ class ProgramService
 // 		set_time_limit(500);
 		
 		//cache
-		$this->programCache = new ProgramCache($this->fieldService);
 		$project = $program->getProject();
 		$cache = $this->programCache->getCache();
 		$progress = [];
@@ -832,13 +848,14 @@ class ProgramService
 						}
 						
 						$countValidated[$key] = ($countValidated[$key] ?? 0) + 1;
-						
 						if ($countValidated[$key] >= $rule['count']->getValue()) {
 							$maxValue = max($maxValue, $rule['value']->getValue());
 							break;
 						}
 					}
+					
 				}
+				
 				$progress[$serie->getId()] += $maxValue;
 			}
 			
@@ -847,6 +864,7 @@ class ProgramService
 			} else {
 				$progress[$serie->getId()] = 0;
 			}
+			
 		}
 		
 		return $progress;
@@ -1067,8 +1085,7 @@ class ProgramService
 	
 	private function addComment($type, $text, $col = null)
 	{
-		
-		if ($this->programCache->getParameter('ready_to_persist') === false) {
+		if ($this->programCache->getOption('ready_to_persist') == false) {
 			$this->comments[] = [
 				'type' => $type,
 				'text' => $text,
@@ -1080,7 +1097,7 @@ class ProgramService
 	private function writeComments(Row $row)
 	{
 		
-		if ($this->programCache->getParameter('ready_to_persist') === false) {
+		if ($this->programCache->getOption('ready_to_persist') == false) {
 			$type = null;
 			foreach ($this->comments as $comment) {
 				if ($type === null) {
@@ -1110,7 +1127,7 @@ class ProgramService
 				default:
 					return;
 			}
-			
+			$row->getCell("Z")->setValue('jjj');
 			$numberOfLines = 0;
 			foreach ($this->comments as $comment) {
 				
@@ -1118,8 +1135,8 @@ class ProgramService
 				
 				if ($comment['col'] !== null) {
 					$row->getCell($comment['col'])
-					->addComment($comment['text'])
-					->setBorder(self::BORDER_COLOR)
+						->addComment($comment['text'])
+						->setBorder(self::BORDER_COLOR)
 					;
 				}
 				

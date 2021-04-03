@@ -5,33 +5,59 @@ namespace App\Helpers;
 
 class Date extends \DateTime {
 	
-	public function format($format = 'd-m-Y'): string
+	private $isValid;
+	
+	public function __construct (string $time = null, \DateTimeZone $timezone = null)
 	{
-		return parent::format($format);
+		if ($time == false) {
+			$this->isValid = false;
+			parent::__construct("1970-01-01", null);
+		} else {
+			$this->isValid = true;
+			parent::__construct($time, $timezone);
+		}
 	}
 	
-	public function add($interval)
+	public function isValid(): bool
 	{
-		$dateInterval = new \DateInterval($interval);
-		parent::add($dateInterval);
+		return $this->isValid;
+	}
+	
+	public function format($format = 'd-m-Y'): string
+	{
+		if ($this->isValid) {
+			return parent::format($format);
+		} else {
+			return '';
+		}
+	}
+	
+	public function add($interval): Date
+	{
+		if ($this->isValid) {
+			$dateInterval = new \DateInterval($interval);
+			parent::add($dateInterval);
+		}
 		return $this;
 	}
 	
-	public function sub($interval)
+	public function sub($interval): Date
 	{
-		$dateInterval = new \DateInterval($interval);
-		parent::sub($dateInterval);
+		if ($this->isValid) {
+			$dateInterval = new \DateInterval($interval);
+			parent::sub($dateInterval);
+		}
 		return $this;
 	}
 	
 	public static function fromFormat($expression, $format = 'd-m-Y'): ?\DateTime
 	{
-		
 		$date = \DateTime::createFromFormat($format, $expression);
 		if ($date && $date->format($format) === $expression) {
 			return new static($date->format(\DateTime::ATOM));
+		} else {
+			return new static();
 		}
-		return null;
 	}
 	
 	public static function getWorkingDays(\DateTime $date1, \DateTime $date2): ?int
@@ -79,7 +105,20 @@ class Date extends \DateTime {
 		return $nbFullWeeks * 5 + max($nbRemainingDays, 0);
 	}
 	
-	public function __toString()
+	public function diff($date2, $absolute = null): ?\DateInterval
+	{
+		if ($this->isValid === false)
+			return null;
+		elseif (($date2 instanceof Date) === false) {
+			return null;
+		} elseif ($date2->isValid === false) {
+			return null;
+		} else {
+			return parent::diff($date2, $absolute);
+		}
+	}
+	
+	public function __toString(): string
 	{
 		return $this->format();
 	}

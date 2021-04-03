@@ -23,12 +23,15 @@ use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 use Symfony\Contracts\Translation\TranslatorInterface;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
 
 class ProgramController extends AbstractController
 {
-	private $translator;
+	private $flashBag;
 	
+	private $translator;
+		
 	private $automationRepository;
 	
 	private $programRepository;
@@ -43,8 +46,9 @@ class ProgramController extends AbstractController
 	
 	private $fieldService;
 		
-	public function __construct(TranslatorInterface $translator, AutomationRepository $automationRepository, ProgramRepository $programRepository, ProgressRepository $progressRepository, SerieRepository $serieRepository, ParseService $parseService, ProgramService $programService, FieldService $fieldService, Security $security)
+	public function __construct(SessionInterface $session, TranslatorInterface $translator, AutomationRepository $automationRepository, ProgramRepository $programRepository, ProgressRepository $progressRepository, SerieRepository $serieRepository, ParseService $parseService, ProgramService $programService, FieldService $fieldService, Security $security)
 	{
+		$this->flashBag = $session->getFlashBag();
 		$this->translator = $translator;
 		$this->automationRepository = $automationRepository;
 		$this->programRepository = $programRepository;
@@ -83,7 +87,7 @@ class ProgramController extends AbstractController
 			}
 			
 			$this->container->get('session')->getFlashBag()->clear();
-			$this->programService->unload($program);
+			$this->programService->unload();
 			
 			switch ($program->getType()) {
 				
@@ -115,7 +119,6 @@ class ProgramController extends AbstractController
 	
 	public function preload(Request $request, Program $program): Response
 	{
-		$programCache = new ProgramCache($this->fieldService);
 		$project = $program->getProject();
 		
 		if ($this->isGranted('ROLE_ADMIN') === false &&
@@ -131,7 +134,7 @@ class ProgramController extends AbstractController
 					break;
 					
 				case Program::IMPORT:
-					if ($programCache->getOption('ready_to_persist')) {						//launch import
+					if ($this->programService->getCache()->getOption('ready_to_persist')) {	//launch import
 						if ($this->programService->preload($program, $request)) {
 							return $this->render('program/preload.html.twig', [
 								'program' => $program,
@@ -147,6 +150,16 @@ class ProgramController extends AbstractController
 					
 				case Program::TASK:															//launch task
 					$form = $this->createForm(LauncherType::class, $program);
+					break;
+					
+				case Program::PROGRESS:														//launch progress
+					if ($this->programService->preload($program, $request)) {
+						return $this->redirectToRoute('program_load', [
+							'program' => $program->getId(),
+						]);
+					} else {
+						$this->addFlash('danger', 'Erreur interne');
+					}
 					break;
 					
 				default:																	//error
@@ -205,7 +218,6 @@ class ProgramController extends AbstractController
 	
 	public function load(Program $program): Response
 	{
-		$programCache = new ProgramCache($this->fieldService);
 		$project = $program->getProject();
 		
 		if ($this->isGranted('ROLE_ADMIN') === false &&
@@ -218,7 +230,7 @@ class ProgramController extends AbstractController
 				
 				case Program::EXPORT:														//launch export
 					if ($this->programService->load($program) === false) {
-						$this->programService->unload($program);
+						$this->programService->unload();
 						return $this->redirectToRoute('program_preload', [
 							'program' => $program->getId(),
 						]);
@@ -229,14 +241,14 @@ class ProgramController extends AbstractController
 					
 					
 				case Program::IMPORT:
-					if ($programCache->getOption('ready_to_persist')) {				//launch import
+					if ($this->programService->getCache()->getOption('ready_to_persist')) {				//launch import
 						$this->programService->load($program);
 						return $this->render('program/load.html.twig', [
 							'program' => $program,
 						]);
 					} else {																//check import
 						if ($this->programService->load($program) === false) {
-							$this->programService->unload($program);
+							$this->programService->unload();
 							return $this->redirectToRoute('program_preload', [
 								'program' => $program->getId(),
 							]);
@@ -249,7 +261,7 @@ class ProgramController extends AbstractController
 					
 				case Program::TASK:															//launch task
 					if ($this->programService->load($program) === false) {
-						$this->programService->unload($program);
+						$this->programService->unload();
 						return $this->redirectToRoute('program_preload', [
 							'program' => $program->getId(),
 						]);
@@ -273,7 +285,7 @@ class ProgramController extends AbstractController
 					]);
 					
 				default:
-					$this->programService->unload($program);
+					$this->programService->unload();
 					return $this->redirectToRoute('program_preload', [
 						'program' => $program->getId(),
 					]);
@@ -282,7 +294,6 @@ class ProgramController extends AbstractController
 	
 	public function completed(Request $request, Program $program): Response
 	{
-		$programCache = new ProgramCache($this->fieldService);
 		$project = $program->getProject();
 		
 		if ($this->isGranted('ROLE_ADMIN') === false &&
@@ -293,29 +304,27 @@ class ProgramController extends AbstractController
 			switch ($program->getType()) {
 				
 				case Program::EXPORT:
-					$filePath = $programCache->getParameter('file_path');
+					$filePath = $this->programService->getCache()->getParameter('file_path');
 					$pathParts = pathinfo($filePath);
 					
-					unset($programCache);
-					$this->programService->unload($program);
+					$this->programService->unload();
 					return $this->render('program/export.html.twig', [
 						'program' => $program,
 						'file_path' => $this->getParameter('uploads_directory') . '/' . $pathParts['basename'],
 					]);
 					
 				case Program::IMPORT:
-					if ($programCache->getOption('ready_to_persist')) {					//launch import
+					if ($this->programService->getCache()->getOption('ready_to_persist')) {					//launch import
 						
-						unset($programCache);
-						$this->programService->unload($program);
+						$this->programService->unload();
 						return $this->render('program/import.html.twig', [
 							'program' => $program,
 						]);
 					} else {																	//check import
-						$filePath = $programCache->getParameter('file_path');
+						$filePath = $this->programService->getCache()->getParameter('file_path');
 						$pathParts = pathinfo($filePath);
 						
-						$programCache->setOption('ready_to_persist', true);
+						$this->programService->getCache()->setOption('ready_to_persist', true);
 						return $this->render('program/check.html.twig', [
 							'program' => $program,
 							'file_path' => $this->getParameter('uploads_directory') . '/' . $pathParts['basename'],
@@ -323,22 +332,20 @@ class ProgramController extends AbstractController
 					}
 					
 				case Program::TASK:
-					if ($programCache->getOption('ready_to_persist')) {					//launch task
+					if ($this->programService->getCache()->getOption('ready_to_persist')) {					//launch task
 						
-						unset($programCache);
-						$this->programService->unload($program);
+						$this->programService->unload();
 						return $this->render('program/preload.html.twig', [
 							'program' => $program,
 						]);
 					} else {																	//check task
-						$programCache->setOption('ready_to_persist', true);
+						$this->programService->getCache()->setOption('ready_to_persist', true);
 						return $this->render('program/check.html.twig', [
 							'program' => $program,
 						]);
 					}
 					
-					unset($programCache);
-					$this->programService->unload($program);
+					$this->programService->unload();
 					return $this->render('program/preload.html.twig', [
 						'program' => $program,
 					]);
@@ -354,7 +361,6 @@ class ProgramController extends AbstractController
 	
 	public function console(Request $request, Program $program): Response
 	{
-		$programCache = new ProgramCache($this->fieldService);
 		
 		$project = $program->getProject();
 		
@@ -362,8 +368,8 @@ class ProgramController extends AbstractController
 			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
 				return $this->redirectToRoute('project');
 		}
-			
-		switch ($programCache->getStatus()) {
+		
+		switch ($this->programService->getCache()->getStatus()) {
 			case ProgramCache::LOAD:
 				$redirect = ProgramCache::LOAD;
 				break;
@@ -371,7 +377,7 @@ class ProgramController extends AbstractController
 			case ProgramCache::NEW_BATCH:
 				$success = $this->programService->execute($program);
 				if ($success) {
-					$redirect = $programCache->getStatus();
+					$redirect = $this->programService->getCache()->getStatus();
 				} else {
 					$this->addFlash('danger', 'Erreur interne');
 					$redirect = ProgramCache::PRELOAD;

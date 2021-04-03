@@ -17,7 +17,7 @@
     	{{ program.name }}
     </div>
     <div class="navbar-collapse" style="{{ block('nav_item') }}"></div>
-    <a class="active" data-toggle="ajax" data-url="{{ path('program_load', {'program': program.id}) }}" data-target="#spinner" style="display: none;"></a>
+    <a class="active" data-toggle="ajax" data-url="{{ path('program_preload', {'program': program.id}) }}" data-target="#spinner" style="display: none;"></a>
 {% endblock %}
 
 {% block content %}

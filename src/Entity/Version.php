@@ -362,14 +362,14 @@ class Version
 	
 	public function setMetadataValue(Metadata $metadata, $value): bool
 	{
-		
 		switch ($metadata->getType()) {
 			case Metadata::BOOLEAN:
 				$value = ($value)?true:false;
 				break;
 			case Metadata::DATE:
 				if (is_string($value)) {
-					if (($date = Date::fromFormat($value, 'd-m-Y')) === null) {
+					$date = Date::fromFormat($value);
+					if ($date->isValid() === false) {
 						$value = '';
 					}
 				} elseif ($value instanceof \DateTimeInterface) {
@@ -591,13 +591,13 @@ class Version
 			
 			case 'version.date':
 				if ($value instanceof \DateTimeInterface) {
-					if ($value > new Date()) {
+					if ($value > new Date('now')) {
 						$this->isRequired = true;
 					}
 					$this->setDate($value);
 					return true;
-				} elseif ($date = Date::fromFormat($value, 'd-m-Y')) {
-					if ($date > new Date()) {
+				} elseif (($date = Date::fromFormat($value, 'd-m-Y'))->isValid() === true) {
+					if ($date > new Date('now')) {
 						$this->isRequired = true;
 					}
 					$this->setDate($date);
@@ -686,6 +686,7 @@ class Version
 				break;
 				
 			default:
+				
 				if (preg_match('/version\.\w+/', $codename)) {
 					
 					foreach ($this->getDocument()->getSerie()->getProject()->getMetadatas()->getValues() as $metadata) {
@@ -734,7 +735,7 @@ class Version
 												}
 											}
 											
-											$review->setDate(new Date());
+											$review->setDate(new Date('now'));
 											$review->setVisa($visa);
 											$this->addReview($review);
 											return true;

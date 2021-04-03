@@ -58,16 +58,16 @@ class AutomationCommand extends Command
 					
 					$program = $this->getDoctrine()->getRepository(Program::class)->find($automation->getParameters()['program'] ?? 0);
 					if ($program === null) {
-						continue;
+						break;
 					}
 					
 					$this->getDoctrine()->getRepository(Progress::class)->deleteProgressByProgramAndByDate($program, $automation->getNextRun());
 					
 					if (call_user_func_array(array($this->programService, 'automation'), [$program])) {
 						
-						$automation->setLastRun(new Date());
+						$automation->setLastRun(new Date('now'));
 						$nextRun = clone $automation->getNextRun();
-						while ($nextRun < (new Date())->add('P' . $program->getParsedCode('frequency') . 'D')) {
+						while ($nextRun < (new Date('now'))->add('P' . $program->getParsedCode('frequency') . 'D')) {
 							$automation->setNextRun($nextRun->add('P' . $program->getParsedCode('frequency') . 'D'));
 						}
 						$this->entityManager->persist($automation);

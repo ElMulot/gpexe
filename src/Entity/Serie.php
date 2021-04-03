@@ -365,10 +365,6 @@ class Serie
     {
     	
     	switch ($codename) {
-    		case 'serie.name':
-    			$this->setName($value);
-    			return true;
-    			
     		default:
     			if (preg_match('/serie\.\w+/', $codename)) {
     				foreach ($this->getProject()->getMetadatas()->getValues() as $metadata) {

@@ -1,6 +1,6 @@
 
 {% set prod_delayed  = prod_alerts|filter(v => v.min < 0) %}
-{% set prod_danger   = prod_alerts|filter(v => v.min <= project.prodDangerLimit and v >=0) %}
+{% set prod_danger   = prod_alerts|filter(v => v.min <= project.prodDangerLimit and v.min >=0) %}
 {% set prod_warning  = prod_alerts|filter(v => v.min < project.prodWarningLimit and v.min > project.prodDangerLimit) %}
 {% set prod_info     = prod_alerts|filter(v => v.min >= project.prodWarningLimit) %}
 {% set check_danger  = check_alerts|filter(v => v.max > project.checkDangerLimit) %}

@@ -163,7 +163,7 @@ class Workbook
 				$this->reader = IOFactory::createReaderForFile($file);
 				$this->_workbook = $this->reader->load($file);
 				
-				if ($readOnly === false) {
+				if ($readOnly == false) {
 					switch ($this->extensionName) {
 						case '.xlsx':
 							$this->writer = IOFactory::createWriter($this->_workbook, "Xlsx");

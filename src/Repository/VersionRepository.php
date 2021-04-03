@@ -491,12 +491,12 @@ class VersionRepository extends RepositoryService
 			}
 			
 			if ($highlight = $request->query->get('highlight')) {
-				if ($item['version_is_required'] && array_key_exists($highlight, $item) && $date = Date::fromFormat($item[$highlight])) {
-					if ($date < new Date()) {
+				if ($item['version_is_required'] && array_key_exists($highlight, $item) && ($date = Date::fromFormat($item[$highlight]))->isValid() === true) {
+					if ($date < new Date('now')) {
 						$item['highlight'] = 'FF919180';
-					} elseif (Date::getWorkingDays($date, new Date()) <= $project->getProdWarningLimit()) {
+					} elseif (Date::getWorkingDays($date, new Date('now')) <= $project->getProdWarningLimit()) {
 						$item['highlight'] = 'FFE59180';
-					} elseif (Date::getWorkingDays($date, new Date()) <= $project->getProdDangerLimit()) {
+					} elseif (Date::getWorkingDays($date, new Date('now')) <= $project->getProdDangerLimit()) {
 						$item['highlight'] = 'FFFF9180';
 					} else {
 						$item['highlight'] = 'CBFF9180';
@@ -566,10 +566,14 @@ class VersionRepository extends RepositoryService
 	
 	public function getProdAlerts(Project $project, User $user)
 	{
-		
 		$subQb = $this->newQB('v1');
 		$subQb->select('v1.id')
-			->leftJoin(Version::class, 'v2', Join::WITH, 'v1.document = v2.document AND v1.scheduledDate <= v2.scheduledDate AND v1.name < v2.name')
+			->leftJoin(Version::class, 'v2', Join::WITH,
+				'v1.document = v2.document AND v2.isRequired = true AND (
+					v1.scheduledDate > v2.scheduledDate OR (
+						v1.scheduledDate = v2.scheduledDate AND v1.name > v2.name
+					)
+				)')
 			->innerJoin('v1.status', 's')
 			->where($subQb->isNull('v2.scheduledDate'))
 			->andWhere($subQb->eq('v1.isRequired', true))
@@ -594,10 +598,14 @@ class VersionRepository extends RepositoryService
 	
 	public function getCheckAlerts(Project $project, User $user)
 	{
-
 		$subQb = $this->newQB('v1');
 		$subQb->select('v1.id')
-			->leftJoin(Version::class, 'v2', Join::WITH, 'v1.document = v2.document AND v1.deliveryDate <= v2.deliveryDate AND v1.name < v2.name')
+			->leftJoin(Version::class, 'v2', Join::WITH, 
+				'v1.document = v2.document AND v2.isRequired = false AND (
+					v1.deliveryDate < v2.deliveryDate OR (
+						v1.deliveryDate = v2.deliveryDate AND v1.name < v2.name
+					)
+				)')
 			->innerJoin('v1.status', 's')
 			->where($subQb->isNull('v2.deliveryDate'))
 			->andWhere($subQb->eq('v1.isRequired', false))

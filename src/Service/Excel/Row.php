@@ -19,8 +19,6 @@ class Row
 	
 	private $sheet;
 	
-	
-	
 	public function __construct($_row, int $rowAddress, Sheet $sheet)
 	{
 		$this->_row = $_row;
