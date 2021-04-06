@@ -6,6 +6,7 @@ use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
 use App\Entity\Codification;
+use Spatie\Regex\Regex;
 
 class CodificationWithoutSplitterValidator extends ConstraintValidator
 {
@@ -20,7 +21,7 @@ class CodificationWithoutSplitterValidator extends ConstraintValidator
 			return;
 		}
 		
-		if (preg_match('/' . $codification->getProject()->getSplitter() . '/', $codification->getValue())) {
+		if (Regex::match('/' . $codification->getProject()->getSplitter() . '/', $codification->getValue())->hasMatch()) {
 			$this->context->buildViolation($constraint->message)
 				->setParameter('{{ splitter }}', $codification->getProject()->getSplitter())
 				->addViolation();

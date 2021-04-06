@@ -5,6 +5,7 @@ namespace App\Service;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\ORM\Query\Expr;
 use Doctrine\ORM\Query\QueryException;
+use Spatie\Regex\Regex;
 
 class QueryBuilderService extends QueryBuilder
 {
@@ -23,8 +24,8 @@ class QueryBuilderService extends QueryBuilder
 		
 		array_walk($selects, function($item) {
 			if (is_string($item)) {
-				if (preg_match('/\s+AS\s+([^\s]+)$/i', $item, $matches) === 1) {
-					$this->addAlias($matches[1]);
+				if (($result = Regex::match('/\s+AS\s+([^\s]+)$/i', $item))->hasMatch()) {
+					$this->addAlias($result->group(1));
 				}
 			}
 		});
@@ -142,7 +143,7 @@ class QueryBuilderService extends QueryBuilder
 		$sql = $this->getQuery()->getSQL();
 		
 		foreach ($this->getParameters() as $parameter) {
-			$sql = preg_replace('/\?/', $this->getValueToString($parameter->getValue()), $sql, 1);
+			$sql = Regex::replace('/\?/', $this->getValueToString($parameter->getValue()), $sql, 1)->result();
 		}
 		
 		return $sql;		

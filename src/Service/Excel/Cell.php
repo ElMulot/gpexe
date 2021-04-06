@@ -45,8 +45,8 @@ class Cell
 		switch ($this->row->getSheet()->getWorkbook()->getLibrary()) {
 			case Workbook::SPOUT:
 				if ($this->_cell->getValue() instanceof \DateTimeInterface) {
-					$dateFormat = $this->row->getSheet()->getWorkbook()->getDateFormat();
-					return $this->_cell->getValue()->format($dateFormat);
+					$dateFormat = $this->row->getSheet()->getWorkbook()->getDateFormatInput();
+					return $this->_cell->getNumberFormat()->setFormatCode($dateFormat);
 				} else {
 					return $this->_cell->getValue();
 				}
@@ -59,7 +59,39 @@ class Cell
 	
 	public function setValue($value): self
 	{
-		$this->_cell->setValue($value);
+		
+		switch ($this->row->getSheet()->getWorkbook()->getLibrary()) {
+			case Workbook::SPOUT:
+				if ($value instanceof Date) {
+					if ($value->isValid() === true) {
+						$this->_cell->setValue($value->format($this->row->getSheet()->getWorkbook()->getDateFormatOutput()));
+						return $this;
+					}
+				} elseif ($value instanceof \DateTimeInterface) {
+					$this->_cell->setValue($value->format($this->row->getSheet()->getWorkbook()->getDateFormatOutput()));
+					return $this;
+				}
+				
+				$this->_cell->setValue($value);
+				break;
+				
+			case Workbook::PHPSPREADSHEET:
+				if ($value instanceof Date) {
+					if ($value->isValid() === true) {
+						$this->_cell->setValue(DateManager::PHPToExcel($value));
+						$this->_cell->getStyle()->getNumberFormat()->setFormatCode($this->row->getSheet()->getWorkbook()->getDateFormatOutput());
+						return $this;
+					}
+				} elseif ($value instanceof \DateTimeInterface) {
+					$this->_cell->setValue(DateManager::PHPToExcel($value));
+					$this->_cell->getStyle()->getNumberFormat()->setFormatCode($this->row->getSheet()->getWorkbook()->getDateFormatOutput());
+					return $this;
+				}
+				
+				$this->_cell->setValue($value);
+				break;
+		}
+		
 		return $this;
 	}
 	
@@ -185,7 +217,7 @@ class Cell
 				if ($this->_cell->getValue() instanceof \DateTimeInterface) {
 					return $this->_cell->getValue();
 				} else {
-					$dateFormat = $this->row->getSheet()->getWorkbook()->getDateFormat();
+					$dateFormat = $this->row->getSheet()->getWorkbook()->getDateFormatInput();
 					$date = Date::fromFormat($this->_cell->getValue(), $dateFormat);
 					if ($date->isValid() === true) {
 						return $date;
@@ -197,7 +229,7 @@ class Cell
 				if (DateManager::isDateTime($this->_cell)) {
 					return DateManager::excelToDateTimeObject($this->getValue());
 				} else {
-					$dateFormat = $this->row->getSheet()->getWorkbook()->getDateFormat();
+					$dateFormat = $this->row->getSheet()->getWorkbook()->getDateFormatInput();
 					$date = Date::fromFormat($this->getValue(), $dateFormat);
 					if ($date->isValid() === true) {
 						return $date;

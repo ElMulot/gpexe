@@ -267,6 +267,11 @@ textarea {
 	position: absolute;
 	z-index: $zindex-fixed;
 	background-color: $body-bg;
+	cursor: move;
+}
+
+.col-drag-helper button {
+	cursor: move !important;
 }
 
 .col-drag-hidden {

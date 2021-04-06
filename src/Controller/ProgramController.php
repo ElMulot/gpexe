@@ -246,7 +246,7 @@ class ProgramController extends AbstractController
 						return $this->render('program/load.html.twig', [
 							'program' => $program,
 						]);
-					} else {																//check import
+					} else {																			//check import
 						if ($this->programService->load($program) === false) {
 							$this->programService->unload();
 							return $this->redirectToRoute('program_preload', [
@@ -259,7 +259,7 @@ class ProgramController extends AbstractController
 						]);
 					}
 					
-				case Program::TASK:															//launch task
+				case Program::TASK:																		//launch task
 					if ($this->programService->load($program) === false) {
 						$this->programService->unload();
 						return $this->redirectToRoute('program_preload', [
@@ -270,7 +270,7 @@ class ProgramController extends AbstractController
 						'program' => $program,
 					]);
 					
-				case Program::PROGRESS:														//launch progress
+				case Program::PROGRESS:																	//launch progress
 					if ($this->programService->load($program) === false) {
 						$this->addFlash('danger', 'Erreur interne');
 						return $this->render('program/error.html.twig');

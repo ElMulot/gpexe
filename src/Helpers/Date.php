@@ -52,7 +52,7 @@ class Date extends \DateTime {
 	
 	public static function fromFormat($expression, $format = 'd-m-Y'): ?\DateTime
 	{
-		$date = \DateTime::createFromFormat($format, $expression);
+		$date = \DateTime::createFromFormat('!' . $format, $expression);
 		if ($date && $date->format($format) === $expression) {
 			return new static($date->format(\DateTime::ATOM));
 		} else {

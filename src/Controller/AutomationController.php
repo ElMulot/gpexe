@@ -22,6 +22,10 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 use App\Repository\ProgramRepository;
 use App\Entity\CodificationValue;
 use App\Helpers\Date;
+use Symfony\Bundle\FrameworkBundle\Console\Application;
+use Symfony\Component\Console\Output\BufferedOutput;
+use Symfony\Component\HttpKernel\KernelInterface;
+use Symfony\Component\Console\Input\ArrayInput;
 
 class AutomationController extends AbstractController
 {
@@ -73,9 +77,19 @@ class AutomationController extends AbstractController
 		}
 	}
 	
-	public function cron(): Response
+	public function cron(KernelInterface $kernel): Response
 	{
 		
-		return new Response();
+		$application = new Application($kernel);
+		$application->setAutoExit(false);
+		
+		$input = new ArrayInput([
+			'command' => 'app:cron',
+		]);
+		
+		$output = new BufferedOutput();
+		$application->run($input, $output);
+		
+		return new Response($output->fetch());
 	}
 }

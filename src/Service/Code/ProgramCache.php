@@ -79,18 +79,7 @@ class ProgramCache
 		foreach ($program->getParsedCode('option') as $name => $value) {
 			$value = ($value == 'true')?1:$value;
 			$value = ($value == 'false')?0:$value;
-			
 			$this->setOption($name, $value);
-			if ($name === 'date_format') {
-				switch ($this->type) {
-					case Program::EXPORT:
-						$this->setOption('date_format_output', $value);
-						break;
-					case Program::IMPORT:
-						$this->setOption('date_format_input', $value);
-						break;
-				}
-			}
 		}
 		
 		//cache
@@ -204,6 +193,17 @@ class ProgramCache
 	public function setOption(string $name, $value)
 	{
 		$this->options[$name] = $value;
+		
+		if ($name === 'date_format') {
+			switch ($this->type) {
+				case Program::EXPORT:
+					$this->options['date_format_output'] = $value;
+					break;
+				case Program::IMPORT:
+					$this->options['date_format_input'] = $value;
+					break;
+			}
+		}
 	}
 	
 	public function getStatus(): int

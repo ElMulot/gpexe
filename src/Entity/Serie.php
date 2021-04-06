@@ -5,6 +5,7 @@ namespace App\Entity;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Spatie\Regex\Regex;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\SerieRepository")
@@ -349,7 +350,7 @@ class Serie
     			return $this->getCompany()->getName();
     			
     		default:
-    			if (preg_match('/serie\.\w+/', $codename)) {
+    			if (Regex::match('/serie\.\w+/', $codename)->hasMatch()) {
     				foreach ($this->getProject()->getMetadatas()->getValues() as $metadata) {
     					if ($metadata->getFullCodename() == $codename) {
     						return $this->getMetadataValue($metadata);
@@ -366,7 +367,7 @@ class Serie
     	
     	switch ($codename) {
     		default:
-    			if (preg_match('/serie\.\w+/', $codename)) {
+    			if (Regex::match('/serie\.\w+/', $codename)->hasMatch()) {
     				foreach ($this->getProject()->getMetadatas()->getValues() as $metadata) {
     					if ($metadata->getFullCodename() == $codename) {
     						return $this->setMetadataValue($metadata, $value);

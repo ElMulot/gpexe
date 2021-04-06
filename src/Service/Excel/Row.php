@@ -142,15 +142,13 @@ class Row
 	{
 		switch ($this->sheet->getWorkbook()->getLibrary()) {
 			case Workbook::SPOUT:
-// 				$commentsColumn = $this->sheet->getWorkbook()->getCommentsColumn();
-// 				$this->getCell($commentsColumn)->setValue($this->getCell($commentsColumn)->getValue() . "\r\n" . $value);
+//				$this->getCell('A')->setValue($this->getCell('A')->getValue() . "\r\n" . $value);
 				break;
 				
 			case Workbook::PHPSPREADSHEET:
-				$mainColumn = $this->sheet->getWorkbook()->getMainColumn();
 				$comment = $this->_row
 					->getWorksheet()
-					->getComment($mainColumn . $this->getAddress())
+					->getComment('A' . $this->getAddress())
 				;
 				$comment->getText()->createTextRun($value);
 				$numberOfLines = max(1, substr_count($comment->getText(), "\r\n"));

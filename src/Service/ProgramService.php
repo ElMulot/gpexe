@@ -40,14 +40,14 @@ class ProgramService
 	
 	private $entityManager;
 	
-	private $documentRepository;
-	
 	private $serieRepository;
 	
-	private $statusRespository;
-	
+	private $documentRepository;
+			
 	private $versionRepository;
 	
+	private $statusRespository;
+		
 	private $documentService;
 	
 	private $fieldService;
@@ -72,15 +72,15 @@ class ProgramService
 	
 	private $stopWatch;
 	
-	public function __construct(SessionInterface $session, TranslatorInterface $translator, EntityManagerInterface $entityManager, DocumentRepository $documentRepository, SerieRepository $serieRepository, StatusRepository $statusRespository, VersionRepository $versionRepository, DocumentService $documentService, FieldService $fieldService, PropertyService $propertyService, Security $security, string $targetDirectory)
+	public function __construct(SessionInterface $session, TranslatorInterface $translator, EntityManagerInterface $entityManager, SerieRepository $serieRepository, DocumentRepository $documentRepository, VersionRepository $versionRepository, StatusRepository $statusRespository, DocumentService $documentService, FieldService $fieldService, PropertyService $propertyService, Security $security, string $targetDirectory)
 	{
 		$this->flashBag = $session->getFlashBag();
 		$this->translator = $translator;
 		$this->entityManager = $entityManager;
-		$this->documentRepository = $documentRepository;
 		$this->serieRepository = $serieRepository;
-		$this->statusRespository = $statusRespository;
+		$this->documentRepository = $documentRepository;
 		$this->versionRepository = $versionRepository;
+		$this->statusRespository = $statusRespository;
 		$this->documentService = $documentService;
 		$this->fieldService = $fieldService;
 		$this->propertyService = $propertyService;
@@ -296,35 +296,34 @@ class ProgramService
 		$sheet = $this->workbook->getSheet();
 		
 		//load datas
-		$series = $this->serieRepository->getHydratedSeries($project);
-// 		$series = [];
+		$documents = $this->documentRepository->getDocumentsByProject($project);
+// 		$documents = [];
 		
 		$currentRow = $firstRow+1;
 		
-		foreach ($series as $serie) {
-			foreach ($serie->getDocuments() as $document) {
-				foreach ($document->getVersions() as $version) {
-					$row = $sheet->getRow($currentRow);
-					
-					//exclude
-					foreach ($cache['exclude'] as $exclude) {
-						if ($exclude->eval($version) == true) {
-							$countProcessed++;
-							continue 2;
-						}
+		foreach ($documents as $document) {
+			foreach ($document->getVersions() as $version) {
+				$row = $sheet->getRow($currentRow);
+				
+				//exclude
+				foreach ($cache['exclude'] as $exclude) {
+					if ($exclude->eval($version) == true) {
+						$countProcessed++;
+						continue 2;
 					}
-					
-					foreach ($cache['write'] as $write) {
-						if ($write['condition']->eval($version) == true) {
-							$row->getCell($write['to']->getValue())->setValue((string)$write['value']->eval($version));
-						}
-					}
-					
-					$row->add();
-					$currentRow++;
-					$countProcessed++;
-					
 				}
+				
+				foreach ($cache['write'] as $write) {
+					if ($write['condition']->eval($version) == true) {
+// 						dd($write['value'], $version, $write['value']->eval($version));
+						$row->getCell($write['to']->getValue())->setValue($write['value']->eval($version));
+					}
+				}
+				
+				$row->add();
+				$currentRow++;
+				$countProcessed++;
+				
 			}
 		}
 		
@@ -333,10 +332,10 @@ class ProgramService
 		//update cache
 		if ($newBatch === false) {
 			$this->programCache->setStatus(ProgramCache::COMPLETED);
-			$this->flashBag->add('success', 'Export réussi. ' . ($row->getAddress() - $firstRow - 1) . '/' .  $countProcessed . ' lignes exportées (' . $event->getDuration()/1000 . ' s; ' . $event->getMemory()/1048576 . ' Mo)');
+			$this->flashBag->add('success', 'Export réussi. ' . ($currentRow - $firstRow - 1) . '/' .  $countProcessed . ' lignes exportées (' . $event->getDuration()/1000 . ' s; ' . $event->getMemory()/1048576 . ' Mo)');
 		} else {
 			$this->programCache->setStatus(ProgramCache::NEW_BATCH);
-			$this->flashBag->add('success', ($row->getAddress() - $firstRow - 1) . '/' .  $countProcessed . ' lignes exportées (' . $event->getDuration()/1000 . ' s; ' . $event->getMemory()/1048576 . ' Mo)');
+			$this->flashBag->add('success', ($currentRow - $firstRow - 1) . '/' .  $countProcessed . ' lignes exportées (' . $event->getDuration()/1000 . ' s; ' . $event->getMemory()/1048576 . ' Mo)');
 			$this->programCache->setParameter('count_processed', $countProcessed);
 			$this->programCache->setParameter('first_row', $currentRow + 1);
 		}
@@ -353,7 +352,7 @@ class ProgramService
 	
 	public function import(Program $program): bool
 	{
-		set_time_limit(500);
+// 		set_time_limit(500);
 		$this->stopWatch->start('import');
 		
 		//cache
@@ -366,6 +365,7 @@ class ProgramService
 		$versionsCreated = (int)$this->programCache->getParameter('versions_created');
 		$newBatch = false;
 		$defaultStatus = $this->statusRespository->getDefaultStatus($project);
+		$defaultSerie = $this->serieRepository->getDefaultSerie($project);
 		if ($defaultStatus === null) {
 			$this->flashBag->add('error', 'Pas de status par défaut.');
 			return false;
@@ -388,14 +388,14 @@ class ProgramService
 		$sheet = $this->workbook->getSheet();
 		
 		//load datas
-		$series = $this->serieRepository->getHydratedSeries($project);
-// 		$series = [];
+		$documents = $this->documentRepository->getDocumentsByProject($project);
+// 		$documents = [];
 		
 		$currentRow = $firstRow;
 		
 		while ($row = $sheet->getRow($currentRow)) {
 			
-			if ($row->getCell($this->workbook->getMainColumn())->isEmpty()) {
+			if ($row->getCell($this->programCache->getParameter('main_column'))->isEmpty()) {
 				break;
 			}
 			
@@ -416,95 +416,16 @@ class ProgramService
 				}
 			}
 			
-			$currentSerie = null;
+			$currentSerie = $defaultSerie;
 			$currentDocument = null;
 			$currentVersion = null;
 			
-			//get serie
-			if ($cache['get_serie']['condition']->getValue() === 'skip') {
-				
-				foreach ($series as $serie) {
-					foreach ($serie->getDocuments() as $document) {
-						if ($cache['get_document']['condition']->eval($document, $row) == true) {
-							$currentDocument = $document;
-							$currentSerie = $document->getSerie();
-							$this->addComment('valid', "Document trouvé.");
-							$this->addComment('valid', "Serie déduite : '{$currentSerie->getName()}'.");
-							break 2;
-						}
-					}
-				}
-				
-				if ($currentDocument === null) {
-					$this->addComment('error', "Ligne exclue : document non trouvé.");
-					$this->writeComments($row);
-					$countProcessed++;
-					$currentRow++;
-					continue;
-				}
-				
-			} else {
-				
-				foreach ($series as $serie) {
-					if ($cache['get_serie']['condition']->eval($serie, $row) == true) {
-						$currentSerie = $serie;
-						$this->addComment('valid', "Série trouvée.");
-						break;
-					}
-				}
-				
-				if ($currentSerie === null) {
-					$this->addComment('error', "Ligne exclue : série non trouvée.");
-					$this->writeComments($row);
-					$countProcessed++;
-					$currentRow++;
-					continue;
-				}
-				
-				foreach ($currentSerie->getDocuments() as $document) {
-					if ($cache['get_document']['condition']->eval($document, $row) == true) {
-						$currentDocument = $document;
-						$this->addComment('valid', "Document trouvé.");
-						break;
-					}
-				}
-				
-				//check if the document is not in another serie
-				if ($currentDocument === null) {
-					foreach ($series as $serie) {
-						foreach ($serie->getDocuments() as $document) {
-							if ($cache['get_document']['condition']->eval($document, $row) == true) { //cette ligne créé un Internal Server Error
-								if ($document->getSerie()->belongToMDR()) {
-									if ($this->programCache->getOption('move_from_mdr')) {
-										$currentDocument = $document;
-										$document->setSerie($currentSerie);
-										$this->addComment('valid', "Document trouvé dans le MDR et rappatrié dans la série en cours.");
-										break 2;
-									} else {
-										$this->addComment('error', "Document trouvé dans une autre série du MDR.");
-										$this->writeComments($row);
-										$countProcessed++;
-										$currentRow++;
-										continue(3);
-									}
-								}
-								if ($document->getSerie()->belongToSDR()) {
-									if ($this->programCache->getOption('move_from_sdr')) {
-										$currentDocument = $document;
-										$document->setSerie($currentSerie);
-										$this->addComment('valid', "Document trouvé dans le SDR et rappatrié dans la série en cours.");
-										break 2;
-									} else {
-										$this->addComment('error', "Document trouvé dans une autre série du SDR.");
-										$this->writeComments($row);
-										$countProcessed++;
-										$currentRow++;
-										continue(3);
-									}
-								}
-							}
-						}
-					}
+			foreach ($documents as $document) {
+				if ($cache['get_document']['condition']->eval($document, $row) == true) {
+					$currentDocument = $document;
+					$currentSerie = $document->getSerie();
+					$this->addComment('valid', "Document trouvé.");
+					break;
 				}
 			}
 			
@@ -534,32 +455,31 @@ class ProgramService
 					
 					if ($currentDocument->setPropertyValue($else->getVariable(), $else->eval($currentDocument, $row)) === true) {
 						$this->addComment('valid', "Champ '{$else->getVariable()}' mis à jour.");
-					} elseif ($else->getVariable() == 'document.name' || $else->getVariable() == 'document.reference') {
-						$this->addComment('error', "Erreur en écrivant le champ '{$else->getVariable()}'.");
-						$currentSerie->removeDocument($currentDocument);
-						$currentDocument = null;
-						$this->addComment('error', "Ligne exclue : création du document annulée.");
-						$documentsCreated--;
-						
-						$this->writeComments($row);
-						$countProcessed++;
-						$currentRow++;
-						continue 2;
 					} else {
 						$this->addComment('error', "Erreur en écrivant le champ '{$else->getVariable()}'.", $else->getCol());
 					}
-						
 					
 				}
 				
 			} else {
-				
 				$this->addComment('error', "Ligne exclue : document non trouvé.");
 				$this->writeComments($row);
 				$countProcessed++;
 				$currentRow++;
 				continue;
 				
+			}
+			
+			if ($currentDocument->getName() == false || $currentDocument->getReference() == false) {
+				$this->addComment('error', "Les champs 'document.name' et 'document.reference' sont obligatoires.");
+				$this->addComment('error', "Ligne exclue : création du document annulée.");
+				$currentSerie->removeDocument($currentDocument);
+				$currentDocument = null;
+				$documentsCreated--;
+				$this->writeComments($row);
+				$countProcessed++;
+				$currentRow++;
+				continue;
 			}
 			
 			//get version
@@ -623,24 +543,6 @@ class ProgramService
 					
 					if ($currentVersion->setPropertyValue($else->getVariable(), $else->eval($currentVersion, $row)) === true) {
 						$this->addComment('valid', "Champ '{$else->getVariable()}' mis à jour.");
-					} elseif ($else->getVariable() == 'version.name' || $else->getVariable() == 'version.date') {
-						$this->addComment('warning', "Erreur en écrivant le champ '{$else->getVariable()}'.");
-						$currentDocument->removeVersion($currentVersion);
-						$currentVersion = null;
-						$this->addComment('error', "Ligne exclue : création de la version annulée.");
-						
-						if ($currentDocument->getVersions()->count() == 0) {
-							$currentSerie->removeDocument($currentDocument);
-							$currentDocument = null;
-							$this->addComment('error', "Ligne exclue : création du document annulée.");
-							$documentsCreated--;
-						}
-						
-						$versionsCreated--;
-						$this->writeComments($row);
-						$countProcessed++;
-						$currentRow++;
-						continue 2;
 					} else {
 						$this->addComment('warning', "Erreur en écrivant le champ '{$else->getVariable()}'.", $else->getCol());
 					}
@@ -655,6 +557,27 @@ class ProgramService
 				$currentRow++;
 				continue;
 				
+			}
+			
+			
+			if ($currentVersion->getName() == false || $currentVersion->getDate() == false) {
+				$this->addComment('error', "Les champs 'version.name' et 'version.date' sont obligatoires.");
+				$this->addComment('error', "Ligne exclue : création de la version annulée.");
+				$currentDocument->removeVersion($currentVersion);
+				$currentVersion = null;
+				
+				if ($currentDocument->getVersions()->count() == 0) {
+					$currentSerie->removeDocument($currentDocument);
+					$currentDocument = null;
+					$this->addComment('error', "Ligne exclue : création du document annulée.");
+					$documentsCreated--;
+				}
+				
+				$versionsCreated--;
+				$this->writeComments($row);
+				$countProcessed++;
+				$currentRow++;
+				continue;
 			}
 			
 			if ($this->programCache->getParameter('ready_to_persist') == true) {
@@ -731,49 +654,47 @@ class ProgramService
 		$newBatch = false;
 		
 		//load datas
-		$series = $this->serieRepository->getHydratedSeries($project);
-// 		$series = [];
+		$documents = $this->documentRepository->getDocumentsByProject($project);
+// 		$documents = [];
 		
-		foreach ($series as $serie) {
-			foreach ($serie->getDocuments() as $document) {
-				foreach ($document->getVersions() as $version) {
-					
-					//exclude
-					foreach ($cache['exclude'] as $exclude) {
-						if ($exclude->eval($version) == true) {
-							$countProcessed++;
-							continue 2;
-						}
+		foreach ($documents as $document) {
+			foreach ($document->getVersions() as $version) {
+				
+				//exclude
+				foreach ($cache['exclude'] as $exclude) {
+					if ($exclude->eval($version) == true) {
+						$countProcessed++;
+						continue 2;
 					}
+				}
+				
+				$versionEdited = false;
+				
+				foreach ($cache['update'] as $update) {
 					
-					$versionEdited = false;
-					
-					foreach ($cache['update'] as $update) {
+					if ($update['condition']->eval($version) == true) {
 						
-						if ($update['condition']->eval($version) == true) {
-							
-							foreach ($update['then'] as $then) {
-								if ($version->setPropertyValue($then->getVariable(), $then->eval($version)) === true) {
-									$versionEdited = true;
-								}
+						foreach ($update['then'] as $then) {
+							if ($version->setPropertyValue($then->getVariable(), $then->eval($version)) === true) {
+								$versionEdited = true;
 							}
-							
-						} else {
-							
-							foreach ($update['else'] as $else) {
-								if ($version->setPropertyValue($else->getVariable(), $else->eval($version)) === true) {
-									$versionEdited = true;
-								}
+						}
+						
+					} else {
+						
+						foreach ($update['else'] as $else) {
+							if ($version->setPropertyValue($else->getVariable(), $else->eval($version)) === true) {
+								$versionEdited = true;
 							}
-							
 						}
 						
 					}
 					
-					$countProcessed++;
-					if ($versionEdited === true) {
-						$countUpdated++;
-					}
+				}
+				
+				$countProcessed++;
+				if ($versionEdited === true) {
+					$countUpdated++;
 				}
 			}
 		}
@@ -811,61 +732,69 @@ class ProgramService
 		$progress = [];
 		
 		//load datas
-		$series = $this->serieRepository->getHydratedSeries($project);
-// 		$series = [];
+		$documents = $this->documentRepository->getDocumentsByProject($project);
+// 		$documents = [];
 		
-		foreach ($series as $serie) {
+		$countProcessed = [];
+		$progress = [];
+		
+		foreach ($documents as $document) {
 			
-			$countProcessed = 0;
+			$serieId = $document->getSerie()->getId();
 			
-			$progress[$serie->getId()] = 0;
+			if (isset($countProcessed[$serieId]) === false) {
+				$countProcessed[$serieId] = 0;
+			}
 			
-			foreach ($serie->getDocuments() as $document) {
+			if (isset($progress[$serieId]) === false) {
+				$progress[$serieId] = 0;
+			}
+			
+			$countValidated = [];
+			$hasVersionNotExcluded = false;
+			$maxValue = 0;
+			
+			foreach ($document->getVersions() as $version) {
 				
-				$countValidated = [];
-				$hasVersionNotExcluded = false;
-				$maxValue = 0;
+				foreach ($cache['exclude'] as $exclude) {
+					if ($exclude->eval($version) == true) {
+						continue 2;
+					}
+				}
 				
-				foreach ($document->getVersions() as $version) {
+				if ($hasVersionNotExcluded === false) {
+					$countProcessed[$serieId]++;
+					$hasVersionNotExcluded = true;
+				}
+				
+				foreach ($cache['rules'] as $key => $rule) {
 					
-					foreach ($cache['exclude'] as $exclude) {
-						if ($exclude->eval($version) == true) {
+					foreach ($rule['conditions'] as $condition) {
+						if ($condition->eval($version) == false) {
 							continue 2;
 						}
 					}
 					
-					if ($hasVersionNotExcluded === false) {
-						$countProcessed++;
-						$hasVersionNotExcluded = true;
+					$countValidated[$key] = ($countValidated[$key] ?? 0) + 1;
+					if ($countValidated[$key] >= $rule['count']->getValue()) {
+						$maxValue = max($maxValue, $rule['value']->getValue());
+						break;
 					}
-					
-					foreach ($cache['rules'] as $key => $rule) {
-						
-						foreach ($rule['conditions'] as $condition) {
-							if ($condition->eval($version) == false) {
-								continue 2;
-							}
-						}
-						
-						$countValidated[$key] = ($countValidated[$key] ?? 0) + 1;
-						if ($countValidated[$key] >= $rule['count']->getValue()) {
-							$maxValue = max($maxValue, $rule['value']->getValue());
-							break;
-						}
-					}
-					
 				}
 				
-				$progress[$serie->getId()] += $maxValue;
 			}
 			
-			if ($countProcessed > 0) {
-				$progress[$serie->getId()] /= $countProcessed;
-			} else {
-				$progress[$serie->getId()] = 0;
-			}
-			
+			$progress[$serieId] += $maxValue;
 		}
+		
+		
+		array_walk($progress, function(&$item, $key) use ($countProcessed) {
+			if ($countProcessed[$key] > 0) {
+				$item /= $countProcessed[$key];
+			} else {
+				$item = 0;
+			}
+		});
 		
 		return $progress;
 	}
@@ -902,186 +831,6 @@ class ProgramService
 				
 		}
 	}
-	
-	private function prepare(string $expression, $entity, bool $isRegex=false, Row $row = null): string
-	{
-		if ($expression) {
-			
-			if ($isRegex) {
-				
-				//convert any litteral date (syntax: "date" according to dateFormat)
-				$expression = preg_replace_callback($this->dateRegex, function ($matches) {
-					$date = Date::FromFormat($matches[1], $this->dateFormat);
-					if ($date && $date->format($this->dateFormat) === $matches[1]) {
-						return preg_quote($date->format('d-m-Y'));
-					}
-				}, $expression);
-				
-				//replace by property value
-				if (($entity instanceof Serie || $entity instanceof Document || $entity instanceof Version) && $entity) {
-					$expression = preg_replace_callback('/\[(\w+[.\w+]+)\]/', function($matches) use ($entity) {
-						return preg_quote($this->propertyService->toString($entity->getPropertyValue($matches[1])));
-					}, $expression);
-				}
-				
-				//replace by Excel values
-				if ($row !== null) {
-					$expression = preg_replace_callback('/\[([A-Z]{1,2})\]/', function($matches) use ($row) {
-						$cell = $row->getCell($matches[1]);
-						if ($date = $cell->getDateTime()) {
-							return preg_quote($date->format('d-m-Y'));
-						} else {
-							return preg_quote($cell->getValue());
-						}
-					}, $expression);
-				}
-				
-			} else {
-				
-				//replacements
-				$expression = str_replace('$', '', $expression);
-				$expression = str_ireplace(' and ', ' && ', $expression);
-				$expression = str_ireplace(' or ', ' || ', $expression);
-				$expression = str_ireplace('[user.name]', '"' . $this->security->getUser() . '"', $expression);
-				$expression = str_replace('[date.now]', '"' . (new \DateTime())->format('d-m-Y') . '"', $expression);
-				
-				//regex (syntax: "/regex/" or /regex/)
-				$expression = preg_replace_callback('/\s+"*\/(\S*)\/"*/', function ($matches) use ($entity, $row) {
-					return ' "/' . $this->prepare($matches[1], $entity, true, $row) . '/"';
-				}, $expression);
-				
-				//convert any litteral date (syntax: "date" according to dateFormat)
-				$expression = preg_replace_callback($this->dateRegex, function ($matches) {
-					$date = \DateTime::createFromFormat($this->dateFormat, $matches[1]);
-					if ($date && $date->format($this->dateFormat) === $matches[1]) {
-						return '"' . $date->format('d-m-Y') . '"';
-					}
-				}, $expression);
-				
-				//replace by property value
-				if (($entity instanceof Serie || $entity instanceof Document || $entity instanceof Version) && $entity) {
-					$expression = preg_replace_callback('/\[(\w+[.\w+]+)\]/', function($matches) use ($entity) {
-						return '"' . $this->propertyService->toString($entity->getPropertyValue($matches[1])) . '"';
-					}, $expression);
-				}
-				
-				//replace by Excel values
-				if ($row !== null) {
-					$expression = preg_replace_callback('/\[([A-Z]{1,2})\]/', function($matches) use ($row) {
-						$cell = $row->getCell($matches[1]);
-						if ($date = $cell->getDateTime()) {
-							return '"' . $date->format('d-m-Y') . '"';
-						} else {
-							return '"' . $cell->getValue() . '"';
-						}
-					}, $expression);
-				}
-				
-				//date add/sub
-				$expression = preg_replace_callback('/"(\d{2}-\d{2}-\d{4})"\s*([+-])\s*(\d+)([ymd])*/i', function ($matches) {
-					$date = new \DateTime($matches[1]);
-					if ($dateInterval = new \DateInterval('P' . $matches[3] . strtoupper($matches[4]))) {
-						switch ($matches[2]) {
-							case "+":
-								return '"' . $date->add($dateInterval)->format('d-m-Y') . '"';
-							case "-":
-								return '"' . $date->sub($dateInterval)->format('d-m-Y') . '"';
-						}
-					}
-				}, $expression);
-				
-			}
-			
-// 			$this->flashBag->add('info', 'avant evaluation : ' . $expression);
-// 			dd($entity);
-		}
-		
-		return $expression;
-	}
-	
-	private function compare(string $expression, $entity, Row $row = null): bool
-	{
-		
-		if ($expression == false) return false;
-		
-		$expression = $this->prepare($expression, $entity, false, $row);
-		
-		//dates comparison
-		$expression = preg_replace('/"(\d{2}-\d{2}-\d{4})"/', '(new \DateTime("$1"))', $expression);
-		
-		//remplace true and false by "Yes" and "No"
-		$expression = preg_replace('/(={2,3}\s*)true/', '$1"' . $this->translator->trans('Yes') . '"', $expression);
-		$expression = preg_replace('/true(\s*={2,3})/', '"' . $this->translator->trans('Yes') . '"$1', $expression);
-		$expression = preg_replace('/(={2,3}\s*)false/', '$1"' . $this->translator->trans('No') . '"', $expression);
-		$expression = preg_replace('/false(\s*={2,3})/', '"' . $this->translator->trans('No') . '"$1', $expression);
-		
-		//regex
-		$expression = preg_replace_callback('/"([^"]+)"\s+matches\s+\"(\/\S*\/)\"/', function ($matches) {
-			$subExpr = $matches[1];
-			$pattern = $matches[2];
-			return 'preg_match("' . $pattern . '", "' . $subExpr . '")';
-		}, $expression);
-		
-		return (bool)$this->evaluate($expression);
-		
-	}
-	
-	private function get(string $expression, $entity, Row $row = null): string
-	{
-		
-		if ($expression == false) return '';
-		
-		$expression = $this->prepare($expression, $entity, false, $row);
-		
-		//dates output
-		$expression = preg_replace_callback('/"(\d{2}-\d{2}-\d{4})"/', function($matches) {
-			$date = new \DateTime($matches[1]);
-			return '"' . $date->format($this->dateFormat) . '"';
-		}, $expression);
-		
-		//regex
-		$expression = preg_replace_callback('/"([^"]+)"\s+get\s+\"(\/\S*\/)\"/', function ($matches) {
-			$subExpr = $matches[1];
-			$pattern = $matches[2];
-			if (preg_match($pattern, $subExpr, $matches) === 1) {
-				if (count($matches) > 1) {
-					return '"' . $matches[1] . '"';
-				} else {
-					return '"' . $matches[0] . '"';
-				}
-			} else {
-				return '""';
-			}
-		}, $expression);
-		
-		return (string)$this->evaluate($expression);
-	}
-	
-	private function evaluate($expression)
-	{
-		// 		try {
-		// 			return $this->expressionLanguage->evaluate($expression);
-		// 		} catch (SyntaxError $e) {
-		// 			$this->flashBag->add('danger', $e->getMessage());
-		// 			return false;
-		// 		}
-		
-		try {
-			return eval('return ' . $expression . ';');
-		} catch (\ParseError $e) {
-			$this->flashBag->add('danger', $e->getMessage() . " :\n" . $expression);
-			return false;
-		}
-	}
-	
-// 	private function getCol($expression): ?string
-// 	{
-// 		$matches = [];
-// 		if (preg_match('/\[([A-Z]{1,2})\]/', $expression, $matches) === 1) {
-// 			return $matches[1];
-// 		}
-// 		return null;
-// 	}
 	
 	private function addComment($type, $text, $col = null)
 	{
@@ -1127,20 +876,18 @@ class ProgramService
 				default:
 					return;
 			}
-			$row->getCell("Z")->setValue('jjj');
-			$numberOfLines = 0;
+			
 			foreach ($this->comments as $comment) {
 				
-				$row->addComment($comment['text'] . "\r\n");
+				$row->getCell($this->programCache->getParameter('comments_column'))->addComment($comment['text']);
 				
-				if ($comment['col'] !== null) {
+				if ($comment['col'] !== null && $comment['col'] != $this->programCache->getParameter('comments_column')) {
 					$row->getCell($comment['col'])
 						->addComment($comment['text'])
 						->setBorder(self::BORDER_COLOR)
 					;
 				}
 				
-				$numberOfLines++;
 			}
 			
 			$this->comments = [];

@@ -20,6 +20,7 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Security\Core\Security;
+use Spatie\Regex\Regex;
 
 class QuickVersionType extends AbstractType
 {
@@ -74,10 +75,10 @@ class QuickVersionType extends AbstractType
 					];
 					break;
 					
-				case (preg_match('/metadata_(\d+)/', $field['id'], $matches) === 1):
+				case (($result = Regex::match('/metadata_(\d+)/', $field['id']))->hasMatch()):
 					
 					foreach ($this->metadataRepository->getMetadatasForVersion($project) as $metadata) {
-						if ($metadata->getId() == $matches[1]) {
+						if ($metadata->getId() == $result->group(1)) {
 							switch ($metadata->getType()) {
 								case Metadata::LIST:
 									$options = [
@@ -113,11 +114,11 @@ class QuickVersionType extends AbstractType
 					];
 					break;
 					
-				case (preg_match('/visa_(\d+)/', $field['id'], $matches) === 1):
+				case (($result = Regex::match('/visa_(\d+)/', $field['id']))->hasMatch()):
 					
 					foreach ($version->getDocument()->getSerie()->getProject()->getVisas()->getValues() as $visa) {
 						
-						if ($visa->getCompany()->getId() == $matches[1]) {
+						if ($visa->getCompany()->getId() == $result->group(1)) {
 							if ($this->security->getUser()->getCompany() == $visa->getCompany() || ($this->security->isGranted('ROLE_CONTROLLER') && $project->hasUser($this->security->getUser())) || $this->security->isGranted('ROLE_ADMIN')) {
 								$options = [
 									'required'	=> false,

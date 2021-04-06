@@ -6,6 +6,7 @@ use Twig\TwigFilter;
 use Twig\Extension\AbstractExtension;
 use App\Service\PropertyService;
 use Symfony\Contracts\Translation\TranslatorInterface;
+use Spatie\Regex\Regex;
 
 class FiltersExtension extends AbstractExtension
 {
@@ -31,7 +32,7 @@ class FiltersExtension extends AbstractExtension
 	public function getShortName($class)
 	{
 		$reflect = new \ReflectionClass($class);
-		return (strtolower(preg_replace("#([A-Z])#", '_$1', lcfirst($reflect->getShortName()))));
+		return (strtolower(Regex::replace("#([A-Z])#", '_$1', lcfirst($reflect->getShortName()))->result()));
     }
     
     public function truncateFilter(Environment $env, $value, $length = 30, $preserve = false, $separator = '...')

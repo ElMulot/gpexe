@@ -26,6 +26,6 @@ option:
         default: 'spout'
         type: 'list'
     date_format:
-        regex: '[djDlSzFMmnYyaAhgGHisvu\s#;:\/\.,\-\(\)]+'
+        regex: '^[djDYyFMmn\s#;:\/\.,\-\(\)]+$'
         default: 'd-m-Y'
         type: 'text'

@@ -18,6 +18,7 @@ use App\Entity\User;
 use App\Entity\Version;
 use App\Entity\Visa;
 use Symfony\Component\Stopwatch\Stopwatch;
+use Spatie\Regex\Regex;
 
 /**
  * @method Version|null find($id, $lockMode = null, $lockVersion = null)
@@ -163,9 +164,9 @@ class VersionRepository extends RepositoryService
 					$qb->addOrderBy('status.type', $order);
 					break;
 				
-				case (preg_match('/metadata_(\d+)/', $sortedField, $matches) === 1):
+				case (($result = Regex::match('/metadata_(\d+)/', $sortedField))->hasMatch()):
 					
-					$id = $matches[1];
+					$id = $result->group(1);
 					
 					foreach ($fields as $field) {
 						
@@ -205,9 +206,9 @@ class VersionRepository extends RepositoryService
 					}
 					break;
 					
-				case (preg_match('/visa_(\d+)/', $sortedField, $matches) === 1):
+				case (($result = Regex::match('/visa_(\d+)/', $sortedField))->hasMatch()):
 					
-					$id = $matches[1];
+					$id = $result->group(1);
 					
 					foreach ($fields as $field) {
 						
@@ -255,9 +256,9 @@ class VersionRepository extends RepositoryService
 			
 			foreach ($fields as $field) {
 				
-				if (preg_match('/codification_(\d+)/', $field['id'], $matches) === 1) {
+				if (($result = Regex::match('/codification_(\d+)/', $field['id']))->hasMatch()) {
 					
-					$id = $matches[1];
+					$id = $result->group(1);
 					
 					switch ($field['type']) {
 						
@@ -280,8 +281,6 @@ class VersionRepository extends RepositoryService
 			}
 			
 			foreach ($display as $name) {
-				
-				$matches = null;
 				
 				switch ($name) {
 					
@@ -363,9 +362,9 @@ class VersionRepository extends RepositoryService
 						$qb->addSelect('status.type AS status_type');
 						break;
 					
-					case (preg_match('/metadata_(\d+)/', $name, $matches) === 1):
+					case (($result = Regex::match('/metadata_(\d+)/', $name))->hasMatch()):
 						
-						$id = $matches[1];
+						$id = $result->group(1);
 						
 						foreach ($fields as $field) {
 							
@@ -405,9 +404,9 @@ class VersionRepository extends RepositoryService
 						}
 						break;
 						
-					case (preg_match('/visa_(\d+)/', $name, $matches) === 1):
+					case (($result = Regex::match('/visa_(\d+)/', $name))->hasMatch()):
 						
-						$id = $matches[1];
+						$id = $result->group(1);
 						
 						foreach ($fields as $field) {
 							
@@ -475,7 +474,7 @@ class VersionRepository extends RepositoryService
 			
 			foreach ($results as &$result) {
 				foreach ($fields as $field) {
-					if (preg_match('/codification_\d+/', $field['id']) === 1) {
+					if (Regex::match('/codification_\d+/', $field['id'])->hasMatch()) {
 						if (array_search($field['id'], $display) === false) {
 							unset ($result[$field['id']]);
 						}
@@ -487,7 +486,7 @@ class VersionRepository extends RepositoryService
 		
 		array_walk($results, function(&$item) use ($request, $project) {
 			if (array_key_exists('version_date', $item)) {
-				$item['version_date'] = preg_replace('/(\d{4})-(\d{2})-(\d{2})/', '${3}-${2}-${1}', $item['version_date']);
+				$item['version_date'] = Regex::replace('/(\d{4})-(\d{2})-(\d{2})/', '${3}-${2}-${1}', $item['version_date'])->result();
 			}
 			
 			if ($highlight = $request->query->get('highlight')) {
@@ -657,34 +656,31 @@ class VersionRepository extends RepositoryService
 							
 						case 'version_initial_scheduled_date':
 							$value = implode(',', $value);
-							$matches = [];
-							if (preg_match('/>(\d{2}-\d{2}-\d{4})/', $value, $matches) === 1) {
-								$qb->andWhere($qb->gte('version.initialScheduledDate', new \DateTime($matches[1])));
+							if (($result = Regex::match('/>(\d{2}-\d{2}-\d{4})/', $value))->hasMatch()) {
+								$qb->andWhere($qb->gte('version.initialScheduledDate', new \DateTime($result->group(1))));
 							}
-							if (preg_match('/<(\d{2}-\d{2}-\d{4})/', $value, $matches) === 1) {
-								$qb->andWhere($qb->lte('version.initialScheduledDate', new \DateTime($matches[1])));
+							if (($result = Regex::match('/<(\d{2}-\d{2}-\d{4})/', $value, $matches))->hasMatch()) {
+								$qb->andWhere($qb->lte('version.initialScheduledDate', new \DateTime($result->group(1))));
 							}
 							break;
 							
 						case 'version_scheduled_date':
 							$value = implode(',', $value);
-							$matches = [];
-							if (preg_match('/>(\d{2}-\d{2}-\d{4})/', $value, $matches) === 1) {
-								$qb->andWhere($qb->gte('version.scheduledDate', new \DateTime($matches[1])));
+							if (($result = Regex::match('/>(\d{2}-\d{2}-\d{4})/', $value, $matches))->hasMatch()) {
+								$qb->andWhere($qb->gte('version.scheduledDate', new \DateTime($result->group(1))));
 							}
-							if (preg_match('/<(\d{2}-\d{2}-\d{4})/', $value, $matches) === 1) {
-								$qb->andWhere($qb->lte('version.scheduledDate', new \DateTime($matches[1])));
+							if (($result = Regex::match('/<(\d{2}-\d{2}-\d{4})/', $value, $matches))->hasMatch()) {
+								$qb->andWhere($qb->lte('version.scheduledDate', new \DateTime($result->group(1))));
 							}
 							break;
 							
 						case 'version_delivery_date':
 							$value = implode(',', $value);
-							$matches = [];
-							if (preg_match('/>(\d{2}-\d{2}-\d{4})/', $value, $matches) === 1) {
-								$qb->andWhere($qb->gte('version.deliveryDate', new \DateTime($matches[1])));
+							if (($result = Regex::match('/>(\d{2}-\d{2}-\d{4})/', $value, $matches))->hasMatch()) {
+								$qb->andWhere($qb->gte('version.deliveryDate', new \DateTime($result->group(1))));
 							}
-							if (preg_match('/<(\d{2}-\d{2}-\d{4})/', $value, $matches) === 1) {
-								$qb->andWhere($qb->lte('version.deliveryDate', new \DateTime($matches[1])));
+							if (($result = Regex::match('/<(\d{2}-\d{2}-\d{4})/', $value, $matches))->hasMatch()) {
+								$qb->andWhere($qb->lte('version.deliveryDate', new \DateTime($result->group(1))));
 							}
 							break;
 							
@@ -693,12 +689,11 @@ class VersionRepository extends RepositoryService
 								$qb->addSelect("IF(version.isRequired = false, version.deliveryDate, version.scheduledDate) AS version_date");
 							}
 							$value = implode(',', $value);
-							$matches = [];
-							if (preg_match('/>(\d{2}-\d{2}-\d{4})/', $value, $matches) === 1) {
-								$qb->andWhere($qb->gte('version_date', new \DateTime($matches[1])));
+							if (($result = Regex::match('/>(\d{2}-\d{2}-\d{4})/', $value, $matches))->hasMatch()) {
+								$qb->andWhere($qb->gte('version_date', new \DateTime($result->group(1))));
 							}
-							if (preg_match('/<(\d{2}-\d{2}-\d{4})/', $value, $matches) === 1) {
-								$qb->andWhere($qb->lte('version_date', new \DateTime($matches[1])));
+							if (($result = Regex::match('/<(\d{2}-\d{2}-\d{4})/', $value, $matches))->hasMatch()) {
+								$qb->andWhere($qb->lte('version_date', new \DateTime($result->group(1))));
 							}
 							break;
 							
@@ -741,9 +736,9 @@ class VersionRepository extends RepositoryService
 							$qb->andWhere($qb->in('status.type', $value));
 							break;
 						
-						case (preg_match('/codification_(\d+)/', $field['id'], $matches) === 1):
+						case (($result = Regex::match('/codification_(\d+)/', $field['id']))->hasMatch()):
 							
-							$id = $matches[1];
+							$id = $result->group(1);
 							
 							switch ($field['type']) {
 
@@ -773,9 +768,9 @@ class VersionRepository extends RepositoryService
 							}
 							break;
 							
-						case (preg_match('/metadata_(\d+)/', $field['id'], $matches) === 1):
+						case (($result = Regex::match('/metadata_(\d+)/', $field['id']))->hasMatch()):
 							
-							$id = $matches[1];
+							$id = $result->group(1);
 							
 							switch ($field['type']) {
 								
@@ -817,10 +812,10 @@ class VersionRepository extends RepositoryService
 									
 									foreach ($value as $v) {
 										$r = [];
-										if (preg_match('/>(\d{2}-\d{2}-\d{4})/', $v, $r) === 1) {
-											$qb->andWhere($qb->gte("STR_TO_DATE({$field['id']}_.value, '%d-%m-%Y')", Date::fromFormat($r[1], 'd-m-Y')));
-										} elseif (preg_match('/<(\d{2}-\d{2}-\d{4})/', $v, $r) === 1) {
-											$qb->andWhere($qb->lte("STR_TO_DATE({$field['id']}_.value, '%d-%m-%Y')", Date::fromFormat($r[1], 'd-m-Y')));
+										if (($r = Regex::match('/>(\d{2}-\d{2}-\d{4})/', $v))->hasMatch()) {
+											$qb->andWhere($qb->gte("STR_TO_DATE({$field['id']}_.value, '%d-%m-%Y')", new \DateTime($r->group(1))));
+										} elseif (($r = Regex::match('/<(\d{2}-\d{2}-\d{4})/', $v, $r))->hasMatch()) {
+											$qb->andWhere($qb->lte("STR_TO_DATE({$field['id']}_.value, '%d-%m-%Y')", new \DateTime($r->group(1))));
 										}
 									}
 									
@@ -834,9 +829,9 @@ class VersionRepository extends RepositoryService
 							}
 							break;
 							
-						case (preg_match('/visa_(\d+)/', $field['id'], $matches) === 1):
+						case (($result = Regex::match('/visa_(\d+)/', $field['id']))->hasMatch()):
 							
-							$id = $matches[1];
+							$id = $result->group(1);
 							
 							if ($qb->hasAlias($field['id'] . '_') === false) {
 								

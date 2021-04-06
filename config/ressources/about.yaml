@@ -74,3 +74,11 @@
         - Refonte de la vue principale
         - Modification de la façon dont est gérée le surlignage des lignes par date
         - Correction de bugs
+- 
+    version: 0.5.0
+    date: 05/04/2021
+    changes:
+        - Modernisation de l'interpréteur de script pour les imports/exports/task/progress
+        - Intégration de la librairie Spatie/Regex
+        - Mise à jour des librairies
+        - Correction de bugs

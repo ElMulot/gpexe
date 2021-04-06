@@ -17,10 +17,6 @@ exclude:
     -
         regex: '.+'
 
-get_serie:
-    condition:
-        regex: '.+'
-
 get_document:
     condition:
         regex: '.+' 
@@ -42,14 +38,6 @@ get_version:
             regex: '.+'
         
 option:
-    move_from_mdr:
-        regex: 'true|false'
-        default: 'false'
-        type: 'checkbox'
-    move_from_sdr:
-        regex: 'true|false'
-        default: 'false'
-        type: 'checkbox'
     update_only:
         regex: 'true|false'
         default: 'false'
@@ -63,7 +51,7 @@ option:
         default: 'spout'
         type: 'list'
     date_format:
-        regex: '[djDlSzFMmnYyaAhgGHisvu\s#;:\/\.,\-\(\)]+'
+        regex: '^[djDlSzFMmnYyaAhgGHisvu\s#;:\/\.,\-\(\)]+$'
         default: 'd-m-Y'
         type: 'text'
     rows_per_batch:

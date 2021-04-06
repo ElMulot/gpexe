@@ -6,6 +6,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use App\Helpers\Date;
+use Spatie\Regex\Regex;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\VersionRepository")
@@ -528,23 +529,23 @@ class Version
 								
 			default:
 				
-				if (preg_match('/version\.\w+/', $codename)) {
+				if (Regex::match('/version\.\w+/', $codename)->hasMatch()) {
 					foreach ($this->getDocument()->getSerie()->getProject()->getMetadatas()->getValues() as $metadata) {
 						if ($metadata->getFullCodename() == $codename) {
 							return $this->getMetadataValue($metadata);
 						}
 					}
 					
-				} elseif (preg_match('/status\.\w+/', $codename)) {
+				} elseif (Regex::match('/status\.\w+/', $codename)->hasMatch()) {
 					
 					return $this->getStatus()->getPropertyValue($codename);
 					
-				} elseif (preg_match('/visa\.(\w+)\.(\w+)/', $codename, $matches)) {
+				} elseif (($result = Regex::match('/visa\.(\w+)\.(\w+)/', $codename))->hasMatch()) {
 					
 					foreach ($this->getDocument()->getSerie()->getProject()->getVisas()->getValues() as $visa) {
-						if ($visa->getCompany()->getCodename() == $matches[1]) {
+						if ($visa->getCompany()->getCodename() == $result->group(1)) {
 							if ($review = $this->getReviewByCompany($visa->getCompany())) {
-								switch ($matches[2]) {
+								switch ($result->group(2)) {
 									
 									case 'value':
 										return $review->getVisa();
@@ -624,7 +625,7 @@ class Version
 			case 'version.writer':
 				if ($value) {
 					foreach ($this->getDocument()->getSerie()->getCompany()->getUsers()->getValues() as $user) {
-						if (preg_match('/^[\w\-\.]+@[\w\-\.]+\.[a-zA-Z]{2,5}$/', $value) == 1) {
+						if (Regex::match('/^[\w\-\.]+@[\w\-\.]+\.[a-zA-Z]{2,5}$/', $value)->hasMatch()) {
 							if ($user->getEmail() == $value) {
 								$this->setWriter($user);
 								return true;
@@ -645,7 +646,7 @@ class Version
 				if ($value) {
 					foreach ($this->getDocument()->getSerie()->getProject()->getUsers()->getValues() as $user) {
 						if ($user->getCompany()->isMainContractor() || $user->getCompany()->isChecker()) {
-							if (preg_match('/^[\w\-\.]+@[\w\-\.]+\.[a-zA-Z]{2,5}$/', $value) == 1) {
+							if (Regex::match('/^[\w\-\.]+@[\w\-\.]+\.[a-zA-Z]{2,5}$/', $value)->hasMatch()) {
 								if ($user->getEmail() == $value) {
 									$this->setChecker($user);
 									return true;
@@ -667,7 +668,7 @@ class Version
 				if ($value) {
 					foreach ($this->getDocument()->getSerie()->getProject()->getUsers()->getValues() as $user) {
 						if ($user->getCompany()->isMainContractor() || $user->getCompany()->isChecker()) {
-							if (preg_match('/^[\w\-\.]+@[\w\-\.]+\.[a-zA-Z]{2,5}$/', $value) == 1) {
+							if (Regex::match('/^[\w\-\.]+@[\w\-\.]+\.[a-zA-Z]{2,5}$/', $value)->hasMatch()) {
 								if ($user->getEmail() == $value) {
 									$this->setApprover($user);
 									return true;
@@ -687,7 +688,7 @@ class Version
 				
 			default:
 				
-				if (preg_match('/version\.\w+/', $codename)) {
+				if (Regex::match('/version\.\w+/', $codename)->hasMatch()) {
 					
 					foreach ($this->getDocument()->getSerie()->getProject()->getMetadatas()->getValues() as $metadata) {
 						if ($metadata->getFullCodename() == $codename) {
@@ -695,7 +696,7 @@ class Version
 						}
 					}
 					
-				} elseif (preg_match('/status\.value/', $codename)) {
+				} elseif (Regex::match('/status\.value/', $codename)->hasMatch()) {
 					
 					foreach ($this->getDocument()->getSerie()->getProject()->getStatuses()->getValues() as $status) {
 						if ($status->getValue() == $value) {
@@ -704,11 +705,11 @@ class Version
 						}
 					}
 					
-				} elseif (preg_match('/visa\.(\w+)\.(\w+)/', $codename, $matches)) {
+				} elseif ($result = Regex::match('/visa\.(\w+)\.(\w+)/', $codename)->hasMatch()) {
 					
 					foreach ($this->getDocument()->getSerie()->getProject()->getVisas()->getValues() as $visa) {
-						if ($visa->getCompany()->getCodename() == $matches[1]) {
-							switch ($matches[2]) {
+						if ($visa->getCompany()->getCodename() == $result->group(1)) {
+							switch ($result->group(2)) {
 								
 								case 'value':
 									if ($visa->getName() == $value) {
@@ -759,7 +760,7 @@ class Version
 									
 								case 'date':
 									if ($review = $this->getReviewByCompany($visa->getCompany())) {
-										if ($date = Date::fromFormat($value, 'd-m-Y')) {
+										if ($date = Date::fromFormat($value)) {
 											$review->setDate($date);
 											return true;
 										}

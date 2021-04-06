@@ -674,6 +674,7 @@ function setup(datas) {
 	;
 	
 	$('body').on('mousemove', function(e) {
+		
 		if ($.isEmptyObject(gpexe.colResize) === false) {
 			let width = Math.max(1, Math.round(pxToRem(gpexe.colResize.currentWidth + (e.pageX - gpexe.colResize.currentPosition))));
 			gpexe.colResize.header.setWidth(width);
@@ -681,7 +682,7 @@ function setup(datas) {
 		if ($.isEmptyObject(gpexe.colDrag) === false) {
 			
 			if ($.isEmptyObject(gpexe.colDrag.$ul) && Math.abs(e.pageX - gpexe.colDrag.currentPosition) > 10) {
-				
+				console.log("new ul");
 				gpexe.colDrag.$ul = gpexe.$table.parent().prepend(create.ul).children().first()
 					.addClass('col-drag-container')
 					.css('width', gpexe.$table.outerWidth() + 1)
@@ -758,11 +759,9 @@ function setup(datas) {
 			
 			urlSearch.set('display[' + gpexe.colResize.header.id + ']', width);
 			urlSearch.delete('vue');
-			
-			gpexe.colResize = {};
 		}
 		
-		if ($.isEmptyObject(gpexe.colDrag) === false) {
+		if ($.isEmptyObject(gpexe.colDrag) === false && $.isEmptyObject(gpexe.colDrag.$ul) === false) {
 			let newOrder = gpexe.colDrag.$ul.children().not('.col-drag-helper, .col-drag-disabled').index(gpexe.colDrag.$liPlaceholder) + 1;
 			gpexe.colDrag.$ul.remove();
 			gpexe.$table.show();
@@ -771,9 +770,11 @@ function setup(datas) {
 			
 			urlSearch.set('order[' + gpexe.colDrag.header.id + ']', newOrder);
 			urlSearch.delete('vue');
-			
-			gpexe.colDrag = {};
 		}
+		
+		$(e.target).blur();
+		gpexe.colResize = {};
+		gpexe.colDrag = {};
 		
 	});
 	
@@ -1427,7 +1428,7 @@ function createSelectorsMenu() {
 				
 				gpexe.getSelectors().forEach(v => urlSearch.delete('filter[' + v.id + ']'));
 				
-				if (selector.menu.$chx.not(':checked')) {
+				if (selector.menu.$chx.is(':checked') === true) {
 					urlSearch.append('filter[' + selector.id + ']', 1);
 				}
 				

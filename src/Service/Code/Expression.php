@@ -118,7 +118,7 @@ class Expression
 	private function getString(int $id): string
 	{
 		$string = $this->strings[$id] ?? '';
-		$date = Date::fromFormat($string, 'd-m-Y');
+		$date = Date::fromFormat($string);
 		if ($date->isValid() === true) {
 			return '(new Date(\'' . $date->format('d-m-Y') . '\'))';
 		} else {
@@ -171,6 +171,7 @@ class Expression
 			return $item->getValue($entity, $row);
 		}, $this->nodes);
 		try {
+// 			dump(join('', $nodes));
 			return eval('use App\Helpers\Date; return ' . join('', $nodes) . ';');
 		} catch (\ParseError $e) {
 // 			$this->programCache->addToFlashBag($e->getMessage() . " :\n" . join('', $nodes));

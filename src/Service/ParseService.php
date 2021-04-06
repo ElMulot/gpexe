@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use Symfony\Component\Yaml\Yaml;
+use Spatie\Regex\Regex;
 
 class ParseService
 {
@@ -16,8 +17,8 @@ class ParseService
 	
 	public function getValidatedCode($code): string
 	{
-		$code = preg_replace('/\t/', '    ', $code);
-		$code = preg_replace("/'([^'\n]*)'*\r\n/", "'$1'\r\n", $code);
+		$code = Regex::replace('/\t/', '    ', $code)->result();
+		$code = Regex::replace("/'([^'\n]*)'*\r\n/", "'$1'\r\n", $code)->result();
 		
 		$parsedCode = Yaml::parse($code ?? '') ?? [];
 		
@@ -152,9 +153,8 @@ class ParseService
 		}
 		
 		if (array_key_exists('regex', $structure)) {
-			$matches = [];
-			if (preg_match('/' . $structure['regex'] . '/', $parsedCode, $matches)) {
-				return (is_numeric($matches[0]))?+$matches[0]:$matches[0];
+			if (($result = Regex::match('/' . $structure['regex'] . '/', $parsedCode))->hasMatch()) {
+				return (is_numeric($result->group(0)))?+$result->group(0):$result->group(0);
 			}
 		}
 		return self::setDefaultValue($structure);

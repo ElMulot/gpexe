@@ -10,6 +10,7 @@ use Symfony\Component\PropertyInfo\Extractor\ReflectionExtractor;
 use Twig\TwigFunction;
 use Twig\Extension\AbstractExtension;
 use Symfony\Bridge\Doctrine\PropertyInfo\DoctrineExtractor;
+use Spatie\Regex\Regex;
 
 class FunctionsExtension extends AbstractExtension
 {
@@ -37,7 +38,7 @@ class FunctionsExtension extends AbstractExtension
 		foreach ($properties as $property) {
 			$type = $this->doctrineExtractor->getTypes($class, $property);
 			if (current($type)->isCollection() === false) {
-				$headers[$property] = ucfirst(strtolower(preg_replace("#([A-Z])#", ' $1', $property)));
+				$headers[$property] = ucfirst(strtolower(Regex::replace("#([A-Z])#", ' $1', $property)->result()));
 			}
 		}
 		return $headers;
