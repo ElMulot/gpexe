@@ -490,7 +490,13 @@ class VersionRepository extends RepositoryService
 			}
 			
 			if ($highlight = $request->query->get('highlight')) {
-				if ($item['version_is_required'] && array_key_exists($highlight, $item) && ($date = Date::fromFormat($item[$highlight]))->isValid() === true) {
+				
+				if ($item['version_is_required'] && array_key_exists($highlight, $item)) {
+					if ($item[$highlight] instanceof \DateTimeInterface) {
+						$date = $item[$highlight];
+					} else {
+						$date = Date::fromFormat($item[$highlight]);
+					}
 					if ($date < new Date('now')) {
 						$item['highlight'] = 'FF919180';
 					} elseif (Date::getWorkingDays($date, new Date('now')) <= $project->getProdWarningLimit()) {

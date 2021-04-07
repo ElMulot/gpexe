@@ -772,9 +772,14 @@ function setup(datas) {
 			urlSearch.delete('vue');
 		}
 		
-		$(e.target).blur();
-		gpexe.colResize = {};
-		gpexe.colDrag = {};
+		if ($.isEmptyObject(gpexe.colResize) === false) {
+			gpexe.colResize = {};
+		}
+		
+		if ($.isEmptyObject(gpexe.colDrag) === false) {
+			$(e.target).blur();
+			gpexe.colDrag = {};
+		}
 		
 	});
 	

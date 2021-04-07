@@ -705,7 +705,7 @@ class Version
 						}
 					}
 					
-				} elseif ($result = Regex::match('/visa\.(\w+)\.(\w+)/', $codename)->hasMatch()) {
+				} elseif (($result = Regex::match('/visa\.(\w+)\.(\w+)/', $codename))->hasMatch()) {
 					
 					foreach ($this->getDocument()->getSerie()->getProject()->getVisas()->getValues() as $visa) {
 						if ($visa->getCompany()->getCodename() == $result->group(1)) {
