@@ -492,7 +492,7 @@ class Document
 					$metadataValue->setValue($value);
 					$metadataValue->setMetadata($metadata);
 					$this->addMetadataValue($metadataValue);
-					$metadata->addMetadataValue($metadataValue);
+// 					$metadata->addMetadataValue($metadataValue);
 					return true;
 				}
 				break;

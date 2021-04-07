@@ -307,7 +307,7 @@ class Serie
     				$metadataValue = new MetadataValue();
     				$metadataValue->setValue($value);
     				$metadataValue->setMetadata($metadata);
-    				$this->addMetadataValue($metadataValue);
+//     				$this->addMetadataValue($metadataValue);
     				return true;
     			}
     			
