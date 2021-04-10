@@ -268,7 +268,7 @@ class Serie
     	
     }
     
-    public function setMetadataValue(Metadata $metadata, $value): bool
+    public function setMetadataValue(Metadata $metadata, $value)
     {
     	
     	switch ($metadata->getType()) {
@@ -290,7 +290,7 @@ class Serie
     			foreach ($this->getMetadataValues()->getValues() as $metadataValue) {
     				if ($metadataValue->getMetadata() == $metadata) {
     					if ($metadataValue->getValue() == $value) {
-    						return true;
+    						return;
     					} else {
     						$this->removeMetadataValue($metadataValue);
     					}
@@ -301,14 +301,14 @@ class Serie
     				foreach ($metadata->getMetadataValues()->getValues() as $metadataValue) {
     					if ($metadataValue->getValue() == $value) {
     						$this->addMetadataValue($metadataValue);
-    						return true;
+    						return;
     					}
     				}
     				$metadataValue = new MetadataValue();
     				$metadataValue->setValue($value);
     				$metadataValue->setMetadata($metadata);
     				$this->addMetadataValue($metadataValue);
-    				return true;
+    				return;
     			}
     			
     			break;
@@ -317,7 +317,7 @@ class Serie
     			foreach ($this->getMetadataItems()->getValues() as $metadataItem) {
     				if ($metadataItem->getMetadata() == $metadata) {
     					if ($metadataItem->getValue() == $value) {
-    						return true;
+    						return;
     					} else {
     						$this->removeMetadataItem($metadataItem);
     					}
@@ -330,13 +330,13 @@ class Serie
     						$this->addMetadataItem($metadataItem);
     					}
     				}
-    				return true;
+    				return;
     			}
     			
     			break;
     	}
     	
-    	return false;
+    	throw new \Error(sprintf('Erreur en écrivant la valeur "%s" dans le champ "%s".', $value, $metadata->getCodename()));
     }
     
     public function getPropertyValue(string $codename)
@@ -370,13 +370,14 @@ class Serie
     			if (Regex::match('/serie\.\w+/', $codename)->hasMatch()) {
     				foreach ($this->getProject()->getMetadatas()->getValues() as $metadata) {
     					if ($metadata->getFullCodename() == $codename) {
-    						return $this->setMetadataValue($metadata, $value);
+    						$this->setMetadataValue($metadata, $value);
+    						return;
     					}
     				}
     			}
     	}
     	
-    	return false;
+    	throw new \Error(sprintf('Erreur en écrivant la valeur "%s" dans le champ "%s".', $value, $codename));
     }
     
     public function __toString(): string

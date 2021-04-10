@@ -303,7 +303,7 @@ class Document
 		
 	}
 	
-	public function setReference($value): bool
+	public function setReference($value)
 	{
 		$project = $this->getSerie()->getProject();
 		$references = explode($project->getSplitter(), $value);
@@ -311,21 +311,20 @@ class Document
 		$reference = null;
 		foreach ($project->getCodifications()->getValues() as $codification) {
 			
-			if ($reference === null) $reference = trim(array_shift($references));
-			
-			if ($reference === null) return false;
-			
-			if ($this->setCodificationValue($codification, $reference)) {
-				$reference = null;
-			} elseif ($codification->getIsMandatory()) {
-				return false;
+			if ($reference === null) {
+				$reference = trim(array_shift($references));
 			}
+			
+			if ($reference === null) {
+				throw new \Error(sprintf('Erreur: la codification "%s" n\'est pas valable.', $value));
+			}
+			
+			$this->setCodificationValue($codification, $reference);
 		}
-		
-		return true;
 	}
 	
-	public function getCodificationValue(Codification $codification) {
+	public function getCodificationValue(Codification $codification)
+	{
 		
 		switch ($codification->getType()) {
 			
@@ -350,29 +349,35 @@ class Document
 		
 	}
 	
-	public function setCodificationValue(Codification $codification, $value): bool
+	public function setCodificationValue(Codification $codification, $value)
 	{
+		
+		if ($value == '') {
+			if ($codification->getIsMandatory() === true) {
+				throw new \Error(sprintf('Erreur: la codification "%s" ne peut être vide.', $codification->getCodename()));
+			} else {
+				return;
+			}
+		}
 		
 		switch ($codification->getType()) {
 			case Codification::FIXED:
-				return true;
+				return;
 				
 			case Codification::LIST:
 				
 				if ($codificationItem = $this->getCodificationItemByCodification($codification)) {
 					if ($codificationItem->getValue() == $value) {
-						return true;
+						return;
 					} else {
 						$this->codificationItems->removeElement($codificationItem);
 					}
 				}
 				
-				if ($value != '') {
-					foreach ($codification->getCodificationItems()->getValues() as $codificationItem) {
-						if ($codificationItem->getValue() == $value) {
-							$this->addCodificationItem($codificationItem);
-							return true;
-						}
+				foreach ($codification->getCodificationItems()->getValues() as $codificationItem) {
+					if ($codificationItem->getValue() == $value) {
+						$this->addCodificationItem($codificationItem);
+						return;
 					}
 				}
 				
@@ -382,30 +387,30 @@ class Document
 				
 				if ($codificationValue = $this->getCodificationValueByCodification($codification)) {
 					if ($codificationValue->getValue() == $value) {
-						return true;
+						return;
 					} else {
 						$this->codificationValues->removeElement($codificationValue);
 					}
 				}
 				
-				if ($value != '' && Regex::match('/' . $codification->getValue() . '/', $value)->hasMatch()) {
+				if (Regex::match('/' . $codification->getValue() . '/', $value)->hasMatch()) {
 					foreach ($codification->getCodificationValues()->getValues() as $codificationValue) {
 						if ($codificationValue->getValue() == $value) {
 							$this->addCodificationValue($codificationValue);
-							return true;
+							return;
 						}
 					}
 					$codificationValue = new CodificationValue();
 					$codificationValue->setValue($value);
 					$codificationValue->setCodification($codification);
 					$this->addCodificationValue($codificationValue);
-					return true;
+					return;
 				}
 				
 				break;
 		}
 		
-		return false;
+		throw new \Error(sprintf('Erreur en écrivant la valeur "%s" dans la codification "%s".', $value, $codification->getCodename()));
 	}
 	
 	public function getVersionsCount(): int
@@ -447,7 +452,7 @@ class Document
 		
 	}
 	
-	public function setMetadataValue(Metadata $metadata, $value): bool
+	public function setMetadataValue(Metadata $metadata, $value)
 	{
 		
 		if ($value instanceof MetadataItem || $value instanceof MetadataValue) {
@@ -474,7 +479,7 @@ class Document
 				foreach ($this->getMetadataValues()->getValues() as $metadataValue) {
 					if ($metadataValue->getMetadata() == $metadata) {
 						if ($metadataValue->getValue() == $value) {
-							return true;
+							return;
 						} else {
 							$this->metadataValues->removeElement($metadataValue);
 						}
@@ -485,7 +490,7 @@ class Document
 					foreach ($metadata->getMetadataValues()->getValues() as $metadataValue) {
 						if ($metadataValue->getValue() == $value) {
 							$this->addMetadataValue($metadataValue);
-							return true;
+							return;
 						}
 					}
 					$metadataValue = new MetadataValue();
@@ -493,7 +498,7 @@ class Document
 					$metadataValue->setMetadata($metadata);
 					$this->addMetadataValue($metadataValue);
 					$metadata->addMetadataValue($metadataValue);
-					return true;
+					return;
 				}
 				break;
 				
@@ -501,7 +506,7 @@ class Document
 				foreach ($this->getMetadataItems()->getValues() as $metadataItem) {
 					if ($metadataItem->getMetadata() == $metadata) {
 						if ($metadataItem->getValue() == $value) {
-							return true;
+							return;
 						} else {
 							$this->metadataItems->removeElement($metadataItem);
 						}
@@ -512,7 +517,7 @@ class Document
 					foreach ($metadata->getMetadataItems()->getValues() as $metadataItem) {
 						if ($metadataItem->getValue() == $value) {
 							$this->addMetadataItem($metadataItem);
-							return true;
+							return;
 						}
 					}
 				}
@@ -520,7 +525,7 @@ class Document
 				break;
 		}
 		
-		return false;
+		throw new \Error(sprintf('Erreur en écrivant la valeur "%s" dans le champ "%s".', $value, $metadata->getCodename()));
 	}
 	
 	public function getPropertyValue(string $codename)
@@ -571,31 +576,34 @@ class Document
 				foreach ($this->getSerie()->getProject()->getSeries()->getValues() as $serie) {
 					if ($serie->getName() == $value) {
 						$this->setSerie($serie);
-						return true;
+						return;
 					}
 				}
-				return false;
+				break;
 				
 			case 'document.name':
 				$this->setName($value);
-				return true;
+				return;
 				
 			case 'document.reference':
-				return $this->setReference($value);
+				$this->setReference($value);
+				return;
 				
 			default:
 				if (Regex::match('/document\.\w+/', $codename)->hasMatch()) {
 					foreach ($this->getSerie()->getProject()->getMetadatas()->getValues() as $metadata) {
 						if ($metadata->getFullCodename() == $codename) {
-							return $this->setMetadataValue($metadata, $value);
+							$this->setMetadataValue($metadata, $value);
+							return;
 						}
 					}
 				} else {
-					return $this->getSerie()->setPropertyValue($codename, $value);
+					$this->getSerie()->setPropertyValue($codename, $value);
+					return;
 				}
 		}
 		
-		return false;
+		throw new \Error(sprintf('Erreur en écrivant la valeur "%s" dans le champ "%s".', $value, $codename));
 	}
 	
 	public function getLastVersion(): ?Version

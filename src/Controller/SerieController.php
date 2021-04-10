@@ -114,7 +114,11 @@ class SerieController extends AbstractController
 					]);
 				}
 				
-				$serie->setMetadataValue($metadata, $value);
+				try {
+					$serie->setMetadataValue($metadata, $value);
+				} catch (\Error $e) {
+					$this->addFlash('danger', $e->getMessage());
+				}
 			}
 			
 			$entityManager = $this->getDoctrine()->getManager();
@@ -166,7 +170,11 @@ class SerieController extends AbstractController
 					]);
 				}
 				
-				$serie->setMetadataValue($metadata, $value);
+				try {
+					$serie->setMetadataValue($metadata, $value);
+				} catch (\Error $e) {
+					$this->addFlash('danger', $e->getMessage());
+				}
 			}
 			
 			$entityManager = $this->getDoctrine()->getManager();

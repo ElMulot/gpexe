@@ -361,7 +361,7 @@ class Version
 		
 	}
 	
-	public function setMetadataValue(Metadata $metadata, $value): bool
+	public function setMetadataValue(Metadata $metadata, $value)
 	{
 		switch ($metadata->getType()) {
 			case Metadata::BOOLEAN:
@@ -390,7 +390,7 @@ class Version
 				foreach ($this->getMetadataValues()->getValues() as $metadataValue) {
 					if ($metadataValue->getMetadata() == $metadata) {
 						if ($metadataValue->getValue() == $value) {
-							return true;
+							return;
 						} else {
 							$this->metadataValues->removeElement($metadataValue);
 						}
@@ -401,7 +401,7 @@ class Version
 					foreach ($metadata->getMetadataValues()->getValues() as $metadataValue) {
 						if ($metadataValue->getValue() == $value) {
 							$this->addMetadataValue($metadataValue);
-							return true;
+							return;
 						}
 					}
 					$metadataValue = new MetadataValue();
@@ -409,7 +409,7 @@ class Version
 					$metadataValue->setMetadata($metadata);
 					$this->addMetadataValue($metadataValue);
 					$metadata->addMetadataValue($metadataValue);
-					return true;
+					return;
 				}
 				break;
 				
@@ -417,7 +417,7 @@ class Version
 				foreach ($this->getMetadataItems()->getValues() as $metadataItem) {
 					if ($metadataItem->getMetadata() == $metadata) {
 						if ($metadataItem->getValue() == $value) {
-							return true;
+							return;
 						} else {
 							$this->metadataItems->removeElement($metadataItem);
 						}
@@ -430,12 +430,12 @@ class Version
 							$this->addMetadataItem($metadataItem);
 						}
 					}
-					return true;
+					return;
 				}
 				break;
 		}
 		
-		return false;
+		throw new \Error(sprintf('Erreur en écrivant la valeur "%s" dans le champ "%s".', $value, $metadata->getCodename()));
 	}
 	
 	public function getPropertyValue(string $codename)
@@ -573,7 +573,7 @@ class Version
 		return null;
 	}
 	
-	public function setPropertyValue(string $codename, $value): bool
+	public function setPropertyValue(string $codename, $value)
 	{
 		
 		switch ($codename) {
@@ -581,14 +581,15 @@ class Version
 				if ($value) {
 					foreach ($this->document->getVersions()->getValues() as $version) {
 						if ($version->getName() == $value && $version !== $this) {
-							return false;
+							throw new \Error(sprintf('Erreur: le nom de révision "%s" existe déjà.', $value));
 						}
 					}
 					$this->setName($value);
 					return true;
 				} else {
-					return false;
+					throw new \Error('Erreur: le nom de révision ne peut être vide.');
 				}
+				break;
 			
 			case 'version.date':
 				if ($value instanceof \DateTimeInterface) {
@@ -596,15 +597,15 @@ class Version
 						$this->isRequired = true;
 					}
 					$this->setDate($value);
-					return true;
+					return;
 				} elseif (($date = Date::fromFormat($value, 'd-m-Y'))->isValid() === true) {
 					if ($date > new Date('now')) {
 						$this->isRequired = true;
 					}
 					$this->setDate($date);
-					return true;
+					return;
 				}
-				return false;
+				break;
 				
 			case 'version.isRequired':
 				switch ((string)$value) {
@@ -612,15 +613,14 @@ class Version
 					case 'false':
 					case 'no':
 						$this->setIsRequired(false);
-						return true;
+						return;
 					case '1':
 					case 'true':
 					case 'yes':
 						$this->setIsRequired(true);
-						return true;
-					default:
-						return false;
+						return;
 				}
+				break;
 				
 			case 'version.writer':
 				if ($value) {
@@ -628,12 +628,12 @@ class Version
 						if (Regex::match('/^[\w\-\.]+@[\w\-\.]+\.[a-zA-Z]{2,5}$/', $value)->hasMatch()) {
 							if ($user->getEmail() == $value) {
 								$this->setWriter($user);
-								return true;
+								return;
 							}
 						} else {
 							if ($user->getName() == $value) {
 								$this->setWriter($user);
-								return true;
+								return;
 							}
 						}
 					}
@@ -649,12 +649,12 @@ class Version
 							if (Regex::match('/^[\w\-\.]+@[\w\-\.]+\.[a-zA-Z]{2,5}$/', $value)->hasMatch()) {
 								if ($user->getEmail() == $value) {
 									$this->setChecker($user);
-									return true;
+									return;
 								}
 							} else {
 								if ($user->getName() == $value) {
 									$this->setChecker($user);
-									return true;
+									return;
 								}
 							}
 						}
@@ -671,12 +671,12 @@ class Version
 							if (Regex::match('/^[\w\-\.]+@[\w\-\.]+\.[a-zA-Z]{2,5}$/', $value)->hasMatch()) {
 								if ($user->getEmail() == $value) {
 									$this->setApprover($user);
-									return true;
+									return;
 								}
 							} else {
 								if ($user->getName() == $value) {
 									$this->setApprover($user);
-									return true;
+									return;
 								}
 							}
 						}
@@ -692,7 +692,8 @@ class Version
 					
 					foreach ($this->getDocument()->getSerie()->getProject()->getMetadatas()->getValues() as $metadata) {
 						if ($metadata->getFullCodename() == $codename) {
-							return $this->setMetadataValue($metadata, $value);
+							$this->setMetadataValue($metadata, $value);
+							return;
 						}
 					}
 					
@@ -701,7 +702,7 @@ class Version
 					foreach ($this->getDocument()->getSerie()->getProject()->getStatuses()->getValues() as $status) {
 						if ($status->getValue() == $value) {
 							$this->setStatus($status);
-							return true;
+							return;
 						}
 					}
 					
@@ -717,7 +718,7 @@ class Version
 											if ($review->getVisa()->getName() != $value) {
 												$review->setVisa($visa);
 											}
-											return true;
+											return;
 										} else {
 											$review = new Review();
 											if ($this->getChecker()) {
@@ -739,7 +740,7 @@ class Version
 											$review->setDate(new Date('now'));
 											$review->setVisa($visa);
 											$this->addReview($review);
-											return true;
+											return;
 										}
 									}
 									break;
@@ -750,7 +751,7 @@ class Version
 											foreach ($visa->getCompany()->getUsers()->getValues() as $user) {
 												if ($user->getName() == $value) {
 													$review->setUser($user);
-													return true;
+													return;
 													break;
 												}
 											}
@@ -762,7 +763,7 @@ class Version
 									if ($review = $this->getReviewByCompany($visa->getCompany())) {
 										if ($date = Date::fromFormat($value)) {
 											$review->setDate($date);
-											return true;
+											return;
 										}
 									}
 									break;
@@ -771,11 +772,12 @@ class Version
 						}
 					}
 				} else {
-					return $this->getDocument()->setPropertyValue($codename, $value);
+					$this->getDocument()->setPropertyValue($codename, $value);
+					return;
 				}
 		}
 		
-		return false;
+		throw new \Error(sprintf('Erreur en écrivant la valeur "%s" dans le champ "%s".', $value, $codename));
 	}
 	
 	public function __toString(): string

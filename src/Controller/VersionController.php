@@ -105,7 +105,11 @@ class VersionController extends AbstractController
 			$version->setApprover($lastVersion->getApprover());
 			foreach ($this->metadataRepository->getMetadatasForVersion($project) as $metadata) {
 				if ($metadata->isBoolean() || $metadata->isList() || $metadata->getIsMandatory()) {
-					$version->setMetadataValue($metadata, $lastVersion->getMetadataValue($metadata));
+					try {
+						$version->setMetadataValue($metadata, $lastVersion->getMetadataValue($metadata));
+					} catch (\Error $e) {
+						$this->addFlash('danger', $e->getMessage());
+					}
 				}
 			}
 		} else {
@@ -143,7 +147,11 @@ class VersionController extends AbstractController
 					]);
 				}
 				
-				$version->setMetadataValue($metadata, $value);
+				try {
+					$version->setMetadataValue($metadata, $value);
+				} catch (\Error $e) {
+					$this->addFlash('danger', $e->getMessage());
+				}
 			}
 			
 			$entityManager = $this->getDoctrine()->getManager();
@@ -236,7 +244,11 @@ class VersionController extends AbstractController
 							]);
 						}
 						
-						$version->setMetadataValue($metadata, $value);
+						try {
+							$version->setMetadataValue($metadata, $value);
+						} catch (\Error $e) {
+							$this->addFlash('danger', $e->getMessage());
+						}
 					}
 				}
 				
@@ -345,7 +357,11 @@ class VersionController extends AbstractController
 			
 			foreach ($this->metadataRepository->getMetadatasForVersion($project) as $metadata) {
 				if ($metadata->isBoolean() || $metadata->isList() || $metadata->getIsMandatory()) {
-					$newVersion->setMetadataValue($metadata, $version->getMetadataValue($metadata));
+					try {
+						$newVersion->setMetadataValue($metadata, $version->getMetadataValue($metadata));
+					} catch (\Error $e) {
+						$this->addFlash('danger', $e->getMessage());
+					}
 				}
 			}
 			
@@ -390,7 +406,12 @@ class VersionController extends AbstractController
 					
 					if ($form->isSubmitted() && $form->isValid()) {
 						
-						$version->setPropertyValue($field['codename'], $form->get($field['id'])->getData());
+						try {
+							$version->setPropertyValue($field['codename'], $form->get($field['id'])->getData());
+						} catch (\Error $e) {
+							$this->addFlash('danger', $e->getMessage());
+						}
+						
 						$entityManager = $this->getDoctrine()->getManager();
 						$entityManager->persist($version);
 						$entityManager->flush();

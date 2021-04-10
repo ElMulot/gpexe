@@ -246,7 +246,11 @@ class DocumentController extends AbstractController
 					]);
 				}
 				
-				$document->setCodificationValue($codification, $value);
+				try {
+					$document->setCodificationValue($codification, $value);
+				} catch (\Error $e) {
+					$this->addFlash('danger', $e->getMessage());
+				}
 			}
 			
 			if ($this->documentService->validateReference($document) === false) {
@@ -268,7 +272,11 @@ class DocumentController extends AbstractController
 					]);
 				}
 				
-				$document->setMetadataValue($metadata, $value);
+				try {
+					$document->setMetadataValue($metadata, $value);
+				} catch (\Error $e) {
+					$this->addFlash('danger', $e->getMessage());
+				}
 			}
 			
 			$entityManager->persist($document);
@@ -335,7 +343,11 @@ class DocumentController extends AbstractController
 							]);
 						}
 						
-						$document->setCodificationValue($codification, $value);
+						try {
+							$document->setCodificationValue($codification, $value);
+						} catch (\Error $e) {
+							$this->addFlash('danger', $e->getMessage());
+						}
 					}
 				}
 				
@@ -367,7 +379,11 @@ class DocumentController extends AbstractController
 							]);
 						}
 						
-						$document->setMetadataValue($metadata, $value);
+						try {
+							$document->setMetadataValue($metadata, $value);
+						} catch (\Error $e) {
+							$this->addFlash('danger', $e->getMessage());
+						}
 					}
 				}
 				

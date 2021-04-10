@@ -332,10 +332,10 @@ class ProgramService
 		//update cache
 		if ($newBatch === false) {
 			$this->programCache->setStatus(ProgramCache::COMPLETED);
-			$this->flashBag->add('success', 'Export réussi. ' . ($currentRow - $firstRow - 1) . '/' .  $countProcessed . ' lignes exportées (' . $event->getDuration()/1000 . ' s; ' . $event->getMemory()/1048576 . ' Mo)');
+			$this->flashBag->add('success', sprintf('Export réussi. %d/%d lignes exportées (%d s; %d Mo)', $currentRow - $firstRow - 1, $countProcessed, $event->getDuration()/1000, $event->getMemory()/1048576));
 		} else {
 			$this->programCache->setStatus(ProgramCache::NEW_BATCH);
-			$this->flashBag->add('success', ($currentRow - $firstRow - 1) . '/' .  $countProcessed . ' lignes exportées (' . $event->getDuration()/1000 . ' s; ' . $event->getMemory()/1048576 . ' Mo)');
+			$this->flashBag->add('success', sprintf('%d/%d lignes exportées (%d s; %d Mo)',$currentRow - $firstRow - 1, $countProcessed, $event->getDuration()/1000, $event->getMemory()/1048576));
 			$this->programCache->setParameter('count_processed', $countProcessed);
 			$this->programCache->setParameter('first_row', $currentRow + 1);
 		}
@@ -408,7 +408,7 @@ class ProgramService
 			foreach ($cache['exclude'] as $exclude) {
 				if ($exclude->eval(null, $row) === true) {
 					$row->setBackgroundColor(self::IGNORE_COLOR);
-					$this->addComment('ignore', "Ligne exclue via l'instruction 'Exclude'.");
+					$this->addComment('ignore', 'Ligne exclue via l\'instruction "Exclude".');
 					$this->writeComments($row);
 					$countProcessed++;
 					$currentRow++;
@@ -424,7 +424,7 @@ class ProgramService
 				if ($cache['get_document']['condition']->eval($document, $row) == true) {
 					$currentDocument = $document;
 					$currentSerie = $document->getSerie();
-					$this->addComment('valid', "Document trouvé.");
+					$this->addComment('valid', 'Document trouvé.');
 					break;
 				}
 			}
@@ -433,10 +433,11 @@ class ProgramService
 				
 				foreach ($cache['get_document']['then'] as $then) {
 					
-					if ($currentDocument->setPropertyValue($then->getVariable(), $then->eval($currentDocument, $row)) === true) {
-						$this->addComment('valid', "Champ '{$then->getVariable()}' mis à jour.");
-					} else {
-						$this->addComment('warning', "Erreur en écrivant le champ '{$then->getVariable()}'.", $then->getCol());
+					try {
+						$currentDocument->setPropertyValue($then->getVariable(), $then->eval($currentDocument, $row));
+						$this->addComment('valid', sprintf('Champ "%s" mis à jour.', $then->getVariable()));
+					} catch (\Error $e) {
+						$this->addComment('warning', $e->getMessage(), $then->getCol());
 					}
 					
 				}
@@ -449,20 +450,21 @@ class ProgramService
 						$currentDocument = new Document();
 						$currentDocument->setSerie($currentSerie);
 						$currentSerie->addDocument($currentDocument);
-						$this->addComment('valid', "Création d'un nouveau document.");
+						$this->addComment('valid', 'Création d\'un nouveau document.');
 						$documentsCreated++;
 					}
 					
-					if ($currentDocument->setPropertyValue($else->getVariable(), $else->eval($currentDocument, $row)) === true) {
-						$this->addComment('valid', "Champ '{$else->getVariable()}' mis à jour.");
-					} else {
-						$this->addComment('error', "Erreur en écrivant le champ '{$else->getVariable()}'.", $else->getCol());
+					try {
+						$currentDocument->setPropertyValue($else->getVariable(), $else->eval($currentDocument, $row));
+						$this->addComment('valid', sprintf('Champ "%s" mis à jour.', $else->getVariable()));
+					} catch (\Error $e) {
+						$this->addComment('warning', $e->getMessage(), $else->getCol());
 					}
 					
 				}
 				
 			} else {
-				$this->addComment('error', "Ligne exclue : document non trouvé.");
+				$this->addComment('error', 'Ligne exclue : document non trouvé.');
 				$this->writeComments($row);
 				$countProcessed++;
 				$currentRow++;
@@ -471,8 +473,8 @@ class ProgramService
 			}
 			
 			if ($currentDocument->getName() == false || $currentDocument->getReference() == false) {
-				$this->addComment('error', "Les champs 'document.name' et 'document.reference' sont obligatoires.");
-				$this->addComment('error', "Ligne exclue : création du document annulée.");
+				$this->addComment('error', 'Les champs "document.name" et "document.reference" sont obligatoires.');
+				$this->addComment('error', 'Ligne exclue : création du document annulée.');
 				$currentSerie->removeDocument($currentDocument);
 				$currentDocument = null;
 				$documentsCreated--;
@@ -486,7 +488,7 @@ class ProgramService
 			foreach ($currentDocument->getVersions() as $version) {
 				if ($cache['get_version']['condition']->eval($version, $row) == true) {
 					$currentVersion = $version;
-					$this->addComment('valid', "Version trouvée.");
+					$this->addComment('valid', 'Version trouvée.');
 					break;
 				}
 			}
@@ -494,11 +496,12 @@ class ProgramService
 			if ($currentVersion !== null) {
 				
 				foreach ($cache['get_version']['then'] as $then) {
-										
-					if ($currentVersion->setPropertyValue($then->getVariable(), $then->eval($currentVersion, $row)) === true) {
-						$this->addComment('valid', "Champ '{$then->getVariable()}' mis à jour.");
-					} else {
-						$this->addComment('warning', "Erreur en écrivant le champ '{$then->getVariable()}'.", $then->getCol());
+					
+					try {
+						$currentVersion->setPropertyValue($then->getVariable(), $then->eval($currentVersion, $row));
+						$this->addComment('valid', sprintf('Champ "%s" mis à jour.', $then->getVariable()));
+					} catch (\Error $e) {
+						$this->addComment('warning', $e->getMessage(), $then->getCol());
 					}
 					
 				}
@@ -522,11 +525,18 @@ class ProgramService
 							;
 							
 							foreach ($lastVersion->getMetadataItems() as $metadataItem) {
-								$currentVersion->setMetadataValue($metadataItem->getMetadata(), $metadataItem->getValue());
-								
+								try {
+									$currentVersion->setMetadataValue($metadataItem->getMetadata(), $metadataItem->getValue());
+								} catch (\Error $e) {
+									$this->addComment('warning', $e->getMessage());
+								}
 							}
 							foreach ($lastVersion->getMetadataValues() as $metadataValue) {
-								$currentVersion->setMetadataValue($metadataValue->getMetadata(), $metadataValue->getValue());
+								try {
+									$currentVersion->setMetadataValue($metadataValue->getMetadata(), $metadataValue->getValue());
+								} catch (\Error $e) {
+									$this->addComment('warning', $e->getMessage());
+								}
 							}
 							
 						} else {
@@ -537,21 +547,22 @@ class ProgramService
 						
 						$currentVersion->setDocument($currentDocument);
 						$currentDocument->addVersion($currentVersion);
-						$this->addComment('valid', "Création d'une nouvelle version.");
+						$this->addComment('valid', 'Création d\'une nouvelle version.');
 						$versionsCreated++;
 					}
 					
-					if ($currentVersion->setPropertyValue($else->getVariable(), $else->eval($currentVersion, $row)) === true) {
-						$this->addComment('valid', "Champ '{$else->getVariable()}' mis à jour.");
-					} else {
-						$this->addComment('warning', "Erreur en écrivant le champ '{$else->getVariable()}'.", $else->getCol());
+					try {
+						$currentVersion->setPropertyValue($else->getVariable(), $else->eval($currentVersion, $row));
+						$this->addComment('valid', sprintf('Champ "%s" mis à jour.', $else->getVariable()));
+					} catch (\Error $e) {
+						$this->addComment('warning', $e->getMessage(), $else->getCol());
 					}
 					
 				}
 				
 			} else {
 				
-				$this->addComment('warning', "Version non trouvée.");
+				$this->addComment('warning', 'Version non trouvée.');
 				$this->writeComments($row);
 				$countProcessed++;
 				$currentRow++;
@@ -561,15 +572,15 @@ class ProgramService
 			
 			
 			if ($currentVersion->getName() == false || $currentVersion->getDate() == false) {
-				$this->addComment('error', "Les champs 'version.name' et 'version.date' sont obligatoires.");
-				$this->addComment('error', "Ligne exclue : création de la version annulée.");
+				$this->addComment('error', 'Les champs "version.name" et "version.date" sont obligatoires.');
+				$this->addComment('error', 'Ligne exclue : création de la version annulée.');
 				$currentDocument->removeVersion($currentVersion);
 				$currentVersion = null;
 				
 				if ($currentDocument->getVersions()->count() == 0) {
 					$currentSerie->removeDocument($currentDocument);
 					$currentDocument = null;
-					$this->addComment('error', "Ligne exclue : création du document annulée.");
+					$this->addComment('error', 'Ligne exclue : création du document annulée.');
 					$documentsCreated--;
 				}
 				
@@ -597,7 +608,7 @@ class ProgramService
 		}
 		
 		$event = $this->stopWatch->stop('import');
-		$this->flashBag->add('info', ($currentRow - $firstRow) . ' lignes analysées (' . $event->getDuration()/1000 . ' s; ' . $event->getMemory()/1048576 . ' Mo)');
+		$this->flashBag->add('info', sprintf('%d lignes analysées (%d s; %d Mo)', $currentRow - $firstRow, $event->getDuration()/1000, $event->getMemory()/1048576));
 		
 		if ($newBatch === false) {
 			
@@ -605,13 +616,13 @@ class ProgramService
 			
 			if ($this->programCache->getOption('ready_to_persist') == true) {
 				$this->entityManager->flush();
-				$this->flashBag->add('success', 'Import terminé : ' . $countUpdated . '/' . $countProcessed . ' lignes ont été exploitées');
-				$this->flashBag->add('success', $documentsCreated . ' documents ont été créés');
-				$this->flashBag->add('success', $versionsCreated . ' révisions ont été créées');
+				$this->flashBag->add('success', sprintf('Import terminé : %d/%d lignes ont été exploitées', $countUpdated, $countProcessed));
+				$this->flashBag->add('success', sprintf('%d documents ont été créés', $documentsCreated));
+				$this->flashBag->add('success', sprintf('%d révisions ont été créées', $versionsCreated));
 			} else {
-				$this->flashBag->add('success', 'Vérification terminée : ' . $countUpdated . '/' . $countProcessed . ' lignes peuvent être importées');
-				$this->flashBag->add('success', $documentsCreated . ' documents peuvent être créés');
-				$this->flashBag->add('success', $versionsCreated . ' révisions peuvent être créées');
+				$this->flashBag->add('success', sprintf('Vérification terminée : %d/%d lignes peuvent être importées', $countUpdated, $countProcessed));
+				$this->flashBag->add('success', sprintf('%d documents peuvent être créés', $documentsCreated));
+				$this->flashBag->add('success', sprintf('%d révisions peuvent être créées', $versionsCreated));
 				
 				try {
 					$this->workbook->save();
@@ -675,16 +686,22 @@ class ProgramService
 					if ($update['condition']->eval($version) == true) {
 						
 						foreach ($update['then'] as $then) {
-							if ($version->setPropertyValue($then->getVariable(), $then->eval($version)) === true) {
+							try {
+								$version->setPropertyValue($then->getVariable(), $then->eval($version));
 								$versionEdited = true;
+							} catch (\Error $e) {
+								$this->flashBag->add('danger', $e->getMessage());
 							}
 						}
 						
 					} else {
 						
 						foreach ($update['else'] as $else) {
-							if ($version->setPropertyValue($else->getVariable(), $else->eval($version)) === true) {
+							try {
+								$version->setPropertyValue($else->getVariable(), $else->eval($version));
 								$versionEdited = true;
+							} catch (\Error $e) {
+								$this->flashBag->add('danger', $e->getMessage());
 							}
 						}
 						
@@ -707,9 +724,9 @@ class ProgramService
 			
 			if ($this->programCache->getOption('ready_to_persist') == true) {
 				$this->entityManager->flush();
-				$this->flashBag->add('success', 'Tâche réussie. ' . $countUpdated . '/' .  $countProcessed . ' entrées modifiées (' . $event->getDuration()/1000 . ' s; ' . $event->getMemory()/1048576 . ' Mo)');
+				$this->flashBag->add('success', sprintf('Tâche réussie. %d/%d entrées modifiées (%d s; %d Mo)', $countUpdated, $countProcessed, $event->getDuration()/1000, $event->getMemory()/1048576));
 			} else {
-				$this->flashBag->add('success', 'Vérification terminée. ' . $countUpdated . '/' .  $countProcessed . ' entrées seront modifiées (' . $event->getDuration()/1000 . ' s; ' . $event->getMemory()/1048576 . ' Mo)');
+				$this->flashBag->add('success', sprintf('Tâche réussie. %d/%d entrées seront modifiées (%d s; %d Mo)', $countUpdated, $countProcessed, $event->getDuration()/1000, $event->getMemory()/1048576));
 			}
 			
 		} else {
