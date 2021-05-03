@@ -283,7 +283,7 @@ serie_route_by_type:  #redirigé directement vers document
     path: /project/{project}/{type}
     requirements:
         project: \d+
-        type: sdr|mdr
+        type: sdr|mdr|all
     controller: App\Controller\SerieController::routeByType
 
 serie: #administration des séries
@@ -312,11 +312,11 @@ serie_delete:
         serie: \d+
     controller: App\Controller\SerieController::delete
 
-document:   #vue principale
+document:   #main view
     path: /project/{project}/serie/{type}/{serie}
     requirements:
         project: \d+
-        type: sdr|mdr
+        type: sdr|mdr|all
         serie: \d+
     defaults:
         serie: 0
@@ -326,7 +326,7 @@ document_fields:
     path: /project/{project}/serie/{type}/{serie}/fields
     requirements:
         project: \d+
-        type: sdr|mdr
+        type: sdr|mdr|all
         serie: \d+
     defaults:
         serie: 0
@@ -336,11 +336,21 @@ document_table:
     path: /project/{project}/serie/{type}/{serie}/table
     requirements:
         project: \d+
-        type: sdr|mdr
+        type: sdr|mdr|all
         serie: \d+
     defaults:
         serie: 0
     controller: App\Controller\DocumentController::table
+
+document_export:
+    path: /project/{project}/serie/{type}/{serie}/export
+    requirements:
+        project: \d+
+        type: sdr|mdr|all
+        serie: \d+
+    defaults:
+        serie: 0
+    controller: App\Controller\DocumentController::export
 
 document_detail:
     path: /project/serie/document/{version}/detail
@@ -431,30 +441,30 @@ review_delete:
         review: \d+
     controller: App\Controller\ReviewController::delete
     
-vue:
-    path: /project/{project}/vue
+view:
+    path: /project/{project}/view
     requirements:
         project: \d+
-    controller: App\Controller\VueController::index
+    controller: App\Controller\ViewController::index
     
-vue_new:
-    path: /project/{project}/vue/new
+view_new:
+    path: /project/{project}/view/new
     requirements:
         project: \d+
-    controller: App\Controller\VueController::new
+    controller: App\Controller\ViewController::new
 
-vue_edit:
-    path: /project/vue/{vue}/edit
+view_edit:
+    path: /project/view/{view}/edit
     requirements:
-        vue: \d+
-    controller: App\Controller\VueController::edit
+        view: \d+
+    controller: App\Controller\ViewController::edit
 
-vue_delete:
-    path: /project/vue/{vue}/delete
+view_delete:
+    path: /project/view/{view}/delete
     methods: GET|DELETE
     requirements:
-        vue: \d+
-    controller: App\Controller\VueController::delete
+        view: \d+
+    controller: App\Controller\ViewController::delete
 
 program:
     path: /project/{project}/program

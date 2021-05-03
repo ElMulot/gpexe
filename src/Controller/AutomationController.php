@@ -3,29 +3,18 @@
 namespace App\Controller;
 
 use App\Entity\Automation;
-use App\Entity\Codification;
-use App\Entity\Document;
-use App\Entity\Metadata;
-use App\Entity\MetadataValue;
-use App\Entity\Program;
-use App\Entity\Progress;
 use App\Entity\Project;
-use App\Entity\Serie;
-use App\Entity\Version;
 use App\Form\AutomationType;
 use App\Repository\AutomationRepository;
 use App\Service\ProgramService;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Contracts\Translation\TranslatorInterface;
-use App\Repository\ProgramRepository;
-use App\Entity\CodificationValue;
-use App\Helpers\Date;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
-use Symfony\Component\Console\Output\BufferedOutput;
-use Symfony\Component\HttpKernel\KernelInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Console\Input\ArrayInput;
+use Symfony\Component\Console\Output\BufferedOutput;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\KernelInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 class AutomationController extends AbstractController
 {

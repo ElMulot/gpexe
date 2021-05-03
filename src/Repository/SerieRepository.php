@@ -3,11 +3,8 @@
 namespace App\Repository;
 
 use App\Entity\Company;
-use App\Entity\Document;
 use App\Entity\Project;
-use App\Entity\Review;
 use App\Entity\Serie;
-use App\Entity\Version;
 use App\Service\RepositoryService;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -27,6 +24,24 @@ class SerieRepository extends RepositoryService
 	{
 		parent::__construct($registry, Serie::class);
 		$this->router = $router;
+	}
+	
+	/**
+	 * @return Serie[]
+	 */
+	public function getSeriesByIdAsArray(array $ids)
+	{
+		$qb = $this->newQb('s');
+		return $qb
+			->select('s.id, s.name, c.type', $qb->count('d.id', 'count'))
+			->innerJoin('s.company', 'c')
+			->innerJoin('s.documents', 'd')
+			->andWhere($qb->in('s.id', $ids))
+			->addOrderBy('c.type, s.name')
+			->addGroupBy('s.id')
+			->getQuery()
+			->getArrayResult()
+		;
 	}
 	
 	/**
@@ -53,6 +68,7 @@ class SerieRepository extends RepositoryService
 			->innerJoin('s.company', 'c')
 			->innerJoin('s.documents', 'd')
 			->andWhere($qb->eq('s.project', $project))
+// 			->andWhere($qb->lt('s.id', 5))
 			->addOrderBy('c.type, s.name')
 			->addGroupBy('s.id')
 			->getQuery()
@@ -84,11 +100,11 @@ class SerieRepository extends RepositoryService
 	{
 		$qb = $this->newQb('s');
 		return $qb
-		->innerJoin('s.company', 'c')
-		->andWhere($qb->eq('s.project', $project))
-		->andWhere($qb->eq('c.type', Company::MAIN_CONTRACTOR))
-		->getQuery()
-		->getSingleResult()
+			->innerJoin('s.company', 'c')
+			->andWhere($qb->eq('s.project', $project))
+			->andWhere($qb->eq('c.type', Company::MAIN_CONTRACTOR))
+			->getQuery()
+			->getSingleResult()
 		;
 	}
 	
@@ -117,9 +133,10 @@ class SerieRepository extends RepositoryService
 		switch ($type) {
 			case 'sdr':
 				$qb = $this->newQb('s');
-				$series = $qb
+				$results = $qb
 					->select('s.id, s.name')
 					->innerJoin('s.company', 'c')
+					->andWhere($qb->eq('s.project', $project))
 					->andWhere($qb->in('c.type', [Company::SUB_CONTRACTOR, Company::SUPPLIER]))
 					->addOrderBy('s.name')
 					->getQuery()
@@ -128,29 +145,41 @@ class SerieRepository extends RepositoryService
 				break;
 			case 'mdr':
 				$qb = $this->newQb('s');
-				$series = $qb
+				$results = $qb
 					->select('s.id, s.name')
 					->innerJoin('s.company', 'c')
+					->andWhere($qb->eq('s.project', $project))
 					->andWhere($qb->eq('c.type', Company::MAIN_CONTRACTOR))
 					->addOrderBy('s.name')
 					->getQuery()
 					->getArrayResult()
 				;
 				break;
+			case 'all':
+				$qb = $this->newQb('s');
+				$results = $qb
+					->select('s.id, s.name')
+					->innerJoin('s.company', 'c')
+					->andWhere($qb->eq('s.project', $project))
+					->addOrderBy('s.name')
+					->getQuery()
+					->getArrayResult()
+				;
+				break;
 			default:
-				$series = [];
+				$results = [];
 		}
 		
-		foreach ($series as &$serie) {
-			$serie['type'] = $type;
-			$serie['url'] = $this->router->generate('document', [
+		array_walk($results, function(&$item) use ($project, $type) {
+			$item['type'] = $type;
+			$item['url'] = $this->router->generate('document', [
 				'project' => $project->getId(),
 				'type' => $type,
-				'serie' => $serie['id'],
+				'serie' => $item['id'],
 			]);
-		}
+		});
 		
-		return $series;
+		return $results;
 	}
 	
 	/**
@@ -159,7 +188,7 @@ class SerieRepository extends RepositoryService
 	public function getSeriesByCompanyAsArray(Project $project, Company $company)
 	{
 		$qb = $this->newQb('s');
-		$series = $qb
+		$results = $qb
 			->select('s.id, s.name, c.type AS company_type')
 			->innerJoin('s.company', 'c')
 			->andWhere($qb->eq('s.project', $project))
@@ -169,24 +198,26 @@ class SerieRepository extends RepositoryService
 			->getArrayResult()
 		;
 		
-		foreach ($series as &$serie) {
-			switch ($serie['company_type']) {
+		array_walk($results, function(&$item) use ($project) {
+			switch ($item['company_type']) {
 				case Company::SUB_CONTRACTOR:
 				case Company::SUPPLIER:
-					$serie['type'] = 'sdr';
+					$item['type'] = 'sdr';
+					break;
 				case Company::MAIN_CONTRACTOR:
-					$serie['type'] = 'mdr';
+					$item['type'] = 'mdr';
+					break;
 			}
-			unset($serie['company_type']);
+			unset($item['company_type']);
 			
-			$serie['url'] = $this->router->generate('document', [
+			$item['url'] = $this->router->generate('document', [
 				'project' => $project->getId(),
-				'type' => $serie['type'],
-				'serie' => $serie['id'],
-			]);	
-		}
+				'type' => $item['type'],
+				'serie' => $item['id'],
+			]);
+		});
 		
-		return $series;
+		return $results;
 	}
 	
 }

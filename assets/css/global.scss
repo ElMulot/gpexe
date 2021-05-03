@@ -33,6 +33,10 @@ a {
 	text-overflow: ellipsis;
 }
 
+select {
+	text-overflow: ellipsis;
+}
+
 .custom-file-label-sm {
 	height: $input-height-sm;
 	padding: $input-padding-y-sm $custom-file-padding-x;
@@ -64,19 +68,61 @@ a {
 /* Sub-menus */
 
 .navbar-nav li:hover > ul.dropdown-menu {
-    display: block;
+	display: block;
 }
 
 .dropdown-submenu {
-    position:relative;
+	position:relative;
 }
 
 .dropdown-submenu>.dropdown-menu {
-    top:0;
-    left:100%;
-    margin-top:-6px;
+	top:0;
+	left:100%;
+	margin-top:-6px;
 }
 
 :export {
 	zindexTooltip: $zindex-tooltip;
+}
+
+/* Legend */
+
+.legend {
+	
+	& ul, li, span, p {
+		margin: 0;
+		padding: 0;
+	}
+	
+	& ul {
+		display: flex;
+		flex-direction: row;
+		flex-wrap: wrap;
+		-webkit-box-pack: center;
+		-ms-flex-pack: center;
+	}
+	
+	& li {
+	/* 	align-items: center; */
+		cursor: pointer;
+		display: flex;
+		flex-direction: row;
+		width: 10rem;
+		margin-bottom: 0.2rem;
+	}
+
+	& span {
+		display: inline-block;
+		height: 1rem;
+		width: 1rem;
+		margin-right: 0.5rem;
+	}
+
+	& p {
+		color: white;
+		font-size: $small-font-size;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
 }

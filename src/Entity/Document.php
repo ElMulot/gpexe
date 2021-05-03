@@ -236,7 +236,6 @@ class Document
 	public function setSerie(?Serie $serie): self
 	{
 		$this->serie = $serie;
-
 		return $this;
 	}
 	   
@@ -303,7 +302,7 @@ class Document
 		
 	}
 	
-	public function setReference($value)
+	public function setReference($value): self
 	{
 		$project = $this->getSerie()->getProject();
 		$references = explode($project->getSplitter(), $value);
@@ -319,8 +318,15 @@ class Document
 				throw new \Error(sprintf('Erreur: la codification "%s" n\'est pas valable.', $value));
 			}
 			
-			$this->setCodificationValue($codification, $reference);
+			try {
+				$this->setCodificationValue($codification, $reference);
+				$reference = null;
+			} catch (\Error $e) {
+				continue;
+			}
 		}
+		
+		return $this;
 	}
 	
 	public function getCodificationValue(Codification $codification)
@@ -349,26 +355,26 @@ class Document
 		
 	}
 	
-	public function setCodificationValue(Codification $codification, $value)
+	public function setCodificationValue(Codification $codification, $value): self
 	{
 		
 		if ($value == '') {
 			if ($codification->getIsMandatory() === true) {
 				throw new \Error(sprintf('Erreur: la codification "%s" ne peut être vide.', $codification->getCodename()));
 			} else {
-				return;
+				return $this;
 			}
 		}
 		
 		switch ($codification->getType()) {
 			case Codification::FIXED:
-				return;
+				return $this;
 				
 			case Codification::LIST:
 				
 				if ($codificationItem = $this->getCodificationItemByCodification($codification)) {
 					if ($codificationItem->getValue() == $value) {
-						return;
+						return $this;
 					} else {
 						$this->codificationItems->removeElement($codificationItem);
 					}
@@ -377,7 +383,7 @@ class Document
 				foreach ($codification->getCodificationItems()->getValues() as $codificationItem) {
 					if ($codificationItem->getValue() == $value) {
 						$this->addCodificationItem($codificationItem);
-						return;
+						return $this;
 					}
 				}
 				
@@ -387,7 +393,7 @@ class Document
 				
 				if ($codificationValue = $this->getCodificationValueByCodification($codification)) {
 					if ($codificationValue->getValue() == $value) {
-						return;
+						return $this;
 					} else {
 						$this->codificationValues->removeElement($codificationValue);
 					}
@@ -397,14 +403,14 @@ class Document
 					foreach ($codification->getCodificationValues()->getValues() as $codificationValue) {
 						if ($codificationValue->getValue() == $value) {
 							$this->addCodificationValue($codificationValue);
-							return;
+							return $this;
 						}
 					}
 					$codificationValue = new CodificationValue();
 					$codificationValue->setValue($value);
 					$codificationValue->setCodification($codification);
 					$this->addCodificationValue($codificationValue);
-					return;
+					return $this;
 				}
 				
 				break;
@@ -452,8 +458,16 @@ class Document
 		
 	}
 	
-	public function setMetadataValue(Metadata $metadata, $value)
+	public function setMetadataValue(Metadata $metadata, $value): self
 	{
+		
+		if ($value == '') {
+			if ($metadata->getIsMandatory() === true) {
+				throw new \Error(sprintf('Erreur: la valeur "%s" ne peut être vide.', $metadata->getCodename()));
+			} else {
+				return $this;
+			}
+		}
 		
 		if ($value instanceof MetadataItem || $value instanceof MetadataValue) {
 			$value = $value->__toString();
@@ -479,7 +493,7 @@ class Document
 				foreach ($this->getMetadataValues()->getValues() as $metadataValue) {
 					if ($metadataValue->getMetadata() == $metadata) {
 						if ($metadataValue->getValue() == $value) {
-							return;
+							return $this;
 						} else {
 							$this->metadataValues->removeElement($metadataValue);
 						}
@@ -490,23 +504,21 @@ class Document
 					foreach ($metadata->getMetadataValues()->getValues() as $metadataValue) {
 						if ($metadataValue->getValue() == $value) {
 							$this->addMetadataValue($metadataValue);
-							return;
+							return $this;
 						}
 					}
 					$metadataValue = new MetadataValue();
 					$metadataValue->setValue($value);
 					$metadataValue->setMetadata($metadata);
 					$this->addMetadataValue($metadataValue);
-					$metadata->addMetadataValue($metadataValue);
-					return;
+					return $this;
 				}
-				break;
 				
 			case Metadata::LIST:
 				foreach ($this->getMetadataItems()->getValues() as $metadataItem) {
 					if ($metadataItem->getMetadata() == $metadata) {
 						if ($metadataItem->getValue() == $value) {
-							return;
+							return $this;
 						} else {
 							$this->metadataItems->removeElement($metadataItem);
 						}
@@ -517,11 +529,10 @@ class Document
 					foreach ($metadata->getMetadataItems()->getValues() as $metadataItem) {
 						if ($metadataItem->getValue() == $value) {
 							$this->addMetadataItem($metadataItem);
-							return;
+							return $this;
 						}
 					}
 				}
-				
 				break;
 		}
 		
@@ -567,7 +578,7 @@ class Document
 		return null;
 	}
 	
-	public function setPropertyValue(string $codename, $value): bool
+	public function setPropertyValue(string $codename, $value): self
 	{
 		
 		switch ($codename) {
@@ -576,30 +587,30 @@ class Document
 				foreach ($this->getSerie()->getProject()->getSeries()->getValues() as $serie) {
 					if ($serie->getName() == $value) {
 						$this->setSerie($serie);
-						return;
+						return $this;
 					}
 				}
 				break;
 				
 			case 'document.name':
 				$this->setName($value);
-				return;
+				return $this;
 				
 			case 'document.reference':
 				$this->setReference($value);
-				return;
+				return $this;
 				
 			default:
 				if (Regex::match('/document\.\w+/', $codename)->hasMatch()) {
 					foreach ($this->getSerie()->getProject()->getMetadatas()->getValues() as $metadata) {
 						if ($metadata->getFullCodename() == $codename) {
 							$this->setMetadataValue($metadata, $value);
-							return;
+							return $this;
 						}
 					}
 				} else {
 					$this->getSerie()->setPropertyValue($codename, $value);
-					return;
+					return $this;
 				}
 		}
 		

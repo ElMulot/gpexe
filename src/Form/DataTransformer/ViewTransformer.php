@@ -10,7 +10,7 @@ use Symfony\Component\Serializer\Exception\NotEncodableValueException;
 use Symfony\Component\Serializer\Serializer;
 use PhpParser\JsonDecoder;
 
-class VueTransformer implements DataTransformerInterface
+class ViewTransformer implements DataTransformerInterface
 {
 	
 	public function transform($value)

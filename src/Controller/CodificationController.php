@@ -121,11 +121,11 @@ class CodificationController extends AbstractController
 				'route_back' =>  $this->generateUrl('codification', [
 					'project' => $codification->getProject()->getId(),
 				]),
-			    'entities' => [$codification],
-            ]);
-        }
+				'entities' => [$codification],
+			]);
+		}
  
-    }
-    
+	}
+	
 }
 ?>

@@ -169,13 +169,13 @@ class ProjectController extends AbstractController
 
 			$this->addFlash('success', 'Entry deleted');
 			return $this->redirectToRoute('project');
-        } else {
-            return $this->render('generic/delete.html.twig', [
-            	'route_back' =>  $this->generateUrl('project'),
-                'entities' => [$project],
-            ]);
-        }  
-    }
-    
+		} else {
+			return $this->render('generic/delete.html.twig', [
+				'route_back' =>  $this->generateUrl('project'),
+				'entities' => [$project],
+			]);
+		}  
+	}
+	
 }
 ?>

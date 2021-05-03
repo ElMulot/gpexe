@@ -68,6 +68,11 @@ class Program
 	private $lastModifiedOn;
 	
 	/**
+	 * @ORM\OneToMany(targetEntity=Progress::class, mappedBy="program", cascade={"persist"}, orphanRemoval=true)
+	 */
+	private $progress;
+	
+	/**
 	 * @ORM\ManyToOne(targetEntity=Project::class, inversedBy="programs")
 	 * @ORM\JoinColumn(nullable=false)
 	 */

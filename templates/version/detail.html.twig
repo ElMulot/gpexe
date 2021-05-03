@@ -3,39 +3,39 @@
 	<div class="card-body">
 		<div class="row">
 			<div class="col-2">
-                {% if version.isRequired %}
-                    {% trans %}Expected date{% endtrans %} :
-                {% else %}
-                    {% trans %}Date of issue{% endtrans %} :
-                {% endif %}
+				{% if version.isRequired %}
+					{% trans %}Expected date{% endtrans %} :
+				{% else %}
+					{% trans %}Date of issue{% endtrans %} :
+				{% endif %}
 			</div>
 			<div class="col-4">
-			    {{ version.date|date('d-m-Y') }}
-                {% if version.isRequired and version.scheduledDate %}
-                    {% if version.scheduledDate < date('now') %}
-        			    <span> ({{ 'delay'|trans({'count': version.scheduledDate.diff(date('now')).days}) }})</span>
-        			   {% endif %}
-			    {% endif %}
+				{{ version.date|date('d-m-Y') }}
+				{% if version.isRequired and version.scheduledDate %}
+					{% if version.scheduledDate < date('now') %}
+						<span> ({{ 'delay'|trans({'count': version.scheduledDate.diff(date('now')).days}) }})</span>
+					   {% endif %}
+				{% endif %}
 			</div>
 			<div class="col-2">
-                {% trans %}Company{% endtrans %} :
+				{% trans %}Company{% endtrans %} :
 			</div>
 			<div class="col-4">
-			    {{ document.serie.company.name }}
+				{{ document.serie.company.name }}
 			</div>
 		</div>
 		<div class="row">
 			<div class="col-2">
-                {% trans %}Status{% endtrans %} :
+				{% trans %}Status{% endtrans %} :
 			</div>
 			<div class="col-4">
 				{{ version.status }}
 			</div>
 			<div class="col-2">
-                {% trans %}Serie{% endtrans %} :
+				{% trans %}Serie{% endtrans %} :
 			</div>
 			<div class="col-4">
-			    {{ document.serie.name }}
+				{{ document.serie.name }}
 			</div>
 		</div>
 	</div>
@@ -67,67 +67,67 @@
 		</div>
 	</div>
 	{% if version.isRequired and (is_granted('ROLE_ADMIN') or (is_granted('ROLE_EDIT_DOCUMENTS') and app.user.company.isMainContractor)) %}
-        <div class="card col w-50 border rounded border-dark p-0 ml-2">
-        	<div class="card-header font-weight-bold text-white">{% trans %}Document recieved{% endtrans %}</div>
-        	<div class="card-body">
-            	<div class="row justify-content-md-center">
-            		<button id="save" class="btn btn-primary w-50" data-toggle="modal ajax" data-target="#modal" data-url="{{ path('version_edit', {'id[]': version.id, 'modal': true, 'save': true}) }}">{% trans %}Save document{% endtrans %}</button>
-            	</div>
-        	</div>
+		<div class="card col w-50 border rounded border-dark p-0 ml-2">
+			<div class="card-header font-weight-bold text-white">{% trans %}Document recieved{% endtrans %}</div>
+			<div class="card-body">
+				<div class="row justify-content-md-center">
+					<button id="save" class="btn btn-primary w-50" data-toggle="modal ajax" data-target="#modal" data-url="{{ path('version_edit', {'id[]': version.id, 'modal': true, 'save': true}) }}">{% trans %}Save document{% endtrans %}</button>
+				</div>
+			</div>
 		</div>
-    {% else %}
-        <div class="col w-50 p-0 ml-2">
-            {% if version.isRequired == false %}
-            	<div id="review_tabs" class="nav nav-tabs border-dark">
-                    {% for checker in checkers %}
-                    	<a class="nav-item nav-link {% if (checker == app.user.company) or (app.user.company not in checkers and checker == checkers|first) %} active{% endif %}" data-toggle="ajax" data-url="{{ path('review', {'version': version.id, 'company': checker.id}) }}" data-target="#review_content">
-        					{{ checker.name }}
-        				</a>
-                	{% endfor %}
-            	</div>
-                <div id="review_content" class="tab-content border border-top-0 rounded-bottom border-dark px-3 py-2">
-                	
-                </div>
-            {% endif %}
+	{% else %}
+		<div class="col w-50 p-0 ml-2">
+			{% if version.isRequired == false %}
+				<div id="review_tabs" class="nav nav-tabs border-dark">
+					{% for checker in checkers %}
+						<a class="nav-item nav-link {% if (checker == app.user.company) or (app.user.company not in checkers and checker == checkers|first) %} active{% endif %}" data-toggle="ajax" data-url="{{ path('review', {'version': version.id, 'company': checker.id}) }}" data-target="#review_content">
+							{{ checker.name }}
+						</a>
+					{% endfor %}
+				</div>
+				<div id="review_content" class="tab-content border border-top-0 rounded-bottom border-dark px-3 py-2">
+					
+				</div>
+			{% endif %}
 		</div>
-    {% endif %}
+	{% endif %}
 </div>
 <div class="card border rounded border-dark">
 	<div class="card-header font-weight-bold text-white">{% trans %}Metadatas{% endtrans %}</div>
 	<div class="card-body">
 		<div class="row">
 			{% if version.isRequired and version.initialScheduledDate %}
-    			<div class="col-4">
-                    {% trans %}Initial scheduled date{% endtrans %} :
-    			</div>
-    			<div class="col-8">
-    				{{ version.initialScheduledDate|date('d-m-Y') }}
-    			</div>
-    		{% endif %}
+				<div class="col-4">
+					{% trans %}Initial scheduled date{% endtrans %} :
+				</div>
+				<div class="col-8">
+					{{ version.initialScheduledDate|date('d-m-Y') }}
+				</div>
+			{% endif %}
 			{% if version.isRequired and version.scheduledDate %}
-    			<div class="col-4">
-                    {% trans %}Scheduled date{% endtrans %} :
-    			</div>
-    			<div class="col-8">
-    				{{ version.scheduledDate|date('d-m-Y') }}
-    			</div>
-    		{% endif %}
+				<div class="col-4">
+					{% trans %}Scheduled date{% endtrans %} :
+				</div>
+				<div class="col-8">
+					{{ version.scheduledDate|date('d-m-Y') }}
+				</div>
+			{% endif %}
 			{% for metadata in project.metadatas %}
 				<div class="col-4">
 					{{ metadata.name }} :
 				</div>
 				<div class="col-8">
-    				{% if metadata.isLink %}
-    					{% if version.getPropertyValue(metadata.fullCodename) is empty  %}
-    						{% trans %}n/a{% endtrans %}
-    					{% else %}
-    						<a class="btn btn-sm btn-primary text-nowrap" href="{{ version.getPropertyValue(metadata.fullCodename)|to_string }}" target="_blank" rel="noopener noreferrer">{% trans %}Click here{% endtrans %}</a>
-    					{% endif %}
-    				{% else %}
-    					{{ version.getPropertyValue(metadata.fullCodename)|to_string }}
-    				{% endif %}
+					{% if metadata.isLink %}
+						{% if version.getPropertyValue(metadata.fullCodename) is empty  %}
+							{% trans %}n/a{% endtrans %}
+						{% else %}
+							<a class="btn btn-sm btn-primary text-nowrap" href="{{ version.getPropertyValue(metadata.fullCodename)|to_string }}" target="_blank" rel="noopener noreferrer">{% trans %}Click here{% endtrans %}</a>
+						{% endif %}
+					{% else %}
+						{{ version.getPropertyValue(metadata.fullCodename)|to_string }}
+					{% endif %}
 				</div>
-    		{% endfor %}
+			{% endfor %}
 		</div>
 	</div>
 </div>

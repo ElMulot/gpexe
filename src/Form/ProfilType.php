@@ -9,21 +9,21 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class ProfilType extends AbstractType
 {
-    public function buildForm(FormBuilderInterface $builder, array $options)
-    {
-        $builder
-            ->add('name')
-            ->add('editDocuments')
-            ->add('isController')
-            ->add('isAdmin')
-            ->add('isSuperAdmin')
-        ;
-    }
+	public function buildForm(FormBuilderInterface $builder, array $options)
+	{
+		$builder
+			->add('name')
+			->add('editDocuments')
+			->add('isController')
+			->add('isAdmin')
+			->add('isSuperAdmin')
+		;
+	}
 
-    public function configureOptions(OptionsResolver $resolver)
-    {
-        $resolver->setDefaults([
-            'data_class' => Profil::class,
-        ]);
-    }
+	public function configureOptions(OptionsResolver $resolver)
+	{
+		$resolver->setDefaults([
+			'data_class' => Profil::class,
+		]);
+	}
 }

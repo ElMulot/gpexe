@@ -20,7 +20,6 @@ class ProgramTransformer implements DataTransformerInterface
 	
 	public function transform($value)
 	{
-		
 		if ($value === null) {
 			return '';
 		}

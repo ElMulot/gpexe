@@ -21,22 +21,22 @@ class ReviewType extends AbstractType
 	}
 	
 	public function buildForm(FormBuilderInterface $builder, array $options)
-    {
-        $builder->add('visa', EntityType::class, [
-        	'class' => Visa::class,
-        	'choices' => $this->visaRepository->getVisasByCompany($options['project'], $options['company']),
-        	'row_attr' => ['class' => 'row'],
-        ]);
-    }
+	{
+		$builder->add('visa', EntityType::class, [
+			'class' => Visa::class,
+			'choices' => $this->visaRepository->getVisasByCompany($options['project'], $options['company']),
+			'row_attr' => ['class' => 'row'],
+		]);
+	}
 
-    public function configureOptions(OptionsResolver $resolver)
-    {
-        $resolver->setDefaults([
-            'data_class' => Review::class,
-        	'project' => null,
-        	'company' => null,
-        ]);
-    }
+	public function configureOptions(OptionsResolver $resolver)
+	{
+		$resolver->setDefaults([
+			'data_class' => Review::class,
+			'project' => null,
+			'company' => null,
+		]);
+	}
 }
 
 ?>

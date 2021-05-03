@@ -181,6 +181,7 @@ class Expression
 	
 	public function getValue($entity = null, $row = null)
 	{
+		
 		$nodes = array_map(function ($item) use ($entity, $row) {
 			return $item->getValue($entity, $row);
 		}, $this->nodes);

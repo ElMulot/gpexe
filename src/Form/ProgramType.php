@@ -14,7 +14,7 @@ use App\Form\DataTransformer\ProgramTransformer;
 
 class ProgramType extends AbstractType
 {
-    
+	
 	private $transformer;
 	
 	public function __construct(ProgramTransformer $transformer)
@@ -23,55 +23,55 @@ class ProgramType extends AbstractType
 	}
 	
 	public function buildForm(FormBuilderInterface $builder, array $options)
-    {    	
-    	if ($builder->getData() === null) {
-    		$builder
-    			->add('type', ChoiceType::class, [
-    				'choices' => [
-    					'Export' => Program::EXPORT,
-    					'Import' => Program::IMPORT,
-    					'Task' => Program::TASK,
-    					'Progress' => Program::PROGRESS,
-    				],
-    				'expanded' => true,
-    				'mapped' => false,
-	    		])
-	    	;
-    	} else {
-	    	$builder
-		    	->add('name', TextType::class, [
-		    		'attr' => [
-		    			'class' => 'col-5 mt-2',
-		    		],
-		    	])
-		    	->add('enabled', CheckboxType::class, [
-		    		'required' => false,
-		    		'label_attr' => [
-		    			'class' => 'col-form-label col-2',
-		    		],
-		    		'attr' => [
-		    			'class' => 'col-1 mt-2',
-		    		],
-		    	])
-		    	->add('code', TextareaType::class, [
-		    		'required' => false,
-		    		'attr' => [
-		    			'class' => 'mt-4',
-		    			'rows' => '',
-		    			'cols' => '',
-		    			'data-toggle' => 'code_mirror',
-		    		],
-		    	])
-	    	;
+	{		
+		if ($builder->getData() === null) {
+			$builder
+				->add('type', ChoiceType::class, [
+					'choices' => [
+						'Export' => Program::EXPORT,
+						'Import' => Program::IMPORT,
+						'Task' => Program::TASK,
+						'Progress' => Program::PROGRESS,
+					],
+					'expanded' => true,
+					'mapped' => false,
+				])
+			;
+		} else {
+			$builder
+				->add('name', TextType::class, [
+					'attr' => [
+						'class' => 'col-5 mt-2',
+					],
+				])
+				->add('enabled', CheckboxType::class, [
+					'required' => false,
+					'label_attr' => [
+						'class' => 'col-form-label col-2',
+					],
+					'attr' => [
+						'class' => 'col-1 mt-2',
+					],
+				])
+				->add('code', TextareaType::class, [
+					'required' => false,
+					'attr' => [
+						'class' => 'mt-4',
+						'rows' => '',
+						'cols' => '',
+						'data-toggle' => 'code_mirror',
+					],
+				])
+			;
 		
-	    	$builder->get('code')->addViewTransformer($this->transformer);
-    	}
+			$builder->get('code')->addViewTransformer($this->transformer);
+		}
 	}
 
-    public function configureOptions(OptionsResolver $resolver)
-    {
-        $resolver->setDefaults([
-            'data_class' => Program::class,
-        ]);
-    }
+	public function configureOptions(OptionsResolver $resolver)
+	{
+		$resolver->setDefaults([
+			'data_class' => Program::class,
+		]);
+	}
 }

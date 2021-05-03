@@ -1,21 +1,10 @@
 const $ = require('jquery');
-const Chart = require('chart.js');
 require('../css/dashboard.scss');
+const {Chart, LineElement, PointElement, LineController, CategoryScale, LinearScale, Legend, Tooltip} = require('chart.js');
+Chart.register(LineElement, PointElement, LineController, CategoryScale, LinearScale, Legend, Tooltip);
 
 const serieMdr = 1;
 const serieSdr = 3;
-
-var chartColors = [
-	'#4dc9f6',
-	'#f67019',
-	'#f53794',
-	'#537bc4',
-	'#acc236',
-	'#166a8f',
-	'#00a950',
-	'#58595b',
-	'#8549ba'
-];
 
 $(document).ready(function() {
 	
@@ -41,33 +30,35 @@ $(document).ready(function() {
 		$('#console').empty();
 	});
 	
-	$('#spinner').on('ajax.success', function(e, result, textStatus, jqXHR) {
+	$('#chart_container').on('ajax.success', function(e, result, textStatus, jqXHR) {
 		
 		e.stopPropagation();
-		$('#spinner').empty();
+		$('#chart_container').empty();
+		let $chart = $('#chart_container').addLast('canvas');
 		
 		let dates = [];
 		let datasets = [];
+		let currentProgressDefined = false;
 		
-		let thead = $('#table').append(create.thead).children().last();
-		let tr = thead.append(create.tr).children().last();
-		tr.append(create.th).children().last()
+		let $thead = $('#table').addLast('thead');
+		let $tr = $thead.addLast('tr');
+		$tr.addLast('th')
 			.css('min-width', '8rem')
 			.css('padding-left', '2rem')
-			.append(create.div).children().last()
-			.text($.i18n('date'))
+			.addLast('div')
+				.text($.i18n('date'))
 		;
 		
 		for (let serie of result.series) {
-			tr.append(create.th).children().last()
-				.append(create.div).children().last()
+			$tr.addLast('th')
+				.addLast('div')
 				.text(serie.name)
 			;
 		}
 		
-		let tbody = $('#table').append(create.tbody).children().last();
-		tr = tbody.append(create.tr).children().last();
-		tr.append(create.td).children().last()
+		let $tbody = $('#table').addLast('tbody');
+		$tr = $tbody.addLast('tr');
+		$tr.addLast('td')
 			.addClass('font-italic')
 			.text((new Date).format())
 		;
@@ -76,13 +67,8 @@ $(document).ready(function() {
 		
 		for (let serie of result.series) {
 			
-			let color = chartColors.shift();
-			chartColors.push(color);
 			datasets.push({
 				label: serie.name,
-				borderColor: color,
-				backgroundColor: color,
-				borderWidth: 1,
 				serieId: serie.id,
 				serieType: serie.type,
 				serieCount: serie.count,
@@ -91,7 +77,7 @@ $(document).ready(function() {
 			});
 			
 			let progress = getCurentProgress(serie.id);
-			tr.append(create.td).children().last()
+			$tr.addLast('td')
 				.addClass('font-italic')
 				.text((progress === null)?'--':progress)
 			;
@@ -99,6 +85,7 @@ $(document).ready(function() {
 			for (dataset of datasets) {
 				if (dataset.label == serie.name && progress !== null) {
 					dataset.data.push(progress);
+					currentProgressDefined = true;
 				}
 			}
 		}
@@ -113,14 +100,14 @@ $(document).ready(function() {
 		}
 		
 		for (let date of dates) {
-			tr = tbody.append(create.tr).children().last();
-			tr.append(create.td).children().last()
+			$tr = $tbody.addLast('tr');
+			$tr.addLast('td')
 				.text(date)
 			;
 			
 			for (let serie of result.series) {
 				progress = getProgress(date, serie.id);
-				tr.append(create.td).children().last()
+				$tr.addLast('td')
 					.text((progress === null)?'--':progress)
 				;
 				
@@ -132,110 +119,60 @@ $(document).ready(function() {
 			}
 			
 		}
-		dates.unshift((new Date).format());
 		
-		$('#chart_container').css('height', ($(window).height() - remToPx(12)) + 'px');
-		Chart.defaults.global.defaultFontColor = 'white';
+		if (currentProgressDefined === true) {
+			dates.unshift((new Date).format());
+		}
 		
-		let chart = new Chart('chart', {
-			type: 'line',
+		$('#chart_nav').css('height', ($(window).height() - remToPx(12)) + 'px');
+		
+		let chart = new Chart($chart, {
+			type: 'gpexeLine',
 			data: {
 				labels: dates,
 				datasets: datasets,
 			},
 			options: {
-				responsive: true,
-				maintainAspectRatio: false,
-				onResize: function() {
-					$('#chart_container').css('height', ($(window).height() - remToPx(10)) + 'px');
+				plugins: {
+					gpexeLegend: {
+						containerId: 'legend_container',
+						align: 'center',
+					},
+					legend: {
+						display: false,
+					}
 				},
-				scales: {
-					xAxes: [{
-						ticks: {
-							reverse: true
-						}
-					}],
-					yAxes: [{
-						ticks: {
-							min: 0,
-							max: 100
-						}
-					}]
-				}
 			},
+			plugins: [gpexeLegendPlugin],
 		});
 		
-		$('#chart').on('click', function() {
-			
-			if (chart.data.datasets.some((dataset) => dataset.label == $.i18n('all')) === false) {
-				dataset = {
-					label: $.i18n('all'),
-					borderColor: 'rgba(255, 255, 255, 0.5)',
-					backgroundColor: 'rgba(255, 255, 255, 0.5)',
-					borderWidth: 4,
-					serieType: 0,
-					serieCount: 0,
-					fill: false,
-					data: [],
-				};
-				chart.data.datasets.push(dataset);
-			} else {
-				chart.data.datasets.forEach((dataset) => {
-					if (dataset.label == $.i18n('all')) {
-						dataset.data = [];
-					}
-				});
-			}
-			
-			let progress = [];
-			let count = 0;
+		$('#all, #mdr, #sdr').on('click', function() {
 			
 			chart.data.datasets.forEach((dataset, i) => {
-				if (chart.getDatasetMeta(i).hidden !== true && dataset.label != $.i18n('all')) {
-					dataset.data.forEach((value, j) => {
-						if (progress[j] === undefined) {
-							progress[j] = (parseInt(value) || 0) * dataset.serieCount;
-						} else {
-							progress[j] += (parseInt(value) || 0) * dataset.serieCount;
-						}
-					});
-					count += parseInt(dataset.serieCount);
-				}
-			});
-			
-			let average = progress.map(value => Math.round(value / count));
-			
-			chart.data.datasets.forEach((dataset) => {
-				if (dataset.label == $.i18n('all')) {
-					dataset.data = average;
+				if (dataset.label != $.i18n('all')) {
+					let meta = chart.getDatasetMeta(i);
+					switch ($(this).attr('id')) {
+						case 'all':
+							meta.hidden = false;
+							break;
+						case 'mdr':
+							meta.hidden = (dataset.serieType === serieSdr);
+							break;
+						case 'sdr':
+							meta.hidden = (dataset.serieType === serieMdr);
+							break;
+					}
 				}
 			});
 			
 			chart.update();
-		});
-		
-		$('#all, #mdr, #sdr').on('click', function() {
-			chart.data.datasets.forEach((dataset, i) => {
-				let meta = chart.getDatasetMeta(i);
-				switch ($(this).attr('id')) {
-					case 'all':
-						meta.hidden = false;
-						break;
-					case 'mdr':
-						meta.hidden = (dataset.serieType === serieSdr)
-						break;
-					case 'sdr':
-						meta.hidden = (dataset.serieType === serieMdr)
-						break;
-				}
-			});
 			
 			var that = this;
 			$('#all, #mdr, #sdr').each(function() {
 				$(this).removeClass((this == that)?'btn-primary':'btn-outline-primary');
 				$(this).addClass((this == that)?'btn-outline-primary':'btn-primary');
 			});
-			$('#chart').trigger('click');
+			$(that).blur();
 			
 		});
 		
@@ -257,7 +194,7 @@ $(document).ready(function() {
 			return null;
 		}
 		
-		$('#chart').trigger('click');
+		$chart.trigger('click');
 		
 	});
 });

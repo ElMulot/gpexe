@@ -3,10 +3,17 @@ const $ = require('jquery');
 require('bootstrap');
 require('bootstrap-datepicker');
 require('bootstrap-datepicker/dist/locales/bootstrap-datepicker.fr.min.js');
+const matchAll = require('string.prototype.matchall');
 const bsCustomFileInput = require('bs-custom-file-input');
 require ('@wikimedia/jquery.i18n/src/jquery.i18n.js');
 require ('@wikimedia/jquery.i18n/src/jquery.i18n.messagestore.js');
 const sassVariables = require('../css/global.scss');
+const {Chart, LineController} = require('chart.js');
+Chart.register(LineController);
+
+//---------------------
+// JS overrides
+//---------------------
 
 String.prototype.toDate = function () {
 	if (s = /\d{2}-\d{2}-\d{4}/g.exec(this)) {
@@ -19,7 +26,7 @@ String.prototype.toDate = function () {
 
 String.prototype.htmlDecode = function () {
 	return $("<div/>").html(this).text();
-}
+};
 
 Date.prototype.format = function() {
 	
@@ -32,61 +39,315 @@ Date.prototype.format = function() {
 	
 	return [day, month, year].join('-');
 	
-}
+};
 
 Date.prototype.addDays = function(days) {
-    var date = new Date(this.valueOf());
-    date.setDate(date.getDate() + days);
-    return date;
-}
+	var date = new Date(this.valueOf());
+	date.setDate(date.getDate() + days);
+	return date;
+};
 
 Array.prototype.has = function(value) {
 	return this.some(v => String(v) === String(value))
-}
+};
+
+//---------------------
+// JQuery overrides
+//---------------------
 
 $.fn.exist = function () {
 	return this.length !== 0 && this;
-}
+};
 
 $.fn.drags = function(opt) {
 
-    opt = $.extend({handle:"",cursor:"move"}, opt);
+	opt = $.extend({handle:"",cursor:"move"}, opt);
 
-    if(opt.handle === "") {
-        var $el = this;
-    } else {
-        var $el = this.find(opt.handle);
-    }
+	if(opt.handle === "") {
+		var $el = this;
+	} else {
+		var $el = this.find(opt.handle);
+	}
 
-    return $el.css('cursor', opt.cursor).on("mousedown", function(e) {
-        if(opt.handle === "") {
-            var $drag = $(this).addClass('draggable');
-        } else {
-            var $drag = $(this).addClass('active-handle').parent().addClass('draggable');
-        }
-        var z_idx = $drag.css('z-index'),
-            drg_h = $drag.outerHeight(),
-            drg_w = $drag.outerWidth(),
-            pos_y = $drag.offset().top + drg_h - e.pageY,
-            pos_x = $drag.offset().left + drg_w - e.pageX;
-        $drag.css('z-index', 1000).parents().on("mousemove", function(e) {
-            $('.draggable').offset({
-                top:e.pageY + pos_y - drg_h,
-                left:e.pageX + pos_x - drg_w
-            }).on("mouseup", function() {
-                $(this).removeClass('draggable').css('z-index', z_idx);
-            });
-        });
-        e.preventDefault(); // disable selection
-    }).on("mouseup", function() {
-        if(opt.handle === "") {
-            $(this).removeClass('draggable');
-        } else {
-            $(this).removeClass('active-handle').parent().removeClass('draggable');
-        }
-    });
+	return $el.css('cursor', opt.cursor).on('mousedown', function(e) {
+		if(opt.handle === '') {
+			var $drag = $(this).addClass('draggable');
+		} else {
+			var $drag = $(this).addClass('active-handle').parent().addClass('draggable');
+		}
+		var z_idx = $drag.css('z-index'),
+			drg_h = $drag.outerHeight(),
+			drg_w = $drag.outerWidth(),
+			pos_y = $drag.offset().top + drg_h - e.pageY,
+			pos_x = $drag.offset().left + drg_w - e.pageX;
+		$drag.css('z-index', 1000).parents().on('mousemove', function(e) {
+			$('.draggable').offset({
+				top:e.pageY + pos_y - drg_h,
+				left:e.pageX + pos_x - drg_w
+			}).on('mouseup', function() {
+				$(this).removeClass('draggable').css('z-index', z_idx);
+			});
+		});
+		e.preventDefault(); // disable selection
+	}).on('mouseup', function() {
+		if(opt.handle === "") {
+			$(this).removeClass('draggable');
+		} else {
+			$(this).removeClass('active-handle').parent().removeClass('draggable');
+		}
+	});
 
+};
+
+$.fn.add = function(content, position = 'last') {
+	
+	let [all, tagName, classNames, attributes] = content.match(/(\w+)((?:\.[\w-]+)*)((?:\[\w+="[\w-]+"\])*)/);
+	
+	if (tagName == '') {
+		return null;
+	}
+	
+	switch (tagName) {
+		case 'textbox':
+			tagName = 'input';
+			classNames += ' form-control form-control-sm';
+			attributes += '[type="text"]';
+			break;
+		case 'checkbox':
+			tagName = 'input';
+			classNames += ' custom-control-input';
+			attributes += '[type="checkbox"]';
+			break;
+		case 'select':
+			classNames += ' form-control form-control-sm';
+			break;
+		case 'option':
+			attributes += '[value=""]';
+			break;
+		case 'label':
+			classNames += ' custom-control-label w-100 text-nowrap';
+			break;
+		case 'standardButton':
+			tagName = 'button';
+			classNames += ' btn';
+			attributes += '[type="button"]';
+			break;
+		case 'menuButton':
+			tagName = 'button';
+			classNames += ' btn btn-sm btn-primary text-nowrap rounded-0';
+			attributes += '[type="button"]';
+			break;
+		case 'smallButton':
+			tagName = 'button';
+			classNames += ' btn btn-sm mx-1 text-nowrap';
+			attributes += '[type="button"]';
+			break;
+	}
+	
+	if (position == 'first') {
+		element = this.prepend($('<' + tagName + '>')).children().first();
+	} else {
+		element = this.append($('<' + tagName + '>')).children().last();
+	}
+	
+	if (classNames != '') {
+		element.addClass(classNames.replace(/\./g, ' '));
+	}
+	if (attributes != '') {
+		[...attributes.matchAll(/\[(\w+)="(\w+)"\]/g)].forEach(item => {
+			if (item !== undefined) {
+				element.attr(item[1], item[2]);
+			}
+		})
+	}
+	
+	return element;
+	
 }
+
+$.fn.addFirst = function(content) {
+	return this.add(content, 'first');
+}
+
+$.fn.addLast = function(content) {
+	return this.add(content);
+}
+
+//---------------------
+// Chart.js overrides
+//---------------------
+
+
+global.gpexeLegendPlugin = {
+	
+	id: 'gpexeLegend',
+	
+	beforeUpdate: function(chart, args, options) {
+		if (args.mode == undefined) {
+			this.addAverageDataset(chart);
+		};
+	},
+	
+	afterUpdate: function(chart, args, options) {
+		
+		let $legend = $('#' + options.containerId);
+		$legend
+			.addClass('legend')
+			.empty()
+		;
+		
+		let $ul = $legend.addLast('ul')
+			.css('justify-content', options.align)
+			.css('max-width', options.maxWidth || 'max-content')
+		;
+		
+		let items = chart.options.plugins.legend.labels.generateLabels(chart);
+	
+		items.forEach(item => {
+			let $li = $ul.addLast('li')
+				.on('click', function() {
+					chart.setDatasetVisibility(item.datasetIndex, !chart.isDatasetVisible(item.datasetIndex));
+					chart.update();
+				})
+			;
+			
+			$li.addLast('span')
+				.css('background', item.fillStyle)
+				.css('border-color', item.strokeStyle)
+				.css('border-width', item.lineWidth + 'px')
+			;
+			
+			$li.addLast('p')
+				.css('text-decoration', item.hidden ? 'line-through' : '')
+				.text(item.text)
+			;	
+		});
+	},
+	
+	addAverageDataset: function(chart) {
+		
+		//count how many datasets are visible
+		let countVisibleDatasets = 0;
+		let averageDataset = null;
+		let visible = true;
+		chart.data.datasets.forEach((dataset, i) => {
+			if (dataset.label == $.i18n('all')) {
+				averageDataset = dataset;
+				visible = chart.isDatasetVisible(i);
+			} else if (chart.isDatasetVisible(i) === true) {
+				countVisibleDatasets++;
+			}
+		});
+		
+		//add 'average' dataset if not exist
+		if (averageDataset === null) {
+			averageDataset = {
+				label: $.i18n('all'),
+				borderColor: 'rgba(255, 255, 255, 0.5)',
+				backgroundColor: 'rgba(255, 255, 255, 0.5)',
+				borderWidth: 4,
+				serieType: 0,
+				serieCount: 0,
+				fill: false,
+				data: [],
+			};
+			chart.data.datasets.push(averageDataset);
+		}
+		
+		if (visible === true) {
+			
+			if (countVisibleDatasets > 1) {
+				
+				//calculate average
+				let progress = [];
+				let count = 0;
+				
+				chart.data.datasets.forEach((dataset, i) => {
+					if (chart.isDatasetVisible(i) === true && dataset.label != $.i18n('all')) {
+						dataset.data.forEach((value, j) => {
+							if (progress[j] === undefined) {
+								progress[j] = (parseInt(value) || 0) * dataset.serieCount;
+							} else {
+								progress[j] += (parseInt(value) || 0) * dataset.serieCount;
+							}
+						});
+						count += parseInt(dataset.serieCount);
+					}
+				});
+				
+				//update values
+				averageDataset.data = progress.map(value => Math.round(value / count));
+				
+			} else {
+				
+				//remove dataset if not
+				chart.data.datasets.forEach((dataset, i) => {
+					if (dataset.label == $.i18n('all')) {
+						chart.data.datasets.splice(i, 1);
+					}
+				});
+			}
+			
+		}
+	}
+	
+};
+
+class GPExeLine extends LineController {
+	
+	initialize() {
+		
+		this.chart.responsive = true;
+		this.chart.options.color = 'white';
+		this.chart.options.maintainAspectRatio = false;
+		this.chart.options.scales.x.reverse = true;
+		this.chart.options.scales.y.min = 0;
+		this.chart.options.scales.y.max = 100;
+		this.chart.options.animation.duration = 1000;
+		
+		if (this.chart.data.datasets[this.index].borderColor === undefined) {
+			this.chart.data.datasets[this.index].borderColor = this.getChartColor();
+		}
+		if (this.chart.data.datasets[this.index].backgroundColor === undefined) {
+			this.chart.data.datasets[this.index].backgroundColor = this.getChartColor();
+		}
+		
+		this.chart.options.onResize = function() {
+			$(this.ctx.canvas).height($(this.ctx.canvas).parent().height());
+			$(this.ctx.canvas).width($(this.ctx.canvas).parent().width());
+		},
+		
+		super.initialize();
+	}
+	
+	getChartColor() {
+		
+		let chartColors = [
+			'#4dc9f6',
+			'#f67019',
+			'#f53794',
+			'#537bc4',
+			'#acc236',
+			'#166a8f',
+			'#00a950',
+			'#58595b',
+			'#8549ba'
+		];
+		
+		return chartColors[this.index % chartColors.length];
+	}
+	
+}
+
+GPExeLine.id = 'gpexeLine';
+GPExeLine.defaults = Chart.registry.getController('line').defaults;
+
+Chart.register(GPExeLine);
+
+
+//---------------------
+// Custom functions
+//---------------------
 
 global.remToPx = function(i) {
 	return i * parseFloat(getComputedStyle(document.documentElement).fontSize);
@@ -95,131 +356,6 @@ global.remToPx = function(i) {
 global.pxToRem = function(i) {
 	return i / parseFloat(getComputedStyle(document.documentElement).fontSize);
 }
-
-global.create = {
-	div: function() {
-		return $(document.createElement('div'))
-
-		;
-	},
-	
-	a: function() {
-		return $(document.createElement('a'));
-			//.addClass('btn btn-sm text-nowrap')
-	},
-	
-	span: function() {
-		return $(document.createElement('span'))
-		;
-	},
-	
-	fieldset: function() {
-		return $(document.createElement('fieldset'))
-		;
-	},
-	
-	input: function() {
-		return $(document.createElement('input'))
-			.attr('type', 'text')
-			.addClass('form-control form-control-sm')
-		;
-	},
-	
-	checkbox: function() {
-		return $(document.createElement('input'))
-			.attr('type', 'checkbox')
-			.addClass('custom-control-input')
-		;
-	},
-	
-	select: function() {
-		return $(document.createElement('select'))
-			.addClass('form-control form-control-sm')
-		;
-	},
-	
-	option: function() {
-		return $(document.createElement('option'))
-			.attr('value', '')
-		;
-	},
-	
-	label: function() {
-		return $(document.createElement('label'))
-			.addClass('custom-control-label w-100 text-nowrap')
-		;
-	},
-	
-	button: function() {
-		return $(document.createElement('button'))
-			.attr('type', 'button')
-			.addClass('btn')
-		;
-	},
-	
-	menuButton: function() {
-		return $(document.createElement('button'))
-			.attr('type', 'button')
-			.addClass('btn btn-sm btn-primary text-nowrap rounded-0')
-		;
-	},
-	
-	smallButton: function() {
-		return $(document.createElement('button'))
-			.attr('type', 'button')
-			.addClass('btn btn-sm mx-1 text-nowrap')
-		;
-	},
-	
-	table: function() {
-		return $(document.createElement('table'))
-		
-		;
-	},
-	
-	thead: function() {
-		return $(document.createElement('thead'))
-		
-		;
-	},
-	
-	th: function() {
-		return $(document.createElement('th'))
-		
-		;
-	},
-	
-	tbody: function() {
-		return $(document.createElement('tbody'))
-		
-		;
-	},
-	
-	tr: function() {
-		return $(document.createElement('tr'))
-		
-		;
-	},
-	
-	td: function() {
-		return $(document.createElement('td'))
-		
-		;
-	},
-	
-	ul: function() {
-		return $(document.createElement('ul'))
-		
-		;
-	},
-	
-	li: function() {
-		return $(document.createElement('li'))
-		
-		;
-	},
-	
-};
 
 global.ajax = {
 		
@@ -444,9 +580,9 @@ $(document).ready(function() {
 			'</div>',
 		
 		close:
-		    '<button type="button" class="ml-2 mb-1 close ml-auto" data-dismiss="toast" aria-label=' + $.i18n('close') + '>' +
-		    	'<span aria-hidden="true">&times;</span>' +
-		    '</button>',
+			'<button type="button" class="ml-2 mb-1 close ml-auto" data-dismiss="toast" aria-label=' + $.i18n('close') + '>' +
+				'<span aria-hidden="true">&times;</span>' +
+			'</button>',
 		
 	};
 	
@@ -468,16 +604,16 @@ $(document).ready(function() {
 	$.fn.datepicker.defaults.todayHighlight = true;
 	$.fn.datepicker.defaults.zIndexOffset = sassVariables.zindexTooltip;
 	
-    $(document).on('ajax.beforeSend', function(e, jqXHR, settings) {
-    	$(e.target)
+	$(document).on('ajax.beforeSend', function(e, jqXHR, settings) {
+		$(e.target)
 			.show()
 			.empty()
 			.append(global.icon.loading)
 		;
-    });
-    
-    $(document).on('ajax.success', function(e, result, textStatus, jqXHR) {
-    	
+	});
+	
+	$(document).on('ajax.success', function(e, result, textStatus, jqXHR) {
+		
 		$(e.target).find('.spinner-border').parent().remove();
 		if (result) {
 			$(e.target).html($(e.target).html() + result);
@@ -493,12 +629,12 @@ $(document).ready(function() {
 		// Ajax
 		//---------------------
 		
-	    global.ajax.fetch(e.target);
+		global.ajax.fetch(e.target);
 		
 		//---------------------
 		// Modal & Collapse
 		//---------------------
-	    
+		
 		$(e.target).on('hidden.bs.collapse', function() {
 			$('[data-toggle="collapse"][href="#' + $(this).attr('id') + '"]')
 				.removeClass('active')
@@ -580,10 +716,10 @@ $(document).ready(function() {
 		
 		bsCustomFileInput.init();
 		
-    });
-    
-    $(document).on('ajax.error', function(e, jqXHR, textStatus, errorThrown) {
-    	
+	});
+	
+	$(document).on('ajax.error', function(e, jqXHR, textStatus, errorThrown) {
+		
 		if ((m = /<!--\s(.+)\s-->/.exec(jqXHR.responseText)) !== null) {
 			title = m[1].htmlDecode();
 		} else {
@@ -592,28 +728,26 @@ $(document).ready(function() {
 		
 		$(e.target).html($(e.target).html().replace(global.icon.loading, ''));
 		
-    	let div = $(e.target).append(global.create.div()).children().last()
-    		.addClass('alert alert-danger')
-    	;
-    	
-    	div.append(global.create.div).children().last()
-    		.addClass('alert-heading font-weight-bold')
-    		.text($.i18n('error') + ' ' + jqXHR.status + ' : ' + jqXHR.statusText)
-    	;
+		let $div = $(e.target).addLast('div.alert.alert-danger');
 		
-    	div.append(global.create.p).children().last()
+		$div.addLast('div')
+			.addClass('alert-heading font-weight-bold')
+			.text($.i18n('error') + ' ' + jqXHR.status + ' : ' + jqXHR.statusText)
+		;
+		
+		$div.addLast('p')
 			.text(title)
 		;
-    	
-    	div.append(global.create.smallButton).children().last()
+		
+		$div.addLast('smallButton')
 			.addClass('btn-primary mt-2')
 			.text($.i18n('reload'))
 			.on('click', function() {
 				global.ajax.set(e.target, jqXHR.settings.url, {data: jqXHR.settings.data})
 			})
 		;
-    	
-    	div.append(global.create.smallButton).children().last()
+		
+		$div.addLast('smallButton')
 			.addClass('btn-primary mt-2')
 			.text($.i18n('details'))
 			.on('click', function() {
@@ -626,9 +760,9 @@ $(document).ready(function() {
 				}
 			})
 		;
-    	
-    });
-    
-    $(document).trigger('ajax.success');
-    
+		
+	});
+	
+	$(document).trigger('ajax.success');
+	
 });

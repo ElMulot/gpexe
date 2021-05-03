@@ -63,7 +63,7 @@
     version: 0.4.0
     date: 01/03/2021
     changes:
-        - Ajout d'un nouveau type de programme : les tâches qui permettent d'automatiser des opérations sur la base
+        - Ajout d'un nouveau type de programme, les tâches qui permettent d'automatiser des opérations sur la base
         - Il est désormais possible de déplacer et de modifier la largeur des colonnes. Les modifications peuvent être sauvegardées dans la vue
         - Lors de la création d'une nouvelle version, les métadonnées sont copiées de la dernière version créée
         - Correction de bugs
@@ -81,4 +81,18 @@
         - Modernisation de l'interpréteur de script pour les imports/exports/task/progress
         - Intégration de la librairie Spatie/Regex
         - Mise à jour des librairies
+        - Correction de bugs
+- 
+    version: 0.5.1
+    date: 01/05/2021
+    changes:
+        - Ajout d'un mini-graphique d'avancement dans le tableau principal
+        - Ajout d'un bouton "Exporter la vue courante" dans le tableau principal
+        - Il est désormais possible de ne sélectionner que les champs vides
+        - Sous Chrome, les menus ne disparaissent plus en cas d'évênement mouseout en dehors de la fenêtre
+        - Ajout d'un bouton "Tous les documents" dans la vue projet
+        - Les erreurs des programmes sont désormais gérés par des exceptions
+        - Modification de la structure des programmes exports
+        - Cron enfin fonctionnel et remplacement des automatisations par des commandes Symfony
+        - Ajout de boutons d'imitation (impersonation) dans la liste des utilisateurs
         - Correction de bugs

@@ -146,7 +146,6 @@ App\Entity\Version:
             fields: ['name', 'document']
     properties:
         name:
-            - Regex: '/^\w+$/'
             - NotBlank: ~
 
 App\Entity\Visa:

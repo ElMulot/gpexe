@@ -44,16 +44,13 @@ class VersionRepository extends RepositoryService
 	{
 		
 		if ($request->query == false) {
-			return [];
+			return 0;
 		}
-		
+
 		$qb = $this->getCoreQB($codifications, $fields, $series, $project, $request);
 		
-		return $qb
-			->select($qb->count('version.id'))
-			->getQuery()
-			->getSingleScalarResult()
-		;
+		//count cannot work if version_date alias is defined
+		return count($qb->getQuery()->getResult());
 	}
 	
 	/**
@@ -69,10 +66,8 @@ class VersionRepository extends RepositoryService
 		$qb = $this->getCoreQB($codifications, $fields, $series, $project, $request);
 
 		//highlight
-		if ($request->query->has('highlight')) {
-			if ($qb->hasAlias('version_is_required') === false) {
-				$qb->addSelect('version.isRequired AS version_is_required');
-			}
+		if ($request->query->has('highlight') && $qb->hasAlias('version_is_required') === false) {
+			$qb->addSelect('version.isRequired AS version_is_required');
 		}
 		
 		if ($request->query->has('sortAsc') || $request->query->has('sortDesc')) {
@@ -100,11 +95,11 @@ class VersionRepository extends RepositoryService
 					break;
 					
 				case 'version_date':
-					if ($qb->hasAlias('version_date') === false) {
-						$qb->addSelect("IF(version.isRequired = false, version.deliveryDate, version.scheduledDate) AS version_date");
+					if ($qb->hasAlias('version_date_') === false) {
+						$qb->addSelect("IF(version.isRequired = false, version.deliveryDate, version.scheduledDate) AS HIDDEN version_date_");
 					}
 					
-					$qb->addOrderBy('version_date', $order);
+					$qb->addOrderBy('version_date_', $order);
 					break;
 					
 				case 'version_writer':
@@ -139,17 +134,6 @@ class VersionRepository extends RepositoryService
 					$qb->addOrderBy('company.name', $order);
 					break;
 					
-				case 'status_name':
-					$qb->addNestedSelect(
-						$this->newQB()
-							->select('status2.name')
-							->from(Status::class, 'status2')
-							->where('status2.id = version.status'),
-						'status_name'
-					);
-					$qb->addOrderBy('status_name', $order);
-					break;
-					
 				case 'status_value':
 					if ($qb->hasAlias('status') === false) {
 						$qb->leftJoin('version.status', 'status');
@@ -176,28 +160,35 @@ class VersionRepository extends RepositoryService
 								
 								case Metadata::BOOLEAN:
 								case Metadata::TEXT:
-								case Metadata::DATE:
 								case Metadata::LINK:
 									if ($qb->hasAlias($field['id'] . '_') === false) {
-										$qb->leftJoin($field['parent'] . '.metadataValues', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id));
+										$qb
+											->leftJoin($field['parent'] . '.metadataValues', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
+											->groupBy('version.id')
+										;
 									}
-									$qb
-										->groupBy('version.id')
-										->addOrderBy("MAX({$field['id']}_.value)", $order)
-									;
+									$qb->addOrderBy($field['id'] . '_.value', $order);
+									break;
+									
+								case Metadata::DATE:
+									if ($qb->hasAlias($field['id'] . '_') === false) {
+										$qb
+											->leftJoin($field['parent'] . '.metadataValues', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
+											->groupBy('version.id')
+											->addSelect($this->dateStatement($field['id']))
+										;
+									}
+									$qb->addOrderBy($field['id'] . '_value', $order);
 									break;
 									
 								case Metadata::LIST:
-									
 									if ($qb->hasAlias($field['id'] . '_') === false) {
 										$qb
 											->leftJoin($field['parent'] . '.metadataItems', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
+											->groupBy('version.id')
 										;
 									}
-									$qb
-										->groupBy('version.id')
-										->addOrderBy("MAX({$field['id']}_.value)", $order)
-									;
+									$qb->addOrderBy($field['id'] . '_.value', $order);
 									break;
 									
 							}
@@ -226,12 +217,12 @@ class VersionRepository extends RepositoryService
 								;
 								
 								$qb
-									->leftJoin('version.reviews', 'review_' . $id, Join::WITH, $qb->in("review_{$id}.visa", $visas))
-									->leftJoin("review_{$id}.visa", $field['id'] . '_')
+									->leftJoin('version.reviews', 'review_' . $id, Join::WITH, $qb->in('review_' . $id . '.visa', $visas))
+									->leftJoin('review_' . $id . '.visa', $field['id'] . '_')
 								;
 								
 							}
-							$qb->addOrderBy("{$field['id']}_.name", $order);
+							$qb->addOrderBy($field['id'] . '_.name', $order);
 							break;
 						}
 						
@@ -266,14 +257,14 @@ class VersionRepository extends RepositoryService
 							if ($qb->hasAlias($field['id'] . '_') === false) {
 								$qb->innerJoin('document.codificationItems', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.codification', $id));
 							}
-							$qb->addSelect("{$field['id']}_.value AS {$field['id']}");
+							$qb->addSelect(sprintf('%1$s_.value AS %1$s', $field['id']));
 							break;
 							
 						case Codification::REGEX:
 							if ($qb->hasAlias($field['id']. '_') === false) {
 								$qb->innerJoin('document.codificationValues', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.codification', $id));
 							}
-							$qb->addSelect("{$field['id']}_.value AS {$field['id']}");
+							$qb->addSelect(sprintf('%1$s_.value AS %1$s', $field['id']));
 							break;
 					}
 					
@@ -305,9 +296,7 @@ class VersionRepository extends RepositoryService
 						break;
 						
 					case 'version_date':
-						if ($qb->hasAlias('version_date') === false) {
-							$qb->addSelect("IF(version.isRequired = false, version.deliveryDate, version.scheduledDate) AS version_date");
-						}
+						$qb->addSelect("DATE_FORMAT(IF(version.isRequired = false, version.deliveryDate, version.scheduledDate), '%d-%m-%Y') AS version_date");
 						break;
 						
 					case 'version_is_required':
@@ -374,15 +363,24 @@ class VersionRepository extends RepositoryService
 									
 									case Metadata::BOOLEAN:
 									case Metadata::TEXT:
-									case Metadata::DATE:
 									case Metadata::LINK:
 										if ($qb->hasAlias($field['id'] . '_') === false) {
-											$qb->leftJoin($field['parent'] . '.metadataValues', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id));
+											$qb
+												->leftJoin($field['parent'] . '.metadataValues', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
+												->groupBy('version.id')
+											;
 										}
-										$qb
-											->groupBy('version.id')
-											->addSelect("MAX({$field['id']}_.value) AS {$field['id']}")
-										;
+										$qb->addSelect(sprintf('MAX(%1$s_.value) AS %1$s', $field['id']));
+										break;
+										
+									case Metadata::DATE:
+										if ($qb->hasAlias($field['id'] . '_') === false) {
+											$qb
+												->leftJoin($field['parent'] . '.metadataValues', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
+												->groupBy('version.id')
+											;
+										}
+										$qb->addSelect(sprintf('MAX(%1$s_.value) AS %1$s', $field['id']));
 										break;
 										
 									case Metadata::LIST:
@@ -390,12 +388,10 @@ class VersionRepository extends RepositoryService
 										if ($qb->hasAlias($field['id'] . '_') === false) {
 											$qb
 												->leftJoin($field['parent'] . '.metadataItems', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
+												->groupBy('version.id')
 											;
 										}
-										$qb
-											->groupBy('version.id')
-											->addSelect("MAX({$field['id']}_.value) AS {$field['id']}")
-										;
+										$qb->addSelect(sprintf('MAX(%1$s_.value) AS %1$s', $field['id']));
 										break;
 										
 								}
@@ -424,12 +420,12 @@ class VersionRepository extends RepositoryService
 									;
 									
 									$qb
-										->leftJoin('version.reviews', 'review_' . $id, Join::WITH, $qb->in("review_{$id}.visa", $visas))
-										->leftJoin("review_{$id}.visa", $field['id'] . '_')
+										->leftJoin('version.reviews', 'review_' . $id, Join::WITH, $qb->in('review_' . $id . '.visa', $visas))
+										->leftJoin('review_' . $id . '.visa', $field['id'] . '_')
 									;
 									
 								}
-								$qb->addSelect("{$field['id']}_.name AS {$field['id']}");
+								$qb->addSelect(sprintf('%1$s_.name AS %1$s', $field['id']));
 								break;
 							}
 							
@@ -455,10 +451,10 @@ class VersionRepository extends RepositoryService
 						
 						$references[] = $codification->getValue();
 						
-					} elseif (array_key_exists("codification_{$id}", $result)) {
+					} elseif (array_key_exists('codification_' . $id, $result)) {
 						
-						if (empty($result["codification_{$id}"]) === false) {
-							$references[] = $result["codification_{$id}"];
+						if (empty($result['codification_' . $id]) === false) {
+							$references[] = $result['codification_' . $id];
 						}
 						
 					}
@@ -485,17 +481,23 @@ class VersionRepository extends RepositoryService
 		}
 		
 		array_walk($results, function(&$item) use ($request, $project) {
-			if (array_key_exists('version_date', $item)) {
-				$item['version_date'] = Regex::replace('/(\d{4})-(\d{2})-(\d{2})/', '${3}-${2}-${1}', $item['version_date'])->result();
-			}
+// 			if (array_key_exists('version_date', $item)) {
+// 				$item['version_date'] = Regex::replace('/(\d{4})-(\d{2})-(\d{2})/', '${3}-${2}-${1}', $item['version_date'])->result();
+// 			}
 			
 			if ($highlight = $request->query->get('highlight')) {
-				if ($item['version_is_required'] && array_key_exists($highlight, $item) && ($date = Date::fromFormat($item[$highlight]))->isValid() === true) {
-					if ($date < new Date('now')) {
+				
+				if ($item['version_is_required'] && array_key_exists($highlight, $item)) {
+					if ($item[$highlight] instanceof \DateTimeInterface) {
+						$date = $item[$highlight];
+					} else {
+						$date = Date::fromFormat($item[$highlight]);
+					}
+					if ($date < new Date('today')) {
 						$item['highlight'] = 'FF919180';
-					} elseif (Date::getWorkingDays($date, new Date('now')) <= $project->getProdWarningLimit()) {
+					} elseif (Date::getWorkingDays($date, new Date('today')) <= $project->getProdWarningLimit()) {
 						$item['highlight'] = 'FFE59180';
-					} elseif (Date::getWorkingDays($date, new Date('now')) <= $project->getProdDangerLimit()) {
+					} elseif (Date::getWorkingDays($date, new Date('today')) <= $project->getProdDangerLimit()) {
 						$item['highlight'] = 'FFFF9180';
 					} else {
 						$item['highlight'] = 'CBFF9180';
@@ -659,41 +661,61 @@ class VersionRepository extends RepositoryService
 							if (($result = Regex::match('/>(\d{2}-\d{2}-\d{4})/', $value))->hasMatch()) {
 								$qb->andWhere($qb->gte('version.initialScheduledDate', new \DateTime($result->group(1))));
 							}
-							if (($result = Regex::match('/<(\d{2}-\d{2}-\d{4})/', $value, $matches))->hasMatch()) {
+							if (($result = Regex::match('/<(\d{2}-\d{2}-\d{4})/', $value))->hasMatch()) {
 								$qb->andWhere($qb->lte('version.initialScheduledDate', new \DateTime($result->group(1))));
 							}
 							break;
 							
 						case 'version_scheduled_date':
 							$value = implode(',', $value);
-							if (($result = Regex::match('/>(\d{2}-\d{2}-\d{4})/', $value, $matches))->hasMatch()) {
-								$qb->andWhere($qb->gte('version.scheduledDate', new \DateTime($result->group(1))));
+							if (($result = Regex::match('/>(\d{2}-\d{2}-\d{4})/', $value))->hasMatch()) {
+								if (Regex::match('/(?<=,)0/', $value)->hasMatch()) {
+									$qb->andWhere($qb->orX($qb->gte('version.scheduledDate', new \DateTime($result->group(1))), $qb->isNull('version.scheduledDate')));
+								} else {
+									$qb->andWhere($qb->gte('version.scheduledDate', new \DateTime($result->group(1))));
+								}
 							}
-							if (($result = Regex::match('/<(\d{2}-\d{2}-\d{4})/', $value, $matches))->hasMatch()) {
-								$qb->andWhere($qb->lte('version.scheduledDate', new \DateTime($result->group(1))));
+							if (($result = Regex::match('/<(\d{2}-\d{2}-\d{4})/', $value))->hasMatch()) {
+								if (Regex::match('/(?<=,)0/', $value)->hasMatch()) {
+									$qb->andWhere($qb->orX($qb->lte('version.scheduledDate', new \DateTime($result->group(1))), $qb->isNull('version.scheduledDate')));
+								} else {
+									$qb->andWhere($qb->lte('version.scheduledDate', new \DateTime($result->group(1))));
+								}
+							}
+							if (($result = Regex::match('/^0/', $value))->hasMatch()) {
+								$qb->andWhere($qb->isNull('version.scheduledDate'));
 							}
 							break;
 							
 						case 'version_delivery_date':
 							$value = implode(',', $value);
-							if (($result = Regex::match('/>(\d{2}-\d{2}-\d{4})/', $value, $matches))->hasMatch()) {
-								$qb->andWhere($qb->gte('version.deliveryDate', new \DateTime($result->group(1))));
+							if (($result = Regex::match('/>(\d{2}-\d{2}-\d{4})/', $value))->hasMatch()) {
+								if (Regex::match('/(?<=,)0/', $value)->hasMatch()) {
+									$qb->andWhere($qb->orX($qb->gte('version.deliveryDate', new \DateTime($result->group(1))), $qb->isNull('version.deliveryDate')));
+								} else {
+									$qb->andWhere($qb->gte('version.deliveryDate', new \DateTime($result->group(1))));
+								}
 							}
-							if (($result = Regex::match('/<(\d{2}-\d{2}-\d{4})/', $value, $matches))->hasMatch()) {
-								$qb->andWhere($qb->lte('version.deliveryDate', new \DateTime($result->group(1))));
+							if (($result = Regex::match('/<(\d{2}-\d{2}-\d{4})/', $value))->hasMatch()) {
+								if (Regex::match('/(?<=,)0/', $value)->hasMatch()) {
+									$qb->andWhere($qb->orX($qb->lte('version.deliveryDate', new \DateTime($result->group(1))), $qb->isNull('version.deliveryDate')));
+								} else {
+									$qb->andWhere($qb->lte('version.deliveryDate', new \DateTime($result->group(1))));
+								}
+							}
+							if (($result = Regex::match('/^0/', $value))->hasMatch()) {
+								$qb->andWhere($qb->isNull('version.deliveryDate'));
 							}
 							break;
 							
 						case 'version_date':
-							if ($qb->hasAlias('version_date') === false) {
-								$qb->addSelect("IF(version.isRequired = false, version.deliveryDate, version.scheduledDate) AS version_date");
-							}
+							$qb->addSelect("IF(version.isRequired = false, version.deliveryDate, version.scheduledDate) AS HIDDEN version_date_");
 							$value = implode(',', $value);
-							if (($result = Regex::match('/>(\d{2}-\d{2}-\d{4})/', $value, $matches))->hasMatch()) {
-								$qb->andWhere($qb->gte('version_date', new \DateTime($result->group(1))));
+							if (($result = Regex::match('/>(\d{2}-\d{2}-\d{4})/', $value))->hasMatch()) {
+								$qb->andHaving($qb->gte('version_date_', new \DateTime($result->group(1))));
 							}
-							if (($result = Regex::match('/<(\d{2}-\d{2}-\d{4})/', $value, $matches))->hasMatch()) {
-								$qb->andWhere($qb->lte('version_date', new \DateTime($result->group(1))));
+							if (($result = Regex::match('/<(\d{2}-\d{2}-\d{4})/', $value))->hasMatch()) {
+								$qb->andHaving($qb->lte('version_date_', new \DateTime($result->group(1))));
 							}
 							break;
 							
@@ -702,15 +724,27 @@ class VersionRepository extends RepositoryService
 							break;
 							
 						case 'version_writer':
-							$qb->andWhere($qb->in('version.writer', $value));
+							if (in_array(0, $value)) {
+								$qb->andWhere($qb->orX($qb->in('version.writer', $value), $qb->isNull('version.writer')));
+							} else {
+								$qb->andWhere($qb->in('version.writer', $value));
+							}
 							break;
 							
 						case 'version_checker':
-							$qb->andWhere($qb->in('version.checker', $value));
+							if (in_array(0, $value)) {
+								$qb->andWhere($qb->orX($qb->in('version.checker', $value), $qb->isNull('version.checker')));
+							} else {
+								$qb->andWhere($qb->in('version.checker', $value));
+							}
 							break;
 							
 						case 'version_approver':
-							$qb->andWhere($qb->in('version.approver', $value));
+							if (in_array(0, $value)) {
+								$qb->andWhere($qb->orX($qb->in('version.approver', $value), $qb->isNull('version.approver')));
+							} else {
+								$qb->andWhere($qb->in('version.approver', $value));
+							}
 							break;
 							
 						case 'serie_name':
@@ -722,7 +756,6 @@ class VersionRepository extends RepositoryService
 							break;
 							
 						case 'status_value':
-							
 							if ($qb->hasAlias('status') === false) {
 								$qb->innerJoin('version.status', 'status');
 							}
@@ -743,15 +776,11 @@ class VersionRepository extends RepositoryService
 							switch ($field['type']) {
 
 								case Codification::LIST:
-									if ($qb->hasAlias($field['id'] . '_') === false) {
-										$qb->innerJoin('document.codificationItems', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.codification', $id));
-									}
+									$qb->innerJoin('document.codificationItems', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.codification', $id));
 									break;
 									
 								case Codification::REGEX:
-									if ($qb->hasAlias($field['id']. '_') === false) {
-										$qb->innerJoin('document.codificationValues', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.codification', $id));
-									}
+									$qb->innerJoin('document.codificationValues', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.codification', $id));
 									break;
 							}
 							
@@ -776,16 +805,27 @@ class VersionRepository extends RepositoryService
 								
 								case Metadata::BOOLEAN:
 								case Metadata::TEXT:
+								case Metadata::LINK:
+									$qb
+										->leftJoin($field['parent'] . '.metadataValues', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
+										->groupBy('version.id')
+										->addSelect(sprintf('MAX(%1$s_.value) AS HIDDEN %1$s_value', $field['id']))
+									;
+									break;
 								case Metadata::DATE:
-									if ($qb->hasAlias($field['id'] . '_') === false) {
-										$qb->leftJoin($field['parent'] . '.metadataValues', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id));
-									}
+									$qb
+										->leftJoin($field['parent'] . '.metadataValues', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
+										->groupBy('version.id')
+										->addSelect($this->dateStatement($field['id']))
+									;
 									break;
 									
 								case Metadata::LIST:
-									if ($qb->hasAlias($field['id'] . '_') === false) {
-										$qb->leftJoin($field['parent'] . '.metadataItems', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id));
-									}
+									$qb
+										->leftJoin($field['parent'] . '.metadataItems', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
+										->groupBy('version.id')
+										->addSelect(sprintf('MAX(%1$s_.id) AS HIDDEN %1$s_id', $field['id']))
+									;
 									break;
 									
 							}
@@ -794,36 +834,55 @@ class VersionRepository extends RepositoryService
 								
 								case Metadata::BOOLEAN:
 									if ($value == '1') {
-										$qb->andWhere($qb->eq($field['id'] . '_.value', 1));
+										$qb->andHaving($qb->eq($field['id'] . '_value', 1));
 									} else {
-										$qb->andWhere($qb->orX(
-												$qb->eq($field['id'] . '_.value', 0),
-												$qb->isNull($field['id'] . '_.value')
-											)
-										);
+										$qb->andHaving($qb->isNull($field['id'] . '_value'));
 									}
 									break;
 									
 								case Metadata::TEXT:
-									$qb->andWhere($qb->like($field['id'] . '_.value', $this->likeStatement($value)));
+									$qb->andHaving($qb->like($field['id'] . '_value', $this->likeStatement($value)));
 									break;
 									
 								case Metadata::DATE:
-									
-									foreach ($value as $v) {
-										$r = [];
-										if (($r = Regex::match('/>(\d{2}-\d{2}-\d{4})/', $v))->hasMatch()) {
-											$qb->andWhere($qb->gte("STR_TO_DATE({$field['id']}_.value, '%d-%m-%Y')", new \DateTime($r->group(1))));
-										} elseif (($r = Regex::match('/<(\d{2}-\d{2}-\d{4})/', $v, $r))->hasMatch()) {
-											$qb->andWhere($qb->lte("STR_TO_DATE({$field['id']}_.value, '%d-%m-%Y')", new \DateTime($r->group(1))));
+									$value = implode(',', $value);
+									if (($r = Regex::match('/>(\d{2}-\d{2}-\d{4})/', $value))->hasMatch()) {
+										if (Regex::match('/(?<=,)0/', $value)->hasMatch()) {
+											$qb->andHaving(
+												$qb->orX(
+													$qb->gte($field['id'] . '_value', new \DateTime($r->group(1))),
+													$qb->isNull($field['id'] . '_value')
+												)
+											);
+										} else {
+											$qb->andHaving($qb->gte($field['id'] . '_value', new \DateTime($r->group(1))));
 										}
 									}
-									
+									if (($r = Regex::match('/<(\d{2}-\d{2}-\d{4})/', $value))->hasMatch()) {
+										if (Regex::match('/(?<=,)0/', $value)->hasMatch()) {
+											$qb->andHaving(
+												$qb->orX(
+													$qb->lte($field['id'] . '_value', new \DateTime($r->group(1))),
+													$qb->isNull($field['id'] . '_value')
+													)
+												);
+										} else {
+											$qb->andHaving($qb->lte($field['id'] . '_value', new \DateTime($r->group(1))));
+										}
+									}
+									if (($r = Regex::match('/^0/', $value))->hasMatch()) {
+										$qb->andHaving(
+											$qb->isNull($field['id'] . '_value')
+										);
+									}
 									break;
 									
 								case Metadata::LIST:
-									$qb->andWhere($qb->in($field['id'] . '_.id', $value));
-									
+									if (in_array(0, $value)) {
+										$qb->andHaving($qb->orX($qb->in($field['id'] . '_id', $value), $qb->isNull($field['id'] . '_id')));
+									} else {
+										$qb->andHaving($qb->in($field['id'] . '_id', $value));
+									}
 									break;
 									
 							}
@@ -846,11 +905,17 @@ class VersionRepository extends RepositoryService
 								;
 								
 								$qb
-									->leftJoin('version.reviews', 'review_' . $id, Join::WITH, $qb->in("review_{$id}.visa", $visas))
-									->leftJoin("review_{$id}.visa", $field['id'] . '_')
+									->leftJoin('version.reviews', 'review_' . $id, Join::WITH, $qb->in('review_' . $id . '.visa', $visas))
+									->leftJoin('review_' . $id . '.visa', $field['id'] . '_')
 								;
+								
 							}
-							$qb->andWhere($qb->in($field['id'] . '_.id', $value));
+							
+							if (in_array(0, $value)) {
+								$qb->andWhere($qb->orX($qb->in($field['id'] . '_.id', $value), $qb->isNull($field['id'] . '_.id')));
+							} else {
+								$qb->andWhere($qb->in($field['id'] . '_.id', $value));
+							}
 							break;
 							
 						case 'version_first':
@@ -929,8 +994,12 @@ class VersionRepository extends RepositoryService
 	
 	private function likeStatement(string $value): string
 	{
-		return str_replace('%%', '%', '%' . str_replace('*', '%', $value) . '%');
-		
+		return str_replace('%%', '%', '%' . str_replace('*', '%', $value) . '%');	
+	}
+	
+	private function dateStatement(string $value): string
+	{		
+		return "STR_TO_DATE(MAX(" . $value . "_.value), '%d-%m-%Y') AS HIDDEN " . $value . "_value";
 	}
 	
 }

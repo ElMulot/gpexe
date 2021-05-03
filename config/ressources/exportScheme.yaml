@@ -5,6 +5,10 @@ first_row:
     regex: '\d+'
     default: 1
 
+headers:
+    -
+        regex: '.+'
+
 exclude:
     -
         regex: '.+'
@@ -13,12 +17,12 @@ write:
     -
         condition:
             regex: '.+'
-        to:
-            regex: '[A-Z]{1,2}'
-        value:
-            regex: '.+'
-        title:
-            regex: '.+'
+        then:
+            -
+                regex: '.+'
+        else:
+            -
+                regex: '.+'
 
 option:
     library:

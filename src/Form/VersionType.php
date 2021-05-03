@@ -10,6 +10,7 @@ use App\Entity\User;
 use App\Repository\CompanyRepository;
 use App\Repository\MetadataRepository;
 use App\Repository\UserRepository;
+use App\Service\PropertyService;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -19,6 +20,7 @@ use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Url;
 
 class VersionType extends AbstractType
@@ -31,12 +33,15 @@ class VersionType extends AbstractType
 	private $metadataRepository;
 	
 	private $userRepository;
+	
+	private $propertyService;
 		
-	public function __construct(CompanyRepository $companyRepository, MetadataRepository $metadataRepository, UserRepository $userRepository)
+	public function __construct(CompanyRepository $companyRepository, MetadataRepository $metadataRepository, UserRepository $userRepository, PropertyService $propertyService)
 	{
 		$this->companyRepository = $companyRepository;
 		$this->metadataRepository = $metadataRepository;
 		$this->userRepository = $userRepository;
+		$this->propertyService = $propertyService;
 	}
 	
 	public function buildForm(FormBuilderInterface $builder, array $options)
@@ -48,8 +53,9 @@ class VersionType extends AbstractType
 		
 		if (count($versions) == 1) {
 			$this->builder->add('name', TextType::class, [
-				'label' => 'Version',
-				'data' => reset($versions)->getName(),
+				'label' 		=> 'Version',
+				'data' 			=> reset($versions)->getName(),
+				'constraints' 	=> [new NotBlank()],
 			]);
 		}
 		
@@ -58,8 +64,8 @@ class VersionType extends AbstractType
 		$this->buildField('Date', 'date', 'version.date', Metadata::DATE, $versions);
 		
 		$options = [
-			'class' 	=> Status::class,
-			'choices' 	=> $project->getStatuses(),
+			'class' 		=> Status::class,
+			'choices' 		=> $project->getStatuses(),
 		];
 		$this->buildField('Status', 'status', 'status.value', Metadata::LIST, $versions, $options);
 		
@@ -67,9 +73,9 @@ class VersionType extends AbstractType
 			switch ($metadata->getType()) {
 				case Metadata::LIST:
 					$options = [
-						'required'	=> $metadata->getIsMandatory(),
-						'class' 	=> MetadataItem::class,
-						'choices' 	=> $metadata->getMetadataItems(),
+						'required'		=> $metadata->getIsMandatory(),
+						'class' 		=> MetadataItem::class,
+						'choices' 		=> $metadata->getMetadataItems(),
 					];
 					$this->buildField($metadata->getName(), $metadata->getFullId(), $metadata->getFullCodename(), $metadata->getType(), $versions, $options);
 					break;
@@ -102,22 +108,28 @@ class VersionType extends AbstractType
 	{
 		
 		if ($versions) {
+			$value = null;
 			foreach ($versions as $version) {
-				if (isset($value)) {
-					if ($value != $version->getPropertyValue($codename)) {
+				if ($value !== null) {
+					if ($value != $this->propertyService->toString($version->getPropertyValue($codename))) {
 						return true;
 					}
 				} else {
-					$value = $version->getPropertyValue($codename);
+					$value = $this->propertyService->toString($version->getPropertyValue($codename));
 				}
 			}
 		}
 		
 		return false;
+		
 	}
 	
 	private function buildField(string $label, string $id, string $codename, int $type, array $versions=null, $options=[])
 	{
+		
+		if ($options['required'] ?? true === true) {
+			$options['constraints'] = [new NotBlank()];
+		}
 		
 		$multiple = false;
 		

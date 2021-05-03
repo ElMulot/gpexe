@@ -15,9 +15,10 @@ use App\Repository\SerieRepository;
 use App\Repository\StatusRepository;
 use App\Repository\UserRepository;
 use App\Repository\VersionRepository;
-use App\Repository\VueRepository;
+use App\Repository\ViewRepository;
 use App\Service\DocumentService;
 use App\Service\FieldService;
+use App\Service\ProgramService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -27,6 +28,7 @@ use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Symfony\Component\Serializer\Normalizer\GetSetMethodNormalizer;
+use App\Repository\ProgramRepository;
 
 class DocumentController extends AbstractController
 {
@@ -37,38 +39,44 @@ class DocumentController extends AbstractController
 	
 	private $fieldService;
 	
-	private $companyRepository;
-	
-	private $userRepository;
+	private $programService;
 	
 	private $codificationRepository;
 	
-	private $metadataRepository;
-	
-	private $statusRepository;
-	
-	private $serieRepository;
+	private $companyRepository;
 	
 	private $documentRepository;
 	
+	private $metadataRepository;
+	
+	private $programRepository;
+	
+	private $serieRepository;
+	
+	private $statusRepository;
+	
 	private $versionRepository;
 	
-	private $vueRepository;
+	private $userRepository;
 	
-	public function __construct(TranslatorInterface $translator, DocumentService $documentService, FieldService $fieldService, CompanyRepository $companyRepository, UserRepository $userRepository, CodificationRepository $codificationRepository, MetadataRepository $metadataRepository, StatusRepository $statusRepository, SerieRepository $serieRepository, DocumentRepository $documentRepository, VersionRepository $versionRepository, VueRepository $vueRepository)
+	private $viewRepository;
+	
+	public function __construct(TranslatorInterface $translator, DocumentService $documentService, FieldService $fieldService, ProgramService $programService, CodificationRepository $codificationRepository, CompanyRepository $companyRepository, DocumentRepository $documentRepository, MetadataRepository $metadataRepository, ProgramRepository $programRepository, SerieRepository $serieRepository, StatusRepository $statusRepository, VersionRepository $versionRepository, UserRepository $userRepository, ViewRepository $viewRepository)
 	{
 		$this->translator = $translator;
 		$this->documentService = $documentService;
 		$this->fieldService = $fieldService;
-		$this->companyRepository = $companyRepository;
-		$this->userRepository = $userRepository;
+		$this->programService = $programService;
 		$this->codificationRepository = $codificationRepository;
-		$this->metadataRepository = $metadataRepository;
-		$this->statusRepository = $statusRepository;
-		$this->serieRepository = $serieRepository;
+		$this->companyRepository = $companyRepository;
 		$this->documentRepository = $documentRepository;
+		$this->metadataRepository = $metadataRepository;
+		$this->programRepository = $programRepository;
+		$this->serieRepository = $serieRepository;
+		$this->statusRepository = $statusRepository;
 		$this->versionRepository = $versionRepository;
-		$this->vueRepository = $vueRepository;
+		$this->userRepository = $userRepository;
+		$this->viewRepository = $viewRepository;
 	}
 	
 	public function index(Project $project, string $type, Serie $serie = null): Response
@@ -91,9 +99,9 @@ class DocumentController extends AbstractController
 		
 		return $this->render('document/index.html.twig', [
 			'project' => $project,
-			'currentSerie' => $serie,
+			'current_serie' => $serie,
 			'type' => $type,
-			'currentCompany' => $company,
+			'current_company' => $company,
 			'route_back' =>  $this->generateUrl('project_view', [
 				'project' => $project->getId(),
 			]),
@@ -111,9 +119,13 @@ class DocumentController extends AbstractController
 			$series = $this->serieRepository->getSeriesByCompanyAsArray($project, $company);
 			$fields = $this->fieldService->getFieldsForJs($project, $series);
 		}
+		
+		$progressPrograms = $this->programRepository->getEnabledProgressProgramsAsArray($project, $series);
+		
 		return new JsonResponse([
 			'series' => $series,
 			'fields' => $fields,
+			'progress_programs' => $progressPrograms,
 		]);
 	}
 	
@@ -126,12 +138,12 @@ class DocumentController extends AbstractController
 		$page = max((int)$request->query->get('page') ?? 1, 1);
 		$request->query->remove('page');
 		
-		if ($vueId = $request->query->get('vue')) {
-			if ($vue = $this->vueRepository->getVueById($vueId)) {
-				$request->query->replace($vue->getValue());
-				$request->query->set('vue', $vueId);
+		if ($viewId = $request->query->get('view')) {
+			if ($view = $this->viewRepository->getViewById($viewId)) {
+				$request->query->replace($view->getValue());
+				$request->query->set('view', $viewId);
 			} else {
-				$request->query->remove('vue');
+				$request->query->remove('view');
 			}
 		}
 		
@@ -153,10 +165,10 @@ class DocumentController extends AbstractController
 		$fields = $this->fieldService->getFields($project);
 		
 		if ($request->query->all() == false) {
-			if ($vue = $this->vueRepository->getDefaultVueByProjectAndByUser($project, $this->getUser())) {
-				$vueId = $vue->getId();
-				$request->query->replace($vue->getValue());
-				$request->query->set('vue', $vueId);
+			if ($view = $this->viewRepository->getDefaultViewByProjectAndByUser($project, $this->getUser())) {
+				$viewId = $view->getId();
+				$request->query->replace($view->getValue());
+				$request->query->set('view', $viewId);
 			} else {
 				$request->query->set('display', $this->getDefaultDisplay($fields));
 			}
@@ -180,7 +192,7 @@ class DocumentController extends AbstractController
 		
 		return new JsonResponse([
 				'datas' => $serializer->normalize($versions),
-				'pageMax' => $pageMax,
+				'page_max' => $pageMax,
 				'query' => $request->query->all(),
 				'serie' => $serieId,
 				'flash' =>$this->get('session')->getFlashBag()->all(),
@@ -188,11 +200,69 @@ class DocumentController extends AbstractController
 		);
 	}
 	
+	public function export(Request $request, Project $project, string $type, Serie $serie = null): Response
+	{
+		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
+			throw $this->createAccessDeniedException();
+		}
+		
+		if ($viewId = $request->query->get('view')) {
+			if ($view = $this->viewRepository->getViewById($viewId)) {
+				$request->query->replace($view->getValue());
+				$request->query->set('view', $viewId);
+			} else {
+				$request->query->remove('view');
+			}
+		}
+		
+		if ($serie === null) {
+			if ($this->getUser()->getCompany()->isMainContractor() === false) {
+				throw $this->createAccessDeniedException();
+			}
+			$series = $this->serieRepository->getSeriesByTypeAsArray($project, $type);
+		} else {
+			if ($this->getUser()->getCompany()->isMainContractor() === false && $this->getUser()->getCompany() !== $serie->getCompany()) {
+				throw $this->createAccessDeniedException();
+			}
+			$series = [$serie];
+		}
+		
+		$codifications = $this->codificationRepository->getCodifications($project);
+		$fields = $this->fieldService->getFields($project);
+		
+		if ($request->query->all() == false) {
+			if ($view = $this->viewRepository->getDefaultViewByProjectAndByUser($project, $this->getUser())) {
+				$viewId = $view->getId();
+				$request->query->replace($view->getValue());
+			} else {
+				$request->query->set('display', $this->getDefaultDisplay($fields));
+			}
+		}
+		
+		$request->query->set('results_per_page', 0);
+		
+		$versions = $this->versionRepository->getVersionsAsArray($codifications, $fields, $series, $project, $request);
+		
+		try {
+			$this->programService->exportFromView($fields, $versions, $request);
+		} catch (\Exception $e) {
+			$this->addFlash('danger', $e->getMessage());
+			$this->programService->unload();
+			return $this->render('ajax/error.html.twig');
+		}
+		$filePath = $this->programService->getCache()->getParameter('file_path');
+		$pathParts = pathinfo($filePath);
+		
+		$this->programService->unload();
+		return $this->render('document/export.html.twig', [
+			'file_path' => $this->getParameter('uploads_directory') . '/' . $pathParts['basename'],
+		]);
+	}
+	
 	public function detail(Version $version): Response
 	{
 		$document = $version->getDocument();
 		$serie = $document->getSerie();
-		$project = $serie->getProject();
 		
 		if ($this->isGranted('ROLE_ADMIN') === false && 
 			$this->getUser()->getCompany()->isMainContractor() === false &&
@@ -200,11 +270,11 @@ class DocumentController extends AbstractController
 			throw $this->createAccessDeniedException();
 		}
 		
-	    return $this->render('document/detail.html.twig', [
-	        'current_version' => $version,
-	    	'versions' => $this->versionRepository->getVersionsByDocument($document),
-	    	'document' => $document,
-	    ]);
+		return $this->render('document/detail.html.twig', [
+			'current_version' => $version,
+			'versions' => $this->versionRepository->getVersionsByDocument($document),
+			'document' => $document,
+		]);
 	}
 
 	public function new(Request $request, Serie $serie): Response
@@ -465,36 +535,36 @@ class DocumentController extends AbstractController
 	public function delete(Request $request): Response
 	{
 		
-        $documents = $this->documentRepository->getDocumentsByRequest($request);
-        
-        if ($documents == false) {
-        	$this->addFlash('danger', $this->translator->trans('None documents selected'));
-        	return $this->render('ajax/error.html.twig');
-        }
-        
-        $document = reset($documents);
-        $project = $document->getSerie()->getProject();
-        
-        if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
-        	throw $this->createAccessDeniedException();
-        }
-        
-	    if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
-	        $entityManager = $this->getDoctrine()->getManager();
-	        
-	        foreach ($documents as $document) {
-	           $entityManager->remove($document);
-	        }
-	        $entityManager->flush();
-	        
-	        $this->addFlash('success', $this->translator->trans('deleted.document', ['count' => count($documents)]));
-	        return new Response();
-	    } else {
-	        return $this->render('ajax/delete.html.twig', [
-	            'entities' => $documents,
-	        ]);
-	    }
-	    
+		$documents = $this->documentRepository->getDocumentsByRequest($request);
+		
+		if ($documents == false) {
+			$this->addFlash('danger', $this->translator->trans('None documents selected'));
+			return $this->render('ajax/error.html.twig');
+		}
+		
+		$document = reset($documents);
+		$project = $document->getSerie()->getProject();
+		
+		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
+			throw $this->createAccessDeniedException();
+		}
+		
+		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
+			$entityManager = $this->getDoctrine()->getManager();
+			
+			foreach ($documents as $document) {
+			   $entityManager->remove($document);
+			}
+			$entityManager->flush();
+			
+			$this->addFlash('success', $this->translator->trans('deleted.document', ['count' => count($documents)]));
+			return new Response();
+		} else {
+			return $this->render('ajax/delete.html.twig', [
+				'entities' => $documents,
+			]);
+		}
+		
 	}
 	
 	private function getDefaultDisplay(array $fields): array

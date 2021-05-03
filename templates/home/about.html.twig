@@ -3,19 +3,17 @@
 {% block nav %}
 	<div class="navbar-collapse">
 		<ul class="navbar-nav mr-auto ">
-    		<li class="nav-item" style="{{ block('nav_item') }}">
-    			<a class="nav-link" href="{{ path('home') }}">{% trans %}Back{% endtrans %}</a>
-    		</li>
+			<li class="nav-item" style="{{ block('nav_item') }}">
+				<a class="nav-link" href="{{ path('home') }}">{% trans %}Back{% endtrans %}</a>
+			</li>
 		</ul>
 	</div>
 	<div class="navbar-collapse ">
-        {% trans %}About{% endtrans %}
+		{% trans %}About{% endtrans %}
 	</div>
 	<div class="navbar-collapse">
 		<ul class="navbar-nav ml-auto">
-			<li class="nav-item" style="{{ block('nav_item') }}">
-				<a class="nav-link" href="{{ path('logout') }}">{% trans %}Logout{% endtrans %}</a>
-			</li>
+			{{ block('logout') }}
 		</ul>
 	</div>
 {% endblock %}
@@ -26,16 +24,16 @@
 			<div class="card mb-3">
 				<div class="card-header">
 					<a class="w-100 text-left text-white" data-toggle="collapse" data-target="#collapse_{{ key }}" aria-expanded="true">
-              			Version {{ item.version}} - {{ item.date }}
-            		</a>
-            	</div>
-        
-                <div id="collapse_{{ key }}" class="collapse show">
+			  			Version {{ item.version}} - {{ item.date }}
+					</a>
+				</div>
+		
+				<div id="collapse_{{ key }}" class="collapse show">
 					<div class="card-body">
 						{% for change in item.changes %}
 							<li>{{ change }}</li>
 						{% endfor %}
-                    </div>
+					</div>
 				</div>
 			</div>
 		{% endfor %}

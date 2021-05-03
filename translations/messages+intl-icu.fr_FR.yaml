@@ -36,7 +36,7 @@ confirm:
             other {des révisions}
         }
     visa: Confirmer la suppression du visa
-    vue: Confirmer la suppression de la vue
+    view: Confirmer la suppression de la vue
       
 deleted:
     document: >-

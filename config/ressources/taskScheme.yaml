@@ -20,14 +20,6 @@ update:
             -
                 regex: '\[\w+[.\w+]+\]\s*\=\s*.+'
 option:
-    move_from_mdr:
-        regex: 'true|false'
-        default: 'false'
-        type: 'checkbox'
-    move_from_sdr:
-        regex: 'true|false'
-        default: 'false'
-        type: 'checkbox'
     ready_to_persist:
         regex: 'true|false'
         default: 'false'

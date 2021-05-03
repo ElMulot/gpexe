@@ -24,5 +24,6 @@
 	"fromDate": "From date",
 	"toDate": "To date",
 	"highlight": "Highlight",
+	"empty": "Empty",
 	"date": "Date"
 }

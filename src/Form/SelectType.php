@@ -48,64 +48,64 @@ class SelectType extends AbstractType
 		$this->statusRepository = $statusRepository;
 	}
 	
-    public function buildForm(FormBuilderInterface $builder, array $options)
-    {
-    	foreach ($options['controls'] as $control) {
-    		
-    		if (is_array($control['choices']) && is_scalar(current($control['choices']))) {
-    			
-    			$builder->add($control['full_id'], ChoiceType::class, [
-    				'choices' => $control['choices'],
-    				'mapped' => false,
-    				'required' => false,
-    				'multiple' => $control['multiple'],
-    				'attr' => [
-    					'id' => $control['full_id'],
-    					'data-title' => $control['title'],
-    				],
-    			]);
-    			
-    		} elseif (is_object($control['choices'])) {
-    			
-    			$builder->add($control['full_id'], EntityType::class, [
-    				'class' => get_class($control['choices']->first()),
-    				'choices' => $control['choices'],
-    				'mapped' => false,
-    				'required' => false,
-    				'multiple' => $control['multiple'],
-    				'choice_label' => $control['choice_label'],
-    				'attr' => [
-    					'id' => $control['full_id'],
-    					'data-title' => $control['title'],
-    				],
-    			]);
-    			
-    		} else {
-    			
-    			$builder->add($control['full_id'], EntityType::class, [
-    				'class' => get_class(current($control['choices'])),
-    				'choices' => $control['choices'],
-    				'mapped' => false,
-    				'required' => false,
-    				'multiple' => $control['multiple'],
-    				'choice_label' => $control['choice_label'],
-    				'attr' => [
-    					'id' => $control['full_id'],
-    					'data-title' => $control['title'],
-    				],
-    			]);
-    			
-    		}
-    	}
-    }
-    
-    public function configureOptions(OptionsResolver $resolver)
-    {
-        $resolver->setDefaults([
-        	'csrf_protection' => false,
-        ]);
-        $resolver->setRequired(['controls']);
-    }
+	public function buildForm(FormBuilderInterface $builder, array $options)
+	{
+		foreach ($options['controls'] as $control) {
+			
+			if (is_array($control['choices']) && is_scalar(current($control['choices']))) {
+				
+				$builder->add($control['full_id'], ChoiceType::class, [
+					'choices' => $control['choices'],
+					'mapped' => false,
+					'required' => false,
+					'multiple' => $control['multiple'],
+					'attr' => [
+						'id' => $control['full_id'],
+						'data-title' => $control['title'],
+					],
+				]);
+				
+			} elseif (is_object($control['choices'])) {
+				
+				$builder->add($control['full_id'], EntityType::class, [
+					'class' => get_class($control['choices']->first()),
+					'choices' => $control['choices'],
+					'mapped' => false,
+					'required' => false,
+					'multiple' => $control['multiple'],
+					'choice_label' => $control['choice_label'],
+					'attr' => [
+						'id' => $control['full_id'],
+						'data-title' => $control['title'],
+					],
+				]);
+				
+			} else {
+				
+				$builder->add($control['full_id'], EntityType::class, [
+					'class' => get_class(current($control['choices'])),
+					'choices' => $control['choices'],
+					'mapped' => false,
+					'required' => false,
+					'multiple' => $control['multiple'],
+					'choice_label' => $control['choice_label'],
+					'attr' => [
+						'id' => $control['full_id'],
+						'data-title' => $control['title'],
+					],
+				]);
+				
+			}
+		}
+	}
+	
+	public function configureOptions(OptionsResolver $resolver)
+	{
+		$resolver->setDefaults([
+			'csrf_protection' => false,
+		]);
+		$resolver->setRequired(['controls']);
+	}
 }
 
 ?>

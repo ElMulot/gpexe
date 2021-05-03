@@ -2,7 +2,7 @@
 
 namespace App\Service\Excel;
 
-use Box\Spout\Common\Entity\Style\Border;
+use Box\Spout\Common\Entity\Style\Color;
 use Box\Spout\Common\Entity\Cell as SpoutCell;
 use Box\Spout\Writer\Common\Creator\WriterEntityFactory;
 use Box\Spout\Writer\Common\Creator\Style\BorderBuilder;
@@ -99,14 +99,15 @@ class Row
 	
 	public function setBorder($color): self
 	{
+		
 		switch ($this->sheet->getWorkbook()->getLibrary()) {
 			case Workbook::SPOUT:
 			
 				$border = (new BorderBuilder())
-					->setBorderBottom($color)
-					->setBorderTop($color)
-					->setBorderRight($color)
-					->setBorderLeft($color)
+					->setBorderBottom($color, \Box\Spout\Common\Entity\Style\Border::WIDTH_THIN)
+					->setBorderTop($color, \Box\Spout\Common\Entity\Style\Border::WIDTH_THIN)
+					->setBorderRight($color, \Box\Spout\Common\Entity\Style\Border::WIDTH_THIN)
+					->setBorderLeft($color, \Box\Spout\Common\Entity\Style\Border::WIDTH_THIN)
 					->build()
 				;
 				$style = (new StyleBuilder())
@@ -123,7 +124,7 @@ class Row
 					->getStyle('A' . $this->getAddress() . ':Z' . $this->getAddress())
 					->getBorders()
 					->getAllBorders()
-					->setBorderStyle(Border::BORDER_THIN)
+					->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN)
 					->getColor()
 					->setARGB($color)
 				;
@@ -136,6 +137,50 @@ class Row
 		
 		return $this;
 		
+	}
+	
+	public function setFormatHeader(): self
+	{
+		
+		switch ($this->sheet->getWorkbook()->getLibrary()) {
+			case Workbook::SPOUT:
+				
+				$border = (new BorderBuilder())
+					->setBorderBottom(Color::BLACK, \Box\Spout\Common\Entity\Style\Border::WIDTH_THIN)
+					->build()
+				;
+				$style = (new StyleBuilder())
+					->setFontBold()
+					->setBorder($border)
+					->build()
+				;
+				$this->_row->setStyle($style);
+				break;
+				
+			case Workbook::PHPSPREADSHEET:
+				
+				$this->_row
+					->getWorksheet()
+					->getStyle('A' . $this->getAddress() . ':' . $this->_row->getWorksheet()->getHighestColumn() . $this->getAddress())
+					->getBorders()
+					->getBottom()
+					->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN)
+					->getColor()
+					->setARGB(Color::BLACK)
+				;
+				$this->_row
+					->getWorksheet()
+					->getStyle('A' . $this->getAddress() . ':' . $this->_row->getWorksheet()->getHighestColumn() . $this->getAddress())
+					->getFont()->setBold(true)
+				;
+				break;
+				
+			default:
+				throw new Exception('Library not defined.');
+				
+		}
+		
+		return $this;
 	}
 	
 	public function addComment(string $value): self

@@ -1,12 +1,12 @@
 {% if review %}
 	<div class="row review-container">
-	    <p class="col">
-    	    {% trans %}Visa{% endtrans %} : 
-    	    <span class="font-weight-bold {% if review.visa.revisionRequired %}text-info{% else %}text-success{% endif %}">
-    	        {{ review.visa.name }}
-    	    </span>
-    		<br>
-		    {% trans %}On{% endtrans %} {{ review.date|date('d-m-Y') }} {% trans %}by{% endtrans %} {{ review.user.name }}
+		<p class="col">
+			{% trans %}Visa{% endtrans %} : 
+			<span class="font-weight-bold {% if review.visa.revisionRequired %}text-info{% else %}text-success{% endif %}">
+				{{ review.visa.name }}
+			</span>
+			<br>
+			{% trans %}On{% endtrans %} {{ review.date|date('d-m-Y') }} {% trans %}by{% endtrans %} {{ review.user.name }}
 		</p>
 	</div>
 	{% if company == app.user.company or is_granted('ROLE_ADMIN') %}
@@ -16,9 +16,9 @@
 		</div>
 	{% endif %}
 {% else %}
-    <div class="row review-container font-weight-bold">
-        <p class="col">
-            {% trans %}No visa yet{% endtrans %}
+	<div class="row review-container font-weight-bold">
+		<p class="col">
+			{% trans %}No visa yet{% endtrans %}
 		</p>
 	</div>
 	{% if company == app.user.company or is_granted('ROLE_ADMIN') %}

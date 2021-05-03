@@ -35,12 +35,12 @@ class Automation
 	/**
 	 * @ORM\Column(type="string", length=255)
 	 */
-	private $route;
+	private $command;
 
 	/**
 	 * @ORM\Column(type="json", nullable=true)
 	 */
-	private $parameters = [];
+	private $arguments = [];
 	
 	/**
 	 * @ORM\ManyToOne(targetEntity=Project::class, cascade={"persist"})
@@ -97,27 +97,27 @@ class Automation
 		return $this;
 	}
 	
-	public function getRoute(): ?string
+	public function getCommand(): ?string
 	{
-		return $this->route;
+		return $this->command;
 	}
 
-	public function setRoute(string $route): self
+	public function setCommand(string $command): self
 	{
-		$this->route = $route;
-                  
+		$this->command = $command;
+				  
 		return $this;
 	}
 
-	public function getParameters(): ?array
+	public function getArguments(): ?array
 	{
-		return $this->parameters;
+		return $this->arguments;
 	}
 
-	public function setParameters(array $parameters): self
+	public function setArguments(array $arguments): self
 	{
-		$this->parameters = $parameters;
-                  
+		$this->arguments = $arguments;
+				  
 		return $this;
 	}
 	

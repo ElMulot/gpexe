@@ -1,33 +1,15 @@
-Program :
-    Vérifier les imports															OK
-    Vérifier les exports															OK
-    Vérifier l'import zone 21														OK
-    Ajouter la date et l'auteur des visas											OK
-    Vider le cache																	OK
-
+IETP:
+	MAJ Exceptions							OK
+	Modifier modèle Export					OK
+	
+Vue courante:
+	Afficher mini-graphique avancement		OK
+	Bouton eport sous Excel					OK
+	Checkbox vide							OK
+	Ajouter "Voir tous les docs"			OK
+	Corriger bug js sélection métier		OK
+	Corriger bug ajout nouveau doc			OK
+	Corriger les fenêtes qui disparaissent en cas de mouseout extérieur OK
+	
 Automation:
-	Créer fonction pour vider le cache												
-
-Vue principale :
-	Refonte search																	OK
-	Revoir le tri "dernière version".												OK
-	Bug visa javascript																n/a
-	Bug version delete																n/a
-	Corriger valeur par défaut et valeurs recopiées									OK
-	Modifier "dernier à produire" par "premier à produire"							OK
-	Déplacer la méthode 'getPropertyValueToString' dans un service et modifier
-	le php et le js en conséquence
-	Rendre la modification des dates dans quick_edit possible
-	Modification de la largueur des colonnes										
-	Déplacement des colonnes														
-	
-Progress:
-	A faire																			OK
-	
-
-Home:
-	Revoir les listes pour les docs à produire et à vérifier						OK
-	Créer une fonction perso pour dql DATE_DIFF prenant en compte les jours ouvrés	OK
-
-Misc:
-	Vérifier le réglage dans General>Workspace>Text file encoding (doit être UTF-8) et delimiter (windows)
+	Remplacer par des commandes				OK

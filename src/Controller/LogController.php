@@ -10,7 +10,7 @@ use App\Repository\LogRepository;
 
 class LogController extends AbstractController
 {
-    
+	
 	private $translator;
 	
 	private $logRepository;
@@ -22,20 +22,20 @@ class LogController extends AbstractController
 	}
 	
 	public function index(): Response
-    {
-        
-    	$log = $this->logRepository->getLog();
-    	
-    	return $this->render('log/index.html.twig', [
-    		'log' => $log,
-        ]);
-    }
-    
-    public function clear(): Response
-    {
-    	$this->logRepository->clearLog();
-    	$this->addFlash('success', 'Log cleared');
-    	
-    	return $this->redirectToRoute('log');
-    }
+	{
+		
+		$log = $this->logRepository->getLog();
+		
+		return $this->render('log/index.html.twig', [
+			'log' => $log,
+		]);
+	}
+	
+	public function clear(): Response
+	{
+		$this->logRepository->clearLog();
+		$this->addFlash('success', 'Log cleared');
+		
+		return $this->redirectToRoute('log');
+	}
 }

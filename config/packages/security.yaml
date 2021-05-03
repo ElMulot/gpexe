@@ -52,8 +52,8 @@ security:
         - { path: '^/project/\d+/(sdr|mdr)$',                                      roles: ROLE_USER } #serie_route_by_type
         - { path: '^/project/\d+/serie/(sdr|mdr)/?\d*',                            roles: ROLE_USER } #document, document_table
         
-        - { path: '^/project/\d+/vue',                                             roles: ROLE_USER } #vue, vue_new
-        - { path: '^/project/vue/\d+/',                                            roles: ROLE_USER } #vue_edit, vue_delete
+        - { path: '^/project/\d+/view',                                            roles: ROLE_USER } #view, view_new
+        - { path: '^/project/view/\d+/',                                           roles: ROLE_USER } #view_edit, view_delete
         
         - { path: '^/project/serie/document/\d+/detail$',                          roles: ROLE_USER } #document_detail
         - { path: '^/project/serie/document/version/\d+/detail$',                  roles: ROLE_USER } #version_detail
@@ -61,7 +61,7 @@ security:
         - { path: '^/project/serie/document/version/\d+/\d+/review',               roles: ROLE_USER } #review, review_new
         - { path: '^/project/serie/document/version/review/\d+/',                  roles: ROLE_USER } #review_edit, review_delete
         
-        - { path: '^/project/program/\d+/(dashboard|preload|load)$',               roles: ROLE_USER } #program_dashboard, program_preload, program_load
+        - { path: '^/project/program/\d+/(dashboard|preload|load)',                roles: ROLE_USER } #program_dashboard, program_preload, program_load
 
         - { path: '^/project/serie/\d+/document/new$',                             roles: ROLE_EDIT_DOCUMENTS } #document_new
         - { path: '^/project/serie/document/(edit|move|delete)',                   roles: ROLE_EDIT_DOCUMENTS } #document_edit, document_move, document_delete

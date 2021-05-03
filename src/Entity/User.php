@@ -17,279 +17,279 @@ use App\Entity\Profil;
  */
 class User implements UserInterface
 {
-    /**
-     * @ORM\Id()
-     * @ORM\GeneratedValue()
-     * @ORM\Column(type="integer")
-     */
-    private $id;
+	/**
+	 * @ORM\Id()
+	 * @ORM\GeneratedValue()
+	 * @ORM\Column(type="integer")
+	 */
+	private $id;
 
-    /**
-     * @ORM\Column(type="string", length=180, unique=true)
-     */
-    private $email;
+	/**
+	 * @ORM\Column(type="string", length=180, unique=true)
+	 */
+	private $email;
 
-    /**
-     * @var string The hashed password
-     * @ORM\Column(type="string")
-     */
-    private $password;
+	/**
+	 * @var string The hashed password
+	 * @ORM\Column(type="string")
+	 */
+	private $password;
 
-    /**
-     * @ORM\Column(type="string", length=100)
-     */
-    private $name;
+	/**
+	 * @ORM\Column(type="string", length=100)
+	 */
+	private $name;
 
-    /**
-     * @ORM\Column(type="string", length=5)
-     */
-    private $locale;
+	/**
+	 * @ORM\Column(type="string", length=5)
+	 */
+	private $locale;
 
-    /**
-     * @ORM\Column(type="boolean")
-     */
-    private $activated;
+	/**
+	 * @ORM\Column(type="boolean")
+	 */
+	private $activated;
 
-    /**
-     * @ORM\Column(type="datetime")
-     */
-    private $lastConnected;
+	/**
+	 * @ORM\Column(type="datetime")
+	 */
+	private $lastConnected;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Profil::class)
-     * @ORM\JoinColumn(nullable=false)
-     */
-    private $profil;
+	/**
+	 * @ORM\ManyToOne(targetEntity=Profil::class)
+	 * @ORM\JoinColumn(nullable=false)
+	 */
+	private $profil;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Company::class, inversedBy="users")
-     * @ORM\JoinColumn(nullable=false)
-     */
-    private $company;
-    
-    private $roles = [];
-
-    /**
-     * @ORM\ManyToMany(targetEntity=Project::class, mappedBy="users")
-     */
-    private $projects;
-
-    /**
-     * @ORM\OneToMany(targetEntity=Vue::class, mappedBy="user", orphanRemoval=true)
-     */
-    private $vues;
-    
+	/**
+	 * @ORM\ManyToOne(targetEntity=Company::class, inversedBy="users")
+	 * @ORM\JoinColumn(nullable=false)
+	 */
+	private $company;
 	
-    public function __construct()
-    {
-    	$this->locale = 'fr_FR';
-        $this->lastConnected = new \DateTime();
-    	$this->projects = new ArrayCollection();
-     	$this->versions = new ArrayCollection();
-      $this->vues = new ArrayCollection();
-    }
+	private $roles = [];
 
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
+	/**
+	 * @ORM\ManyToMany(targetEntity=Project::class, mappedBy="users")
+	 */
+	private $projects;
 
-    public function getEmail(): ?string
-    {
-        return $this->email;
-    }
+	/**
+	 * @ORM\OneToMany(targetEntity=View::class, mappedBy="user", orphanRemoval=true)
+	 */
+	private $views;
+	
+	
+	public function __construct()
+	{
+		$this->locale = 'fr_FR';
+		$this->lastConnected = new \DateTime();
+		$this->projects = new ArrayCollection();
+	 	$this->versions = new ArrayCollection();
+	  $this->views = new ArrayCollection();
+	}
 
-    public function setEmail(string $email): self
-    {
-        $this->email = $email;
+	public function getId(): ?int
+	{
+		return $this->id;
+	}
 
-        return $this;
-    }
+	public function getEmail(): ?string
+	{
+		return $this->email;
+	}
 
-    /**
-     * @see UserInterface
-     */
-    public function getUsername(): string
-    {
-        return (string) $this->email;
-    }
-    
+	public function setEmail(string $email): self
+	{
+		$this->email = $email;
 
-    /**
-     * @see UserInterface
-     */
-    public function getPassword(): string
-    {
-        return (string) $this->password;
-    }
+		return $this;
+	}
 
-    public function setPassword(string $password): self
-    {
-        $this->password = $password;
+	/**
+	 * @see UserInterface
+	 */
+	public function getUsername(): string
+	{
+		return (string) $this->email;
+	}
+	
 
-        return $this;
-    }
-    
-    public function getName(): ?string
-    {
-        return $this->name;
-    }
+	/**
+	 * @see UserInterface
+	 */
+	public function getPassword(): string
+	{
+		return (string) $this->password;
+	}
 
-    public function setName(string $name): self
-    {
-        $this->name = $name;
+	public function setPassword(string $password): self
+	{
+		$this->password = $password;
 
-        return $this;
-    }
+		return $this;
+	}
+	
+	public function getName(): ?string
+	{
+		return $this->name;
+	}
 
-    public function getLocale(): ?string
-    {
-        return $this->locale;
-    }
+	public function setName(string $name): self
+	{
+		$this->name = $name;
 
-    public function setLocale(string $locale): self
-    {
-        $this->locale = $locale;
-        return $this;
-    }
+		return $this;
+	}
 
-    public function getActivated(): ?bool
-    {
-        return $this->activated;
-    }
+	public function getLocale(): ?string
+	{
+		return $this->locale;
+	}
 
-    public function setActivated(bool $activated): self
-    {
-        $this->activated = $activated;
+	public function setLocale(string $locale): self
+	{
+		$this->locale = $locale;
+		return $this;
+	}
 
-        return $this;
-    }
+	public function getActivated(): ?bool
+	{
+		return $this->activated;
+	}
 
-    public function getLastConnected(): ?\DateTimeInterface
-    {
-        return $this->lastConnected;
-    }
+	public function setActivated(bool $activated): self
+	{
+		$this->activated = $activated;
 
-    public function setLastConnected(\DateTimeInterface $lastConnected): self
-    {
-        $this->lastConnected = $lastConnected;
+		return $this;
+	}
 
-        return $this;
-    }
+	public function getLastConnected(): ?\DateTimeInterface
+	{
+		return $this->lastConnected;
+	}
 
-    public function getProfil(): ?Profil
-    {
-        return $this->profil;
-    }
+	public function setLastConnected(\DateTimeInterface $lastConnected): self
+	{
+		$this->lastConnected = $lastConnected;
 
-    public function setProfil(?Profil $profil): self
-    {
-        $this->profil = $profil;
+		return $this;
+	}
 
-        return $this;
-    }
+	public function getProfil(): ?Profil
+	{
+		return $this->profil;
+	}
 
-    public function getCompany(): ?Company
-    {
-        return $this->company;
-    }
+	public function setProfil(?Profil $profil): self
+	{
+		$this->profil = $profil;
 
-    public function setCompany(?Company $company): self
-    {
-        $this->company = $company;
+		return $this;
+	}
 
-        return $this;
-    }
+	public function getCompany(): ?Company
+	{
+		return $this->company;
+	}
 
-    /**
-     * @return Collection|Project[]
-     */
-    public function getProjects(): Collection
-    {
-        return $this->projects;
-    }
+	public function setCompany(?Company $company): self
+	{
+		$this->company = $company;
 
-    public function addProject(Project $project): self
-    {
-        if (!$this->projects->contains($project)) {
-            $this->projects[] = $project;
-            $project->addUser($this);
-        }
+		return $this;
+	}
 
-        return $this;
-    }
+	/**
+	 * @return Collection|Project[]
+	 */
+	public function getProjects(): Collection
+	{
+		return $this->projects;
+	}
 
-    public function removeProject(Project $project): self
-    {
-        if ($this->projects->contains($project)) {
-            $this->projects->removeElement($project);
-            $project->removeUser($this);
-        }
+	public function addProject(Project $project): self
+	{
+		if (!$this->projects->contains($project)) {
+			$this->projects[] = $project;
+			$project->addUser($this);
+		}
 
-        return $this;
-    }
+		return $this;
+	}
 
-    /**
-     * @return Collection|Vue[]
-     */
-    public function getVues(): Collection
-    {
-        return $this->vues;
-    }
+	public function removeProject(Project $project): self
+	{
+		if ($this->projects->contains($project)) {
+			$this->projects->removeElement($project);
+			$project->removeUser($this);
+		}
 
-    public function addVue(Vue $vue): self
-    {
-        if (!$this->vues->contains($vue)) {
-            $this->vues[] = $vue;
-            $vue->setUser($this);
-        }
+		return $this;
+	}
 
-        return $this;
-    }
+	/**
+	 * @return Collection|View[]
+	 */
+	public function getViews(): Collection
+	{
+		return $this->views;
+	}
 
-    public function removeVue(Vue $vue): self
-    {
-        if ($this->vues->contains($vue)) {
-            $this->vues->removeElement($vue);
-            // set the owning side to null (unless already changed)
-            if ($vue->getUser() === $this) {
-                $vue->setUser(null);
-            }
-        }
+	public function addView(View $view): self
+	{
+		if (!$this->views->contains($view)) {
+			$this->views[] = $view;
+			$view->setUser($this);
+		}
 
-        return $this;
-    }
-    
-    
-    /**
-     * @see UserInterface
-     */
-    public function getSalt()
-    {
-    	// not needed when using the "bcrypt" algorithm in security.yaml
-    }
-    
-    public function eraseCredentials()
-    {
-    	// If you store any temporary, sensitive data on the user, clear it here
-    	// $this->plainPassword = null;
-    }
-    
-    public function getRoles(): array
-    {
-    	if (empty($this->roles)) {
-    		if ($this->getProfil()->getEditDocuments())         $this->roles[] = 'ROLE_EDIT_DOCUMENTS';
-    		if ($this->getProfil()->getIsController())         	$this->roles[] = 'ROLE_CONTROLLER';
-    		if ($this->getProfil()->getIsAdmin())               $this->roles[] = 'ROLE_ADMIN';
-    		if ($this->getProfil()->getIsSuperAdmin())          $this->roles[] = 'ROLE_SUPER_ADMIN';
-    	}
-    	$this->roles[] = 'ROLE_USER';
-    	return array_unique($this->roles);
-    }
-    
-    public function __toString(): string
-    {
-    	return (string)$this->getName();
-    }
+		return $this;
+	}
+
+	public function removeView(View $view): self
+	{
+		if ($this->views->contains($view)) {
+			$this->views->removeElement($view);
+			// set the owning side to null (unless already changed)
+			if ($view->getUser() === $this) {
+				$view->setUser(null);
+			}
+		}
+
+		return $this;
+	}
+	
+	
+	/**
+	 * @see UserInterface
+	 */
+	public function getSalt()
+	{
+		// not needed when using the "bcrypt" algorithm in security.yaml
+	}
+	
+	public function eraseCredentials()
+	{
+		// If you store any temporary, sensitive data on the user, clear it here
+		// $this->plainPassword = null;
+	}
+	
+	public function getRoles(): array
+	{
+		if (empty($this->roles)) {
+			if ($this->getProfil()->getEditDocuments())		 $this->roles[] = 'ROLE_EDIT_DOCUMENTS';
+			if ($this->getProfil()->getIsController())		 	$this->roles[] = 'ROLE_CONTROLLER';
+			if ($this->getProfil()->getIsAdmin())			   $this->roles[] = 'ROLE_ADMIN';
+			if ($this->getProfil()->getIsSuperAdmin())		  $this->roles[] = 'ROLE_SUPER_ADMIN';
+		}
+		$this->roles[] = 'ROLE_USER';
+		return array_unique($this->roles);
+	}
+	
+	public function __toString(): string
+	{
+		return (string)$this->getName();
+	}
 }
 ?>

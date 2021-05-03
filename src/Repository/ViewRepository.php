@@ -5,28 +5,28 @@ namespace App\Repository;
 use Doctrine\Persistence\ManagerRegistry;
 use App\Entity\Project;
 use App\Entity\User;
-use App\Entity\Vue;
+use App\Entity\View;
 use App\Service\RepositoryService;
 
 /**
- * @method Vue|null find($id, $lockMode = null, $lockVersion = null)
- * @method Vue|null findOneBy(array $criteria, array $orderBy = null)
- * @method Vue[]	findAll()
- * @method Vue[]	findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method View|null find($id, $lockMode = null, $lockVersion = null)
+ * @method View|null findOneBy(array $criteria, array $orderBy = null)
+ * @method View[]	findAll()
+ * @method View[]	findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class VueRepository extends RepositoryService
+class ViewRepository extends RepositoryService
 {
 	
 	public function __construct(ManagerRegistry $registry)
 	{
-		parent::__construct($registry, Vue::class);
+		parent::__construct($registry, View::class);
 	}
 
 	/**
-	 * @return Vue[]
+	 * @return View[]
 	 *
 	 */
-	public function getVuesByProjectAndByUserAsArray(Project $project, User $user)
+	public function getViewsByProjectAndByUserAsArray(Project $project, User $user)
 	{
 		$qb = $this->newQB('v');
 		
@@ -50,24 +50,24 @@ class VueRepository extends RepositoryService
 	}
 	
 	/**
-	 * @return Vue
+	 * @return View
 	 *
 	 */
-	public function getVueById(int $vueId)
+	public function getViewById(int $viewId)
 	{
 		$qb = $this->newQB('v');
 		
-		return $qb->andWhere($qb->eq('v.id', $vueId))
+		return $qb->andWhere($qb->eq('v.id', $viewId))
 			->getQuery()
 			->getOneOrNullResult()
 		;
 	}
 	
 	/**
-	 * @return Vue
+	 * @return View
 	 *
 	 */
-	public function getDefaultVueByProjectAndByUser(Project $project, User $user)
+	public function getDefaultViewByProjectAndByUser(Project $project, User $user)
 	{
 		
 		$qb = $this->newQB('v');

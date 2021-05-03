@@ -12,33 +12,33 @@ use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 
 class CodificationType extends AbstractType
 {
-    public function buildForm(FormBuilderInterface $builder, array $options)
-    {
-        $builder
-            ->add('name')
-            ->add('type', ChoiceType::class, [
-            	'choices' => [
-            		'Fix' => Codification::FIXED,
-            		'List' => Codification::LIST,
-            		'Text' => Codification::REGEX,
-            	],
-            	'expanded' => true,
-            	'disabled' => ($builder->getData()->getId() != null),
-            ])
-            ->add('codename', TextType::class)
-            ->add('value', TextType::class, [
-            	'required' => false
-            ])
-            ->add('isMandatory', CheckboxType::class, [
-            	'required' => false
-            ])
-        ;
-    }
+	public function buildForm(FormBuilderInterface $builder, array $options)
+	{
+		$builder
+			->add('name')
+			->add('type', ChoiceType::class, [
+				'choices' => [
+					'Fix' => Codification::FIXED,
+					'List' => Codification::LIST,
+					'Text' => Codification::REGEX,
+				],
+				'expanded' => true,
+				'disabled' => ($builder->getData()->getId() != null),
+			])
+			->add('codename', TextType::class)
+			->add('value', TextType::class, [
+				'required' => false
+			])
+			->add('isMandatory', CheckboxType::class, [
+				'required' => false
+			])
+		;
+	}
 
-    public function configureOptions(OptionsResolver $resolver)
-    {
-        $resolver->setDefaults([
-            'data_class' => Codification::class,
-        ]);
-    }
+	public function configureOptions(OptionsResolver $resolver)
+	{
+		$resolver->setDefaults([
+			'data_class' => Codification::class,
+		]);
+	}
 }

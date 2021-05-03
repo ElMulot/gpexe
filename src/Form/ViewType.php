@@ -2,22 +2,22 @@
 
 namespace App\Form;
 
-use App\Entity\Vue;
+use App\Entity\View;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
-use App\Form\DataTransformer\VueTransformer;
+use App\Form\DataTransformer\ViewTransformer;
 
-class VueType extends AbstractType
+class ViewType extends AbstractType
 {
  	
 	private $security;
 	
 	private $transformer;
 	
-	public function __construct(Security $security, VueTransformer $transformer)
+	public function __construct(Security $security, ViewTransformer $transformer)
 	{
 		$this->security = $security;
 		$this->transformer = $transformer;
@@ -42,7 +42,7 @@ class VueType extends AbstractType
 	public function configureOptions(OptionsResolver $resolver)
 	{
 		$resolver->setDefaults([
-			'data_class' => Vue::class,
+			'data_class' => View::class,
 		]);
 	}
 }

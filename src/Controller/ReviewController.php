@@ -130,10 +130,6 @@ class ReviewController extends AbstractController
 		$version = $review->getVersion();
 		
 		if ($this->getUser()->getCompany() == $company || $this->isGranted('ROLE_ADMIN')) {
-			$form = $this->createForm(ReviewType::class, $review, [
-				'project' => $version->getDocument()->getSerie()->getProject(),
-				'company' => $company,
-			]);
 		
 			if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
 				$entityManager = $this->getDoctrine()->getManager();

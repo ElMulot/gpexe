@@ -8,22 +8,22 @@ $(document).ready(function() {
 		theme: 'abcdef',
 		lineNumbers: true,
 		indentUnit: 4,
-	    styleActiveLine: true,
-	    styleActiveSelected: true,
-	    matchBrackets: true,
-	    indentWithTabs: true,
-	    mode: 'yaml',
+		styleActiveLine: true,
+		styleActiveSelected: true,
+		matchBrackets: true,
+		indentWithTabs: true,
+		mode: 'yaml',
 	});
 	cm.setSize('100%','30rem');
 	
 	$('button[type="button"]').on('click', function() {
 		let text = '[' + $(this).text() + ']';
 		const doc = cm.getDoc();
-	    const fromCursor = cm.getCursor('from');
-	    const toCursor = cm.getCursor('to');
-	    doc.replaceRange(text, fromCursor, toCursor);
-	    cm.focus();
-	    fromCursor.ch += text.length;
-	    cm.setCursor(fromCursor);
+		const fromCursor = cm.getCursor('from');
+		const toCursor = cm.getCursor('to');
+		doc.replaceRange(text, fromCursor, toCursor);
+		cm.focus();
+		fromCursor.ch += text.length;
+		cm.setCursor(fromCursor);
 	});
 });

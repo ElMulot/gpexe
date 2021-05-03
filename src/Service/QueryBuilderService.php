@@ -24,7 +24,7 @@ class QueryBuilderService extends QueryBuilder
 		
 		array_walk($selects, function($item) {
 			if (is_string($item)) {
-				if (($result = Regex::match('/\s+AS\s+([^\s]+)$/i', $item))->hasMatch()) {
+				if (($result = Regex::match('/\s+AS\s+(?:HIDDEN\s+)*([^\s]+)$/i', $item))->hasMatch()) {
 					$this->addAlias($result->group(1));
 				}
 			}
@@ -178,7 +178,7 @@ class QueryBuilderService extends QueryBuilder
 		}
 		
 		if ($value instanceof \DateTimeInterface) {
-			return $value;
+			return $value->format('Y-m-d');
 		}
 		
 		if ($value instanceof \DateInterval) {

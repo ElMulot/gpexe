@@ -93,11 +93,28 @@ class Cell
 		}
 		
 		return $this;
+		
 	}
 	
 	public function isEmpty(): bool
 	{
 		return ($this->_cell->getValue() == false);
+	}
+	
+	public function setWidth(int $value): self
+	{
+		
+		switch ($this->row->getSheet()->getWorkbook()->getLibrary()) {
+			case Workbook::SPOUT:
+				break;
+				
+			case Workbook::PHPSPREADSHEET:
+				$this->_cell->getParent()->getParent()->getColumnDimension($this->colAddress)->setWidth($value);
+				break;
+		}
+		
+		return $this;
+		
 	}
 	
 	public function getRow(): Row
@@ -196,7 +213,7 @@ class Cell
 					->getStyle($this->getAddress())
 					->getBorders()
 					->getAllBorders()
-					->setBorderStyle(Border::BORDER_THIN)
+					->setBorderStyle(Border::WIDTH_THIN)
 					->getColor()
 					->setARGB($color)
 				;

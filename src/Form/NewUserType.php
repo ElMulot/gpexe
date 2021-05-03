@@ -14,30 +14,30 @@ use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 
 class NewUserType extends AbstractType
 {
-    
-    public function buildForm(FormBuilderInterface $builder, array $options)
-    {
-        $builder
-            ->add('email', EmailType::class)
-            ->add('password', PasswordType::class)
-            ->add('name')
-            ->add('locale', ChoiceType::class, [
-                'choices' => [
-                	'Français' => 'fr_FR',
-                    'English' => 'en_GB',
-                ],
-            ])
-            ->add('activated')
-            ->add('profil')
-            ->add('company')
-        ;
-    }
+	
+	public function buildForm(FormBuilderInterface $builder, array $options)
+	{
+		$builder
+			->add('email', EmailType::class)
+			->add('password', PasswordType::class)
+			->add('name')
+			->add('locale', ChoiceType::class, [
+				'choices' => [
+					'Français' => 'fr_FR',
+					'English' => 'en_GB',
+				],
+			])
+			->add('activated')
+			->add('profil')
+			->add('company')
+		;
+	}
 
-    public function configureOptions(OptionsResolver $resolver)
-    {
-        $resolver->setDefaults([
-            'data_class' => User::class,
-        ]);
-    }
+	public function configureOptions(OptionsResolver $resolver)
+	{
+		$resolver->setDefaults([
+			'data_class' => User::class,
+		]);
+	}
 }
 ?>

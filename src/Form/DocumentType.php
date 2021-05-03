@@ -10,6 +10,7 @@ use App\Entity\MetadataValue;
 use App\Entity\Serie;
 use App\Repository\CodificationRepository;
 use App\Repository\MetadataRepository;
+use App\Service\PropertyService;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -31,10 +32,13 @@ class DocumentType extends AbstractType
 	private $codificationRepository;
 
 	private $metadataRepository;
+	
+	private $propertyService;
 
-	public function __construct(CodificationRepository $codificationRepository, MetadataRepository $metadataRepository) {
+	public function __construct(CodificationRepository $codificationRepository, MetadataRepository $metadataRepository, PropertyService $propertyService) {
 		$this->codificationRepository = $codificationRepository;
 		$this->metadataRepository = $metadataRepository;
+		$this->propertyService = $propertyService;
 	}
 
 	public function buildForm(FormBuilderInterface $builder, array $options)
@@ -71,6 +75,7 @@ class DocumentType extends AbstractType
 		if (count($documents) == 1) {
 			$this->builder->add('name', TextType::class, [
 				'data' => reset($documents)->getName(),
+				'constraints' 	=> [new NotBlank()],
 			]);
 		}
 		
@@ -100,13 +105,14 @@ class DocumentType extends AbstractType
 	{
 		
 		if ($documents) {
+			$value = null;
 			foreach ($documents as $document) {
-				if (isset($value)) {
-					if ($value != $document->getPropertyValue($codename)) {
+				if ($value !== null) {
+					if ($value != $this->propertyService->toString($document->getPropertyValue($codename))) {
 						return true;
 					}
 				} else {
-					$value = $document->getPropertyValue($codename);
+					$value = $this->propertyService->toString($document->getPropertyValue($codename));
 				}
 			}
 		}
@@ -116,6 +122,10 @@ class DocumentType extends AbstractType
 	
 	private function buildField(string $label, string $id, string $codename, int $type, $documents=[], $options=[])
 	{
+		if ($options['required'] ?? true === true && $type !== Codification::REGEX) {
+			$options['constraints'] = [new NotBlank()];
+		}
+		
 		$field = null;
 		$multiple = false;
 		

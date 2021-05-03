@@ -1,141 +1,155 @@
 {% extends 'layout.html.twig' %}
 
 {% block stylesheets %}
-    {{ parent() }}
-    {{ encore_entry_link_tags('project') }}
+	{{ parent() }}
+	{{ encore_entry_link_tags('project') }}
 {% endblock %}
 
 {% block title %}
-    {{ app_name }}
+	{{ app_name }}
 {% endblock %}
 
 {% block nav %}
 	<div class="navbar-collapse">
 		<ul class="navbar-nav mr-auto ">
-    		{% if route_back is defined %}
-        		<li class="nav-item" style="{{ block('nav_item') }}">
-        			<a class="nav-link" href="{{ route_back }}">{% trans %}Back{% endtrans %}</a>
-        		</li>
-    		{% endif %}
-            {% if (is_granted('ROLE_CONTROLLER') and app.user in project.users) or is_granted('ROLE_ADMIN') %}
-    			<li class="nav-item dropdown" style="{{ block('nav_item') }}">
-    				<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown2" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{% trans %}Project admin{% endtrans %}</a>
-    				<div class="dropdown-menu" style="{{ block('nav_item') }}">
-    					<a class="dropdown-item" href="{{ path('project_edit', {'project': project.id}) }}">{% trans %}Edit project{% endtrans %}</a>
-    					<a class="dropdown-item" href="{{ path('codification', {'project': project.id}) }}">{% trans %}Codification{% endtrans %}</a>
-    					<a class="dropdown-item" href="{{ path('metadata', {'project': project.id}) }}">{% trans %}Metadatas{% endtrans %}</a>
-    					<a class="dropdown-item" href="{{ path('status', {'project': project.id}) }}">{% trans %}Statuses{% endtrans %}</a>
-    					<a class="dropdown-item" href="{{ path('visa', {'project': project.id}) }}">{% trans %}Visas{% endtrans %}</a>
-    					<a class="dropdown-item" href="{{ path('program', {'project': project.id}) }}">{% trans %}Program{% endtrans %}</a>
-    					<a class="dropdown-item" href="{{ path('automation', {'project': project.id}) }}">{% trans %}Automations{% endtrans %}</a>
-    				</div>
-    			</li>
-    		{% endif %}
+			{% if route_back is defined %}
+				<li class="nav-item" style="{{ block('nav_item') }}">
+					<a class="nav-link" href="{{ route_back }}">{% trans %}Back{% endtrans %}</a>
+				</li>
+			{% endif %}
+			{% if (is_granted('ROLE_CONTROLLER') and app.user in project.users) or is_granted('ROLE_ADMIN') %}
+				<li class="nav-item dropdown" style="{{ block('nav_item') }}">
+					<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown2" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{% trans %}Project admin{% endtrans %}</a>
+					<div class="dropdown-menu" style="{{ block('nav_item') }}">
+						<a class="dropdown-item" href="{{ path('project_edit', {'project': project.id}) }}">{% trans %}Edit project{% endtrans %}</a>
+						<a class="dropdown-item" href="{{ path('codification', {'project': project.id}) }}">{% trans %}Codification{% endtrans %}</a>
+						<a class="dropdown-item" href="{{ path('metadata', {'project': project.id}) }}">{% trans %}Metadatas{% endtrans %}</a>
+						<a class="dropdown-item" href="{{ path('status', {'project': project.id}) }}">{% trans %}Statuses{% endtrans %}</a>
+						<a class="dropdown-item" href="{{ path('visa', {'project': project.id}) }}">{% trans %}Visas{% endtrans %}</a>
+						<a class="dropdown-item" href="{{ path('program', {'project': project.id}) }}">{% trans %}Program{% endtrans %}</a>
+						<a class="dropdown-item" href="{{ path('automation', {'project': project.id}) }}">{% trans %}Automations{% endtrans %}</a>
+					</div>
+				</li>
+			{% endif %}
 		</ul>
 	</div>
 	<div class="navbar-collapse ">
-        {% trans %}Projects{% endtrans %}
+		{% trans %}Projects{% endtrans %}
 	</div>
 	<div class="navbar-collapse">
 		<ul class="navbar-nav ml-auto">
 			<li id="program_menu" class="nav-item dropdown" style="{{ block('nav_item') }}">
-			    {% if programs is not empty %}
-			    	
-			    	{% set export_programs = programs|filter(v => v.type == constant('App\\Entity\\Program::EXPORT')) %}
-			    	{% set import_programs = programs|filter(v => v.type == constant('App\\Entity\\Program::IMPORT')) %}
-			    	{% set task_programs = programs|filter(v => v.type == constant('App\\Entity\\Program::TASK')) %}
-			    	{% set progress_programs = programs|filter(v => v.type == constant('App\\Entity\\Program::PROGRESS')) %}
-			    	
-    				<a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{% trans %}Programs{% endtrans %}</a>
-    				<div class="dropdown-menu" style="{{ block('nav_item') }}">
-    					{% if export_programs is not empty  %}
-    						<a class="dropdown-item disabled pl-2 bg-dark font-weight-bold text-light" href="#">{% trans %}Export{% endtrans %}</a>
-    			            {% for program in export_programs %}
-        						<a class="dropdown-item" href="{{ path('program_dashboard', {'program': program.id}) }}">{{ program.name }}</a>
-        					{% endfor %}
-        				{% endif %}
-    					{% if import_programs is not empty  %}
-    						<a class="dropdown-item disabled pl-2 bg-dark font-weight-bold text-light" href="#">{% trans %}Import{% endtrans %}</a>
-    			            {% for program in import_programs %}
-        						<a class="dropdown-item" href="{{ path('program_dashboard', {'program': program.id}) }}">{{ program.name }}</a>
-        					{% endfor %}
-        				{% endif %}
-    					{% if task_programs is not empty  %}
-    						<a class="dropdown-item disabled pl-2 bg-dark font-weight-bold text-light" href="#">{% trans %}Task{% endtrans %}</a>
-    			            {% for program in task_programs %}
-        						<a class="dropdown-item" href="{{ path('program_dashboard', {'program': program.id}) }}">{{ program.name }}</a>
-        					{% endfor %}
-        				{% endif %}
-    					{% if progress_programs is not empty  %}
-    						<a class="dropdown-item disabled pl-2 bg-dark font-weight-bold text-light" href="#">{% trans %}Progress{% endtrans %}</a>
-    			            {% for program in progress_programs %}
-        						<a class="dropdown-item" href="{{ path('program_dashboard', {'program': program.id}) }}">{{ program.name }}</a>
-        					{% endfor %}
-        				{% endif %}
-    				</div>
-			    {% endif %}
+				{% if programs is not empty %}
+					
+					{% set export_programs = programs|filter(v => v.type == constant('App\\Entity\\Program::EXPORT')) %}
+					{% set import_programs = programs|filter(v => v.type == constant('App\\Entity\\Program::IMPORT')) %}
+					{% set task_programs = programs|filter(v => v.type == constant('App\\Entity\\Program::TASK')) %}
+					{% set progress_programs = programs|filter(v => v.type == constant('App\\Entity\\Program::PROGRESS')) %}
+					
+					<a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{% trans %}Programs{% endtrans %}</a>
+					<div class="dropdown-menu" style="{{ block('nav_item') }}">
+						{% if export_programs is not empty  %}
+							<a class="dropdown-item disabled pl-2 bg-dark font-weight-bold text-light" href="#">{% trans %}Export{% endtrans %}</a>
+							{% for program in export_programs %}
+								<a class="dropdown-item" href="{{ path('program_dashboard', {'program': program.id}) }}">{{ program.name }}</a>
+							{% endfor %}
+						{% endif %}
+						{% if import_programs is not empty  %}
+							<a class="dropdown-item disabled pl-2 bg-dark font-weight-bold text-light" href="#">{% trans %}Import{% endtrans %}</a>
+							{% for program in import_programs %}
+								<a class="dropdown-item" href="{{ path('program_dashboard', {'program': program.id}) }}">{{ program.name }}</a>
+							{% endfor %}
+						{% endif %}
+						{% if task_programs is not empty  %}
+							<a class="dropdown-item disabled pl-2 bg-dark font-weight-bold text-light" href="#">{% trans %}Task{% endtrans %}</a>
+							{% for program in task_programs %}
+								<a class="dropdown-item" href="{{ path('program_dashboard', {'program': program.id}) }}">{{ program.name }}</a>
+							{% endfor %}
+						{% endif %}
+						{% if progress_programs is not empty  %}
+							<a class="dropdown-item disabled pl-2 bg-dark font-weight-bold text-light" href="#">{% trans %}Progress{% endtrans %}</a>
+							{% for program in progress_programs %}
+								<a class="dropdown-item" href="{{ path('program_dashboard', {'program': program.id}) }}">{{ program.name }}</a>
+							{% endfor %}
+						{% endif %}
+					</div>
+				{% endif %}
 			</li>
-			<li class="nav-item" style="{{ block('nav_item') }}">
-				<a class="nav-link" href="{{ path('logout') }}">{% trans %}Logout{% endtrans %}</a>
-			</li>
+			{{ block('logout') }}
 		</ul>
 	</div>
 {% endblock %}
 
 {% block content %}
 	{% if sub_contractors is not empty %}
-    	<div class="jumbotron w-100 p-2">
-    		<ul class="nav nav-tabs mb-3">
-        		<li class="nav-item">
-        			<a class="nav-link active" data-toggle="collapse" href="#sub_contractors" role="button" aria-expanded="true">{% trans %}Companies{% endtrans %}</a>
-        		</li>
-        	</ul>
-    		<div id="sub_contractors" class="row collapse show mb-5">
-                {% if sub_contractors is not empty and app.user.company.isMainContractor %}
-                    <div class="card text-white bg-primary m-3">
-                        <a role="button" class="btn btn-primary text-center font-weight-bold" href="{{ path('serie_route_by_type', {'project': project.id, 'type': 'sdr'}) }}">{% trans %}Whole SDR{% endtrans %}</a>
-                        <div class="card-body text-right">
-                        </div>
-                    </div>
-                {% endif %}
-        		{% for sub_contractor in sub_contractors %}
-                    <div class="card text-white bg-primary m-3">
-                        <a role="button" class="btn btn-primary text-center font-weight-bold" href="{{ path('serie_route', {'project': project.id, 'company': sub_contractor.id}) }}">{{ sub_contractor.name }}</a>
-                        <div class="card-body text-right">
-        				</div>
-                	</div>
-                {% endfor %}
-            </div>
-    	</div>
-    {% endif %}
-    {% if main_contractors is not empty %}
-    	<div class="jumbotron w-100 p-2">
-    	   <ul class="nav nav-tabs mb-3">
-                <li class="nav-item">
-                    <a class="nav-link active" data-toggle="collapse" href="#main_contractors" role="button" aria-expanded="true">{% trans %}Main contractors{% endtrans %}</a>
-                </li>
-            </ul>
-            <div id="main_contractors" class="row collapse show"> 
-                {% if main_contractors is not empty and app.user.company.isMainContractor %}
-                    <div class="card text-white bg-primary m-3">
-                        <a role="button" class="btn btn-primary text-center font-weight-bold" href="{{ path('serie_route_by_type', {'project': project.id, 'type': 'mdr'}) }}">{% trans %}Whole MDR{% endtrans %}</a>
-                        <div class="card-body text-right">
-                        </div>
-                    </div>
-                {% endif %}
-                {% for main_contractor in main_contractors %}
-                    <div class="card text-white bg-primary m-3">
-                        <a role="button" class="btn btn-primary text-center font-weight-bold" href="{{ path('serie_route', {'project': project.id, 'company': main_contractor.id}) }}">{{ main_contractor.name }}</a>
-                        <div class="card-body">
-                            <p class="card-text"></p>
-                        </div>
-                    </div>
-                {% endfor %}
-            </div>
-    	</div>
-    {% endif %}
+		<div class="jumbotron w-100 p-2">
+			<ul class="nav nav-tabs mb-3">
+				<li class="nav-item">
+					<a class="nav-link active" data-toggle="collapse" href="#sub_contractors" role="button" aria-expanded="true">{% trans %}Companies{% endtrans %}</a>
+				</li>
+			</ul>
+			<div id="sub_contractors" class="row collapse show mb-5">
+				{% if sub_contractors is not empty and app.user.company.isMainContractor %}
+					<div class="card text-white bg-primary m-3">
+						<a role="button" class="btn btn-primary text-center font-weight-bold" href="{{ path('serie_route_by_type', {'project': project.id, 'type': 'sdr'}) }}">{% trans %}Whole SDR{% endtrans %}</a>
+						<div class="card-body text-right">
+						</div>
+					</div>
+				{% endif %}
+				{% for sub_contractor in sub_contractors %}
+					<div class="card text-white bg-primary m-3">
+						<a role="button" class="btn btn-primary text-center font-weight-bold" href="{{ path('serie_route', {'project': project.id, 'company': sub_contractor.id}) }}">{{ sub_contractor.name }}</a>
+						<div class="card-body text-right">
+						</div>
+					</div>
+				{% endfor %}
+			</div>
+		</div>
+	{% endif %}
+	{% if main_contractors is not empty %}
+		<div class="jumbotron w-100 p-2">
+		   <ul class="nav nav-tabs mb-3">
+				<li class="nav-item">
+					<a class="nav-link active" data-toggle="collapse" href="#main_contractors" role="button" aria-expanded="true">{% trans %}Main contractors{% endtrans %}</a>
+				</li>
+			</ul>
+			<div id="main_contractors" class="row collapse show"> 
+				{% if main_contractors is not empty and app.user.company.isMainContractor %}
+					<div class="card text-white bg-primary m-3">
+						<a role="button" class="btn btn-primary text-center font-weight-bold" href="{{ path('serie_route_by_type', {'project': project.id, 'type': 'mdr'}) }}">{% trans %}Whole MDR{% endtrans %}</a>
+						<div class="card-body text-right">
+						</div>
+					</div>
+				{% endif %}
+				{% for main_contractor in main_contractors %}
+					<div class="card text-white bg-primary m-3">
+						<a role="button" class="btn btn-primary text-center font-weight-bold" href="{{ path('serie_route', {'project': project.id, 'company': main_contractor.id}) }}">{{ main_contractor.name }}</a>
+						<div class="card-body">
+							<p class="card-text"></p>
+						</div>
+					</div>
+				{% endfor %}
+			</div>
+		</div>
+	{% endif %}
+	{% if sub_contractors is not empty and main_contractors is not empty %}
+		<div class="jumbotron w-100 p-2">
+		   <ul class="nav nav-tabs mb-3">
+				<li class="nav-item">
+					<a class="nav-link active" data-toggle="collapse" href="#main_contractors" role="button" aria-expanded="true">{% trans %}All{% endtrans %}</a>
+				</li>
+			</ul>
+			<div id="main_contractors" class="row collapse show"> 
+				<div class="card text-white bg-primary m-3">
+					<a role="button" class="btn btn-primary text-center font-weight-bold" href="{{ path('serie_route_by_type', {'project': project.id, 'type': 'all'}) }}">{% trans %}All documents{% endtrans %}</a>
+					<div class="card-body text-right">
+					</div>
+				</div>
+			</div>
+		</div>
+	{% endif %}
 {% endblock %}
 
 {% block javascripts %}
-    {{ parent() }}
+	{{ parent() }}
 {% endblock %}

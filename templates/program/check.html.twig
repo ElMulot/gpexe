@@ -1,20 +1,20 @@
 {% if program.isTypeImport %}
-    <div class="row justify-content-center">
-    	<a type="button" class="btn btn-primary w-25 m-1" href="{{ path('program_dashboard', {'program': program.id}) }}">Selectionner un autre fichier</a>
-    	<button type="button" class="btn btn-primary w-25 m-1" data-toggle="ajax" data-url="{{ path('program_load', {'program': program.id}) }}" data-target="#output">Lancer l'import</button>
-    </div>
-    
-    <div class="card mt-5">
-        <div class="card-body">
-        	<h5 class="card-title">Opération terminée !</h5>
-            <p class="card-text">Merci de vérifier le fichier avant import au lien ci-dessous</p>
-            <p class="text-center">
-            	<a href="{{ asset(file_path) }}" class="btn btn-primary">Lien de téléchargement</a>
-            </p>
-        </div>
-    </div>
+	<div class="row justify-content-center">
+		<a type="button" class="btn btn-primary w-25 m-1" href="{{ path('program_dashboard', {'program': program.id}) }}">Selectionner un autre fichier</a>
+		<button type="button" class="btn btn-primary w-25 m-1" data-toggle="ajax" data-url="{{ path('program_load', {'program': program.id}) }}" data-target="#output">Lancer l'import</button>
+	</div>
+	
+	<div class="card mt-5">
+		<div class="card-body">
+			<h5 class="card-title">Opération terminée !</h5>
+			<p class="card-text">Merci de vérifier le fichier avant import au lien ci-dessous</p>
+			<p class="text-center">
+				<a href="{{ asset(file_path) }}" class="btn btn-primary">Lien de téléchargement</a>
+			</p>
+		</div>
+	</div>
 {% elseif program.isTypeTask %}
-    <div class="row justify-content-center">
-    	<button type="button" class="btn btn-primary w-25 m-1" data-toggle="ajax" data-url="{{ path('program_load', {'program': program.id}) }}" data-target="#output">Lancer la tâche</button>
-    </div>
+	<div class="row justify-content-center">
+		<button type="button" class="btn btn-primary w-25 m-1" data-toggle="ajax" data-url="{{ path('program_load', {'program': program.id}) }}" data-target="#output">Lancer la tâche</button>
+	</div>
 {% endif %}

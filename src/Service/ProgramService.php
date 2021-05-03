@@ -15,6 +15,7 @@ use App\Service\Excel\Exception;
 use App\Service\Excel\Row;
 use App\Service\Excel\Workbook;
 use Doctrine\ORM\EntityManagerInterface;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
@@ -88,7 +89,7 @@ class ProgramService
 		$this->targetDirectory = $targetDirectory;
 		$this->comments = [];
 		$this->stopWatch = new Stopwatch();
-		$this->programCache = new ProgramCache($this->fieldService, $this->flashBag);
+		$this->programCache = new ProgramCache($this->fieldService);
 	}
 	
 	public function getCache()
@@ -96,17 +97,28 @@ class ProgramService
 		return $this->programCache;
 	}
 	
-	public function preload(Program $program, Request $request, File $file = null): bool
+	public function preload(Program $program, Request $request = null, File $file = null)
 	{
 		
-		$this->flashBag->add('info', 'Démarrage de l\'opération');
-		
+		switch ($program->getType()) {
+			case Program::IMPORT:
+			case Program::EXPORT:
+			case Program::TASK:
+				$this->flashBag->add('info', 'Démarrage de l\'opération');
+				break;
+		}
+			
 		//setting up cache
-		$this->programCache->setParameter('current_user', $this->security->getUser()->getName());
+		if ($this->security->getUser() === null) {
+			$userName = $program->getLastModifiedBy()->getName();
+		} else {
+			$userName = $this->security->getUser()->getName();
+		}
+		$this->programCache->setParameter('current_user', $userName);
 		$this->programCache->setProgram($program);
 		
 		foreach ($program->getParsedCode('option') as $name => $value) {
-			if (isset($request->request->get('launcher')[$name]) === true) {
+			if ($request !== null && array_key_exists($name, $request->request->get('launcher')) === true) {
 				$this->programCache->setOption($name, $request->request->get('launcher')[$name]);
 			} elseif ($this->programCache->getOption($name) == true) {
 				$this->programCache->setOption($name, '0');
@@ -116,33 +128,32 @@ class ProgramService
 		switch ($program->getType()) {
 			
 			case Program::IMPORT:
-				if ($file !== null) {
-					//upload file
-					try {
-						$file = $file->move($this->targetDirectory, 'GPEXE Import.' . $file->getClientOriginalExtension());
-					} catch (FileException $e) {
-						$this->flashBag->add('danger', $e->getMessage());
-						return false;
-					}
-					$this->programCache->setParameter('file_path', $file->getPathname());
+				if ($file === null) {
+					throw new \Exception('Erreur : aucun fichier sélectionné');
 				}
+				//upload file
+				try {
+					$file = $file->move($this->targetDirectory, 'GPEXE Import.' . $file->getClientOriginalExtension());
+				} catch (FileException $e) {
+					throw new \Exception('Erreur : impossible d\'écrire sur le serveur');
+				}
+				$this->programCache->setParameter('file_path', $file->getPathname());
 				
 			case Program::EXPORT:
 			case Program::TASK:
 			case Program::PROGRESS:
 				$this->programCache->setStatus(ProgramCache::LOAD);
-				return true;
+				break;
 				
 			default:
-				$this->flashBag->add('error', 'Erreur : programme invalide');
-				return false;
+				throw new \Exception('Erreur : programme invalide');
 		}
 		
 		
 		
 	}
 	
-	public function load(Program $program): bool
+	public function load(Program $program)
 	{
 		
 		switch ($program->getType()) {
@@ -152,65 +163,49 @@ class ProgramService
 				$cache = $this->programCache->getCache();
 				
 				//create workbook
-				try {
-					$this->workbook = new Workbook($this->programCache);
-				} catch (Exception $e) {
-					$this->flashBag->add('danger', $e->getMessage());
-					return false;
-				}
-				try {
-					$this->workbook->new('GPEXE Export', $this->targetDirectory);
-				} catch (Exception $e) {
-					$this->flashBag->add('danger', $e->getMessage());
-					return false;
-				}
+				$this->workbook = new Workbook($this->programCache);
+				$this->workbook->new('GPEXE Export', $this->targetDirectory);
 				$sheet = $this->workbook->getSheet();
 				
 				//headers
 				$fields = [];
 				$row = $sheet->getRow($firstRow);
 				
-				foreach ($cache['write'] as $write) {
-					if (array_key_exists($write['title']->getValue(), $fields)) {
-						$row->getCell($write['to']->getValue())->setValue($fields[$write['title']->getValue()]['title']);
-					} elseif ($write['title']->getValue() != '') {
-						$row->getCell($write['to']->getValue())->setValue($write['title']->getValue());
-					} elseif (array_key_exists($write['value']->getValue(), $fields)) {
-						$row->getCell($write['to']->getValue())->setValue($fields[$write['value']->getValue()]['title']);
+				foreach ($cache['headers'] as $header) {
+					if (array_key_exists($header->eval(), $fields) === true) {
+						$title = $fields[$header->eval()]['title'];
+						$width = $fields[$header->eval()]['default_width'];
+					} elseif ($header->eval() != '') {
+						$title = $header->eval();
+						$width = 10;
 					} else {
-						$row->getCell($write['to']->getValue())->setValue($write['value']->getValue());
+						$title = '';
+						$width = 10;
+					}
+					try {
+						$row->getCell($header->getVariable())
+							->setWidth(1.5 * $width)
+							->setValue($title);
+						;
+					} catch (\Error $e) {
+						$this->flashBag->add('danger', $e->getMessage());
 					}
 				}
+				$row->setFormatHeader();
 				$row->add();
 				
 				//save
-				try {
-					$this->workbook->save();
-				} catch (Exception $e) {
-					$this->flashBag->add('danger', $e->getMessage());
-					return false;
-				}
+				$this->workbook->save();
 				
 				$this->programCache->setParameter('file_path', $this->workbook->getPath());
 				$this->programCache->setStatus(ProgramCache::NEW_BATCH);
-				return true;
+				break;
 				
 			case Program::IMPORT:
 				
 				//open workbook
-				try {
-					$this->workbook = new Workbook($this->programCache);
-				} catch (Exception $e) {
-					$this->flashBag->add('danger', $e->getMessage());
-					return false;
-				}
-				
-				try {
-					$this->workbook->open($this->programCache->getParameter('file_path'), $this->programCache->getOption('ready_to_persist'));
-				} catch (Exception $e) {
-					$this->flashBag->add('danger', $e->getMessage());
-					return false;
-				}
+				$this->workbook = new Workbook($this->programCache);
+				$this->workbook->open($this->programCache->getParameter('file_path'), $this->programCache->getOption('ready_to_persist'));
 				$sheet = $this->workbook->getSheet();
 				
 				//orphans removal
@@ -218,59 +213,55 @@ class ProgramService
 				$this->entityManager->flush();
 				
 				//save
-				try {
-					$this->workbook->save();
-				} catch (Exception $e) {
-					$this->flashBag->add('danger', $e->getMessage());
-					return false;
-				}
+				$this->workbook->save();
 				
 // 				$this->programCache->setParameter('file_path', $this->workbook->getPath());
 				$this->programCache->setStatus(ProgramCache::NEW_BATCH);
-				return true;
+				break;
 		
 			case Program::TASK:
 				$this->programCache->setStatus(ProgramCache::NEW_BATCH);
-				return true;	
+				break;	
 				
 			case Program::PROGRESS:
-				
 				$this->programCache->setStatus(ProgramCache::NEW_BATCH);
-				return true;
+				break;
 				
 			default:
-				$this->flashBag->add('error', 'Erreur : programme invalide');
-				return false;
+				throw new \Exception('Erreur : programme invalide');
 			
 		}
 	}
 	
-	public function execute(Program $program): bool
+	public function execute(Program $program)
 	{
 		switch ($program->getType()) {
 			case Program::EXPORT:
-				return $this->export($program);
+				$this->export($program);
+				break;
 			case Program::IMPORT:
-				return $this->import($program);
+				$this->import($program);
+				break;
 			case Program::TASK:
-				return $this->task($program);
+				$this->task($program);
+				break;
 			case Program::PROGRESS:
-				return $this->progress($program);
+				$this->progress($program);
+				break;
 			default:
-				return false;
+				throw new \Exception('Erreur : programme invalide');
 		}
 	}
 	
-	public function unload(): bool
+	public function unload()
 	{
 		$this->programCache = null;
 		ProgramCache::clear();
-		return true;
 	}
 	
-	public function export(Program $program): bool
+	public function export(Program $program)
 	{
-// 		set_time_limit(500);
+		set_time_limit(500);
 		$this->stopWatch->start('export');
 		
 		//cache
@@ -281,18 +272,8 @@ class ProgramService
 		$newBatch = false;
 		
 		//open workbook
-		try {
-			$this->workbook = new Workbook($this->programCache);
-		} catch (Exception $e) {
-			$this->flashBag->add('danger', $e->getMessage());
-			return false;
-		}
-		try {
-			$this->workbook->open($this->programCache->getParameter('file_path'));
-		} catch (Exception $e) {
-			$this->flashBag->add('danger', $e->getMessage());
-			return false;
-		}
+		$this->workbook = new Workbook($this->programCache);
+		$this->workbook->open($this->programCache->getParameter('file_path'));
 		$sheet = $this->workbook->getSheet();
 		
 		//load datas
@@ -315,8 +296,21 @@ class ProgramService
 				
 				foreach ($cache['write'] as $write) {
 					if ($write['condition']->eval($version) == true) {
-// 						dd($write['value'], $version, $write['value']->eval($version));
-						$row->getCell($write['to']->getValue())->setValue($write['value']->eval($version));
+						foreach ($write['then'] as $then) {
+							try {
+								$row->getCell($then->getVariable())->setValue($then->eval($version));
+							} catch (\Error $e) {
+								$this->addComment('warning', $e->getMessage(), $then->getCol());
+							}
+						}
+					} else {
+						foreach ($write['else'] as $else) {
+							try {
+								$row->getCell($else->getVariable())->setValue($else->eval($version));
+							} catch (\Error $e) {
+								$this->addComment('warning', $e->getMessage(), $else->getCol());
+							}
+						}
 					}
 				}
 				
@@ -340,17 +334,10 @@ class ProgramService
 			$this->programCache->setParameter('first_row', $currentRow + 1);
 		}
 		
-		try {
-			$this->workbook->save();
-		} catch (Exception $e) {
-			$this->flashBag->add('danger', $e->getMessage());
-			return false;
-		}
-		
-		return true;
+		$this->workbook->save();
 	}
 	
-	public function import(Program $program): bool
+	public function import(Program $program)
 	{
 // 		set_time_limit(500);
 		$this->stopWatch->start('import');
@@ -367,24 +354,12 @@ class ProgramService
 		$defaultStatus = $this->statusRespository->getDefaultStatus($project);
 		$defaultSerie = $this->serieRepository->getDefaultSerie($project);
 		if ($defaultStatus === null) {
-			$this->flashBag->add('error', 'Pas de status par défaut.');
-			return false;
+			throw new \Exception('Erreur : pas de status par défaut');
 		}
 		
 		//open workbook
-		try {
-			$this->workbook = new Workbook($this->programCache);
-		} catch (Exception $e) {
-			$this->flashBag->add('danger', $e->getMessage());
-			return false;
-		}
-		
-		try {
-			$this->workbook->open($this->programCache->getParameter('file_path'), $this->programCache->getOption('ready_to_persist'));
-		} catch (Exception $e) {
-			$this->flashBag->add('danger', $e->getMessage());
-			return false;
-		}
+		$this->workbook = new Workbook($this->programCache);
+		$this->workbook->open($this->programCache->getParameter('file_path'), $this->programCache->getOption('ready_to_persist'));
 		$sheet = $this->workbook->getSheet();
 		
 		//load datas
@@ -624,13 +599,9 @@ class ProgramService
 				$this->flashBag->add('success', sprintf('%d documents peuvent être créés', $documentsCreated));
 				$this->flashBag->add('success', sprintf('%d révisions peuvent être créées', $versionsCreated));
 				
-				try {
-					$this->workbook->save();
-				} catch (Exception $e) {
-					$this->flashBag->add('danger', $e->getMessage());
-					return false;
-				}
+				$this->workbook->save();
 			}
+			
 		} else {
 			
 			$this->programCache->setStatus(ProgramCache::NEW_BATCH);
@@ -641,19 +612,12 @@ class ProgramService
 			if ($this->programCache->getOption('ready_to_persist') == true) {
 				$this->entityManager->flush();
 			} else {
-				try {
-					$this->workbook->save();
-				} catch (Exception $e) {
-					$this->flashBag->add('danger', $e->getMessage());
-					return false;
-				}
+				$this->workbook->save();
 			}
 		}
-		
-		return true;
 	}
 	
-	public function task(Program $program): bool
+	public function task(Program $program)
 	{
 // 		set_time_limit(500);
 		$this->stopWatch->start('task');
@@ -735,11 +699,9 @@ class ProgramService
 			$this->programCache->setParameter('count_processed', $countProcessed);
 			
 		}
-		
-		return true;
 	}
 	
-	public function progress(Program $program): array
+	public function progress(Program $program, array $series = null): array
 	{
 // 		set_time_limit(500);
 		
@@ -749,7 +711,12 @@ class ProgramService
 		$progress = [];
 		
 		//load datas
-		$documents = $this->documentRepository->getDocumentsByProject($project);
+		if ($series !== null) {
+			$documents = $this->documentRepository->getDocumentsBySeries($series);
+		} else {
+			$documents = $this->documentRepository->getDocumentsByProject($project);
+		}
+		
 // 		$documents = [];
 		
 		$countProcessed = [];
@@ -759,11 +726,11 @@ class ProgramService
 			
 			$serieId = $document->getSerie()->getId();
 			
-			if (isset($countProcessed[$serieId]) === false) {
+			if (array_key_exists($serieId, $countProcessed) === false) {
 				$countProcessed[$serieId] = 0;
 			}
 			
-			if (isset($progress[$serieId]) === false) {
+			if (array_key_exists($serieId, $progress) === false) {
 				$progress[$serieId] = 0;
 			}
 			
@@ -816,37 +783,62 @@ class ProgramService
 		return $progress;
 	}
 	
-	public function automation(Program $program): bool
+	public function exportFromView(array $fields, array $versions, Request $request)
 	{
-		switch ($program->getType()) {
-			
-			case Program::PROGRESS:
-				if ($this->load($program) === false) {
-					return false;
+		$this->programCache = new ProgramCache($this->fieldService);
+		$this->programCache->setOption('library', 'phpspreadsheet');
+		
+		$this->workbook = new Workbook($this->programCache);
+		$this->workbook->new('GPEXE Export', $this->targetDirectory);
+		$sheet = $this->workbook->getSheet();
+		
+		//headers
+		$row = $sheet->getRow(1);
+		$order = $request->query->get('order');
+		if ($order == true) {
+			asort($order);
+			foreach ($fields as $key => $field) {
+				if (array_key_exists($field['id'], $order) === true) {
+					unset ($fields[$key]);
+					$tail = array_splice($fields, $order[$field['id']] - 1);
+					$fields = $fields + [$key => $field];
+					$fields = $fields + $tail;
 				}
-				
-				$project = $program->getProject();
-				$series = $this->serieRepository->getSeriesByProject($project);
-				$values = $this->progress($program);
-				foreach ($values as $serieId => $value) {
-					foreach ($series as $serie) {
-						if ($serie->getId() == $serieId) {
-							$progress = new Progress();
-							$progress->setValue($value);
-							$progress->setSerie($serie);
-							$progress->setProgram($program);
-							$this->entityManager->persist($progress);
-							break;
-						}
-					}
-				}
-				
-				return true;
-				
-			default:
-				return false;
-				
+			}
 		}
+		
+		$colIndex = 0;
+		foreach ($fields as $field) {
+			if (in_array($field['id'], array_keys($request->query->get('display'))) === true) {
+				$colAddress = Coordinate::stringFromColumnIndex($colIndex + 1);
+				$row->getCell($colAddress)
+					->setWidth(1.5 * $request->query->get('display')[$field['id']])
+					->setValue($field['title'])
+				;
+				$colIndex++;
+			}
+		}
+		$row->setFormatHeader();
+		$row->add();
+		
+		
+		foreach ($versions as $key => $version) {
+			$row = $sheet->getRow($key+2);
+			$colIndex = 0;
+			foreach ($fields as $field) {
+				if (in_array($field['id'], array_keys($request->query->get('display'))) === true) {
+					$colAddress = Coordinate::stringFromColumnIndex($colIndex + 1);
+					$row->getCell($colAddress)->setValue($version[$field['id']]);
+					$colIndex++;
+				}
+			}
+			$row->add();
+		}
+		
+		//save
+		$this->workbook->save();
+		
+		$this->programCache->setParameter('file_path', $this->workbook->getPath());
 	}
 	
 	private function addComment($type, $text, $col = null)

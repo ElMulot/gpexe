@@ -24,6 +24,7 @@ use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
 
 
 class ProgramController extends AbstractController
@@ -31,7 +32,7 @@ class ProgramController extends AbstractController
 	private $flashBag;
 	
 	private $translator;
-		
+	
 	private $automationRepository;
 	
 	private $programRepository;
@@ -86,7 +87,7 @@ class ProgramController extends AbstractController
 				return $this->redirectToRoute('project');
 			}
 			
-			$this->container->get('session')->getFlashBag()->clear();
+			$this->flashBag->clear();
 			$this->programService->unload();
 			
 			switch ($program->getType()) {
@@ -123,7 +124,7 @@ class ProgramController extends AbstractController
 		
 		if ($this->isGranted('ROLE_ADMIN') === false &&
 			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false) &&
-			($this->isGranted('ROLE_USER') === false || $project->hasUser($this->getUser()) === false || $this->getUser()->getCompany()->isMainContractor() === false || $program->isTypeProgress() === false)) {
+			($this->isGranted('ROLE_USER') === false || $project->hasUser($this->getUser()) === false || $program->isTypeProgress() === false)) {
 				return $this->redirectToRoute('project');
 			}
 			
@@ -134,13 +135,15 @@ class ProgramController extends AbstractController
 					break;
 					
 				case Program::IMPORT:
-					if ($this->programService->getCache()->getOption('ready_to_persist')) {	//launch import
-						if ($this->programService->preload($program, $request)) {
+					if ($this->programService->getCache()->getOption('ready_to_persist') == true) {	//launch import
+						try {
+							$this->programService->preload($program, $request);
 							return $this->render('program/preload.html.twig', [
 								'program' => $program,
 							]);
-						} else {
-							$this->addFlash('danger', 'Erreur interne');
+						} catch (\Error $e) {
+							$this->addFlash('danger', $e->getMessage());
+							$this->programService->unload();
 							$form = $this->createForm(LauncherType::class, $program);
 						}
 					} else {																//check import
@@ -153,17 +156,20 @@ class ProgramController extends AbstractController
 					break;
 					
 				case Program::PROGRESS:														//launch progress
-					if ($this->programService->preload($program, $request)) {
+					try {
+						$this->programService->preload($program, $request);
 						return $this->redirectToRoute('program_load', [
 							'program' => $program->getId(),
+							'series' => $request->query->get('series'),
 						]);
-					} else {
-						$this->addFlash('danger', 'Erreur interne');
+					} catch (\Error $e) {
+						$this->addFlash('danger', $e->getMessage());
+						$this->programService->unload();
 					}
 					break;
 					
 				default:																	//error
-					$this->addFlash('danger', 'Programme invalide');
+					$this->addFlash('danger', 'Erreur : programme invalide');
 					return $this->render('program/error.html.twig');
 					
 			}
@@ -175,35 +181,42 @@ class ProgramController extends AbstractController
 				switch ($program->getType()) {
 					
 					case Program::EXPORT:													//launch export
-						if ($this->programService->preload($program, $request)) {
+						try {
+							$this->programService->preload($program, $request);
 							return $this->render('program/preload.html.twig', [
 								'program' => $program,
 							]);
-						} else {
-							$this->addFlash('danger', 'Erreur interne');
+						} catch (\Exception $e) {
+							$this->addFlash('danger', $e->getMessage());
+							$this->programService->unload();
+							$form = $this->createForm(LauncherType::class, $program);
 						}
 						break;
 						
 					case Program::IMPORT:													//check import
 						$file = $form->get('file')->getData();
-						if ($file === null) {
-							$this->addFlash('danger', 'Aucun fichier sélectionné');
-						} elseif ($this->programService->preload($program, $request, $file)) {
+						try {
+							$this->programService->preload($program, $request, $file);
 							return $this->render('program/preload.html.twig', [
 								'program' => $program,
 							]);
-						} else {
-							$this->addFlash('danger', 'Erreur interne');
+						} catch (\Exception $e) {
+							$this->addFlash('danger', $e->getMessage());
+							$this->programService->unload();
+							$form = $this->createForm(LauncherType::class, $program);
 						}
 						break;
 						
 					case Program::TASK:														//launch task
-						if ($this->programService->preload($program, $request)) {
+						try {
+							$this->programService->preload($program, $request);
 							return $this->render('program/preload.html.twig', [
 								'program' => $program,
 							]);
-						} else {
-							$this->addFlash('danger', 'Erreur interne');
+						} catch (\Exception $e) {
+							$this->addFlash('danger', $e->getMessage());
+							$this->programService->unload();
+							$form = $this->createForm(LauncherType::class, $program);
 						}
 						break;
 				}
@@ -216,75 +229,113 @@ class ProgramController extends AbstractController
 			
 	}
 	
-	public function load(Program $program): Response
+	public function load(Request $request, Program $program): Response
 	{
 		$project = $program->getProject();
 		
 		if ($this->isGranted('ROLE_ADMIN') === false &&
 			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false) &&
-			($this->isGranted('ROLE_USER') === false || $project->hasUser($this->getUser()) === false || $this->getUser()->getCompany()->isMainContractor() === false || $program->isTypeProgress() === false)) {
+			($this->isGranted('ROLE_USER') === false || $project->hasUser($this->getUser()) === false || (
+				$this->getUser()->getCompany()->isMainContractor() === false && array_intersect(
+					array_column(
+						$this->serieRepository->getSeriesByIdAsArray(
+							$this->getUser()->getCompany()->getSeries()->getValues()
+						), 'id'
+					), $request->query->get('series')) == false
+				) || $program->isTypeProgress() === false)) {
 				return $this->redirectToRoute('project');
 			}
 			
 			switch ($program->getType()) {
 				
-				case Program::EXPORT:														//launch export
-					if ($this->programService->load($program) === false) {
+				case Program::EXPORT:																	//launch export
+					try {
+						$this->programService->load($program);
+						return $this->render('program/load.html.twig', [
+							'program' => $program,
+						]);
+					} catch (\Exception $e) {
+						$this->addFlash('danger', $e->getMessage());
 						$this->programService->unload();
 						return $this->redirectToRoute('program_preload', [
 							'program' => $program->getId(),
 						]);
 					}
-					return $this->render('program/load.html.twig', [
-						'program' => $program,
-					]);
 					
 					
 				case Program::IMPORT:
-					if ($this->programService->getCache()->getOption('ready_to_persist')) {				//launch import
-						$this->programService->load($program);
-						return $this->render('program/load.html.twig', [
-							'program' => $program,
-						]);
-					} else {																			//check import
-						if ($this->programService->load($program) === false) {
+					if ($this->programService->getCache()->getOption('ready_to_persist') == true) {		//launch import
+						
+						try {
+							$this->programService->load($program);
+							return $this->render('program/load.html.twig', [
+								'program' => $program,
+							]);
+						} catch (\Exception $e) {
+							$this->addFlash('danger', $e->getMessage());
 							$this->programService->unload();
 							return $this->redirectToRoute('program_preload', [
 								'program' => $program->getId(),
 							]);
 						}
 						
-						return $this->render('program/load.html.twig', [
-							'program' => $program,
-						]);
+					} else {																			//check import
+						
+						try {
+							$this->programService->load($program);
+							return $this->render('program/load.html.twig', [
+								'program' => $program,
+							]);
+						} catch (\Exception $e) {
+							$this->addFlash('danger', $e->getMessage());
+							$this->programService->unload();
+							return $this->redirectToRoute('program_preload', [
+								'program' => $program->getId(),
+							]);
+						}
+						
 					}
 					
 				case Program::TASK:																		//launch task
-					if ($this->programService->load($program) === false) {
+					try {
+						$this->programService->load($program);
+						return $this->render('program/load.html.twig', [
+							'program' => $program,
+						]);
+					} catch (\Exception $e) {
+						$this->addFlash('danger', $e->getMessage());
 						$this->programService->unload();
 						return $this->redirectToRoute('program_preload', [
 							'program' => $program->getId(),
 						]);
 					}
-					return $this->render('program/load.html.twig', [
-						'program' => $program,
-					]);
 					
 				case Program::PROGRESS:																	//launch progress
-					if ($this->programService->load($program) === false) {
-						$this->addFlash('danger', 'Erreur interne');
+					try {
+						$this->programService->load($program);
+						$serializer = new Serializer([new DateTimeNormalizer(['datetime_format' => 'd-m-Y'])]);
+						if ($series = $request->query->get('series')) {
+							return new JsonResponse([
+								'series' => $this->serieRepository->getSeriesByIdAsArray($series),
+								'current_progress' => $this->programService->progress($program, $series),
+								'current_progress' => [],
+								'progress' => $serializer->normalize($this->progressRepository->getProgressAsArray($program, $series)),
+							]);
+						} else {
+							return new JsonResponse([
+								'series' => $this->serieRepository->getSeriesByProjectAsArray($project),
+								'current_progress' => $this->programService->progress($program),
+								'progress' => $serializer->normalize($this->progressRepository->getProgressAsArray($program)),
+							]);
+						}
+					} catch (\Exception $e) {
+						$this->addFlash('danger', $e->getMessage());
+						$this->programService->unload();
 						return $this->render('program/error.html.twig');
 					}
 					
-					$serializer = new Serializer([new DateTimeNormalizer(['datetime_format' => 'd-m-Y'])]);
-					
-					return new JsonResponse([
-						'series' => $this->serieRepository->getSeriesByProjectAsArray($project),
-						'current_progress' => $this->programService->progress($program),
-						'progress' => $serializer->normalize($this->progressRepository->getProgressAsArray($program)),
-					]);
-					
 				default:
+					
 					$this->programService->unload();
 					return $this->redirectToRoute('program_preload', [
 						'program' => $program->getId(),
@@ -320,7 +371,9 @@ class ProgramController extends AbstractController
 						return $this->render('program/import.html.twig', [
 							'program' => $program,
 						]);
+						
 					} else {																	//check import
+						
 						$filePath = $this->programService->getCache()->getParameter('file_path');
 						$pathParts = pathinfo($filePath);
 						
@@ -329,6 +382,7 @@ class ProgramController extends AbstractController
 							'program' => $program,
 							'file_path' => $this->getParameter('uploads_directory') . '/' . $pathParts['basename'],
 						]);
+						
 					}
 					
 				case Program::TASK:
@@ -338,11 +392,14 @@ class ProgramController extends AbstractController
 						return $this->render('program/preload.html.twig', [
 							'program' => $program,
 						]);
+						
 					} else {																	//check task
+						
 						$this->programService->getCache()->setOption('ready_to_persist', true);
 						return $this->render('program/check.html.twig', [
 							'program' => $program,
 						]);
+						
 					}
 					
 					$this->programService->unload();
@@ -375,11 +432,11 @@ class ProgramController extends AbstractController
 				break;
 				
 			case ProgramCache::NEW_BATCH:
-				$success = $this->programService->execute($program);
-				if ($success) {
+				try {
+					$this->programService->execute($program);
 					$redirect = $this->programService->getCache()->getStatus();
-				} else {
-					$this->addFlash('danger', 'Erreur interne');
+				} catch (\Exception $e) {
+					$this->addFlash('danger', $e->getMessage());
 					$redirect = ProgramCache::PRELOAD;
 				}
 				break;
@@ -467,6 +524,7 @@ class ProgramController extends AbstractController
 				$program->setProject($project);
 				$program->setEnabled(true);
 				$program->setCreatedBy($this->getUser());
+				$program->setLastModifiedBy($this->getUser());
 				
 				$entityManager = $this->getDoctrine()->getManager();
 				$entityManager->persist($program);
@@ -550,13 +608,6 @@ class ProgramController extends AbstractController
 			if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
 				$entityManager = $this->getDoctrine()->getManager();
 				$entityManager->remove($program);
-				
-// 				//delete automation
-// 				if ($program->getType() === Program::PROGRESS) {
-// 					if ($automation = $this->automationRepository->getAutomationByRouteAndByParameters(ProgramService::class . '::automation', ['program' => $program->getId()])) {
-// 						$entityManager->remove($automation);
-// 					}
-// 				}
 				$entityManager->flush();
 				
 				$this->addFlash('success', 'Programme supprimé');

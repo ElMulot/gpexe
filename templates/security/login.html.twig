@@ -1,49 +1,49 @@
 <!DOCTYPE html>
 <html lang="{{ app.request.locale }}">
-    <head>
-        <meta charset="UTF-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <link rel="icon" href="{{ asset('favicon.ico') }}">
-        <title>{{ app_name }}</title>
-        {% block stylesheets %}
-            {{ encore_entry_link_tags('app') }}
-            {{ encore_entry_link_tags('login') }}
-        {% endblock %}
-    </head>
-    <body>
-        <div id="background_img" style="background-image:url('{{ asset('img/' ~ img_name) }}');">
-        </div>
-        <div id="background_gradient">
-        </div>
-        <div class="container-fluid pt-5 px-1">
-        	<div id="form_content" class="jumbotron">
-                {% if app.request.query.has('logout') %}
-                    <div class="alert alert-success">{% trans %}Logout successful{% endtrans %}</div>
-                {% endif %}  
-        		<form method="post">
-        			{% if error %}
-        			<div class="alert alert-danger">
-        				{{ error.messageKey|trans(error.messageData, 'security') }}
-        			</div>
-        			{% endif %}
-        			
-        			<label for="inputEmail">{% trans %}Email{% endtrans %}</label>
-        			<input type="email" {% if last_username is defined %}value="{{ last_username }}"{% endif %} name="email" id="inputEmail" class="form-control" required autofocus>
-        			<label for="inputPassword">{% trans %}Password{% endtrans %}</label>
-        			<input type="password" name="password" id="inputPassword" class="form-control" required> <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
-        			<div class="mb-3">
-        				<input type="checkbox" id="remember_me" name="_remember_me" checked/>
-        				<label for="remember_me">{% trans %}Remember me{% endtrans %}</label>
-        			</div>
-        
-        			<button class="btn btn-lg btn-primary btn-block" type="submit">
-        				{% trans %}Ok{% endtrans %}
-        			</button>
-        		</form>
-        	</div>
-        	<div id="credits_content">
-        		<p class="text-center"><small>v. {{ app_version }} - {{ app_date }}</small></p>
-        	</div>
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<link rel="icon" href="{{ asset('favicon.ico') }}">
+		<title>{{ app_name }}</title>
+		{% block stylesheets %}
+			{{ encore_entry_link_tags('app') }}
+			{{ encore_entry_link_tags('login') }}
+		{% endblock %}
+	</head>
+	<body>
+		<div id="background_img" style="background-image:url('{{ asset('img/' ~ img_name) }}');">
+		</div>
+		<div id="background_gradient">
+		</div>
+		<div class="container-fluid pt-5 px-1">
+			<div id="form_content" class="jumbotron">
+				{% if app.request.query.has('logout') %}
+					<div class="alert alert-success">{% trans %}Logout successful{% endtrans %}</div>
+				{% endif %}  
+				<form method="post">
+					{% if error %}
+					<div class="alert alert-danger">
+						{{ error.messageKey|trans(error.messageData, 'security') }}
+					</div>
+					{% endif %}
+					
+					<label for="inputEmail">{% trans %}Email{% endtrans %}</label>
+					<input type="email" {% if last_username is defined %}value="{{ last_username }}"{% endif %} name="email" id="inputEmail" class="form-control" required autofocus>
+					<label for="inputPassword">{% trans %}Password{% endtrans %}</label>
+					<input type="password" name="password" id="inputPassword" class="form-control" required> <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+					<div class="mb-3">
+						<input type="checkbox" id="remember_me" name="_remember_me" checked/>
+						<label for="remember_me">{% trans %}Remember me{% endtrans %}</label>
+					</div>
+		
+					<button class="btn btn-lg btn-primary btn-block" type="submit">
+						{% trans %}Ok{% endtrans %}
+					</button>
+				</form>
+			</div>
+			<div id="credits_content">
+				<p class="text-center"><small>v. {{ app_version }} - {{ app_date }}</small></p>
+			</div>
 		</div>
 	</body>
 </html>

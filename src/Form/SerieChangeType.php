@@ -11,27 +11,27 @@ use App\Entity\Serie;
 
 class SerieChangeType extends AbstractType
 {
-    public function buildForm(FormBuilderInterface $builder, array $options)
-    {		
-    	$currentSerie = $options['current_serie'];
-    	
-    	$builder->add('serie', ChoiceType::class, [
-    		'choices' => $options['series'],
-    		'choice_label' => function(Serie $serie) {
-    			return $serie->getCompany()->getName() . ' - ' . $serie->getName();
-        	},
-        	'mapped' => false,
-        ]);
-    }
+	public function buildForm(FormBuilderInterface $builder, array $options)
+	{		
+		$currentSerie = $options['current_serie'];
+		
+		$builder->add('serie', ChoiceType::class, [
+			'choices' => $options['series'],
+			'choice_label' => function(Serie $serie) {
+				return $serie->getCompany()->getName() . ' - ' . $serie->getName();
+			},
+			'mapped' => false,
+		]);
+	}
 
-    public function configureOptions(OptionsResolver $resolver)
-    {
-        $resolver->setDefaults([
-            'data_class' => null,
-        	'current_serie' => null,
-        	'series' => [],
-        ]);
-    }
+	public function configureOptions(OptionsResolver $resolver)
+	{
+		$resolver->setDefaults([
+			'data_class' => null,
+			'current_serie' => null,
+			'series' => [],
+		]);
+	}
 }
 
 ?>

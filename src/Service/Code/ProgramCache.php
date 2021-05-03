@@ -5,8 +5,6 @@ namespace App\Service\Code;
 use App\Entity\Program;
 use App\Service\FieldService;
 use App\Helpers\Cache;
-use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
-
 
 class ProgramCache
 {
@@ -17,9 +15,7 @@ class ProgramCache
 	const COMPLETED	= 3;
 			
 	private $fieldService;
-	
-	private $flashBag;
-	
+		
 	private $type;
 	
 	private $fields;
@@ -32,10 +28,9 @@ class ProgramCache
 	
 	private $cache = [];
 	
-	public function __construct(FieldService $fieldService, FlashBagInterface $flashBag)
+	public function __construct(FieldService $fieldService)
 	{
 		$this->fieldService = $fieldService;
-		$this->flashBag = $flashBag;
 		$this->status = Cache::get('program.status') ?? self::PRELOAD;
 		$this->parameters = Cache::get('program.parameters') ?? [];
 		$this->cache = Cache::get('program.cache') ?? [];
@@ -86,13 +81,20 @@ class ProgramCache
 		switch ($this->type) {
 			case Program::EXPORT:
 				$this->cache['exclude'] = $this->walk($program->getParsedCode('exclude'), false);
+				$this->cache['headers'] = $this->walk($program->getParsedCode('headers'));
 				foreach ($program->getParsedCode('write') as $write) {
 					$this->cache['write'][] = [
 						'condition'	=> $this->walk($write['condition'], true),
-						'to'		=> $this->walk($write['to']),
-						'value'		=> $this->walk($write['value']),
-						'title'		=> $this->walk($write['title']),
+						'then'		=> $this->walk($write['then']),
+						'else'		=> $this->walk($write['else']),
 					];
+				}
+				
+				//remove lines which don't have variable
+				$this->removeLinesWithErrors($this->cache['headers']);
+				foreach ($this->cache['write'] as &$write) {
+					$this->removeLinesWithErrors($write['then']);
+					$this->removeLinesWithErrors($write['else']);
 				}
 				
 				break;

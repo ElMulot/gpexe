@@ -32,7 +32,7 @@ main {
 }
 
 #tabs .collapsing {
-    overflow:hidden;
+	overflow:hidden;
 }
 
 #tab ul {
@@ -58,7 +58,7 @@ main {
 	text-overflow: ellipsis;
 }
 
-#vues > div, #vue_new, #series_panel a {
+#views > div, #view_new, #view_export, #series_panel a, #progress_panel select {
 	width: 10rem;
 }
 
@@ -131,14 +131,14 @@ table {
 }
 
 th {
-    position: sticky;
-    top: 0;
-    padding-left: 0 !important;
-    padding-right: 0 !important;
-    border: 0 !important;
-    background-color: $body-bg;
-    z-index: $zindex-sticky;
-    height: 2.5rem;
+	position: sticky;
+	top: 0;
+	padding-left: 0 !important;
+	padding-right: 0 !important;
+	border: 0 !important;
+	background-color: $body-bg;
+	z-index: $zindex-sticky;
+	height: 2.5rem;
 }
 
 td {
@@ -256,11 +256,11 @@ textarea {
 
 .col-drag-placeholder {
 	background-color: $body-bg;
-    -moz-box-shadow: 5px 4px 4px $table-border-color inset;
-    -webkit-box-shadow: 5px 4px 4px $table-border-color inset;
-    box-shadow: 5px 4px 4px $table-border-color inset;
+	-moz-box-shadow: 5px 4px 4px $table-border-color inset;
+	-webkit-box-shadow: 5px 4px 4px $table-border-color inset;
+	box-shadow: 5px 4px 4px $table-border-color inset;
 	border-bottom: 1px solid $table-border-color;
-    border-right: 1px solid $table-border-color;
+	border-right: 1px solid $table-border-color;
 }
 
 .col-drag-helper {

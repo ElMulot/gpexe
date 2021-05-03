@@ -1,28 +1,28 @@
 <div class="row h-100">
 	<div id="menu" class="col-auto d-flex flex-column h-100" data-url="{{ app.request.uri }}">
-        <div id="version_tabs" class="d-flex nav-pills flex-column align-items-center overflow-auto h-100" aria-orientation="vertical">
-        	{% for version in versions %}
-                <a class="nav-link d-flex w-75 my-1{% if version == current_version %} active{% endif %}" data-toggle="ajax" data-target="#version_content" data-url="{{ path('version_detail', {'version': version.id}) }}" data-id="{{ version.id }}">
-                    <div class="flex-grow-1">{{ version.name }}</div>
-                    {% if version.isRequired %}
-                    	<span class="badge badge-info">{% trans %}required{% endtrans %}</span>
-                    {% elseif version.status.isInformation %}
+		<div id="version_tabs" class="d-flex nav-pills flex-column align-items-center overflow-auto h-100" aria-orientation="vertical">
+			{% for version in versions %}
+				<a class="nav-link d-flex w-75 my-1{% if version == current_version %} active{% endif %}" data-toggle="ajax" data-target="#version_content" data-url="{{ path('version_detail', {'version': version.id}) }}" data-id="{{ version.id }}">
+					<div class="flex-grow-1">{{ version.name }}</div>
+					{% if version.isRequired %}
+						<span class="badge badge-info">{% trans %}required{% endtrans %}</span>
+					{% elseif version.status.isInformation %}
 						<span class="badge badge-success">{% trans %}information{% endtrans %}</span>
-                    {% elseif version.status.isCancel %}
-                    	<span class="badge badge-secondary">{% trans %}cancelled{% endtrans %}</span>
-                    {% elseif version.status.isAsBuilt %}
+					{% elseif version.status.isCancel %}
+						<span class="badge badge-secondary">{% trans %}cancelled{% endtrans %}</span>
+					{% elseif version.status.isAsBuilt %}
 						<span class="badge badge-success">{% trans %}as built{% endtrans %}</span>
 					{% endif %}
 				</a>
 			{% endfor %}
-        </div>
-        
-        {% if is_granted('ROLE_EDIT_DOCUMENTS') %}
-            <div class="align-items-end">
-            	<button class="btn btn-primary w-100 text-nowrap my-1" data-toggle="modal ajax" data-target="#modal" data-url="{{ path('version_new', {'document': document.id, 'modal':true }) }}">{% trans %}New{% endtrans %}</button>
-            	<button id="version_edit_detail" class="btn btn-primary w-100 text-nowrap my-1" data-toggle="modal" data-url="{{ path('version_edit') }}">{% trans %}Edit{% endtrans %}</button>
-            	<button id="version_delete_detail" class="btn btn-primary w-100 text-nowrap my-1" data-toggle="modal" data-url="{{ path('version_delete') }}">{% trans %}Delete{% endtrans %}</button>
-            </div>
+		</div>
+		
+		{% if is_granted('ROLE_EDIT_DOCUMENTS') %}
+			<div class="align-items-end">
+				<button class="btn btn-primary w-100 text-nowrap my-1" data-toggle="modal ajax" data-target="#modal" data-url="{{ path('version_new', {'document': document.id, 'modal':true }) }}">{% trans %}New{% endtrans %}</button>
+				<button id="version_edit_detail" class="btn btn-primary w-100 text-nowrap my-1" data-toggle="modal" data-url="{{ path('version_edit') }}">{% trans %}Edit{% endtrans %}</button>
+				<button id="version_delete_detail" class="btn btn-primary w-100 text-nowrap my-1" data-toggle="modal" data-url="{{ path('version_delete') }}">{% trans %}Delete{% endtrans %}</button>
+			</div>
 		{% endif %}
 	</div>
 	<div id="version_content" class="col px-3 overflow-auto h-100">

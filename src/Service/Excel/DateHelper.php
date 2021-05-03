@@ -14,27 +14,27 @@ use App\Helpers\Date;
 class DateHelper
 {
 	private static $dateFormatReplacements = [
-		//    4-digit year
+		//	4-digit year
 		'Y' => 'yyyy',
-		//    2-digit year
+		//	2-digit year
 		'y' => 'yy',
-		//    full month name
+		//	full month name
 		'F' => 'mmmm',
-		//    short month name
+		//	short month name
 		'M' => 'mmm',
-		//    month leading zero
+		//	month leading zero
 		'm' => 'mm',
-		//    month no leading zero
+		//	month no leading zero
 		'n' => 'm',
-		//    full day of week name
+		//	full day of week name
 		'l' => 'dddd',
-		//    short day of week name
+		//	short day of week name
 		'D' => 'ddd',
-		//    days leading zero
+		//	days leading zero
 		'd' => 'dd',
-		//    days no leading zero
+		//	days no leading zero
 		'j' => 'd',
-		//    reset character
+		//	reset character
 		'!' => '',
 	];
 	

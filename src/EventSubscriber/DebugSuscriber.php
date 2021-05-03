@@ -23,11 +23,11 @@ class DebugSuscriber implements EventSubscriberInterface
 		$response->headers->set('Symfony-Debug-Toolbar-Replace', 1);
 	}
 
-    public static function getSubscribedEvents()
-    {
-        return [
-            KernelEvents::RESPONSE => [['onKernelResponse', 20]],
-        ];
-    }
+	public static function getSubscribedEvents()
+	{
+		return [
+			KernelEvents::RESPONSE => [['onKernelResponse', 20]],
+		];
+	}
 }
 ?>

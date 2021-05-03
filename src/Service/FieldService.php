@@ -78,6 +78,7 @@ class FieldService
 				'type' => Metadata::LIST,
 				'parent' => 'document',
 				'default_width' => 15,
+				'mandatory' => true,
 				'display' => [
 					'header' => true,
 					'selector' => false,
@@ -95,6 +96,7 @@ class FieldService
 				'type' => Metadata::TEXT,
 				'parent' => 'version',
 				'default_width' => 4,
+				'mandatory' => true,
 				'display' => [
 					'header' => true,
 					'selector' => false,
@@ -112,6 +114,7 @@ class FieldService
 				'type' => Metadata::TEXT,
 				'parent' => 'document',
 				'default_width' => 30,
+				'mandatory' => true,
 				'display' => [
 					'header' => true,
 					'selector' => false,
@@ -129,6 +132,7 @@ class FieldService
 				'type' => Metadata::DATE,
 				'parent' => 'version',
 				'default_width' => 8,
+				'mandatory' => true,
 				'display' => [
 					'header' => true,
 					'selector' => false,
@@ -146,6 +150,7 @@ class FieldService
 				'type' => Metadata::DATE,
 				'parent' => 'version',
 				'default_width' => 8,
+				'mandatory' => false,
 				'display' => [
 					'header' => true,
 					'selector' => false,
@@ -163,6 +168,7 @@ class FieldService
 				'type' => Metadata::DATE,
 				'parent' => 'version',
 				'default_width' => 8,
+				'mandatory' => false,
 				'display' => [
 					'header' => true,
 					'selector' => false,
@@ -180,6 +186,7 @@ class FieldService
 				'type' => Metadata::DATE,
 				'parent' => 'version',
 				'default_width' => 8,
+				'mandatory' => true,
 				'display' => [
 					'header' => true,
 					'selector' => false,
@@ -197,6 +204,7 @@ class FieldService
 				'type' => Metadata::BOOLEAN,
 				'parent' => 'version',
 				'default_width' => 8,
+				'mandatory' => true,
 				'display' => [
 					'header' => true,
 					'selector' => false,
@@ -214,6 +222,7 @@ class FieldService
 				'type' => Metadata::LIST,
 				'parent' => 'version',
 				'default_width' => 10,
+				'mandatory' => false,
 				'display' => [
 					'header' => true,
 					'selector' => false,
@@ -231,6 +240,7 @@ class FieldService
 				'type' => Metadata::LIST,
 				'parent' => 'version',
 				'default_width' => 10,
+				'mandatory' => false,
 				'display' => [
 					'header' => true,
 					'selector' => false,
@@ -248,6 +258,7 @@ class FieldService
 				'type' => Metadata::LIST,
 				'parent' => 'version',
 				'default_width' => 10,
+				'mandatory' => false,
 				'display' => [
 					'header' => true,
 					'selector' => false,
@@ -265,6 +276,7 @@ class FieldService
 				'type' => Metadata::LIST,
 				'parent' => 'serie',
 				'default_width' => 10,
+				'mandatory' => true,
 				'display' => [
 					'header' => true,
 					'selector' => false,
@@ -282,6 +294,7 @@ class FieldService
 				'type' => Metadata::LIST,
 				'parent' => 'serie',
 				'default_width' => 10,
+				'mandatory' => true,
 				'display' => [
 					'header' => true,
 					'selector' => false,
@@ -299,6 +312,7 @@ class FieldService
 				'type' => Metadata::LIST,
 				'parent' => 'status',
 				'default_width' => 10,
+				'mandatory' => true,
 				'display' => [
 					'header' => true,
 					'selector' => false,
@@ -316,6 +330,7 @@ class FieldService
 				'type' => Metadata::LIST,
 				'parent' => 'status',
 				'default_width' => 10,
+				'mandatory' => true,
 				'display' => [
 					'header' => true,
 					'selector' => false,
@@ -333,6 +348,7 @@ class FieldService
 				'type' => Metadata::TEXT,
 				'parent' => 'document',
 				'default_width' => 0,
+				'mandatory' => true,
 				'display' => [
 					'header' => false,
 					'selector' => false,
@@ -353,6 +369,7 @@ class FieldService
 				'type' => $codification->getType(),
 				'parent' => 'codification',
 				'default_width' => 10,
+				'mandatory' => $codification->getIsMandatory(),
 				'display' => [
 					'header' => true,
 					'selector' => false,
@@ -373,6 +390,7 @@ class FieldService
 				'type' => $metadata->getType(),
 				'parent' => $metadata->getParentName(),
 				'default_width' => 10,
+				'mandatory' => $metadata->getIsMandatory(),
 				'display' => [
 					'header' => true,
 					'selector' => false,
@@ -394,6 +412,7 @@ class FieldService
 					'type' => Metadata::LIST,
 					'parent' => 'visa',
 					'default_width' => 10,
+					'mandatory' => false,
 					'display' => [
 						'header' => true,
 						'selector' => false,
@@ -401,7 +420,7 @@ class FieldService
 					],
 					'permissions' => [
 						'read' => true,
-						'write' => ($this->security->getUser()->getCompany() == $company || ($this->security->isGranted('ROLE_CONTROLLER') && $project->hasUser($this->security->getUser())) || $this->security->isGranted('ROLE_ADMIN')),
+						'write' => ($this->security->getUser() !== null && $this->security->getUser()->getCompany() == $company || ($this->security->isGranted('ROLE_CONTROLLER') && $project->hasUser($this->security->getUser())) || $this->security->isGranted('ROLE_ADMIN')),
 					],
 				];
 				
@@ -412,6 +431,7 @@ class FieldService
 					'type' => Metadata::LIST,
 					'parent' => 'visa',
 					'default_width' => 0,
+					'mandatory' => false,
 					'display' => [
 						'header' => false,
 						'selector' => false,
@@ -419,7 +439,7 @@ class FieldService
 					],
 					'permissions' => [
 						'read' => true,
-						'write' => ($this->security->getUser()->getCompany() == $company || ($this->security->isGranted('ROLE_CONTROLLER') && $project->hasUser($this->security->getUser())) || $this->security->isGranted('ROLE_ADMIN')),
+						'write' => ($this->security->getUser() !== null && $this->security->getUser()->getCompany() == $company || ($this->security->isGranted('ROLE_CONTROLLER') && $project->hasUser($this->security->getUser())) || $this->security->isGranted('ROLE_ADMIN')),
 					],
 				];
 				
@@ -430,6 +450,7 @@ class FieldService
 					'type' => Metadata::LIST,
 					'parent' => 'visa',
 					'default_width' => 0,
+					'mandatory' => false,
 					'display' => [
 						'header' => false,
 						'selector' => false,
@@ -437,7 +458,7 @@ class FieldService
 					],
 					'permissions' => [
 						'read' => true,
-						'write' => ($this->security->getUser()->getCompany() == $company || ($this->security->isGranted('ROLE_CONTROLLER') && $project->hasUser($this->security->getUser())) || $this->security->isGranted('ROLE_ADMIN')),
+						'write' => ($this->security->getUser() !== null && $this->security->getUser()->getCompany() == $company || ($this->security->isGranted('ROLE_CONTROLLER') && $project->hasUser($this->security->getUser())) || $this->security->isGranted('ROLE_ADMIN')),
 					],
 				];
 			}

@@ -65,7 +65,6 @@ class SerieController extends AbstractController
 				'company' => $company->getId(),
 			]);
 		} else {
-			
 			return $this->redirectToRoute('document', [
 				'project' => $project->getId(),
 				'type' => reset($series)['type'],
@@ -106,10 +105,7 @@ class SerieController extends AbstractController
 				if ($value === null && $metadata->getIsMandatory()) {
 					$this->addFlash('danger', $this->translator->trans('notEmpty.field', ['field' => $metadata->getName()]));
 					$view = $form->createView();
-					return $this->render('generic/form.html.twig', [
-						'route_back' =>  $this->generateUrl('document', [
-							'serie' => $document->getSerie()->getId(),
-						]),
+					return $this->render('ajax/form.html.twig', [
 						'form' => $view,
 					]);
 				}

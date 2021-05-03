@@ -1,18 +1,18 @@
 {% extends 'base.html.twig' %}
 
 {% block stylesheets %}
-    {{ encore_entry_link_tags('document') }}
-    {{ parent() }}
+	{{ encore_entry_link_tags('document') }}
+	{{ parent() }}
 {% endblock %}
 
 {% block body %}
-    <nav class="navbar fixed-top navbar-expand text-center navbar-dark bg-primary">
-        {{ block('nav') }}
-    </nav>
-    <main class="mt-3">
-        <div id="content" class="d-flex flex-column align-items-center">
-            {{ block('content') }}
-    	</div>
+	<nav class="navbar fixed-top navbar-expand text-center navbar-dark bg-primary">
+		{{ block('nav') }}
+	</nav>
+	<main class="mt-3">
+		<div id="content" class="d-flex flex-column align-items-center">
+			{{ block('content') }}
+		</div>
 	</main>
 {% endblock %}
 
@@ -23,146 +23,167 @@
 {% block nav %}
 	<div class="navbar-collapse">
 		<ul class="navbar-nav mr-auto ">
-    		{% if route_back is defined %}
-        		<li class="nav-item" style="{{ block('nav_item') }}">
-        			<a class="nav-link" href="{{ route_back }}">{% trans %}Back{% endtrans %}</a>
-        		</li>
-    		{% endif %}
+			{% if route_back is defined %}
+				<li class="nav-item" style="{{ block('nav_item') }}">
+					<a class="nav-link" href="{{ route_back }}">{% trans %}Back{% endtrans %}</a>
+				</li>
+			{% endif %}
 			{% if is_granted('ROLE_ADMIN') or (is_granted('ROLE_EDIT_DOCUMENTS') and app.user in project.users) %}
-    			<li id="document_menu" class="nav-item dropdown" style="{{ block('nav_item') }}">
-    				<a class="nav-link dropdown-toggle" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{% trans %}Documents{% endtrans %}</a>
-    				<div class="dropdown-menu" style="{{ block('nav_item') }}">
-    					{% if currentSerie is not null %}
-    						<button id="document_new" class="dropdown-item" data-toggle="modal" data-url={{ path('document_new', {'serie': currentSerie.id}) }}>{% trans %}New{% endtrans %}</button>
-    					{% endif %}
-    					<button id="document_edit" class="dropdown-item" data-toggle="modal" data-url="{{ path('document_edit') }}">{% trans %}Edit{% endtrans %}</button>
-    					<button id="document_move" class="dropdown-item" data-toggle="modal" data-url="{{ path('document_move') }}">{% trans %}Move{% endtrans %}</button>
-    					<button id="document_delete" class="dropdown-item" data-toggle="modal" data-url="{{ path('document_delete') }}">{% trans %}Delete{% endtrans %}</button>
-    				</div>
-    			</li>
-    			
-    			<li id="version_menu" class="nav-item dropdown" style="{{ block('nav_item') }}">
-    				<a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{% trans %}Versions{% endtrans %}</a>
-    				<div class="dropdown-menu" style="{{ block('nav_item') }}">
-    					<button id="version_new" class="dropdown-item" data-toggle="modal" data-url="{{ path('version_new') }}">{% trans %}New{% endtrans %}</button>
-    					<button id="version_edit" class="dropdown-item" data-toggle="modal" data-url="{{ path('version_edit') }}">{% trans %}Edit{% endtrans %}</button>
-    					<button id="version_delete" class="dropdown-item" data-toggle="modal" data-url="{{ path('version_delete') }}">{% trans %}Delete{% endtrans %}</button>
-    				</div>
-    			</li>
-    		{% endif %}
+				<li id="document_menu" class="nav-item dropdown" style="{{ block('nav_item') }}">
+					<a class="nav-link dropdown-toggle" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{% trans %}Documents{% endtrans %}</a>
+					<div class="dropdown-menu" style="{{ block('nav_item') }}">
+						{% if current_serie is not null %}
+							<button id="document_new" class="dropdown-item" data-toggle="modal" data-url={{ path('document_new', {'serie': current_serie.id}) }}>{% trans %}New{% endtrans %}</button>
+						{% endif %}
+						<button id="document_edit" class="dropdown-item" data-toggle="modal" data-url="{{ path('document_edit') }}">{% trans %}Edit{% endtrans %}</button>
+						<button id="document_move" class="dropdown-item" data-toggle="modal" data-url="{{ path('document_move') }}">{% trans %}Move{% endtrans %}</button>
+						<button id="document_delete" class="dropdown-item" data-toggle="modal" data-url="{{ path('document_delete') }}">{% trans %}Delete{% endtrans %}</button>
+					</div>
+				</li>
+				
+				<li id="version_menu" class="nav-item dropdown" style="{{ block('nav_item') }}">
+					<a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{% trans %}Versions{% endtrans %}</a>
+					<div class="dropdown-menu" style="{{ block('nav_item') }}">
+						<button id="version_new" class="dropdown-item" data-toggle="modal" data-url="{{ path('version_new') }}">{% trans %}New{% endtrans %}</button>
+						<button id="version_edit" class="dropdown-item" data-toggle="modal" data-url="{{ path('version_edit') }}">{% trans %}Edit{% endtrans %}</button>
+						<button id="version_delete" class="dropdown-item" data-toggle="modal" data-url="{{ path('version_delete') }}">{% trans %}Delete{% endtrans %}</button>
+					</div>
+				</li>
+			{% endif %}
 		</ul>
 	</div>
 	<div class="navbar-collapse "></div>
 	<div class="navbar-collapse">
 		<ul class="navbar-nav ml-auto">
-			<li class="nav-item" style="{{ block('nav_item') }}">
-				<a class="nav-link" href="{{ path('logout') }}">{% trans %}Logout{% endtrans %}</a>
-			</li>
+			{{ block('logout') }}
 		</ul>
 	</div>
 {% endblock %}
 
 {% block content %}
 	<div id="tabs" class="jumbotron">
-        <ul class="nav nav-tabs" role="tablist">
-            <li class="nav-item">
-            	<a class="nav-link active" id="vues-tab" data-toggle="tab" href="#vues_panel" role="tab" aria-controls="vues_panel" aria-selected="true">{% trans %}Vues{% endtrans %}</a>
-            </li>
-            <li class="nav-item">
-            	<a class="nav-link" id="series-tab" data-toggle="tab" href="#series_panel" role="tab" aria-controls="series_panel" aria-selected="false">{% trans %}Series{% endtrans %}</a>
-            </li>
-            <li class="nav-item">
-            	<a class="nav-link" id="display-tab" data-toggle="tab" href="#display_panel" role="tab" aria-controls="display_panel" aria-selected="false">{% trans %}Display{% endtrans %}</a>
-            </li>
-        </ul>
+		<ul class="nav nav-tabs" role="tablist">
+			<li class="nav-item">
+				<a class="nav-link active" id="views-tab" data-toggle="tab" href="#views_panel" role="tab" aria-controls="views_panel" aria-selected="true">{% trans %}Views{% endtrans %}</a>
+			</li>
+			<li class="nav-item">
+				<a class="nav-link" id="series-tab" data-toggle="tab" href="#series_panel" role="tab" aria-controls="series_panel" aria-selected="false">{% trans %}Series{% endtrans %}</a>
+			</li>
+			<li class="nav-item">
+				<a class="nav-link disabled" id="progress-tab" data-toggle="tab" href="#progress_panel" role="tab" aria-controls="progress_panel" aria-selected="false">{% trans %}Progress{% endtrans %}</a>
+			</li>
+		</ul>
 		<div class="tab-content pt-1 collapse show">
-			<div class="tab-pane fade show active" id="vues_panel" role="tabpanel" aria-labelledby="vues-tab">
-    			{{ block('vues') }}
-        	</div>
+			<div class="tab-pane fade show active" id="views_panel" role="tabpanel" aria-labelledby="views-tab">
+				{{ block('views') }}
+			</div>
 			<div class="tab-pane fade" id="series_panel" role="tabpanel" aria-labelledby="series-tab">
 				{{ block('series') }}
 			</div>
-			<div class="tab-pane fade" id="display_panel" role="tabpanel" aria-labelledby="display-tab">
-    			{{ block('display') }}
-        	</div>
+			<div class="tab-pane fade" id="progress_panel" role="tabpanel" aria-labelledby="progress-tab">
+				{{ block('progress') }}
+			</div>
 		</div>
 	</div>
-    
-    <div id="toast">
-    	
-    </div>
+	
+	<div id="toast">
+		
+	</div>
 
-    <div id="modal_container" class="modal fade" role="dialog" aria-hidden="true">
-    	<div class="modal-dialog modal-lg modal-dialog-centered" role="document">
-    		<div id="modal" class="modal-content">
+	<div id="modal_container" class="modal fade" role="dialog" aria-hidden="true">
+		<div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+			<div id="modal" class="modal-content">
 				
-    		</div>
-    	</div>
-    </div>
-    
-    <div id="modal_detail_container" class="modal fade" role="dialog" aria-hidden="true">
-    	<div class="modal-dialog modal-dialog-centered" role="document">
-    		<div class="modal-content">
-    			<div class="modal-header">
-    				<h5 class="modal-title">{% trans %}Document detail{% endtrans %}</h5>
-    				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-    					<span aria-hidden="true">&times;</span>
-    				</button>
-    			</div>
-    			<div id="modal_detail" class="modal-body">
-    				
-    			</div>
-    			<div class="modal-footer justify-content-center">
-    				<button type="button" class="btn btn-secondary w-25" data-dismiss="modal">{% trans %}Close{% endtrans %}</button>
-    			</div>
-    		</div>
-    	</div>
-    </div>
-    
-    <div id="table_container" class="table-responsive" data-url="{{ path('document_fields', app.request.attributes.get('_route_params')) }}">
-    	<div id="spinner">
-    	</div>
-    	
-        <table id="table" class="table table-sm" data-url="{{ path('document_table', app.request.attributes.get('_route_params')) }}" style="display: none;">
-        	
-        </table>
-        
-        <nav id="pagination">
-        
-        </nav>
-    </div>
-    
+			</div>
+		</div>
+	</div>
+	
+	<div id="modal_detail_container" class="modal fade" role="dialog" aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title">{% trans %}Document detail{% endtrans %}</h5>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div id="modal_detail" class="modal-body">
+					
+				</div>
+				<div class="modal-footer justify-content-center">
+					<button type="button" class="btn btn-secondary w-25" data-dismiss="modal">{% trans %}Close{% endtrans %}</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<div id="table_container" class="table-responsive" data-url="{{ path('document_fields', app.request.attributes.get('_route_params')) }}">
+		<div id="spinner">
+		</div>
+		
+		<table id="table" class="table table-sm" data-url="{{ path('document_table', app.request.attributes.get('_route_params')) }}" style="display: none;">
+			
+		</table>
+		
+		<nav id="pagination">
+		
+		</nav>
+	</div>
+	
 {% endblock %}
 
-{% block vues %}
-    <div class="row p-2">
-    	<div id ="vues" class="col px-2" data-url="{{ path('vue', {'project': project.id}) }}">
-    	
-    	</div>
-    	<div class="col-auto">
-    		<button id="vue_new" type="button" class="btn btn-primary m-1" data-url="{{ path('vue_new', app.request.query.all|merge({'project': project.id})) }}" role="button">{% trans %}New vue{% endtrans %}</button>
-    	</div>
-    </div>
+{% block views %}
+	<div class="row p-2">
+		<div id ="views" class="col px-2" data-url="{{ path('view', {'project': project.id}) }}">
+		
+		</div>
+		<div class="col-auto">
+			<button id="document_export" type="button" class="btn btn-primary m-1" data-url="{{ path('document_export', app.request.query.all|merge({'project': project.id, 'type': type, 'serie': current_serie.id is defined?current_serie.id:0})) }}" role="button">{% trans %}Export view{% endtrans %}</button>
+			<button id="view_new" type="button" class="btn btn-primary m-1" data-url="{{ path('view_new', app.request.query.all|merge({'project': project.id})) }}" role="button">{% trans %}New view{% endtrans %}</button>
+		</div>
+	</div>
 {% endblock %}
 
 {% block series %}
-    <div class="row p-2">
-    	<div id="series" class="col px-2">
-    	
-    	</div>
-    	{% if currentCompany is not null and is_granted('ROLE_CONTROLLER') and app.user in project.users %}
-        	<div class="col-auto">
-        		<a class="btn btn-primary m-1" href="{{ path('serie', {'project': project.id, 'company': currentCompany.id}) }}" role="button">{% trans %}Manage series{% endtrans %}</a>
-        	</div>
-    	{% endif %}
-    </div>
+	<div class="row p-2">
+		<div id="series" class="col px-2">
+		
+		</div>
+		{% if current_company is not null and is_granted('ROLE_CONTROLLER') and app.user in project.users %}
+			<div class="col-auto">
+				<a class="btn btn-primary m-1" href="{{ path('serie', {'project': project.id, 'company': current_company.id}) }}" role="button">{% trans %}Manage series{% endtrans %}</a>
+			</div>
+		{% endif %}
+	</div>
 {% endblock %}
 
-{% block display %}
-
+{% block progress %}
+	<div class="row px-2">
+		<div class="col-auto px-4 pt-4">
+			<select class="form-control form-control-sm">
+			
+			</select>
+		</div>
+		<div id="chart" class="col overflow-hidden">
+			
+		</div>
+		<div id="legend_container" class="col-auto">
+			
+		</div>
+	</div>
 {% endblock %}
 
 {% block javascripts %}
-    {{ parent() }}
-    {{ encore_entry_script_tags('document') }}
+	{{ parent() }}
+	{{ encore_entry_script_tags('document') }}
+{% endblock %}
+
+{% block logout %}
+    <li class="nav-item" style="{{ block('nav_item') }}">
+        {% if is_granted('IS_IMPERSONATOR') %}
+    		<a class="nav-link" href="{{ impersonation_exit_path(path('home') ) }}">{% trans %}Exit impersonation{% endtrans %}</a>
+        {% else %}
+    		<a class="nav-link" href="{{ path('logout') }}">{% trans %}Logout{% endtrans %}</a>
+    	{% endif %}
+    </li>
 {% endblock %}

@@ -4,6 +4,7 @@ namespace App\Service\Excel;
 
 use Box\Spout\Reader\Common\Creator\ReaderEntityFactory;
 use Box\Spout\Writer\Common\Creator\WriterEntityFactory;
+use Box\Spout\Writer\Common\Creator\Style\StyleBuilder;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use Symfony\Component\Filesystem\Filesystem;
@@ -43,11 +44,11 @@ class Workbook
 	private $writer;
 	
 // 	---------------------------------------------------------------------------
-// 	Method	|      Library     | Reader  | Writer
+// 	Method	|	  Library	 | Reader  | Writer
 // 	---------------------------------------------------------------------------
-// 	New	 	| Spout            | Defined | Defined
-// 	New		| PhpSpreadsheet   | n/a     | Defined
-// 	Open	| Spout            | Defined | Defined (if readOnly !== false)
+// 	New	 	| Spout			| Defined | Defined
+// 	New		| PhpSpreadsheet   | n/a	 | Defined
+// 	Open	| Spout			| Defined | Defined (if readOnly !== false)
 // 	Open	| PhpSpreadsheet   | Defined | Defined (if readOnly !== false)
 // 	---------------------------------------------------------------------------
 	
@@ -55,7 +56,6 @@ class Workbook
 	{
 		$this->fileSystem = new Filesystem();
 		$this->setLibrary($programCache->getOption('library'));
-		$this->setFirstRow($programCache->getParameter('first_row'));
 		$this->setDateFormatInput($programCache->getOption('date_format_input'));
 		$this->setDateFormatOutput($programCache->getOption('date_format_output'));
 	}
@@ -77,7 +77,7 @@ class Workbook
 						$this->writer = WriterEntityFactory::createXLSXWriter();
 						break;
 					default:
-						throw new Exception('Extension non supportée.');
+						throw new Exception('Erreur : extension non supportée');
 				}
 				$this->writer->openToFile($this->getPath());
 				$this->writer->close();
@@ -91,19 +91,20 @@ class Workbook
 					->setCreator('GPEXE')
 					->setTitle($fileName)
 				;
-				
+				$this->setDefaultStyle();
+					
 				switch ($this->extensionName) {
 					case '.xlsx':
 						$this->writer = IOFactory::createWriter($this->_workbook, "Xlsx");
 						break;
 					default:
-						throw new Exception('Extension non supportée.');
+						throw new Exception('Erreur : extension non supportée');
 				}
 				
 				break;
 				
 			default:
-				throw new Exception('Librarie non définie.');
+				throw new Exception('Erreur : librarie non définie');
 		}
 	}
 	
@@ -124,7 +125,7 @@ class Workbook
 						$this->reader->setFieldDelimiter(";");
 						break;
 					default:
-						throw new Exception('Extension non supportée.');
+						throw new Exception('Erreur : extension non supportée');
 				}
 				
 				$this->reader->setShouldPreserveEmptyRows(true);
@@ -133,6 +134,7 @@ class Workbook
 				
 				if ($readOnly === false) {
 					$this->writer = WriterEntityFactory::createXLSXWriter();
+					$this->setDefaultStyle();
 					$this->writer->openToFile($file . '.tmp');
 					foreach ($this->reader->getSheetIterator() as $sheetIndex => $sheet) {
 						if ($sheetIndex !== 1) {
@@ -149,6 +151,7 @@ class Workbook
 			case self::PHPSPREADSHEET:
 				$this->reader = IOFactory::createReaderForFile($file);
 				$this->_workbook = $this->reader->load($file);
+				$this->setDefaultStyle();
 				
 				if ($readOnly == false) {
 					switch ($this->extensionName) {
@@ -159,14 +162,14 @@ class Workbook
 							$this->writer = IOFactory::createWriter($this->_workbook, "Csv");
 							break;
 						default:
-							throw new Exception('Extension non supportée.');
+							throw new Exception('Erreur : extension non supportée');
 					}
 					
 				}
 				break;
 				
 			default:
-				throw new Exception('Librarie non définie.');
+				throw new Exception('Erreur : librarie non définie');
 			
 		}
 		
@@ -197,12 +200,16 @@ class Workbook
 				
 			case self::PHPSPREADSHEET:
 				if ($this->writer) {
-					$this->writer->save($this->getPath());
+					try {
+						$this->writer->save($this->getPath());
+					} catch (Exception $e) {
+						throw new Exception('Erreur : impossible d\'écrire sur le serveur');
+					}
 				}
 				break;
 				
 			default:
-				throw new Exception('Librarie non définie.');
+				throw new Exception('Erreur : librarie non définie');
 		}
 		return $this;
 		
@@ -221,11 +228,6 @@ class Workbook
 	public function getLibrary()
 	{
 		return $this->library;
-	}
-	
-	public function getFirstRow(): string
-	{
-		return $this->firstRow;
 	}
 	
 	public function getDateFormatInput(): string
@@ -294,7 +296,7 @@ class Workbook
 				break;
 				
 			default:
-				throw new Exception('Librarie non définie.');
+				throw new Exception('Erreur : librarie non définie');
 		}
 		
 		return null;
@@ -311,7 +313,7 @@ class Workbook
 			case self::PHPSPREADSHEET:
 				break;
 			default:
-				throw new Exception('Librarie non définie.');
+				throw new Exception('Erreur : librarie non définie');
 		}
 		return $this;
 	}
@@ -334,15 +336,6 @@ class Workbook
 			
 			default:
 				throw new Exception(sprintf('La librarie "%s" n\'est pas supportée.', $library));
-		}
-	}
-					
-	private function setFirstRow($firstRow)
-	{
-		if (is_int($firstRow)) {
-			$this->firstRow = (int)$firstRow;
-		} else {
-			$this->firstRow = 1;
 		}
 	}
 					
@@ -373,6 +366,36 @@ class Workbook
 				}
 				break;
 		}
+	}
+	
+	private function setDefaultStyle()
+	{
+		if ($this->readOnly === true) {
+			return;
+		}
+		
+		switch ($this->getLibrary()) {
+			case self::SPOUT:
+				$defaultStyle = (new StyleBuilder())
+					->setFontName('Calibri')
+					->setFontSize(11)
+					->build()
+				;
+				$this->writer->setDefaultRowStyle($defaultStyle);
+				break;
+				
+			case self::PHPSPREADSHEET:
+				$this->_workbook->getDefaultStyle()->getFont()
+					->setName('Calibri')
+					->setSize(11)
+				;
+				break;
+				
+			default:
+				throw new Exception('Erreur : librarie non définie');
+				
+		}
+		
 	}
 	
 }

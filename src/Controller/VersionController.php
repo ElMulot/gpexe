@@ -108,7 +108,7 @@ class VersionController extends AbstractController
 					try {
 						$version->setMetadataValue($metadata, $lastVersion->getMetadataValue($metadata));
 					} catch (\Error $e) {
-						$this->addFlash('danger', $e->getMessage());
+						continue;
 					}
 				}
 			}
@@ -150,7 +150,13 @@ class VersionController extends AbstractController
 				try {
 					$version->setMetadataValue($metadata, $value);
 				} catch (\Error $e) {
-					$this->addFlash('danger', $e->getMessage());
+					if ($metadata->getIsMandatory() === true) {
+						$this->addFlash('danger', $e->getMessage());
+						$view = $form->createView();
+						return $this->render('ajax/form.html.twig', [
+							'form' => $view,
+						]);
+					}
 				}
 			}
 			
@@ -247,7 +253,13 @@ class VersionController extends AbstractController
 						try {
 							$version->setMetadataValue($metadata, $value);
 						} catch (\Error $e) {
-							$this->addFlash('danger', $e->getMessage());
+							if ($metadata->getIsMandatory() === true) {
+								$this->addFlash('danger', $e->getMessage());
+								$view = $form->createView();
+								return $this->render('ajax/form.html.twig', [
+									'form' => $view,
+								]);
+							}
 						}
 					}
 				}

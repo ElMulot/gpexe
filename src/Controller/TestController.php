@@ -13,7 +13,6 @@ use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 use Spatie\Regex\Regex;
 use App\Service\Code\Node;
 use App\Helpers\Date;
-use App\Helpers\Date2;
 use Symfony\Component\Validator\Constraints\Count;
 
 class TestController extends AbstractController
@@ -29,7 +28,15 @@ class TestController extends AbstractController
 	public function index(): Response
 	{
 
+		$keyExist = function($array, $key)
+		{
+			return isset($array[$key]);
+		};
 		
+		$a = [
+			"A" => 1,
+			"B" => 2,
+		];
 		
 		
 		$s = new Stopwatch();
@@ -38,26 +45,37 @@ class TestController extends AbstractController
 		
 		for ($i=0; $i<100000; $i++) {
 			$d = null;
-			$d = (new Date("10-01-2020") > new Date("11-01-2020"));
+			$d = isset($a["D"]);
 		}
 		
 		$e = $s->stop('a');
 		dump((string)$d, $e->getDuration());
 		
-		$s = new Stopwatch();
-		
-		$s->start('a');
-		
-		for ($i=0; $i<100000; $i++) {
-			$d = null;
-			$d = (new Date2("10-01-2020") > new Date2("11-01-2020"));
-		}
-		
-		$e = $s->stop('a');
-		dump((string)$d, $e->getDuration());
 
+		$s = new Stopwatch();
+		
+		$s->start('a');
+		
+		for ($i=0; $i<100000; $i++) {
+			$d = null;
+			$d = array_key_exists("D", $a);
+		}
+		
+		$e = $s->stop('a');
+		dump((string)$d, $e->getDuration());
 		
 		
+		$s = new Stopwatch();
+		
+		$s->start('a');
+		
+		for ($i=0; $i<100000; $i++) {
+			$d = null;
+			$d = $a["D"] ?? false;
+		}
+		
+		$e = $s->stop('a');
+		dump((string)$d, $e->getDuration());
 		
 		
 		dd();
@@ -65,9 +83,15 @@ class TestController extends AbstractController
 		
 // 		dump($d->format());
 		
+
+		
 		return new Response();
 		
+
+		
 	}
+	
+
 	
 	private function clearDuplicateDocuments()
 	{

@@ -81,6 +81,7 @@ Is admin: Est admin #
 Edit user: Editer l'utilisateur #
 Delete user: Supprimer l'utilisateur #
 The last entry with Admin rights cannot be deleted: La dernière entrée avec des droits d'administrateur ne peut être supprimée #
+Switch: Basculer
 
 #Codification
 Codification for: Codification pour
@@ -113,6 +114,7 @@ Serie name: Nom de la série
 Manage series: Gestion des séries
 Whole SDR: SDR complet
 Whole MDR: MDR complet
+All documents: Tous les documents
 New serie created: Nouvelle série créée
 Serie updated: Serie mise à jour
 Serie deleted: Serie supprimée
@@ -185,12 +187,14 @@ Visas: Visas
 Visas for: Visas pour
 Revision required: Révision requise #
 
-#Vue
-Vues: Vues
-New vue: Nouvelle vue
-New vue created: Nouvelle vue créée
-Vue updated: Vue mise à jour
-Vue deleted: Vue supprimée
+#View
+Views: Vues
+New view: Nouvelle vue
+New view created: Nouvelle vue créée
+View updated: Vue mise à jour
+View deleted: Vue supprimée
+Export view: Exporter la vue
+Is shared: Partagée
 
 #Programs
 Program: Programme
@@ -210,8 +214,8 @@ Progress: Avancement
 
 #Automations
 Automations: Tâches automatisées
-Route: Adresse
-Parameters: Paramètres
+Command: Commande
+Arguments: Arguments
 Enabled: Activée
 Last run: Dernière exécution
 Next run: Prochaine exécution

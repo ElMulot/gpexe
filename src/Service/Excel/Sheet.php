@@ -60,7 +60,6 @@ class Sheet
 		
 		return $this->row = new Row($this->_rowIterator->current(), $rowAddress, $this);
 	}
-
 }
 
 ?>

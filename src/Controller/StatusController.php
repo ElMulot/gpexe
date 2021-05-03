@@ -123,12 +123,12 @@ class StatusController extends AbstractController
 				'route_back' =>  $this->generateUrl('status', [
 					'project' => $status->getProject()->getId(),
 				]),
-                'entities' => [$status],
-            ]);
-        }
-        
-        
-    }
-    
+				'entities' => [$status],
+			]);
+		}
+		
+		
+	}
+	
 }
 ?>
