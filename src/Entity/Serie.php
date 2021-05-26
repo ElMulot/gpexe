@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Helpers\Date;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -271,24 +272,36 @@ class Serie
 	public function setMetadataValue(Metadata $metadata, $value): self
 	{
 		
-		if ($value == '') {
-			if ($metadata->getIsMandatory() === true) {
-				throw new \Error(sprintf('Erreur: la valeur "%s" ne peut être vide.', $metadata->getCodename()));
-			} else {
-				return $this;
-			}
+		switch ($metadata->getType()) {
+		    case Metadata::BOOLEAN:
+		        $value = ($value)?true:false;
+		        break;
+		    case Metadata::DATE:
+		        if (is_string($value)) {
+		            $date = Date::fromFormat($value);
+		            if ($date->isValid() === false) {
+		                $value = null;
+		            }
+		        } elseif ($value instanceof \DateTimeInterface) {
+		            $value = $value->format('d-m-Y');
+		        } else {
+		            $value = null;
+		        }
+		        break;
+		    default:
+		        if ($value === '') {
+		            $value = null;
+		        }
 		}
 		
-		switch ($metadata->getType()) {
-			case Metadata::BOOLEAN:
-				$value = ($value)?true:false;
-				break;
-			case Metadata::DATE:
-				if ($value instanceof \DateTimeInterface) {
-					$value = $value->format('d-m-Y');
-				}
-				break;
+		if ($value === null) {
+		    if ($metadata->getIsMandatory() === true) {
+		        throw new \Error(sprintf('Erreur: la valeur "%s" ne peut être vide', $metadata->getCodename()));
+		    } else {
+		        return $this;
+		    }
 		}
+		
 		
 		switch ($metadata->getType()) {
 			
@@ -343,7 +356,7 @@ class Serie
 				break;
 		}
 		
-		throw new \Error(sprintf('Erreur en écrivant la valeur "%s" dans le champ "%s".', $value, $metadata->getCodename()));
+		throw new \Error(sprintf('Erreur en écrivant la valeur "%s" dans le champ "%s"', $value, $metadata->getCodename()));
 	}
 	
 	public function getPropertyValue(string $codename)
@@ -384,7 +397,7 @@ class Serie
 				}
 		}
 		
-		throw new \Error(sprintf('Erreur en écrivant la valeur "%s" dans le champ "%s".', $value, $codename));
+		throw new \Error(sprintf('Erreur en écrivant la valeur "%s" dans le champ "%s"', $value, $codename));
 	}
 	
 	public function __toString(): string

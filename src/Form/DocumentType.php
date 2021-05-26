@@ -75,7 +75,6 @@ class DocumentType extends AbstractType
 		if (count($documents) == 1) {
 			$this->builder->add('name', TextType::class, [
 				'data' => reset($documents)->getName(),
-				'constraints' 	=> [new NotBlank()],
 			]);
 		}
 		
@@ -122,7 +121,7 @@ class DocumentType extends AbstractType
 	
 	private function buildField(string $label, string $id, string $codename, int $type, $documents=[], $options=[])
 	{
-		if ($options['required'] ?? true === true && $type !== Codification::REGEX) {
+	    if (($options['required'] ?? true) === true && $type !== Metadata::BOOLEAN && $type != Codification::REGEX) {
 			$options['constraints'] = [new NotBlank()];
 		}
 		
@@ -131,6 +130,10 @@ class DocumentType extends AbstractType
 		
 		if (count($documents) > 1) {
 			$multiple = $this->checkMultiple($documents, $codename);
+		}
+		
+		if ($multiple === true) {
+		    $options['constraints'] = [];
 		}
 		
 		$document = reset($documents) ?? null;

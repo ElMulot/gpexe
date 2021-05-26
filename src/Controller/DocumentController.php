@@ -330,7 +330,7 @@ class DocumentController extends AbstractController
 					'form' => $view,
 				]);
 			}
-						
+			
 			foreach ($this->metadataRepository->getMetadatasForDocument($project) as $metadata) {
 				$value = $form->get($metadata->getFullId())->getData();
 				
@@ -343,7 +343,7 @@ class DocumentController extends AbstractController
 				}
 				
 				try {
-					$document->setMetadataValue($metadata, $value);
+				    $document->setMetadataValue($metadata, $value);
 				} catch (\Error $e) {
 					$this->addFlash('danger', $e->getMessage());
 				}

@@ -241,7 +241,6 @@ class VersionController extends AbstractController
 					if ($this->isMultiple($form, $metadata->getFullId()) == false) {
 						
 						$value = $form->get($metadata->getFullId())->getData();
-						
 						if ($value === null && $metadata->getIsMandatory()) {
 							$this->addFlash('danger', $this->translator->trans('notEmpty.field', ['field' => $metadata->getName()]));
 							$view = $form->createView();

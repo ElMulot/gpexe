@@ -129,19 +129,25 @@ class Metadata
 
 	public function getIsMandatory(): ?bool
 	{
-		return $this->isMandatory;
+	    switch ($this->type) {
+	        case self::BOOLEAN:
+	            return true;
+	        default:
+	            return $this->isMandatory;
+	    }
+	    
 	}
 
 	public function setIsMandatory(bool $isMandatory): self
 	{
 		switch ($this->type) {
 			case self::BOOLEAN:
-				$isMandatory = true;
+			    $this->isMandatory = false;
 				break;
+			default:
+			    $this->isMandatory = $isMandatory;
 		}
 		
-		$this->isMandatory = $isMandatory;
-
 		return $this;
 	}
 	

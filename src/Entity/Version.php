@@ -366,14 +366,6 @@ class Version
 	public function setMetadataValue(Metadata $metadata, $value): self
 	{
 		
-		if ($value == '') {
-			if ($metadata->getIsMandatory() === true) {
-				throw new \Error(sprintf('Erreur: la valeur "%s" ne peut être vide.', $metadata->getCodename()));
-			} else {
-				return $this;
-			}
-		}
-		
 		switch ($metadata->getType()) {
 			case Metadata::BOOLEAN:
 				$value = ($value)?true:false;
@@ -382,14 +374,26 @@ class Version
 				if (is_string($value)) {
 					$date = Date::fromFormat($value);
 					if ($date->isValid() === false) {
-						$value = '';
+						$value = null;
 					}
 				} elseif ($value instanceof \DateTimeInterface) {
 					$value = $value->format('d-m-Y');
 				} else {
-					$value = '';
+					$value = null;
 				}
 				break;
+			default:
+			    if ($value === '') {
+			        $value = null;
+			    }
+		}
+
+		if ($value === null) {
+		    if ($metadata->getIsMandatory() === true) {
+		        throw new \Error(sprintf('Erreur: la valeur "%s" ne peut être vide', $metadata->getCodename()));
+		    } else {
+		        return $this;
+		    }
 		}
 		
 		switch ($metadata->getType()) {
@@ -448,7 +452,7 @@ class Version
 		if ($metadata->getType() === Metadata::BOOLEAN) {
 			return $this;
 		}
-		throw new \Error(sprintf('Erreur en écrivant la valeur "%s" dans le champ "%s".', $value, $metadata->getCodename()));
+		throw new \Error(sprintf('Erreur en écrivant la valeur "%s" dans le champ "%s"', $value, $metadata->getCodename()));
 	}
 	
 	public function getPropertyValue(string $codename)
@@ -594,7 +598,7 @@ class Version
 				if ($value) {
 					foreach ($this->document->getVersions()->getValues() as $version) {
 						if ($version->getName() == $value && $version !== $this) {
-							throw new \Error(sprintf('Erreur: le nom de révision "%s" existe déjà.', $value));
+							throw new \Error(sprintf('Erreur: le nom de révision "%s" existe déjà', $value));
 						}
 					}
 					$this->setName($value);
@@ -789,7 +793,7 @@ class Version
 				}
 		}
 		
-		throw new \Error(sprintf('Erreur en écrivant la valeur "%s" dans le champ "%s".', $value, $codename));
+		throw new \Error(sprintf('Erreur en écrivant la valeur "%s" dans le champ "%s"', $value, $codename));
 	}
 	
 	public function __toString(): string

@@ -55,7 +55,6 @@ class VersionType extends AbstractType
 			$this->builder->add('name', TextType::class, [
 				'label' 		=> 'Version',
 				'data' 			=> reset($versions)->getName(),
-				'constraints' 	=> [new NotBlank()],
 			]);
 		}
 		
@@ -126,8 +125,8 @@ class VersionType extends AbstractType
 	
 	private function buildField(string $label, string $id, string $codename, int $type, array $versions=null, $options=[])
 	{
-		
-		if ($options['required'] ?? true === true) {
+	   	
+	    if (($options['required'] ?? true) === true && $type != Metadata::BOOLEAN) {
 			$options['constraints'] = [new NotBlank()];
 		}
 		
@@ -135,6 +134,10 @@ class VersionType extends AbstractType
 		
 		if (count($versions) > 1) {
 			$multiple = $this->checkMultiple($versions, $codename);
+		}
+		
+		if ($multiple === true) {
+		    $options['constraints'] = [];
 		}
 		
 		$version = reset($versions) ?? null;

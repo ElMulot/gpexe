@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Helpers\Date;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Spatie\Regex\Regex;
@@ -460,15 +461,7 @@ class Document
 	
 	public function setMetadataValue(Metadata $metadata, $value): self
 	{
-		
-		if ($value == '') {
-			if ($metadata->getIsMandatory() === true) {
-				throw new \Error(sprintf('Erreur: la valeur "%s" ne peut être vide.', $metadata->getCodename()));
-			} else {
-				return $this;
-			}
-		}
-		
+	    
 		if ($value instanceof MetadataItem || $value instanceof MetadataValue) {
 			$value = $value->__toString();
 		}
@@ -478,10 +471,29 @@ class Document
 				$value = ($value)?true:false;
 				break;
 			case Metadata::DATE:
-				if ($value instanceof \DateTimeInterface) {
-					$value = $value->format('d-m-Y');
+				if (is_string($value)) {
+				    $date = Date::fromFormat($value);
+				    if ($date->isValid() === false) {
+				        $value = null;
+				    }
+				} elseif ($value instanceof \DateTimeInterface) {
+				    $value = $value->format('d-m-Y');
+				} else {
+				    $value = null;
 				}
 				break;
+			default:
+			    if ($value === '') {
+			        $value = null;
+			    }
+		}
+
+		if ($value === null) {
+		    if ($metadata->getIsMandatory() === true) {
+		        throw new \Error(sprintf('Erreur: la valeur "%s" ne peut être vide', $metadata->getCodename()));
+		    } else {
+		        return $this;
+		    }
 		}
 		
 		switch ($metadata->getType()) {
@@ -536,7 +548,7 @@ class Document
 				break;
 		}
 		
-		throw new \Error(sprintf('Erreur en écrivant la valeur "%s" dans le champ "%s".', $value, $metadata->getCodename()));
+		throw new \Error(sprintf('Erreur en écrivant la valeur "%s" dans le champ "%s"', $value, $metadata->getCodename()));
 	}
 	
 	public function getPropertyValue(string $codename)
@@ -614,7 +626,7 @@ class Document
 				}
 		}
 		
-		throw new \Error(sprintf('Erreur en écrivant la valeur "%s" dans le champ "%s".', $value, $codename));
+		throw new \Error(sprintf('Erreur en écrivant la valeur "%s" dans le champ "%s"', $value, $codename));
 	}
 	
 	public function getLastVersion(): ?Version
