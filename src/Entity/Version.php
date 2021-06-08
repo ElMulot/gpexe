@@ -156,9 +156,6 @@ class Version
 	
 	public function setDeliveryDate(?\DateTimeInterface $deliveryDate): self
 	{
-		if ($this->initialScheduledDate === null) {
-			$this->initialScheduledDate = $deliveryDate;
-		}
 		if ($deliveryDate !== null) {
 			$this->deliveryDate = $deliveryDate;
 		}
@@ -168,12 +165,12 @@ class Version
 	
 	public function getDate(): ?\DateTimeInterface
 	{
-		return ($this->isRequired)?$this->scheduledDate:$this->deliveryDate;
+		return ($this->isRequired === true)?$this->scheduledDate:$this->deliveryDate;
 	}
 	
 	public function setDate(?\DateTimeInterface $date): self
 	{
-		if ($this->getIsRequired()) {
+	    if ($this->isRequired === true) {
 			$this->setScheduledDate($date);
 		} else {
 			$this->setDeliveryDate($date);
@@ -610,14 +607,14 @@ class Version
 			
 			case 'version.date':
 				if ($value instanceof \DateTimeInterface) {
-					if ($value > new Date('now')) {
+					if ($value > new Date('today')) {
 						$this->isRequired = true;
 					}
 					$this->setDate($value);
 					return $this;
 				} elseif (($date = Date::fromFormat($value, 'd-m-Y'))->isValid() === true) {
-					if ($date > new Date('now')) {
-						$this->isRequired = true;
+					if ($date > new Date('today')) {
+					    $this->isRequired = true;
 					}
 					$this->setDate($date);
 					return $this;
@@ -754,7 +751,7 @@ class Version
 												}
 											}
 											
-											$review->setDate(new Date('now'));
+											$review->setDate(new Date('today'));
 											$review->setVisa($visa);
 											$this->addReview($review);
 											return $this;

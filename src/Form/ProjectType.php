@@ -3,9 +3,11 @@
 namespace App\Form;
 
 use App\Entity\Project;
+use App\Entity\User;
 
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -36,7 +38,12 @@ class ProjectType extends AbstractType
 			->add('checkDangerLimit', IntegerType::class, [
 				'help' => 'Number of working days delay before showing the line in red in the dashboard and in the documents list for documents to be checked.'
 			])
-			->add('users')
+			->add('users', EntityType::class, [
+			    'class' => User::class,
+			    'choice_label' => 'name',
+			    'multiple' => true,
+			    'expanded' => false,
+			])
 		;
 	}
 

@@ -44,11 +44,11 @@ class Workbook
 	private $writer;
 	
 // 	---------------------------------------------------------------------------
-// 	Method	|	  Library	 | Reader  | Writer
+// 	Method	|	  Library	   | Reader  | Writer
 // 	---------------------------------------------------------------------------
-// 	New	 	| Spout			| Defined | Defined
+// 	New	 	| Spout			   | Defined | Defined
 // 	New		| PhpSpreadsheet   | n/a	 | Defined
-// 	Open	| Spout			| Defined | Defined (if readOnly !== false)
+// 	Open	| Spout			   | Defined | Defined (if readOnly !== false)
 // 	Open	| PhpSpreadsheet   | Defined | Defined (if readOnly !== false)
 // 	---------------------------------------------------------------------------
 	

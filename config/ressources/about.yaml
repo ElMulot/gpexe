@@ -40,6 +40,7 @@
         - Ajout du calcul des avancements
         - Ajout du module Automatisations
         - Accélération de l'affichage du tableau principal
+        - Migration sous Symfony 5.1
         - Passage au nouveau système d'authentification Symfony 5.1
         - Correction de bugs
 - 
@@ -73,6 +74,7 @@
     changes:
         - Refonte de la vue principale
         - Modification de la façon dont est gérée le surlignage des lignes par date
+        - Migration sous Symfony 5.2
         - Correction de bugs
 - 
     version: 0.5.0
@@ -95,4 +97,18 @@
         - Modification de la structure des programmes exports
         - Cron enfin fonctionnel et remplacement des automatisations par des commandes Symfony
         - Ajout de boutons d'imitation (impersonation) dans la liste des utilisateurs
+        - Correction de bugs
+- 
+    version: 0.5.2
+    date: 30/05/2021
+    changes:
+        - Amélioration mineure de la présentation des formulaires
+        - Dans la page d'accueil, les liens vers les séries dont certains documents sont en retard de visas n'affichent désormais que les documents non visés
+        - Correction de bugs
+        - Ajout de quelques traductions complémentaires
+- 
+    version: 0.5.3
+    date: 10/06/2021
+    changes:
+        - Migration sous Symfony 5.3
         - Correction de bugs

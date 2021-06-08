@@ -1,8 +1,13 @@
 {% extends 'base.html.twig' %}
 
+{% block stylesheets %}
+	{{ parent() }}
+	{{ encore_entry_link_tags('form') }}
+{% endblock %}
+
 {% block body %}
-	<div class="d-flex justify-content-center p-5">
-		<div class="jumbotron col-7">
+	<div class="d-flex justify-content-center p-5 h-100">
+		<div class="jumbotron col-7 h-100 d-flex flex-column">
 			{% for label, messages in app.flashes %}
 				{% for message in messages %}
 					<div class="row justify-content-center">
@@ -10,10 +15,13 @@
 					</div>
 				{% endfor %}
 			{% endfor %}
-			{{ form(form) }}
+			
+			<div class="col overflow-auto">
+				{{ block('form') }}
+			</div>
 			
 			{% if route_back is defined %}
-				<div class="row mt-5">
+				<div class="d-flex mt-5">
 					<div class="col-6 text-right">
 						<a class="btn-secondary btn w-75" href="{{ route_back }}">{% trans %}Cancel{% endtrans %}</a>
 					</div>
@@ -31,4 +39,8 @@
 			
 		</div>
 	</div>
+{% endblock %}
+
+{% block form %}
+	{{ form(form) }}
 {% endblock %}

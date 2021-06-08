@@ -28,55 +28,14 @@ class TestController extends AbstractController
 	public function index(): Response
 	{
 
-		$keyExist = function($array, $key)
-		{
-			return isset($array[$key]);
-		};
-		
-		$a = [
-			"A" => 1,
-			"B" => 2,
-		];
-		
-		
-		$s = new Stopwatch();
-		
-		$s->start('a');
-		
-		for ($i=0; $i<100000; $i++) {
-			$d = null;
-			$d = isset($a["D"]);
-		}
-		
-		$e = $s->stop('a');
-		dump((string)$d, $e->getDuration());
-		
-
-		$s = new Stopwatch();
-		
-		$s->start('a');
-		
-		for ($i=0; $i<100000; $i++) {
-			$d = null;
-			$d = array_key_exists("D", $a);
-		}
-		
-		$e = $s->stop('a');
-		dump((string)$d, $e->getDuration());
-		
-		
-		$s = new Stopwatch();
-		
-		$s->start('a');
-		
-		for ($i=0; $i<100000; $i++) {
-			$d = null;
-			$d = $a["D"] ?? false;
-		}
-		
-		$e = $s->stop('a');
-		dump((string)$d, $e->getDuration());
-		
+	    $a = new Date('today');
+	    
+	    dump($a);
+	    
+	    $a->add('P1D');
+	    
+	    dump($a);
+	    		
 		
 		dd();
 

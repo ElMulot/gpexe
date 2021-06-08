@@ -67,8 +67,8 @@ class HomeController extends AbstractController
 				'version_first_scheduled' => 1,
 			],
 			'highlight' => 'version_date',
+		    'sortAsc' => 'version_date',
 			'results_per_page' => 50,
-			'sortAsc' => 'version_date',
 			'page' => 1,
 		];
 		
@@ -88,9 +88,10 @@ class HomeController extends AbstractController
 					'status_value' => $this->statusRepository->getNonCancelledStatuses($project),
 					'version_checker' => [$this->getUser()->getId()],
 					'version_last_delivered' => 1,
+				    'visa_' . $company->getId() => [0],
 				],
-				'results_per_page' => 50,
-				'sortAsc' => 'visa_' . $company->getId(),
+			    'sortAsc' => 'version_date',
+			    'results_per_page' => 50,
 				'page' => 1,
 			];
 		} else {

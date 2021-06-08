@@ -29,6 +29,7 @@ Encore
     .addEntry('dashboard', './assets/js/dashboard.js')
     
     .addStyleEntry('login', './assets/css/login.scss')
+	.addStyleEntry('form', './assets/css/form.scss')
     .addStyleEntry('project', './assets/css/project.scss')
 
     // When enabled, Webpack "splits" your files into smaller pieces for greater optimization.

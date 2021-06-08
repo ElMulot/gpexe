@@ -604,6 +604,10 @@ $(document).ready(function() {
 	$.fn.datepicker.defaults.todayHighlight = true;
 	$.fn.datepicker.defaults.zIndexOffset = sassVariables.zindexTooltip;
 	
+	//---------------------
+	// Defaults methods for ajax
+	//---------------------
+	
 	$(document).on('ajax.beforeSend', function(e, jqXHR, settings) {
 		$(e.target)
 			.show()

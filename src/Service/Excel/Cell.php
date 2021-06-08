@@ -42,7 +42,8 @@ class Cell
 	
 	public function getValue()
 	{
-		switch ($this->row->getSheet()->getWorkbook()->getLibrary()) {
+		
+	    switch ($this->row->getSheet()->getWorkbook()->getLibrary()) {
 			case Workbook::SPOUT:
 				if ($this->_cell->getValue() instanceof \DateTimeInterface) {
 					$dateFormat = $this->row->getSheet()->getWorkbook()->getDateFormatInput();
@@ -55,6 +56,7 @@ class Cell
 			default:
 				throw new Exception('Library not defined.');
 		}
+		
 	}
 	
 	public function setValue($value): self
@@ -213,7 +215,7 @@ class Cell
 					->getStyle($this->getAddress())
 					->getBorders()
 					->getAllBorders()
-					->setBorderStyle(Border::WIDTH_THIN)
+					->setBorderStyle(Border::BORDER_THIN)
 					->getColor()
 					->setARGB($color)
 				;

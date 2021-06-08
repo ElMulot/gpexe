@@ -12,8 +12,8 @@
 			<div class="col-4">
 				{{ version.date|date('d-m-Y') }}
 				{% if version.isRequired and version.scheduledDate %}
-					{% if version.scheduledDate < date('now') %}
-						<span> ({{ 'delay'|trans({'count': version.scheduledDate.diff(date('now')).days}) }})</span>
+					{% if version.scheduledDate < date('today') %}
+						<span> ({{ 'delay'|trans({'count': version.scheduledDate.diff(date('today')).days}) }})</span>
 					   {% endif %}
 				{% endif %}
 			</div>

@@ -23,17 +23,17 @@ Name: Nom
 List: Liste
 Empty list: Liste vide
 Various: Multiple
-New entry created: Nouvelle entrée créée #
-Datas updated: Informations mises à jour #
+New entry created: Nouvelle entrée créée
+Datas updated: Informations mises à jour
 Confirm deletion: Confirmer la suppression
 
 #Control access
-Connection: Connexion #
+Connection: Connexion
 User Name: Nom d'utilisateur
 Password: Mot de passe
 Email: Email
-Locale: Langue #
-Activated: Activé #
+Locale: Langue
+Activated: Activé
 Remember me: Se souvenir de moi
 Logout successful: Vous êtes déconnecté
 Invalid credentials. : Identifiants invalides
@@ -51,44 +51,45 @@ Log: Journal
 Wiki: Wiki
 Report bug: Signaler un bug
 About: A propos
+Exit impersonation: Sortir de l'impersonation
 Logout: Se déconnecter
 
 #Account
 Last connected: Dernière connexion
 Edit account properties: Editer les propriétés du compte
 Change password: Changer le mot de passe
-Current password: Mot de passe actuel #
-New password: Nouveau mot de passe #
-Confirm new password: Confirmation du nouveau mot de passe #
-Password changed: Mot de passe changé #
+Current password: Mot de passe actuel
+New password: Nouveau mot de passe
+Confirm new password: Confirmation du nouveau mot de passe
+Password changed: Mot de passe changé
 
 #Company
 Type: Type
-Priority: Priorité #
-Main contractor: Entrepreneur principal #
-Sub-contractor: Sous-traitant #
+Priority: Priorité
+Main contractor: Entrepreneur principal
+Sub-contractor: Sous-traitant
 Supplier: Fournisseur
 
 #Profil
 Profils: Profils
-Edit progress rules: Editer les règles d'avancement #
-Edit references: Editer les réferences #
-Edit metadatas: Editer les metadonnées #
-Edit visas: Editer les visas #
-Is admin: Est admin #
+Edit progress rules: Editer les règles d'avancement
+Edit references: Editer les réferences
+Edit metadatas: Editer les metadonnées
+Edit visas: Editer les visas
+Is admin: Est admin
 
 #User
-Edit user: Editer l'utilisateur #
-Delete user: Supprimer l'utilisateur #
-The last entry with Admin rights cannot be deleted: La dernière entrée avec des droits d'administrateur ne peut être supprimée #
+Edit user: Editer l'utilisateur
+Delete user: Supprimer l'utilisateur
+The last entry with Admin rights cannot be deleted: La dernière entrée avec des droits d'administrateur ne peut être supprimée
 Switch: Basculer
 
 #Codification
 Codification for: Codification pour
 Codification: Codification
-Value: Valeur #
-Is list: Est une liste #
-Is mandatory: Est obligatoire #
+Value: Valeur
+Is list: Est une liste
+Is mandatory: Est obligatoire
 List for the code: Liste pour le code
 
 #Metadata
@@ -97,11 +98,25 @@ Metadatas for: Metadonnées pour
 List for the metadata: Liste pour la metadonnée
 
 #Project
-Projects: Projets #
+Projects: Projets
 New project: Nouveau projet
 Edit project: Editer le projet
-Separator: Séparateur #
-Users: Utilisateurs #
+Main: Principal
+Warning limits: Limites sur les alertes
+Miscellaneous: Divers
+Splitter: Séparateur
+Character used as separation between each item of the document codification.: Caractère utilisé en séparation de chaque élément de codification.
+Prod warning limit: Seuil d'alerte mineure en production
+Number of working days delay before showing the line in orange in the dashboard and in the documents list for documents to be produced.: Nombre de jours ouvrés de retard avant d'afficher la ligne en orange sur le panneau d'accueil et dans la liste des documents pour les documents qui sont à produire.
+Prod danger limit: Seuil d'alerte majeure en production
+Number of working days delay before showing the line in red in the dashboard and in the documents list for documents to be produced.: Nombre de jours ouvrés de retard avant d'afficher la ligne en rouge sur le panneau d'accueil et dans la liste des documents pour les documents qui sont à produire.
+Check warning limit: Seuil d'alerte mineure en vérification
+Number of working days delay before showing the line in orange in the dashboard and in the documents list for documents to be checked.: Nombre de jours ouvrés de retard avant d'afficher la ligne en orange sur le panneau d'accueil et dans la liste des documents pour les documents qui sont à vérifier.
+Check danger limit: Seuil d'alerte majeure en vérification
+Number of working days delay before showing the line in red in the dashboard and in the documents list for documents to be checked.: Nombre de jours ouvrés de retard avant d'afficher la ligne en rouge sur le panneau d'accueil et dans la liste des documents pour les documents qui sont à vérifier.
+New version time: Délai pour une nouvelle révision
+Number of working days allowed to produce a new revision of a document.: Nombre de jours ouvrés autorisés pour produire une nouvelle révision d'un document.
+Users: Utilisateurs
 Project admin: Administration du projet
 Main contractors: Entrepreneurs principaux
 Companies: Entreprises
@@ -185,7 +200,7 @@ No visa yet: Pas encore de visa
 Visa: Visa
 Visas: Visas
 Visas for: Visas pour
-Revision required: Révision requise #
+Revision required: Révision requise
 
 #View
 Views: Vues

@@ -1959,8 +1959,23 @@ $(document).ready(function() {
 					td.text(value);
 					
 					if (header.permissions.write) {
-						td.on('dblclick', function() {
-							global.ajax.set(this, window.location.href.match(/(.+)\/project/)[1] + '/project/serie/document/version/' + data['version_id'] + '/quick_edit/' + header.id);
+						td.on('dblclick', function(e) {
+							if ($(this).find('form, div.spinner-border').exist() === false) {
+								global.ajax.set(this, window.location.href.match(/(.+)\/project/)[1] + '/project/serie/document/version/' + data['version_id'] + '/quick_edit/' + header.id);
+							}
+						});
+						
+						td.on('ajax.beforeSend', function(e, jqXHR, settings) {
+							$(e.target)
+								.show()
+								.empty()
+								.append('<div class="d-flex justify-content-center">' +
+									'<div class="spinner-border" role="status">' +
+										'<span class="sr-only">' + $.i18n('loading') + '</span>' +
+									'</div>' +
+								'</div>')
+							;
+							e.stopPropagation();
 						});
 						
 						td.on('ajax.completed', function(e, result, textStatus, jqXHR) {
@@ -1975,7 +1990,7 @@ $(document).ready(function() {
 								});
 								
 								$('body').on('click', function(e) {
-									if ($form.is(e.target) === false && $form.has(e.target).exist() === false) {
+									if ($form.is(':visible') === true && $form.is(e.target) === false && $form.has(e.target).exist() === false) {
 										$form.trigger('submit');
 									}
 								});

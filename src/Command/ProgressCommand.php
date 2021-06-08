@@ -57,7 +57,9 @@ class ProgressCommand extends Command
 	
 	protected function execute(InputInterface $input, OutputInterface $output): int
 	{
+        
 		set_time_limit(180);
+        
 		$automation = $this->automationRepository->getAutomationByCommandAndByArguments('app:progress', ['id' => $input->getArgument('id')]);
 		$program = $this->programRepository->getProgramById($input->getArgument('id'));
 		
@@ -90,9 +92,10 @@ class ProgressCommand extends Command
 			
 			$automation->setLastRun(new Date('today'));
 			$nextRun = new Date($automation->getNextRun()->format('d-m-Y'));
-			while ($nextRun < (new Date('now'))->add('P' . $program->getParsedCode('frequency') . 'D')) {
-				$automation->setNextRun($nextRun->add('P' . $program->getParsedCode('frequency') . 'D'));
+			while ($nextRun < new Date('now')) {
+			    $nextRun->add('P' . $program->getParsedCode('frequency') . 'D');
 			}
+			$automation->setNextRun($nextRun);
 			$this->entityManager->persist($automation);
 			$this->entityManager->flush();
 			$this->session->getFlashBag()->clear();

@@ -339,7 +339,7 @@ class ProgramService
 	
 	public function import(Program $program)
 	{
-// 		set_time_limit(500);
+		set_time_limit(500);
 		$this->stopWatch->start('import');
 		
 		//cache
@@ -547,7 +547,8 @@ class ProgramService
 			
 			
 			if ($currentVersion->getName() == false || $currentVersion->getDate() == false) {
-				$this->addComment('error', 'Les champs "version.name" et "version.date" sont obligatoires.');
+			    dd($currentVersion->getName(), $currentVersion->getDate());
+			    $this->addComment('error', 'Les champs "version.name" et "version.date" sont obligatoires.');
 				$this->addComment('error', 'Ligne exclue : création de la version annulée.');
 				$currentDocument->removeVersion($currentVersion);
 				$currentVersion = null;

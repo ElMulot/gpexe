@@ -70,7 +70,10 @@ class FieldService
 	
 	public function getFields($project): array
 	{
-		$fields = [
+		
+	    $permissionWrite = ($this->security->getUser() !== null && ($this->security->isGranted('ROLE_EDIT_DOCUMENTS') && $project->hasUser($this->security->getUser())) || $this->security->isGranted('ROLE_ADMIN'));
+	    
+	    $fields = [
 			'document.reference' => [
 				'id' =>'document_reference',
 				'codename' => 'document.reference',
@@ -104,7 +107,7 @@ class FieldService
 				],
 				'permissions' => [
 					'read' => true,
-					'write' => true,
+					'write' => $permissionWrite,
 				],
 			],
 			'document.name' => [
@@ -122,7 +125,7 @@ class FieldService
 				],
 				'permissions' => [
 					'read' => true,
-					'write' => true,
+					'write' => $permissionWrite,
 				],
 			],
 			'version.initialScheduledDate' => [
@@ -194,7 +197,7 @@ class FieldService
 				],
 				'permissions' => [
 					'read' => true,
-					'write' => true,
+					'write' => $permissionWrite,
 				],
 			],
 			'version.isRequired' => [
@@ -212,7 +215,7 @@ class FieldService
 				],
 				'permissions' => [
 					'read' => true,
-					'write' => true,
+					'write' => $permissionWrite,
 				],
 			],
 			'version.writer' => [
@@ -230,7 +233,7 @@ class FieldService
 				],
 				'permissions' => [
 					'read' => true,
-					'write' => true,
+					'write' => $permissionWrite,
 				],
 			],
 			'version.checker' => [
@@ -248,7 +251,7 @@ class FieldService
 				],
 				'permissions' => [
 					'read' => true,
-					'write' => true,
+					'write' => $permissionWrite,
 				],
 			],
 			'version.approver' => [
@@ -266,7 +269,7 @@ class FieldService
 				],
 				'permissions' => [
 					'read' => true,
-					'write' => true,
+					'write' => $permissionWrite,
 				],
 			],
 			'serie.name' => [
@@ -320,7 +323,7 @@ class FieldService
 				],
 				'permissions' => [
 					'read' => true,
-					'write' => true,
+					'write' => $permissionWrite,
 				],
 			],
 			'status.type' => [
@@ -398,7 +401,7 @@ class FieldService
 				],
 				'permissions' => [
 					'read' => true,
-					'write' => true,
+					'write' => $permissionWrite,
 				],
 			];
 		}
@@ -439,7 +442,7 @@ class FieldService
 					],
 					'permissions' => [
 						'read' => true,
-						'write' => ($this->security->getUser() !== null && $this->security->getUser()->getCompany() == $company || ($this->security->isGranted('ROLE_CONTROLLER') && $project->hasUser($this->security->getUser())) || $this->security->isGranted('ROLE_ADMIN')),
+						'write' => ($this->security->getUser() !== null && ($this->security->isGranted('ROLE_CONTROLLER') && $project->hasUser($this->security->getUser())) || $this->security->isGranted('ROLE_ADMIN')),
 					],
 				];
 				
@@ -458,7 +461,7 @@ class FieldService
 					],
 					'permissions' => [
 						'read' => true,
-						'write' => ($this->security->getUser() !== null && $this->security->getUser()->getCompany() == $company || ($this->security->isGranted('ROLE_CONTROLLER') && $project->hasUser($this->security->getUser())) || $this->security->isGranted('ROLE_ADMIN')),
+						'write' => ($this->security->getUser() !== null && ($this->security->isGranted('ROLE_CONTROLLER') && $project->hasUser($this->security->getUser())) || $this->security->isGranted('ROLE_ADMIN')),
 					],
 				];
 			}
