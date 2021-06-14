@@ -6,7 +6,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Contracts\Translation\TranslatorInterface;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use App\Entity\User;
 use App\Form\NewUserType;
 use App\Form\EditUserType;
@@ -17,12 +17,12 @@ class UserController extends AbstractController
 	
 	private $translator;
 	
-	private $passwordEncoder;
+	private $passwordHasher;
 	
-	public function __construct(TranslatorInterface $translator, UserPasswordEncoderInterface $passwordEncoder)
+	public function __construct(TranslatorInterface $translator, UserPasswordHasherInterface $passwordHasher)
 	{
 		$this->translator = $translator;
-		$this->passwordEncoder = $passwordEncoder;
+		$this->passwordHasher = $passwordHasher;
 	}
 	
 	public function index(UserRepository $userRepository): Response
@@ -42,7 +42,7 @@ class UserController extends AbstractController
 		$form->handleRequest($request);
 		
 		if ($form->isSubmitted() && $form->isValid()) {
-			$user->setPassword($this->passwordEncoder->encodePassword($user, $user->getPassword()));
+			$user->setPassword($this->passwordHasher->hashPassword($user, $user->getPassword()));
 			$entityManager = $this->getDoctrine()->getManager();
 			$entityManager->persist($user);
 			$entityManager->flush();
@@ -65,7 +65,7 @@ class UserController extends AbstractController
 		
 		if ($form->isSubmitted() && $form->isValid()) {
 			if (!empty($form->get('new_password')->getData())) {
-				$user->setPassword($this->passwordEncoder->encodePassword($user, $form->get('new_password')->getData()));
+				$user->setPassword($this->passwordHasher->hashPassword($user, $form->get('new_password')->getData()));
 			}
 			$entityManager = $this->getDoctrine()->getManager();
 			$entityManager->flush();

@@ -5,8 +5,8 @@
 # https://symfony.com/doc/current/best_practices/configuration.html#application-related-configuration
 parameters:
     app_webmaster: 'Nicolas VEDEL'
-    app_version: 0.5.2
-    app_date: 30-05-2021
+    app_version: 0.5.3
+    app_date: 10-06-2021
     disable_log: true
     uploads_directory: 'uploads'
     container.dumper.inline_factories: true
@@ -29,9 +29,9 @@ services:
 
     # controllers are imported separately to make sure services can be injected
     # as action arguments even if you don't extend any base controller class
-    App\Controller\:
-        resource: '../src/Controller/'
-        tags: ['controller.service_arguments']
+#    App\Controller\:
+#        resource: '../src/Controller/'
+#        tags: ['controller.service_arguments']
 
     App\EventListener\LogListener:
         arguments:

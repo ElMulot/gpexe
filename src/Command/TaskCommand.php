@@ -2,17 +2,14 @@
 
 namespace App\Command;
 
-use App\Repository\AutomationRepository;
 use App\Repository\ProgramRepository;
-use App\Repository\ProgressRepository;
-use App\Repository\SerieRepository;
 use App\Service\ProgramService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\HttpFoundation\Session\SessionInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 class TaskCommand extends Command
 {
@@ -24,10 +21,10 @@ class TaskCommand extends Command
 	
 	protected static $defaultName = 'app:task';
 	
-	public function __construct(EntityManagerInterface $entityManager, SessionInterface $session, ProgramRepository $programRepository, ProgramService $programService)
+	public function __construct(EntityManagerInterface $entityManager, RequestStack $requestStack, ProgramRepository $programRepository, ProgramService $programService)
 	{
 		$this->entityManager = $entityManager;
-		$this->session = $session;
+		$this->flashBag = $requestStack->getSession()->getFlashBag();
 		$this->programRepository = $programRepository;
 		$this->programService = $programService;
 		
@@ -55,9 +52,9 @@ class TaskCommand extends Command
 			$this->programService->load($program);
 			$this->programService->task($program);
 			$this->entityManager->flush();
-			$this->session->getFlashBag()->clear();
+			$this->flashBag->clear();
 		} catch (\Exception $e) {
-			$this->session->getFlashBag()->clear();
+			$this->flashBag->clear();
 			return Command::FAILURE;
 		}
 		

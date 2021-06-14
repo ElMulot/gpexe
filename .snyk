@@ -1,0 +1,48 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.19.0
+# ignores vulnerabilities until expiry date; change duration by modifying expiry date
+ignore:
+  SNYK-JS-ANGULAR-534884:
+    - '@whsmith/infrastructure > angular':
+        reason: None given
+        expires: '2021-07-13T10:10:06.475Z'
+  SNYK-JS-ANGULAR-570058:
+    - '@whsmith/infrastructure > angular':
+        reason: None given
+        expires: '2021-07-13T10:10:06.475Z'
+  SNYK-JS-ANGULAR-572020:
+    - '@whsmith/infrastructure > angular':
+        reason: None given
+        expires: '2021-07-13T10:10:06.475Z'
+  'npm:angular:20171018':
+    - '@whsmith/infrastructure > angular':
+        reason: None given
+        expires: '2021-07-13T10:10:06.475Z'
+  'npm:angular:20180202':
+    - '@whsmith/infrastructure > angular':
+        reason: None given
+        expires: '2021-07-13T10:10:06.475Z'
+  SNYK-JS-CRYPTOJS-548472:
+    - '@whsmith/infrastructure > pdfmake > pdfkit > crypto-js':
+        reason: None given
+        expires: '2021-07-13T10:10:06.475Z'
+    - '@whsmith/infrastructure > pdfmake > svg-to-pdfkit > pdfkit > crypto-js':
+        reason: None given
+        expires: '2021-07-13T10:10:06.475Z'
+  SNYK-JS-JQUERY-174006:
+    - '@whsmith/infrastructure > jquery':
+        reason: None given
+        expires: '2021-07-13T10:10:06.475Z'
+  SNYK-JS-JQUERY-565129:
+    - '@whsmith/infrastructure > jquery':
+        reason: None given
+        expires: '2021-07-13T10:10:06.475Z'
+  SNYK-JS-JQUERY-567880:
+    - '@whsmith/infrastructure > jquery':
+        reason: None given
+        expires: '2021-07-13T10:10:06.475Z'
+  'npm:jquery:20150627':
+    - '@whsmith/infrastructure > jquery':
+        reason: None given
+        expires: '2021-07-13T10:10:06.475Z'
+patch: {}

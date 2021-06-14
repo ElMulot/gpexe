@@ -24,7 +24,8 @@ class CodificationWithoutSplitterValidator extends ConstraintValidator
 		if (Regex::match('/' . $codification->getProject()->getSplitter() . '/', $codification->getValue())->hasMatch()) {
 			$this->context->buildViolation($constraint->message)
 				->setParameter('{{ splitter }}', $codification->getProject()->getSplitter())
-				->addViolation();
+				->addViolation()
+			;
 		}
 	}
 }

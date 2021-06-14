@@ -1,35 +1,68 @@
 security:
+    # a new authentication system is available since Symfony 5.1 to make
+    # Symfony security more extensible and easier to understand
+    # https://symfony.com/doc/current/security/experimental_authenticators.html
     enable_authenticator_manager: true
     
-    encoders:
+    password_hashers:
+        # Our user class and the algorithm we'll use to encode passwords
+        # 'auto' means to let Symfony choose the best possible password hasher (Argon2 or Bcrypt)
+        # https://symfony.com/doc/current/security.html#c-encoding-passwords
         App\Entity\User:
             algorithm: auto
 
-
-    # https://symfony.com/doc/current/security.html#where-do-users-come-from-user-providers
     providers:
-        # used to reload user from session & other features (e.g. switch_user)
+        # https://symfony.com/doc/current/security/user_provider.html
+        # In this example, users are stored via Doctrine in the database
+        # To see the users at src/App/DataFixtures/ORM/LoadFixtures.php
+        # To load users from somewhere else: https://symfony.com/doc/current/security/user_provider.html#creating-a-custom-user-provider
         app_user_provider:
             entity:
                 class: App\Entity\User
                 property: email
-        # used to reload user from session & other features (e.g. switch_user)
+        
+    # https://symfony.com/doc/current/security.html#a-authentication-firewalls
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
         main:
-            lazy: true
-            form_login:
-                login_path: login
-                check_path: login
-            entry_point: form_login
+            # this firewall applies to all URLs
+            pattern: ^/
             
-            guard:
-                authenticators:
-                    - App\Security\LoginFormAuthenticator
+            lazy: true
+            
+            # The user provider to use.
+            provider: app_user_provider
+            
+            custom_authenticator: App\Security\LoginFormAuthenticator
+            
+            # This allows the user to login by submitting a username and password
+            # Reference: https://symfony.com/doc/current/security/form_login_setup.html
+            form_login:
+                # The route name that the login form submits to
+                check_path: login
+                # The name of the route where the login form lives
+                # When the user tries to access a protected page, they are redirected here
+                login_path: login
+                # Secure the login form against CSRF
+                # Reference: https://symfony.com/doc/current/security/csrf.html
+                enable_csrf: true
+                # The page users are redirect to when there is no previous page stored in the
+                # session (for example when the users access directly to the login page).
+                default_target_path: home
+            
             logout:
+                # The route name the user can go to in order to logout
                 path: logout
+                # The name of the route to redirect to after logging out
+                target: login
+            
+            # needed because in tests we redefine the 'main' firewall to use
+            # HTTP Basic instead of the login form, so this firewall has
+            # multiple authenticators
+            # See https://symfony.com/doc/current/security/experimental_authenticators.html#configuring-the-authentication-entry-point
+            entry_point: 'form_login'
         
             remember_me:
                 secret:   '%kernel.secret%'

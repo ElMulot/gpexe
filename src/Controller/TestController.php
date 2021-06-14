@@ -27,27 +27,9 @@ class TestController extends AbstractController
 	
 	public function index(): Response
 	{
-
-	    $a = new Date('today');
-	    
-	    dump($a);
-	    
-	    $a->add('P1D');
-	    
-	    dump($a);
-	    		
-		
-		dd();
-
-		
-// 		dump($d->format());
-		
-
-		
+		phpinfo();
+				
 		return new Response();
-		
-
-		
 	}
 	
 

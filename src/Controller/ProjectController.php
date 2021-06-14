@@ -4,8 +4,6 @@ namespace App\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Session\SessionInterface;
-use App\Entity\Company;
 use App\Entity\Project;
 use App\Repository\CompanyRepository;
 use App\Repository\ProjectRepository;
@@ -14,8 +12,6 @@ use App\Form\ProjectType;
 
 class ProjectController extends AbstractController
 {
-
-	private $session;
 	
 	private $companyRepository;
 	
@@ -23,9 +19,8 @@ class ProjectController extends AbstractController
 	
 	private $programRepository;
 	
-	public function __construct(SessionInterface $session, CompanyRepository $companyRepository, ProjectRepository $projectRepository, ProgramRepository $programRepository)
+	public function __construct(CompanyRepository $companyRepository, ProjectRepository $projectRepository, ProgramRepository $programRepository)
 	{
-		$this->session = $session;
 		$this->companyRepository = $companyRepository;
 		$this->projectRepository = $projectRepository;
 		$this->programRepository = $programRepository;

@@ -4,7 +4,7 @@ Chart.register(LineElement, PointElement, LineController, CategoryScale, LinearS
 
 //require('sticky-table-headers');
 require('../css/document.scss');
-const URLSearchParams = require('@ungap/url-search-params/cjs');
+const URLSearchParams = require('@ungap/url-search-params');
 
 var gpexe = {
 	_headers: [],

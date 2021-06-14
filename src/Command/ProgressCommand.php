@@ -14,13 +14,12 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\HttpFoundation\Session\SessionInterface;
-
+use Symfony\Component\HttpFoundation\RequestStack;
 class ProgressCommand extends Command
 {
 	private $entityManager;
 	
-	private $session;
+	private $flashBag;
 	
 	private $automationRepository;
 	
@@ -34,10 +33,10 @@ class ProgressCommand extends Command
 	
 	protected static $defaultName = 'app:progress';
 	
-	public function __construct(EntityManagerInterface $entityManager, SessionInterface $session, AutomationRepository $automationRepository, ProgramRepository $programRepository, ProgressRepository $progressRepository, SerieRepository $serieRepository, ProgramService $programService)
+	public function __construct(EntityManagerInterface $entityManager, RequestStack $requestStack, AutomationRepository $automationRepository, ProgramRepository $programRepository, ProgressRepository $progressRepository, SerieRepository $serieRepository, ProgramService $programService)
 	{
 		$this->entityManager = $entityManager;
-		$this->session = $session;
+		$this->flashBag = $requestStack->getSession()->getFlashBag();
 		$this->automationRepository = $automationRepository;
 		$this->programRepository = $programRepository;
 		$this->progressRepository = $progressRepository;
@@ -98,9 +97,9 @@ class ProgressCommand extends Command
 			$automation->setNextRun($nextRun);
 			$this->entityManager->persist($automation);
 			$this->entityManager->flush();
-			$this->session->getFlashBag()->clear();
+			$this->flashBag->clear();
 		} catch (\Exception $e) {
-			$this->session->getFlashBag()->clear();
+			$this->flashBag->clear();
 			return Command::FAILURE;
 		}
 		

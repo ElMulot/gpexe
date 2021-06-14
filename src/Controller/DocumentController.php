@@ -11,6 +11,7 @@ use App\Repository\CodificationRepository;
 use App\Repository\CompanyRepository;
 use App\Repository\DocumentRepository;
 use App\Repository\MetadataRepository;
+use App\Repository\ProgramRepository;
 use App\Repository\SerieRepository;
 use App\Repository\StatusRepository;
 use App\Repository\UserRepository;
@@ -24,11 +25,8 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Serializer\Serializer;
-use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 use Symfony\Contracts\Translation\TranslatorInterface;
-use Symfony\Component\Serializer\Normalizer\GetSetMethodNormalizer;
-use App\Repository\ProgramRepository;
 
 class DocumentController extends AbstractController
 {
@@ -195,7 +193,7 @@ class DocumentController extends AbstractController
 				'page_max' => $pageMax,
 				'query' => $request->query->all(),
 				'serie' => $serieId,
-				'flash' =>$this->get('session')->getFlashBag()->all(),
+				'flash' => $request->getSession()->getFlashBag(),
 			]
 		);
 	}

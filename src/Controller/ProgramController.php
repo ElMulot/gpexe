@@ -23,13 +23,12 @@ use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 use Symfony\Contracts\Translation\TranslatorInterface;
-use Symfony\Component\HttpFoundation\Session\SessionInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 
 
 class ProgramController extends AbstractController
 {
-	private $flashBag;
 	
 	private $translator;
 	
@@ -47,9 +46,8 @@ class ProgramController extends AbstractController
 	
 	private $fieldService;
 		
-	public function __construct(SessionInterface $session, TranslatorInterface $translator, AutomationRepository $automationRepository, ProgramRepository $programRepository, ProgressRepository $progressRepository, SerieRepository $serieRepository, ParseService $parseService, ProgramService $programService, FieldService $fieldService, Security $security)
+	public function __construct(TranslatorInterface $translator, AutomationRepository $automationRepository, ProgramRepository $programRepository, ProgressRepository $progressRepository, SerieRepository $serieRepository, ParseService $parseService, ProgramService $programService, FieldService $fieldService, Security $security)
 	{
-		$this->flashBag = $session->getFlashBag();
 		$this->translator = $translator;
 		$this->automationRepository = $automationRepository;
 		$this->programRepository = $programRepository;
@@ -77,7 +75,7 @@ class ProgramController extends AbstractController
 			]);
 	}
 	
-	public function dashboard(Program $program): Response
+	public function dashboard(Request $request, Program $program): Response
 	{
 		$project = $program->getProject();
 		
@@ -87,7 +85,7 @@ class ProgramController extends AbstractController
 				return $this->redirectToRoute('project');
 			}
 			
-			$this->flashBag->clear();
+			$request->getSession()->getFlashBag()->clear();
 			$this->programService->unload();
 			
 			switch ($program->getType()) {

@@ -3,19 +3,17 @@
 namespace App\Entity;
 
 use Symfony\Component\Security\Core\User\UserInterface;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
-use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use App\Entity\Company;
-use App\Entity\Profil;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\UserRepository")
  * @UniqueEntity(fields="email", message="An user with this email already exist.")
  */
-class User implements UserInterface
+class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
 	/**
 	 * @ORM\Id()
@@ -30,8 +28,8 @@ class User implements UserInterface
 	private $email;
 
 	/**
-	 * @var string The hashed password
-	 * @ORM\Column(type="string")
+     * @var string The hashed password
+     * @ORM\Column(type="string")
 	 */
 	private $password;
 
@@ -107,20 +105,26 @@ class User implements UserInterface
 	}
 
 	/**
+	 * A visual identifier that represents this user.
+	 *
 	 * @see UserInterface
 	 */
-	public function getUsername(): string
+	public function getUserIdentifier(): string
 	{
 		return (string) $this->email;
 	}
 	
+	public function getUsername(): string
+	{
+		return $this->getUserIdentifier();
+	}
 
 	/**
-	 * @see UserInterface
+	 * @see PasswordAuthenticatedUserInterface
 	 */
 	public function getPassword(): string
 	{
-		return (string) $this->password;
+		return $this->password;
 	}
 
 	public function setPassword(string $password): self
@@ -260,8 +264,10 @@ class User implements UserInterface
 		return $this;
 	}
 	
-	
 	/**
+	 * Returning a salt is only needed, if you are not using a modern
+	 * hashing algorithm (e.g. bcrypt or sodium) in your security.yaml.
+	 *
 	 * @see UserInterface
 	 */
 	public function getSalt()
@@ -269,6 +275,9 @@ class User implements UserInterface
 		// not needed when using the "bcrypt" algorithm in security.yaml
 	}
 	
+	/**
+	 * @see UserInterface
+	 */
 	public function eraseCredentials()
 	{
 		// If you store any temporary, sensitive data on the user, clear it here

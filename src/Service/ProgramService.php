@@ -2,16 +2,14 @@
 
 namespace App\Service;
 
-use App\Entity\Program;
 use App\Entity\Document;
-use App\Entity\Serie;
+use App\Entity\Program;
 use App\Entity\Version;
-use App\Entity\Progress;
 use App\Repository\DocumentRepository;
 use App\Repository\SerieRepository;
 use App\Repository\StatusRepository;
 use App\Repository\VersionRepository;
-use App\Service\Excel\Exception;
+use App\Service\Code\ProgramCache;
 use App\Service\Excel\Row;
 use App\Service\Excel\Workbook;
 use Doctrine\ORM\EntityManagerInterface;
@@ -19,13 +17,10 @@ use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
-use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Stopwatch\Stopwatch;
 use Symfony\Contracts\Translation\TranslatorInterface;
-use App\Service\Code\ProgramCache;
-use App\Helpers\Date;
-use App\Helpers\Cache;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 
 class ProgramService
@@ -73,9 +68,9 @@ class ProgramService
 	
 	private $stopWatch;
 	
-	public function __construct(SessionInterface $session, TranslatorInterface $translator, EntityManagerInterface $entityManager, SerieRepository $serieRepository, DocumentRepository $documentRepository, VersionRepository $versionRepository, StatusRepository $statusRespository, DocumentService $documentService, FieldService $fieldService, PropertyService $propertyService, Security $security, string $targetDirectory)
+	public function __construct(RequestStack $requestStack, TranslatorInterface $translator, EntityManagerInterface $entityManager, SerieRepository $serieRepository, DocumentRepository $documentRepository, VersionRepository $versionRepository, StatusRepository $statusRespository, DocumentService $documentService, FieldService $fieldService, PropertyService $propertyService, Security $security, string $targetDirectory)
 	{
-		$this->flashBag = $session->getFlashBag();
+		$this->flashBag = $requestStack->getSession()->getFlashBag();
 		$this->translator = $translator;
 		$this->entityManager = $entityManager;
 		$this->serieRepository = $serieRepository;
@@ -547,7 +542,6 @@ class ProgramService
 			
 			
 			if ($currentVersion->getName() == false || $currentVersion->getDate() == false) {
-			    dd($currentVersion->getName(), $currentVersion->getDate());
 			    $this->addComment('error', 'Les champs "version.name" et "version.date" sont obligatoires.');
 				$this->addComment('error', 'Ligne exclue : création de la version annulée.');
 				$currentDocument->removeVersion($currentVersion);

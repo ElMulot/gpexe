@@ -5,22 +5,18 @@ namespace App\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Session\SessionInterface;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use App\Form\AccountType;
 use App\Form\ChangePasswordType;
 
 class AccountController extends AbstractController
 {
 	
-	private $session;
+	private $passwordHasher;
 	
-	private $passwordEncoder;
-	
-	public function __construct(SessionInterface $session, UserPasswordEncoderInterface $passwordEncoder)
+	public function __construct(UserPasswordHasherInterface $passwordHasher)
 	{
-		$this->session = $session;
-		$this->passwordEncoder = $passwordEncoder;
+		$this->passwordHasher = $passwordHasher;
 	}
 	
 	public function index(Request $request): Response
@@ -41,7 +37,7 @@ class AccountController extends AbstractController
 			$entityManager = $this->getDoctrine()->getManager();
 			$entityManager->persist($user);
 			$entityManager->flush();
-			$this->session->set('_locale', $user->getLocale());
+			$request->getSession()->set('_locale', $user->getLocale());
 			
 			$this->addFlash('success', 'Datas updated');
 			return $this->redirectToRoute('account');
@@ -62,7 +58,7 @@ class AccountController extends AbstractController
 		if ($form->isSubmitted() && $form->isValid()) {
 			$changePassword = $form->getData();
 			$user = $this->getUser();
-			$user->setPassword($this->passwordEncoder->encodePassword($user, $changePassword['new_password']));
+			$user->setPassword($this->passwordHasher->hashPassword($user, $changePassword['new_password']));
 			$entityManager = $this->getDoctrine()->getManager();
 			$entityManager->persist($user);
 			$entityManager->flush();
