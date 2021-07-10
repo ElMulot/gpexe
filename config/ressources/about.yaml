@@ -112,3 +112,9 @@
     changes:
         - Migration sous Symfony 5.3
         - Correction de bugs
+- 
+    version: 0.5.4
+    date: 19/06/2021
+    changes:
+        - Ajout d'un certificat SSL et passage au protocole https
+        - Correction de bugs

@@ -49,6 +49,7 @@ select {
 
 .datepicker {
 	width: 10rem;
+	z-index: $zindex-popover !important;
 }
 
 .datepicker table {

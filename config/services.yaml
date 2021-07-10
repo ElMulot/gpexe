@@ -10,6 +10,8 @@ parameters:
     disable_log: true
     uploads_directory: 'uploads'
     container.dumper.inline_factories: true
+    router.request_context.scheme: '%env(SCHEME)%'
+    asset.request_context.secure: true
 
 services:
     # default configuration for services in *this* file

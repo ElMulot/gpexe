@@ -17,9 +17,9 @@
 		</div>
 		<div class="container-fluid pt-5 px-1">
 			<div id="form_content" class="jumbotron">
-				{% if app.request.query.has('logout') %}
+				{% if logout is same as(true) %}
 					<div class="alert alert-success">{% trans %}Logout successful{% endtrans %}</div>
-				{% endif %}  
+				{% endif %}
 				<form method="post">
 					{% if error %}
 					<div class="alert alert-danger">
@@ -30,7 +30,8 @@
 					<label for="inputEmail">{% trans %}Email{% endtrans %}</label>
 					<input type="email" {% if last_username is defined %}value="{{ last_username }}"{% endif %} name="email" id="inputEmail" class="form-control" required autofocus>
 					<label for="inputPassword">{% trans %}Password{% endtrans %}</label>
-					<input type="password" name="password" id="inputPassword" class="form-control" required> <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+					<input type="password" name="password" id="inputPassword" class="form-control" required>
+					<input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
 					<div class="mb-3">
 						<input type="checkbox" id="remember_me" name="_remember_me" checked/>
 						<label for="remember_me">{% trans %}Remember me{% endtrans %}</label>
