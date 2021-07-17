@@ -193,7 +193,7 @@ class DocumentController extends AbstractController
 				'page_max' => $pageMax,
 				'query' => $request->query->all(),
 				'serie' => $serieId,
-				'flash' => $request->getSession()->getFlashBag(),
+				'flash' => $request->getSession()->getFlashBag()->all(),
 			]
 		);
 	}

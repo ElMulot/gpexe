@@ -4,7 +4,7 @@
 		<meta charset="UTF-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
 		<link rel="icon" href="{{ asset('favicon.ico') }}">
-		<title>{{ app_name }}</title>
+		<title>{{ name }}</title>
 		{% block stylesheets %}
 			{{ encore_entry_link_tags('app') }}
 			{{ encore_entry_link_tags('login') }}
@@ -43,7 +43,7 @@
 				</form>
 			</div>
 			<div id="credits_content">
-				<p class="text-center"><small>v. {{ app_version }} - {{ app_date }}</small></p>
+				<p class="text-center"><small>v. {{ version }} - {{ date }}</small></p>
 			</div>
 		</div>
 	</body>

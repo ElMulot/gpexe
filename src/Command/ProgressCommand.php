@@ -14,12 +14,10 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\HttpFoundation\RequestStack;
+
 class ProgressCommand extends Command
 {
 	private $entityManager;
-	
-	private $flashBag;
 	
 	private $automationRepository;
 	
@@ -33,10 +31,9 @@ class ProgressCommand extends Command
 	
 	protected static $defaultName = 'app:progress';
 	
-	public function __construct(EntityManagerInterface $entityManager, RequestStack $requestStack, AutomationRepository $automationRepository, ProgramRepository $programRepository, ProgressRepository $progressRepository, SerieRepository $serieRepository, ProgramService $programService)
+	public function __construct(EntityManagerInterface $entityManager, AutomationRepository $automationRepository, ProgramRepository $programRepository, ProgressRepository $progressRepository, SerieRepository $serieRepository, ProgramService $programService)
 	{
 		$this->entityManager = $entityManager;
-		$this->flashBag = $requestStack->getSession()->getFlashBag();
 		$this->automationRepository = $automationRepository;
 		$this->programRepository = $programRepository;
 		$this->progressRepository = $progressRepository;
@@ -58,7 +55,7 @@ class ProgressCommand extends Command
 	{
         
 		set_time_limit(180);
-        
+		
 		$automation = $this->automationRepository->getAutomationByCommandAndByArguments('app:progress', ['id' => $input->getArgument('id')]);
 		$program = $this->programRepository->getProgramById($input->getArgument('id'));
 		
@@ -97,9 +94,7 @@ class ProgressCommand extends Command
 			$automation->setNextRun($nextRun);
 			$this->entityManager->persist($automation);
 			$this->entityManager->flush();
-			$this->flashBag->clear();
 		} catch (\Exception $e) {
-			$this->flashBag->clear();
 			return Command::FAILURE;
 		}
 		

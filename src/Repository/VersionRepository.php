@@ -520,7 +520,7 @@ class VersionRepository extends RepositoryService
 	 */
 	public function getVersions($request)
 	{
-		if ($versionIds = $request->query->get('id')) {
+		if ($versionIds = $request->query->all('id')) {
 			if (is_array($versionIds)) {
 				$qb = $this->newQB('v');
 				return $qb->andWhere($qb->in('v.id', $versionIds))

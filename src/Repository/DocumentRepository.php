@@ -83,7 +83,7 @@ class DocumentRepository extends RepositoryService
 	 */
 	public function getDocumentsByRequest(Request $request)
 	{	
-		$versionIds = $request->query->get('id');
+		$versionIds = $request->query->all('id');
 		
 		if (is_array($versionIds)) {
 			$qb = $this->newQB('d');

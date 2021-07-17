@@ -65,16 +65,19 @@ class Version
 
 	/**
 	 * @ORM\ManyToOne(targetEntity=User::class)
+	 * @ORM\JoinColumn(onDelete="SET NULL")
 	 */
 	private $writer;
 
 	/**
 	 * @ORM\ManyToOne(targetEntity=User::class)
+	 * @ORM\JoinColumn(onDelete="SET NULL")
 	 */
 	private $checker;
 
 	/**
 	 * @ORM\ManyToOne(targetEntity=User::class)
+	 * @ORM\JoinColumn(onDelete="SET NULL")
 	 */
 	private $approver;
 
