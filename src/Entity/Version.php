@@ -387,11 +387,10 @@ class Version
 			        $value = null;
 			    }
 		}
-
+		
 		if ($value === null) {
 		    if ($metadata->getIsMandatory() === true) {
 		        throw new \Error(sprintf('Erreur: la valeur "%s" ne peut être vide', $metadata->getCodename()));
-		    } else {
 		        return $this;
 		    }
 		}
@@ -735,7 +734,6 @@ class Version
 											if ($review->getVisa()->getName() != $value) {
 												$review->setVisa($visa);
 											}
-											return $this;
 										} else {
 											$review = new Review();
 											if ($this->getChecker()) {
@@ -757,21 +755,23 @@ class Version
 											$review->setDate(new Date('today'));
 											$review->setVisa($visa);
 											$this->addReview($review);
-											return $this;
 										}
+										return $this;
 									}
 									break;
 									
 								case 'username':
 									if ($review = $this->getReviewByCompany($visa->getCompany())) {
-										if ($review->getUser()->getName() != $value) {
-											foreach ($visa->getCompany()->getUsers()->getValues() as $user) {
+									    if ($review->getUser()->getName() != $value) {
+										    foreach ($visa->getCompany()->getUsers()->getValues() as $user) {
 												if ($user->getName() == $value) {
 													$review->setUser($user);
 													return $this;
 												}
 											}
+											throw new \Error(sprintf('Erreur en écrivant la valeur "%s" dans le champ "%s" : le nom d\'utilisateur n\'est pas valable', $value, $codename));
 										}
+										return $this;
 									}
 									break;
 									

@@ -491,7 +491,6 @@ class Document
 		if ($value === null) {
 		    if ($metadata->getIsMandatory() === true) {
 		        throw new \Error(sprintf('Erreur: la valeur "%s" ne peut être vide', $metadata->getCodename()));
-		    } else {
 		        return $this;
 		    }
 		}

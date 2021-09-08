@@ -408,7 +408,7 @@ class VersionController extends AbstractController
 			if ($field['id'] == $fieldId) {
 				
 				if ($field['display']['header'] && $field['permissions']['write']) {
-				
+				    
 					$form = $this->createForm(QuickVersionType::class, $version, [
 						'field' => $field,
 					]);

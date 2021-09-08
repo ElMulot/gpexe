@@ -8,9 +8,11 @@ use App\Entity\Status;
 use App\Entity\User;
 use App\Entity\Version;
 use App\Entity\Visa;
+use App\Helpers\Date;
 use App\Repository\MetadataRepository;
 use App\Repository\UserRepository;
 use App\Repository\VisaRepository;
+use Spatie\Regex\Regex;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -20,14 +22,11 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Security\Core\Security;
-use Spatie\Regex\Regex;
 
 class QuickVersionType extends AbstractType
 {
 	
 	private $security;
-	
-	private $documentService;
 	
 	private $metadataRepository;
 	
@@ -76,7 +75,7 @@ class QuickVersionType extends AbstractType
 					break;
 					
 				case (($result = Regex::match('/metadata_(\d+)/', $field['id']))->hasMatch()):
-					
+				    
 					foreach ($this->metadataRepository->getMetadatasForVersion($project) as $metadata) {
 						if ($metadata->getId() == $result->group(1)) {
 							switch ($metadata->getType()) {
@@ -168,7 +167,7 @@ class QuickVersionType extends AbstractType
 						'format' => 'dd-MM-yyyy',
 						'html5' => false,
 						'mapped' => false,
-						'data' => $version->getPropertyValue($field['codename']),
+						'data' => Date::fromFormat($version->getPropertyValue($field['codename'])),
 					]);
 					break;
 					

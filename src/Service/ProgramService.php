@@ -603,6 +603,8 @@ class ProgramService
 			$this->programCache->setParameter('first_row', $currentRow);
 			$this->programCache->setParameter('count_processed', $countProcessed);
 			$this->programCache->setParameter('count_updated', $countUpdated);
+			$this->programCache->setParameter('documents_created', $documentsCreated);
+			$this->programCache->setParameter('versions_created', $versionsCreated);
 			
 			if ($this->programCache->getOption('ready_to_persist') == true) {
 				$this->entityManager->flush();
