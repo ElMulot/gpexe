@@ -54,7 +54,7 @@ class ProgressCommand extends Command
 	protected function execute(InputInterface $input, OutputInterface $output): int
 	{
         
-		set_time_limit(180);
+		//set_time_limit(180);
 		
 		$automation = $this->automationRepository->getAutomationByCommandAndByArguments('app:progress', ['id' => $input->getArgument('id')]);
 		$program = $this->programRepository->getProgramById($input->getArgument('id'));

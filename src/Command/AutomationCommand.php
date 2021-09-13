@@ -12,7 +12,6 @@ use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\HttpKernel\KernelInterface;
-use Symfony\Component\HttpFoundation\RequestStack;
 
 class AutomationCommand extends Command
 {
@@ -28,11 +27,9 @@ class AutomationCommand extends Command
 	
 	private $programRepository;
 	
-	private $requestStack;
-	
 	protected static $defaultName = 'app:cron';
 	
-	public function __construct(RequestStack $requestStack, EntityManagerInterface $entityManager, KernelInterface $kernel, AutomationRepository $automationRepository, CodificationValueRepository $codificationValueRepository, MetadataValueRepository $metadataValueRepository, ProgramRepository $programRepository)
+	public function __construct(EntityManagerInterface $entityManager, KernelInterface $kernel, AutomationRepository $automationRepository, CodificationValueRepository $codificationValueRepository, MetadataValueRepository $metadataValueRepository, ProgramRepository $programRepository)
 	{
 		$this->entityManager = $entityManager;
 		$this->kernel = $kernel;
@@ -40,7 +37,6 @@ class AutomationCommand extends Command
 		$this->codificationValueRepository = $codificationValueRepository;
 		$this->metadataValueRepository = $metadataValueRepository;
 		$this->programRepository = $programRepository;
-		$this->requestStack = $requestStack;
 		
 		parent::__construct();
 	}
@@ -59,7 +55,7 @@ class AutomationCommand extends Command
 		$automations = $this->automationRepository->getAutomationsToRun();
 		
 		foreach ($automations as $automation) {
-			$application = $this->getApplication()->find('app:progress');
+			$application = $this->getApplication()->find($automation->getCommand());
 			$input = new ArrayInput($automation->getArguments());
 			$result = (int)$application->run($input, $output) || $result;
 		}

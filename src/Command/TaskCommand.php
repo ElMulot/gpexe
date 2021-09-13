@@ -2,6 +2,8 @@
 
 namespace App\Command;
 
+use App\Helpers\Date;
+use App\Repository\AutomationRepository;
 use App\Repository\ProgramRepository;
 use App\Service\ProgramService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -21,10 +23,11 @@ class TaskCommand extends Command
 	
 	protected static $defaultName = 'app:task';
 	
-	public function __construct(EntityManagerInterface $entityManager, RequestStack $requestStack, ProgramRepository $programRepository, ProgramService $programService)
+	public function __construct(EntityManagerInterface $entityManager, RequestStack $requestStack, AutomationRepository $automationRepository, ProgramRepository $programRepository, ProgramService $programService)
 	{
 		$this->entityManager = $entityManager;
 		$this->flashBag = $requestStack->getSession()->getFlashBag();
+		$this->automationRepository = $automationRepository;
 		$this->programRepository = $programRepository;
 		$this->programService = $programService;
 		
@@ -41,9 +44,13 @@ class TaskCommand extends Command
 	
 	protected function execute(InputInterface $input, OutputInterface $output): int
 	{
+		
+		//set_time_limit(180);
+		
+		$automation = $this->automationRepository->getAutomationByCommandAndByArguments('app:task', ['id' => $input->getArgument('id')]);
 		$program = $this->programRepository->getProgramById($input->getArgument('id'));
 		
-		if ($program === null) {
+		if ($automation === null || $program === null) {
 			return Command::FAILURE;
 		}
 		
@@ -51,8 +58,16 @@ class TaskCommand extends Command
 			$this->programService->preload($program);
 			$this->programService->load($program);
 			$this->programService->task($program);
-			$this->entityManager->flush();
 			$this->flashBag->clear();
+			
+			$automation->setLastRun(new Date('today'));
+			$nextRun = new Date($automation->getNextRun()->format('d-m-Y'));
+			while ($nextRun < new Date('now')) {
+				$nextRun->add('P' . $program->getParsedCode('frequency') . 'D');
+			}
+			$automation->setNextRun($nextRun);
+			$this->entityManager->persist($automation);
+			$this->entityManager->flush();
 		} catch (\Exception $e) {
 			$this->flashBag->clear();
 			return Command::FAILURE;
