@@ -12,6 +12,7 @@ use App\Helpers\Date;
 use App\Repository\MetadataRepository;
 use App\Repository\UserRepository;
 use App\Repository\VisaRepository;
+use App\Service\PropertyService;
 use Spatie\Regex\Regex;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
@@ -28,6 +29,8 @@ class QuickVersionType extends AbstractType
 	
 	private $security;
 	
+	private $propertyService;
+	
 	private $metadataRepository;
 	
 	private $userRepository;
@@ -36,9 +39,10 @@ class QuickVersionType extends AbstractType
 	
 	private $builder;
 	
-	public function __construct(Security $security, MetadataRepository $metadataRepository, UserRepository $userRepository, VisaRepository $visaRepository)
+	public function __construct(Security $security, PropertyService $propertyService, MetadataRepository $metadataRepository, UserRepository $userRepository, VisaRepository $visaRepository)
 	{
 		$this->security = $security;
+		$this->propertyService = $propertyService;
 		$this->metadataRepository = $metadataRepository;
 		$this->userRepository = $userRepository;
 		$this->visaRepository = $visaRepository;
@@ -162,12 +166,12 @@ class QuickVersionType extends AbstractType
 					break;
 					
 				case Metadata::DATE:
-					$builder->add($field['id'], DateType::class, $options + [
+				    $builder->add($field['id'], DateType::class, $options + [
 						'widget' => 'single_text',
 						'format' => 'dd-MM-yyyy',
 						'html5' => false,
 						'mapped' => false,
-						'data' => Date::fromFormat($version->getPropertyValue($field['codename'])),
+				        'data' => Date::fromFormat($this->propertyService->toString($version->getPropertyValue($field['codename']))),
 					]);
 					break;
 					

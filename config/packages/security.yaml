@@ -67,7 +67,7 @@ security:
             remember_me:
                 secret:   '%kernel.secret%'
                 lifetime: 604800 # 1 week in seconds
-                path:     home
+                path:     /
 
             # https://symfony.com/doc/current/security/impersonating_user.html
             switch_user: true
