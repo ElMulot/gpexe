@@ -111,9 +111,15 @@ class SerieController extends AbstractController
 				}
 				
 				try {
-					$serie->setMetadataValue($metadata, $value);
+				    $serie->setMetadataValue($metadata, $value);
 				} catch (\Error $e) {
-					$this->addFlash('danger', $e->getMessage());
+				    if ($metadata->getIsMandatory() === true) {
+				        $this->addFlash('danger', $e->getMessage());
+				        $view = $form->createView();
+				        return $this->render('ajax/form.html.twig', [
+				            'form' => $view,
+				        ]);
+				    }
 				}
 			}
 			
