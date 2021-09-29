@@ -134,3 +134,8 @@
     changes:
         - Mise à jour des librairies
         - Correction de bugs
+- 
+    version: 0.5.8
+    date: 29/09/2021
+    changes:
+        - Correction de bugs

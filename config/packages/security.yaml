@@ -82,8 +82,8 @@ security:
         - { path: '^/project/\d+/alert$',                                          roles: ROLE_USER }
         - { path: '^/project/\d+$',                                                roles: ROLE_USER } #project_view
         - { path: '^/project/\d+/\d+$',                                            roles: ROLE_USER } #serie_route
-        - { path: '^/project/\d+/(sdr|mdr)$',                                      roles: ROLE_USER } #serie_route_by_type
-        - { path: '^/project/\d+/serie/(sdr|mdr)/?\d*',                            roles: ROLE_USER } #document, document_table
+        - { path: '^/project/\d+/(sdr|mdr|all)$',                                  roles: ROLE_USER } #serie_route_by_type
+        - { path: '^/project/\d+/serie/(sdr|mdr|all)/?\d*',                        roles: ROLE_USER } #document, document_table
         
         - { path: '^/project/\d+/view',                                            roles: ROLE_USER } #view, view_new
         - { path: '^/project/view/\d+/',                                           roles: ROLE_USER } #view_edit, view_delete
