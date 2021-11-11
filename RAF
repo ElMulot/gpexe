@@ -1,15 +1,6 @@
-IETP:
-	MAJ Exceptions							OK
-	Modifier modèle Export					OK
-	
-Vue courante:
-	Afficher mini-graphique avancement		OK
-	Bouton eport sous Excel					OK
-	Checkbox vide							OK
-	Ajouter "Voir tous les docs"			OK
-	Corriger bug js sélection métier		OK
-	Corriger bug ajout nouveau doc			OK
-	Corriger les fenêtes qui disparaissent en cas de mouseout extérieur OK
-	
-Automation:
-	Remplacer par des commandes				OK
+Symfony 5.3 :
+	Defer attribute
+	remplacer render par renderForm
+
+Divers :
+	Route yaml => annotations
