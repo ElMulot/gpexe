@@ -79,7 +79,7 @@ class QuickVersionType extends AbstractType
 					break;
 					
 				case (($result = Regex::match('/metadata_(\d+)/', $field['id']))->hasMatch()):
-				    
+					
 					foreach ($this->metadataRepository->getMetadatasForVersion($project) as $metadata) {
 						if ($metadata->getId() == $result->group(1)) {
 							switch ($metadata->getType()) {
@@ -166,12 +166,12 @@ class QuickVersionType extends AbstractType
 					break;
 					
 				case Metadata::DATE:
-				    $builder->add($field['id'], DateType::class, $options + [
+					$builder->add($field['id'], DateType::class, $options + [
 						'widget' => 'single_text',
 						'format' => 'dd-MM-yyyy',
 						'html5' => false,
 						'mapped' => false,
-				        'data' => Date::fromFormat($this->propertyService->toString($version->getPropertyValue($field['codename']))),
+						'data' => Date::fromFormat($this->propertyService->toString($version->getPropertyValue($field['codename']))),
 					]);
 					break;
 					

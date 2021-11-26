@@ -18,8 +18,8 @@ class Metadata
 	const TEXT				= 12;
 	const DATE				= 13;
 	const LINK				= 14;
-	const LIST	  		= 15;
-	const DEFAULT		   = self::LIST;
+	const LIST	  			= 15;
+	const DEFAULT		   	= self::LIST;
 	
 	const SERIE				= 1;
 	const DOCUMENT			= 2;
@@ -129,23 +129,23 @@ class Metadata
 
 	public function getIsMandatory(): ?bool
 	{
-	    switch ($this->type) {
-	        case self::BOOLEAN:
-	            return true;
-	        default:
-	            return $this->isMandatory;
-	    }
-	    
+		switch ($this->type) {
+			case self::BOOLEAN:
+				return true;
+			default:
+				return $this->isMandatory;
+		}
+		
 	}
 
 	public function setIsMandatory(bool $isMandatory): self
 	{
 		switch ($this->type) {
 			case self::BOOLEAN:
-			    $this->isMandatory = false;
+				$this->isMandatory = false;
 				break;
 			default:
-			    $this->isMandatory = $isMandatory;
+				$this->isMandatory = $isMandatory;
 		}
 		
 		return $this;

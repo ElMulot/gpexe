@@ -542,7 +542,7 @@ class ProgramService
 			
 			
 			if ($currentVersion->getName() == false || $currentVersion->getDate() == false) {
-			    $this->addComment('error', 'Les champs "version.name" et "version.date" sont obligatoires.');
+				$this->addComment('error', 'Les champs "version.name" et "version.date" sont obligatoires.');
 				$this->addComment('error', 'Ligne exclue : création de la version annulée.');
 				$currentDocument->removeVersion($currentVersion);
 				$currentVersion = null;

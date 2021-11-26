@@ -23,29 +23,29 @@ class EditUserType extends AbstractType
 	public function buildForm(FormBuilderInterface $builder, array $options)
 	{
 		$builder
-    		->add('email', EmailType::class)
-    		->add('new_password', PasswordType::class, [
-    			'required' => false,
-    			'mapped' => false,
-    		])
-    		->add('name')
-    		->add('locale', ChoiceType::class, [
-    			'choices' => [
-    				'Français' => 'fr_FR',
-    				'English' => 'en_GB',
-    			],
-    		])
-    		->add('activated', CheckboxType::class, [
-    			'required' => false,
-    		])
-    		->add('profil')
-    		->add('company')
-    		->add('projects', EntityType::class, [
-    		    'class' => Project::class,
-    		    'choice_label' => 'name',
-    		    'multiple' => true,
-    		    'expanded' => true,
-    		])
+			->add('email', EmailType::class)
+			->add('new_password', PasswordType::class, [
+				'required' => false,
+				'mapped' => false,
+			])
+			->add('name')
+			->add('locale', ChoiceType::class, [
+				'choices' => [
+					'Français' => 'fr_FR',
+					'English' => 'en_GB',
+				],
+			])
+			->add('activated', CheckboxType::class, [
+				'required' => false,
+			])
+			->add('profil')
+			->add('company')
+			->add('projects', EntityType::class, [
+				'class' => Project::class,
+				'choice_label' => 'name',
+				'multiple' => true,
+				'expanded' => true,
+			])
 		;
 	}
 	

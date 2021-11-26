@@ -2,13 +2,14 @@
 
 namespace App\Controller;
 
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Contracts\Translation\TranslatorInterface;
 use App\Entity\Profil;
 use App\Form\ProfilType;
 use App\Repository\ProfilRepository;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Contracts\Translation\TranslatorInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class ProfilController extends AbstractController
 {
@@ -20,9 +21,12 @@ class ProfilController extends AbstractController
 		$this->translator = $translator;
 	}
 	
+	/**
+	 * @Route("/profil", name="profil")
+	 */
 	public function index(ProfilRepository $profilRepository): Response
 	{
-		return $this->render('generic/list.html.twig', [
+		return $this->renderForm('generic/list.html.twig', [
 			'header' => $this->translator->trans('Profils'),
 			'route_back' =>  $this->generateUrl('project'),
 			'class' => Profil::class,
@@ -30,6 +34,9 @@ class ProfilController extends AbstractController
 		]);
 	}
 
+	/**
+	 * @Route("/profil/new", name="profil_new")
+	 */
 	public function new(Request $request): Response
 	{
 		$profil = new Profil();
@@ -44,14 +51,16 @@ class ProfilController extends AbstractController
 			$this->addFlash('success', 'New entry created');
 			return $this->redirectToRoute('profil');
 		} else {
-			$view = $form->createView();
-			return $this->render('generic/form.html.twig', [
+			return $this->renderForm('generic/form.html.twig', [
 				'route_back' =>  $this->generateUrl('profil'),
-				'form' => $view,
+				'form' => $form,
 			]);
 		}
 	}
 	
+	/**
+	 * @Route("/profil/{profil}/edit", name="profil_edit", requirements={"profil"="\d+"})
+	 */
 	public function edit(Request $request, Profil $profil): Response
 	{
 		$form = $this->createForm(ProfilType::class, $profil);
@@ -64,14 +73,16 @@ class ProfilController extends AbstractController
 			$this->addFlash('success', 'Datas updated');
 			return $this->redirectToRoute('profil');
 		} else {
-			$view = $form->createView();
-			return $this->render('generic/form.html.twig', [
+			return $this->renderForm('generic/form.html.twig', [
 				'route_back' =>  $this->generateUrl('profil'),
-				'form' => $view,
+				'form' => $form,
 			]);
 		}
 	}
 	
+	/**
+	 * @Route("/profil/{profil}/delete", name="profil_delete", methods={"GET", "DELETE"}, requirements={"profil"="\d+"})
+	 */
 	public function delete(Request $request, Profil $profil, ProfilRepository $profilRepository): Response
 	{
 		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
@@ -85,7 +96,7 @@ class ProfilController extends AbstractController
 			$this->addFlash('danger', 'The last entry with Admin rights cannot be deleted');
 			return $this->redirectToRoute('profil');
 		} else {
-			return $this->render('generic/delete.html.twig', [
+			return $this->renderForm('generic/delete.html.twig', [
 				'route_back' =>  $this->generateUrl('profil'),
 				'entities' => [$profil],
 			]);

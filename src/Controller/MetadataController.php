@@ -1,14 +1,15 @@
 <?php
 namespace App\Controller;
 
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Contracts\Translation\TranslatorInterface;
+use App\Entity\Project;
 use App\Entity\Metadata;
 use App\Form\MetadataType;
 use App\Repository\MetadataRepository;
-use App\Entity\Project;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Contracts\Translation\TranslatorInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class MetadataController extends AbstractController
 {
@@ -20,6 +21,9 @@ class MetadataController extends AbstractController
 		$this->translator = $translator;
 	}
 	
+	/**
+	 * @Route("/project/{project}/metadata", name="metadata", requirements={"project"="\d+"})
+	 */
 	public function index(MetadataRepository $metadataRepository, Project $project): Response
 	{
 		if ($this->isGranted('ROLE_ADMIN') === false &&
@@ -27,7 +31,7 @@ class MetadataController extends AbstractController
 			return $this->redirectToRoute('project');
 		}
 		
-		return $this->render('generic/list.html.twig', [
+		return $this->renderForm('generic/list.html.twig', [
 			'header' => $this->translator->trans('Metadatas for') . ' : ' . $project->getName(),
 			'route_back' =>  $this->generateUrl('project_view', [
 				'project' => $project->getId(),
@@ -37,6 +41,9 @@ class MetadataController extends AbstractController
 		]);
 	}
 
+	/**
+	 * @Route("/project/{project}/metadata/new", name="metadata_new", requirements={"project"="\d+"})
+	 */
 	public function new(Request $request, Project $project): Response
 	{
 		if ($this->isGranted('ROLE_ADMIN') === false &&
@@ -59,16 +66,18 @@ class MetadataController extends AbstractController
 				'project' => $project->getId()
 			]);
 		} else {
-			$view = $form->createView();
-			return $this->render('generic/form.html.twig', [
+			return $this->renderForm('generic/form.html.twig', [
 				'route_back' =>  $this->generateUrl('metadata', [
 					'project' => $project->getId(),
 				]),
-				'form' => $view
+				'form' => $form
 			]);
 		}
 	}
 
+	/**
+	 * @Route("/project/metadata/{metadata}/edit", name="metadata_edit", requirements={"metadata"="\d+"})
+	 */
 	public function edit(Request $request, Metadata $metadata): Response
 	{
 		$project = $metadata->getProject();
@@ -88,16 +97,18 @@ class MetadataController extends AbstractController
 				'project' => $metadata->getProject()->getId()
 			]);
 		} else {
-			$view = $form->createView();
-			return $this->render('generic/form.html.twig', [
+			return $this->renderForm('generic/form.html.twig', [
 				'route_back' =>  $this->generateUrl('metadata', [
 					'project' => $metadata->getProject()->getId(),
 				]),
-				'form' => $view
+				'form' => $form
 			]);
 		}
 	}
 
+	/**
+	 * @Route("/project/metadata/{metadata}/delete", name="metadata_delete", methods={"GET", "DELETE"}, requirements={"metadata"="\d+"})
+	 */
 	public function delete(Request $request, Metadata $metadata): Response
 	{
 		$project = $metadata->getProject();
@@ -116,7 +127,7 @@ class MetadataController extends AbstractController
 				'project' => $metadata->getProject()->getId()
 			]);
 		} else {
-			return $this->render('generic/delete.html.twig', [
+			return $this->renderForm('generic/delete.html.twig', [
 				'route_back' =>  $this->generateUrl('metadata', [
 					'project' => $metadata->getProject()->getId(),
 				]),

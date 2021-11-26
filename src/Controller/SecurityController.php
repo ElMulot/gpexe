@@ -2,12 +2,13 @@
 
 namespace App\Controller;
 
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Finder\Finder;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpKernel\KernelInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
-use Symfony\Component\Finder\Finder;
 
 
 class SecurityController extends AbstractController
@@ -20,6 +21,9 @@ class SecurityController extends AbstractController
 		$this->imgDir = $kernel->getProjectDir() . '/public/img/';
 	}
 	
+	/**
+	 * @Route("/login", name="login")
+	 */
 	public function login(AuthenticationUtils $authenticationUtils, Request $request): Response
 	{
 		if ($this->getUser()) {
@@ -55,12 +59,19 @@ class SecurityController extends AbstractController
 			}
 		}
 		
-		return $this->render('security/login.html.twig', [
+		return $this->renderForm('security/login.html.twig', [
 			'last_username' => $lastUsername, 
 			'error' => $error,
 			'img_name' => $imgName,
 			'logout' => $logout,
 		]);
 	}
+
+    /**
+     * @Route("/logout", name="logout", methods={"GET"})
+     */
+    public function logout(): void
+    {
+    }
 }
 ?>

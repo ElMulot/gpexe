@@ -2,28 +2,35 @@
 
 namespace App\Controller;
 
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\Request;
 use App\Entity\Review;
-use App\Entity\Version;
 use App\Entity\Company;
+use App\Entity\Version;
 use App\Form\ReviewType;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class ReviewController extends AbstractController
 {   
 	
+	/**
+	 * @Route("/project/serie/document/version/{version}/{company}/review", name="review", requirements={"version"="\d+", "company"="\d+"})
+	 */
 	public function index(Request $request, Version $version, Company $company) :Response
 	{
 		$review = $version->getReviewByCompany($company);
 		
-		return $this->render('review/index.html.twig', [
+		return $this->renderForm('review/index.html.twig', [
 			'review' => $review,
 			'version' => $version,
 			'company' => $company,
 		]);
 	}
 	
+	/**
+	 * @Route("/project/serie/document/version/{version}/{company}/review/new", name="review_new", requirements={"version"="\d+", "company"="\d+"})
+	 */
 	public function new(Request $request, Version $version, Company $company) :Response
 	{
 		if ($this->getUser()->getCompany() == $company || $this->isGranted('ROLE_ADMIN')) {
@@ -59,18 +66,17 @@ class ReviewController extends AbstractController
 					]);
 					
 				} else {
-					return $this->render('review/index.html.twig', [
+					return $this->renderForm('review/index.html.twig', [
 						'review' => $review,
 						'company' => $company,
 						'version' => $version,
 					]);
 				}
 			} else {
-				$view = $form->createView();
-				return $this->render('review/form.html.twig', [
+				return $this->renderForm('review/form.html.twig', [
 					'company' => $company,
 					'version' => $version,
-					'form' => $view,
+					'form' => $form,
 				]);
 			}
 		} else {
@@ -81,6 +87,9 @@ class ReviewController extends AbstractController
 		}
 	}
 	
+	/**
+	 * @Route("/project/serie/document/version/review/{review}/edit", name="review_edit", requirements={"review"="\d+"})
+	 */
 	public function edit(Request $request, Review $review) :Response
 	{
 		$company = $review->getVisa()->getCompany();
@@ -101,19 +110,18 @@ class ReviewController extends AbstractController
 				$entityManager = $this->getDoctrine()->getManager();
 				$entityManager->flush();
 				
-				return $this->render('review/index.html.twig', [
+				return $this->renderForm('review/index.html.twig', [
 					'review' => $review,
 					'company' => $company,
 					'version' => $version,
 				]);
 				
 			} else {
-				$view = $form->createView();
-				return $this->render('review/form.html.twig', [
+				return $this->renderForm('review/form.html.twig', [
 					'review' => $review,
 					'company' => $company,
 					'version' => $version,
-					'form' => $view,
+					'form' => $form,
 				]);
 			}
 		} else {
@@ -124,6 +132,9 @@ class ReviewController extends AbstractController
 		}
 	}
 	
+	/**
+	 * @Route("/project/serie/document/version/review/{review}/delete", name="review_delete", methods={"GET", "DELETE"}, requirements={"review"="\d+"})
+	 */
 	public function delete(Request $request, Review $review) :Response
 	{
 		$company = $review->getUser()->getCompany();
@@ -136,13 +147,13 @@ class ReviewController extends AbstractController
 				$entityManager->remove($review);
 				$entityManager->flush();
 				
-				return $this->render('review/index.html.twig', [
+				return $this->renderForm('review/index.html.twig', [
 					'review' => null,
 					'company' => $company,
 					'version' => $version,
 				]);
 			} else {
-				return $this->render('review/delete.html.twig', [
+				return $this->renderForm('review/delete.html.twig', [
 					'review' => $review,
 					'company' => $company,
 					'version' => $version,

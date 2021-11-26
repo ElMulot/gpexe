@@ -1,32 +1,33 @@
 <?php
 namespace App\Controller;
 
-use App\Entity\Document;
-use App\Entity\Project;
 use App\Entity\Serie;
+use App\Entity\Project;
 use App\Entity\Version;
+use App\Entity\Document;
 use App\Form\DocumentType;
 use App\Form\SerieChangeType;
-use App\Repository\CodificationRepository;
-use App\Repository\CompanyRepository;
-use App\Repository\DocumentRepository;
-use App\Repository\MetadataRepository;
-use App\Repository\ProgramRepository;
-use App\Repository\SerieRepository;
-use App\Repository\StatusRepository;
-use App\Repository\UserRepository;
-use App\Repository\VersionRepository;
-use App\Repository\ViewRepository;
-use App\Service\DocumentService;
 use App\Service\FieldService;
 use App\Service\ProgramService;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\JsonResponse;
+use App\Service\DocumentService;
+use App\Repository\UserRepository;
+use App\Repository\ViewRepository;
+use App\Repository\SerieRepository;
+use App\Repository\StatusRepository;
+use App\Repository\CompanyRepository;
+use App\Repository\ProgramRepository;
+use App\Repository\VersionRepository;
+use App\Repository\DocumentRepository;
+use App\Repository\MetadataRepository;
+use App\Repository\CodificationRepository;
+use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Serializer\Serializer;
-use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Contracts\Translation\TranslatorInterface;
+use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class DocumentController extends AbstractController
 {
@@ -77,6 +78,10 @@ class DocumentController extends AbstractController
 		$this->viewRepository = $viewRepository;
 	}
 	
+	/**
+	 * @Route("/project/{project}/serie/{type}/{serie}", name="document", requirements={"project"="\d+", "type"="sdr|mdr|all", "serie"="\d+"}, defaults={"serie"=0})
+	 * main view
+	 */
 	public function index(Project $project, string $type, Serie $serie = null): Response
 	{
 		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
@@ -95,7 +100,7 @@ class DocumentController extends AbstractController
 			}
 		}
 		
-		return $this->render('document/index.html.twig', [
+		return $this->renderForm('document/index.html.twig', [
 			'project' => $project,
 			'current_serie' => $serie,
 			'type' => $type,
@@ -106,6 +111,9 @@ class DocumentController extends AbstractController
 		]);
 	}
 	
+	/**
+	 * @Route("/project/{project}/serie/{type}/{serie}/fields", name="document_fields", requirements={"project"="\d+", "type"="sdr|mdr|all", "serie"="\d+"}, defaults={"serie"=0})
+	 */
 	public function fields(Project $project, string $type, Serie $serie = null): Response
 	{
 		if ($serie === null) {
@@ -127,6 +135,9 @@ class DocumentController extends AbstractController
 		]);
 	}
 	
+	/**
+	 * @Route("/project/{project}/serie/{type}/{serie}/table", name="document_table", requirements={"project"="\d+", "type"="sdr|mdr|all", "serie"="\d+"}, defaults={"serie"=0})
+	 */
 	public function table(Request $request, Project $project, string $type, Serie $serie = null): Response
 	{
 		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
@@ -198,6 +209,9 @@ class DocumentController extends AbstractController
 		);
 	}
 	
+	/**
+	 * @Route("/project/{project}/serie/{type}/{serie}/export", name="document_export", requirements={"project"="\d+", "type"="sdr|mdr|all", "serie"="\d+"}, defaults={"serie"=0})
+	 */
 	public function export(Request $request, Project $project, string $type, Serie $serie = null): Response
 	{
 		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
@@ -246,17 +260,20 @@ class DocumentController extends AbstractController
 		} catch (\Exception $e) {
 			$this->addFlash('danger', $e->getMessage());
 			$this->programService->unload();
-			return $this->render('ajax/error.html.twig');
+			return $this->renderForm('ajax/error.html.twig');
 		}
 		$filePath = $this->programService->getCache()->getParameter('file_path');
 		$pathParts = pathinfo($filePath);
 		
 		$this->programService->unload();
-		return $this->render('document/export.html.twig', [
+		return $this->renderForm('document/export.html.twig', [
 			'file_path' => $this->getParameter('uploads_directory') . '/' . $pathParts['basename'],
 		]);
 	}
 	
+	/**
+	 * @Route("/project/serie/document/{version}/detail", name="document_detail", requirements={"version"="\d+"})
+	 */
 	public function detail(Version $version): Response
 	{
 		$document = $version->getDocument();
@@ -268,13 +285,16 @@ class DocumentController extends AbstractController
 			throw $this->createAccessDeniedException();
 		}
 		
-		return $this->render('document/detail.html.twig', [
+		return $this->renderForm('document/detail.html.twig', [
 			'current_version' => $version,
 			'versions' => $this->versionRepository->getVersionsByDocument($document),
 			'document' => $document,
 		]);
 	}
 
+	/**
+	 * @Route("/project/serie/{serie}/document/new", name="document_new", requirements={"serie"="\d+"})
+	 */
 	public function new(Request $request, Serie $serie): Response
 	{
 		$project = $serie->getProject();
@@ -308,9 +328,8 @@ class DocumentController extends AbstractController
 				
 				if ($value === null && $codification->getIsMandatory()) {
 					$this->addFlash('danger', $this->translator->trans('notEmpty.field', ['field' => $codification->getName()]));
-					$view = $form->createView();
-					return $this->render('ajax/form.html.twig', [
-						'form' => $view,
+					return $this->renderForm('ajax/form.html.twig', [
+						'form' => $form,
 					]);
 				}
 				
@@ -323,9 +342,8 @@ class DocumentController extends AbstractController
 			
 			if ($this->documentService->validateReference($document) === false) {
 				$this->addFlash('danger', $this->translator->trans('alreadyExist.reference', ['reference' => $document->getReference()]));
-				$view = $form->createView();
-				return $this->render('ajax/form.html.twig', [
-					'form' => $view,
+				return $this->renderForm('ajax/form.html.twig', [
+					'form' => $form,
 				]);
 			}
 			
@@ -334,22 +352,20 @@ class DocumentController extends AbstractController
 				
 				if ($value === null && $metadata->getIsMandatory()) {
 					$this->addFlash('danger', $this->translator->trans('notEmpty.field', ['field' => $metadata->getName()]));
-					$view = $form->createView();
-					return $this->render('ajax/form.html.twig', [
-						'form' => $view,
+					return $this->renderForm('ajax/form.html.twig', [
+						'form' => $form,
 					]);
 				}
 				
 				try {
-				    $document->setMetadataValue($metadata, $value);
+					$document->setMetadataValue($metadata, $value);
 				} catch (\Error $e) {
-				    if ($metadata->getIsMandatory() === true) {
-				        $this->addFlash('danger', $e->getMessage());
-				        $view = $form->createView();
-				        return $this->render('ajax/form.html.twig', [
-				            'form' => $view,
-				        ]);
-				    }
+					if ($metadata->getIsMandatory() === true) {
+						$this->addFlash('danger', $e->getMessage());
+						return $this->renderForm('ajax/form.html.twig', [
+							'form' => $form,
+						]);
+					}
 				}
 			}
 			
@@ -360,19 +376,21 @@ class DocumentController extends AbstractController
 				'document' => $document->getId()
 			]);
 		} else {
-			$view = $form->createView();
-			return $this->render('ajax/form.html.twig', [
-				'form' => $view,
+			return $this->renderForm('ajax/form.html.twig', [
+				'form' => $form,
 			]);
 		}
 	}
 	
+	/**
+	 * @Route("/project/serie/document/edit", name="document_edit")
+	 */
 	public function edit(Request $request): Response
 	{			
 		$documents = $this->documentRepository->getDocumentsByRequest($request);
 		if ($documents == false) {
 			$this->addFlash('danger', $this->translator->trans('None documents selected'));
-			return $this->render('ajax/error.html.twig');
+			return $this->renderForm('ajax/error.html.twig');
 		}
 		
 		$document = reset($documents);
@@ -411,9 +429,8 @@ class DocumentController extends AbstractController
 						
 						if ($value === null && $codification->getIsMandatory()) {
 							$this->addFlash('danger', $this->translator->trans('notEmpty.field', ['field' => $codification->getName()]));
-							$view = $form->createView();
-							return $this->render('ajax/form.html.twig', [
-								'form' => $view,
+							return $this->renderForm('ajax/form.html.twig', [
+								'form' => $form,
 							]);
 						}
 						
@@ -429,9 +446,8 @@ class DocumentController extends AbstractController
 				
 				if ($this->documentService->validateReference($document) === false) {
 					$this->addFlash('danger', $this->translator->trans('alreadyExist.reference', ['reference' => $document->getReference()]));
-					$view = $form->createView();
-					return $this->render('ajax/form.html.twig', [
-						'form' => $view,
+					return $this->renderForm('ajax/form.html.twig', [
+						'form' => $form,
 					]);
 				}
 				
@@ -447,22 +463,20 @@ class DocumentController extends AbstractController
 						
 						if ($value === null && $metadata->getIsMandatory()) {
 							$this->addFlash('danger', $this->translator->trans('notEmpty.field', ['field' => $metadata->getName()]));
-							$view = $form->createView();
-							return $this->render('ajax/form.html.twig', [
-								'form' => $view,
+							return $this->renderForm('ajax/form.html.twig', [
+								'form' => $form,
 							]);
 						}
 						
 						try {
 							$document->setMetadataValue($metadata, $value);
 						} catch (\Error $e) {
-						    if ($metadata->getIsMandatory() === true) {
-						        $this->addFlash('danger', $e->getMessage());
-						        $view = $form->createView();
-						        return $this->render('ajax/form.html.twig', [
-						            'form' => $view,
-						        ]);
-						    }
+							if ($metadata->getIsMandatory() === true) {
+								$this->addFlash('danger', $e->getMessage());
+								return $this->renderForm('ajax/form.html.twig', [
+									'form' => $form,
+								]);
+							}
 						}
 					}
 				}
@@ -473,9 +487,8 @@ class DocumentController extends AbstractController
 			//check if any modified documents hasn't the same codification
 			if (array_unique($references) != $references) {
 				$this->addFlash('danger', $this->translator->trans('The same codification has been setting up to more than one document'));
-				$view = $form->createView();
-				return $this->render('ajax/form.html.twig', [
-					'form' => $view,
+				return $this->renderForm('ajax/form.html.twig', [
+					'form' => $form,
 				]);
 			}
 			
@@ -485,14 +498,16 @@ class DocumentController extends AbstractController
 			$this->addFlash('success', $this->translator->trans('Document updated'));
 			return new Response();
 		} else {
-			$view = $form->createView();
 			$request->query->remove('id');
-			return $this->render('ajax/form.html.twig', [
-				'form' => $view
+			return $this->renderForm('ajax/form.html.twig', [
+				'form' => $form
 			]);
 		}
 	}
 	
+	/**
+	 * @Route("/project/serie/document/move", name="document_move")
+	 */
 	public function move(Request $request): Response
 	{
 		
@@ -500,7 +515,7 @@ class DocumentController extends AbstractController
 		
 		if ($documents == false) {
 			$this->addFlash('danger', $this->translator->trans('None documents selected'));
-			return $this->render('ajax/error.html.twig');
+			return $this->renderForm('ajax/error.html.twig');
 		}
 		
 		$document = reset($documents);
@@ -533,15 +548,17 @@ class DocumentController extends AbstractController
 			$this->addFlash('success', $this->translator->trans('The document has been successfully moved'));
 			return new Response();
 		} else {
-			$view = $form->createView();
 			$request->query->remove('id');
-			return $this->render('ajax/form.html.twig', [
-				'form' => $view
+			return $this->renderForm('ajax/form.html.twig', [
+				'form' => $form
 			]);
 		}
 		
 	}
 	
+	/**
+	 * @Route("/project/serie/document/delete", name="document_delete", methods={"GET", "DELETE"})
+	 */
 	public function delete(Request $request): Response
 	{
 		
@@ -549,7 +566,7 @@ class DocumentController extends AbstractController
 		
 		if ($documents == false) {
 			$this->addFlash('danger', $this->translator->trans('None documents selected'));
-			return $this->render('ajax/error.html.twig');
+			return $this->renderForm('ajax/error.html.twig');
 		}
 		
 		$document = reset($documents);
@@ -570,7 +587,7 @@ class DocumentController extends AbstractController
 			$this->addFlash('success', $this->translator->trans('deleted.document', ['count' => count($documents)]));
 			return new Response();
 		} else {
-			return $this->render('ajax/delete.html.twig', [
+			return $this->renderForm('ajax/delete.html.twig', [
 				'entities' => $documents,
 			]);
 		}

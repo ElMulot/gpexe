@@ -1,14 +1,15 @@
 <?php
 namespace App\Controller;
 
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Contracts\Translation\TranslatorInterface;
+use App\Entity\Project;
 use App\Entity\Codification;
 use App\Form\CodificationType;
 use App\Repository\CodificationRepository;
-use App\Entity\Project;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Contracts\Translation\TranslatorInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class CodificationController extends AbstractController
 {
@@ -19,7 +20,10 @@ class CodificationController extends AbstractController
 	{
 		$this->translator = $translator;
 	}
-	
+
+	/**
+	 * @Route("/project/{project}/codification", name="codification", requirements={"project"="\d+"})
+	 */
 	public function index(CodificationRepository $codificationRepository, Project $project): Response
 	{
 		if ($this->isGranted('ROLE_ADMIN') === false &&
@@ -27,7 +31,7 @@ class CodificationController extends AbstractController
 			return $this->redirectToRoute('project');
 		}
 		
-		return $this->render('generic/list.html.twig', [
+		return $this->renderForm('generic/list.html.twig', [
 			'header' => $this->translator->trans('Codification for') . ' : ' . $project->getName(),
 			'route_back' =>  $this->generateUrl('project_view', [
 				'project' => $project->getId(),
@@ -37,6 +41,9 @@ class CodificationController extends AbstractController
 		]);
 	}
 
+	/**
+	 * @Route("/project/{project}/codification/new", name="codification_new", requirements={"project"="\d+"})
+	 */
 	public function new(Request $request, Project $project): Response
 	{
 		if ($this->isGranted('ROLE_ADMIN') === false &&
@@ -60,16 +67,18 @@ class CodificationController extends AbstractController
 				'project' => $project->getId()
 			]);
 		} else {
-			$view = $form->createView();
-			return $this->render('generic/form.html.twig', [
+			return $this->renderForm('generic/form.html.twig', [
 				'route_back' =>  $this->generateUrl('codification', [
 					'project' => $project->getId(),
 				]),
-				'form' => $view
+				'form' => $form
 			]);
 		}
 	}
 
+	/**
+	 * @Route("/project/codification/{codification}/edit", name="codification_edit", requirements={"codification"="\d+"})
+	 */
 	public function edit(Request $request, Codification $codification): Response
 	{
 		$project = $codification->getProject();
@@ -89,16 +98,18 @@ class CodificationController extends AbstractController
 				'project' => $codification->getProject()->getId()
 			]);
 		} else {
-			$view = $form->createView();
-			return $this->render('generic/form.html.twig', [
+			return $this->renderForm('generic/form.html.twig', [
 				'route_back' =>  $this->generateUrl('codification', [
 					'project' => $codification->getProject()->getId(),
 				]),
-				'form' => $view
+				'form' => $form
 			]);
 		}
 	}
 
+	/**
+	 * @Route("/project/codification/{codification}/delete", name="codification_delete", methods={"GET", "DELETE"}, requirements={"codification"="\d+"})
+	 */
 	public function delete(Request $request, Codification $codification): Response
 	{
 		$project = $codification->getProject();
@@ -117,7 +128,7 @@ class CodificationController extends AbstractController
 				'project' => $codification->getProject()->getId()
 			]);
 		} else {
-			return $this->render('generic/delete.html.twig', [
+			return $this->renderForm('generic/delete.html.twig', [
 				'route_back' =>  $this->generateUrl('codification', [
 					'project' => $codification->getProject()->getId(),
 				]),

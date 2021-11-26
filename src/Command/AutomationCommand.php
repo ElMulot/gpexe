@@ -15,20 +15,20 @@ use Symfony\Component\HttpKernel\KernelInterface;
 
 class AutomationCommand extends Command
 {
-	private $entityManager;
-	
+		private $entityManager;
+
 	private $kernel;
-	
+
 	private $automationRepository;
-	
+
 	private $codificationValueRepository;
-	
+
 	private $metadataValueRepository;
-	
+
 	private $programRepository;
-	
+
 	protected static $defaultName = 'app:cron';
-	
+
 	public function __construct(EntityManagerInterface $entityManager, KernelInterface $kernel, AutomationRepository $automationRepository, CodificationValueRepository $codificationValueRepository, MetadataValueRepository $metadataValueRepository, ProgramRepository $programRepository)
 	{
 		$this->entityManager = $entityManager;
@@ -37,31 +37,31 @@ class AutomationCommand extends Command
 		$this->codificationValueRepository = $codificationValueRepository;
 		$this->metadataValueRepository = $metadataValueRepository;
 		$this->programRepository = $programRepository;
-		
+
 		parent::__construct();
 	}
-	
+
 	protected function configure()
 	{
 		$this->setDescription('Execute cron jobs');
 	}
-	
+
 	protected function execute(InputInterface $input, OutputInterface $output): int
 	{
 		$result = Command::FAILURE;
-		
+
 		$this->codificationValueRepository->deleteCodificationValueOrphans();
 		$this->metadataValueRepository->deleteMetadataValueOrphans();
 		$automations = $this->automationRepository->getAutomationsToRun();
-		
+
 		foreach ($automations as $automation) {
 			$application = $this->getApplication()->find($automation->getCommand());
 			$input = new ArrayInput($automation->getArguments());
 			$result = (int)$application->run($input, $output) || $result;
 		}
-		
+
 		return $result;
-		
+
 	}
 }
 

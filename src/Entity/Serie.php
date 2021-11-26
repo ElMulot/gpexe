@@ -273,32 +273,32 @@ class Serie
 	{
 		
 		switch ($metadata->getType()) {
-		    case Metadata::BOOLEAN:
-		        $value = ($value)?true:false;
-		        break;
-		    case Metadata::DATE:
-		        if (is_string($value)) {
-		            $date = Date::fromFormat($value);
-		            if ($date->isValid() === false) {
-		                $value = null;
-		            }
-		        } elseif ($value instanceof \DateTimeInterface) {
-		            $value = $value->format('d-m-Y');
-		        } else {
-		            $value = null;
-		        }
-		        break;
-		    default:
-		        if ($value === '') {
-		            $value = null;
-		        }
+			case Metadata::BOOLEAN:
+				$value = ($value)?true:false;
+				break;
+			case Metadata::DATE:
+				if (is_string($value)) {
+					$date = Date::fromFormat($value);
+					if ($date->isValid() === false) {
+						$value = null;
+					}
+				} elseif ($value instanceof \DateTimeInterface) {
+					$value = $value->format('d-m-Y');
+				} else {
+					$value = null;
+				}
+				break;
+			default:
+				if ($value === '') {
+					$value = null;
+				}
 		}
 		
 		if ($value === null) {
-		    if ($metadata->getIsMandatory() === true) {
-		        throw new \Error(sprintf('Erreur: la valeur "%s" ne peut être vide', $metadata->getCodename()));
-		        return $this;
-		    }
+			if ($metadata->getIsMandatory() === true) {
+				throw new \Error(sprintf('Erreur: la valeur "%s" ne peut être vide', $metadata->getCodename()));
+				return $this;
+			}
 		}
 		
 		

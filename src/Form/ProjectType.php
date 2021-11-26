@@ -39,10 +39,10 @@ class ProjectType extends AbstractType
 				'help' => 'Number of working days delay before showing the line in red in the dashboard and in the documents list for documents to be checked.'
 			])
 			->add('users', EntityType::class, [
-			    'class' => User::class,
-			    'choice_label' => 'name',
-			    'multiple' => true,
-			    'expanded' => false,
+				'class' => User::class,
+				'choice_label' => 'name',
+				'multiple' => true,
+				'expanded' => false,
 			])
 		;
 	}

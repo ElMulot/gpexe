@@ -1,15 +1,16 @@
 <?php
 namespace App\Controller;
 
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Contracts\Translation\TranslatorInterface;
 use App\Entity\Visa;
 use App\Form\VisaType;
-use App\Repository\CompanyRepository;
-use App\Repository\VisaRepository;
 use App\Entity\Project;
+use App\Repository\VisaRepository;
+use App\Repository\CompanyRepository;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Contracts\Translation\TranslatorInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class VisaController extends AbstractController
 {
@@ -27,6 +28,9 @@ class VisaController extends AbstractController
 		$this->visaRepository = $visaRepository;
 	}
 	
+	/**
+	 * @Route("/project/{project}/visa", name="visa", requirements={"project"="\d+"})
+	 */
 	public function index(Project $project): Response
 	{
 		if ($this->isGranted('ROLE_ADMIN') === false &&
@@ -34,7 +38,7 @@ class VisaController extends AbstractController
 			return $this->redirectToRoute('project');
 		}
 		
-		return $this->render('generic/list.html.twig', [
+		return $this->renderForm('generic/list.html.twig', [
 			'header' => $this->translator->trans('Visas for') . ' : ' . $project->getName(),
 			'route_back' =>  $this->generateUrl('project_view', [
 				'project' => $project->getId(),
@@ -44,6 +48,9 @@ class VisaController extends AbstractController
 		]);
 	}
 
+	/**
+	 * @Route("/project/{project}/visa/new", name="visa_new", requirements={"project"="\d+"})
+	 */
 	public function new(Request $request, Project $project): Response
 	{
 		if ($this->isGranted('ROLE_ADMIN') === false &&
@@ -69,16 +76,18 @@ class VisaController extends AbstractController
 				'project' => $project->getId()
 			]);
 		} else {
-			$view = $form->createView();
-			return $this->render('generic/form.html.twig', [
+			return $this->renderForm('generic/form.html.twig', [
 				'route_back' =>  $this->generateUrl('visa', [
 					'project' => $project->getId(),
 				]),
-				'form' => $view
+				'form' => $form
 			]);
 		}
 	}
 
+	/**
+	 * @Route("/project/visa/{visa}/edit", name="visa_edit", requirements={"visa"="\d+"})
+	 */
 	public function edit(Request $request, Visa $visa): Response
 	{
 		$project = $visa->getProject();
@@ -101,16 +110,18 @@ class VisaController extends AbstractController
 				'project' => $visa->getProject()->getId()
 			]);
 		} else {
-			$view = $form->createView();
-			return $this->render('generic/form.html.twig', [
+			return $this->renderForm('generic/form.html.twig', [
 				'route_back' =>  $this->generateUrl('visa', [
 					'project' => $visa->getProject()->getId(),
 				]),
-				'form' => $view
+				'form' => $form
 			]);
 		}
 	}
 
+	/**
+	 * @Route("/project/visa/{visa}/delete", name="visa_delete", methods={"GET", "DELETE"}, requirements={"visa"="\d+"})
+	 */
 	public function delete(Request $request, Visa $visa): Response
 	{
 		$project = $visa->getProject();
@@ -129,7 +140,7 @@ class VisaController extends AbstractController
 				'project' => $visa->getProject()->getId()
 			]);
 		} else {
-			return $this->render('generic/delete.html.twig', [
+			return $this->renderForm('generic/delete.html.twig', [
 				'route_back' =>  $this->generateUrl('visa', [
 					'project' => $visa->getProject()->getId(),
 				]),

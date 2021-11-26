@@ -33,10 +33,10 @@ class NewUserType extends AbstractType
 			->add('profil')
 			->add('company')
 			->add('projects', EntityType::class, [
-			    'class' => Project::class,
-			    'choice_label' => 'name',
-			    'multiple' => true,
-			    'expanded' => true,
+				'class' => Project::class,
+				'choice_label' => 'name',
+				'multiple' => true,
+				'expanded' => true,
 			])
 		;
 	}

@@ -461,7 +461,7 @@ class Document
 	
 	public function setMetadataValue(Metadata $metadata, $value): self
 	{
-	    
+		
 		if ($value instanceof MetadataItem || $value instanceof MetadataValue) {
 			$value = $value->__toString();
 		}
@@ -472,27 +472,27 @@ class Document
 				break;
 			case Metadata::DATE:
 				if (is_string($value)) {
-				    $date = Date::fromFormat($value);
-				    if ($date->isValid() === false) {
-				        $value = null;
-				    }
+					$date = Date::fromFormat($value);
+					if ($date->isValid() === false) {
+						$value = null;
+					}
 				} elseif ($value instanceof \DateTimeInterface) {
-				    $value = $value->format('d-m-Y');
+					$value = $value->format('d-m-Y');
 				} else {
-				    $value = null;
+					$value = null;
 				}
 				break;
 			default:
-			    if ($value === '') {
-			        $value = null;
-			    }
+				if ($value === '') {
+					$value = null;
+				}
 		}
 
 		if ($value === null) {
-		    if ($metadata->getIsMandatory() === true) {
-		        throw new \Error(sprintf('Erreur: la valeur "%s" ne peut être vide', $metadata->getCodename()));
-		        return $this;
-		    }
+			if ($metadata->getIsMandatory() === true) {
+				throw new \Error(sprintf('Erreur: la valeur "%s" ne peut être vide', $metadata->getCodename()));
+				return $this;
+			}
 		}
 		
 		switch ($metadata->getType()) {

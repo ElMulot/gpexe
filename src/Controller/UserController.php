@@ -2,15 +2,16 @@
 
 namespace App\Controller;
 
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Contracts\Translation\TranslatorInterface;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use App\Entity\User;
 use App\Form\NewUserType;
 use App\Form\EditUserType;
 use App\Repository\UserRepository;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Contracts\Translation\TranslatorInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class UserController extends AbstractController
 {
@@ -25,9 +26,12 @@ class UserController extends AbstractController
 		$this->passwordHasher = $passwordHasher;
 	}
 	
+	/**
+	 * @Route("/user", name="user")
+	 */
 	public function index(UserRepository $userRepository): Response
 	{
-		return $this->render('user/index.html.twig', [
+		return $this->renderForm('user/index.html.twig', [
 			'header' => $this->translator->trans('User'),
 			'route_back' =>  $this->generateUrl('project'),
 			'class' => User::class,
@@ -35,6 +39,9 @@ class UserController extends AbstractController
 		]);
 	}
 	
+	/**
+	 * @Route("/user/new", name="user_new")
+	 */
 	public function new(Request $request): Response
 	{
 		$user = new User();
@@ -50,14 +57,16 @@ class UserController extends AbstractController
 			$this->addFlash('success', 'New entry created');
 			return $this->redirectToRoute('user');
 		} else {
-			$view = $form->createView();
-			return $this->render('generic/form.html.twig', [
+			return $this->renderForm('generic/form.html.twig', [
 				'route_back' =>  $this->generateUrl('user'),
-				'form' => $view,
+				'form' => $form,
 			]);
 		}
 	}
 	
+	/**
+	 * @Route("/user/{user}/edit", name="user_edit", requirements={"user"="\d+"})
+	 */
 	public function edit(Request $request, User $user): Response
 	{
 		$form = $this->createForm(EditUserType::class, $user);
@@ -73,14 +82,16 @@ class UserController extends AbstractController
 			$this->addFlash('success', 'Datas updated');
 			return $this->redirectToRoute('user');
 		} else {
-			$view = $form->createView();
-			return $this->render('generic/form.html.twig', [
+			return $this->renderForm('generic/form.html.twig', [
 				'route_back' =>  $this->generateUrl('user'),
-				'form' => $view,
+				'form' => $form,
 			]);
 		}
 	}
 	
+	/**
+	 * @Route("/user/{user}/delete", name="user_delete", methods={"GET", "DELETE"}, requirements={"user"="\d+"})
+	 */
 	public function delete(Request $request, User $user): Response
 	{
 		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
@@ -91,7 +102,7 @@ class UserController extends AbstractController
 			$this->addFlash('success', 'Entry deleted');
 			return $this->redirectToRoute('user');
 		} else {
-			return $this->render('generic/delete.html.twig', [
+			return $this->renderForm('generic/delete.html.twig', [
 				'route_back' =>  $this->generateUrl('user'),
 				'entities' => [$user],
 			]);

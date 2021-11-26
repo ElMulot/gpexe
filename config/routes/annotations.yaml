@@ -1,8 +1,8 @@
 controllers:
     resource: ../../src/Controller/
     type: annotation
-    defaults:
-        schemes: '%env(SCHEME)%'
+    # defaults:
+    #     schemes: '%env(SCHEME)%'
 
 kernel:
     resource: ../../src/Kernel.php

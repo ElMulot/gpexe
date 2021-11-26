@@ -43,7 +43,7 @@ class Cell
 	public function getValue()
 	{
 		
-	    switch ($this->row->getSheet()->getWorkbook()->getLibrary()) {
+		switch ($this->row->getSheet()->getWorkbook()->getLibrary()) {
 			case Workbook::SPOUT:
 				if ($this->_cell->getValue() instanceof \DateTimeInterface) {
 					$dateFormat = $this->row->getSheet()->getWorkbook()->getDateFormatInput();

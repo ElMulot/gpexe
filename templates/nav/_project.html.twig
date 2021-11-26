@@ -1,0 +1,84 @@
+{% import "macros/_navbar.html.twig" as navbar %}
+
+<ul class="navbar-nav me-auto">
+	{{ navbar.item('Back', path('project')) }}
+
+	{% if (is_granted('ROLE_CONTROLLER') and app.user in project.users) or is_granted('ROLE_ADMIN') %}
+		{{ navbar.dropdown('Project admin', {
+			'Edit project': path('project_edit', {'project': project.id}),
+			'Codification': path('codification', {'project': project.id}),
+			'Metadatas': path('metadata', {'project': project.id}),
+			'Statuses': path('status', {'project': project.id}),
+			'Visas': path('visa', {'project': project.id}),
+			'Programs': path('program', {'project': project.id}),
+			'Automations': path('automation', {'project': project.id}),
+		}) }}
+	{% endif %}
+</ul>
+
+{{ navbar.title("Projects")}}
+
+<ul class="navbar-nav ms-auto">
+	{% if programs is not empty %}
+
+		{% set export_programs = programs|filter(v => v.type == constant('App\\Entity\\Program::EXPORT')) %}
+		{% set import_programs = programs|filter(v => v.type == constant('App\\Entity\\Program::IMPORT')) %}
+		{% set task_programs = programs|filter(v => v.type == constant('App\\Entity\\Program::TASK')) %}
+		{% set progress_programs = programs|filter(v => v.type == constant('App\\Entity\\Program::PROGRESS')) %}
+
+
+		{% if export_programs is not empty  %}
+			{% set export_menu = {
+				'Export': 'title',
+			} %}
+			{% for program in export_programs %}
+				{% set export_menu = export_menu|merge({
+					(program.name): path('program_dashboard', {'program': program.id}),
+				}) %}
+			{% endfor %}
+		{% endif %}
+
+		{% if import_programs is not empty  %}
+			{% set import_menu = {
+				'Import': 'title',
+			} %}
+			{% for program in import_programs %}
+				{% set import_menu = import_menu|merge({
+					(program.name): path('program_dashboard', {'program': program.id}),
+				}) %}
+			{% endfor %}
+		{% endif %}
+
+		{% if task_programs is not empty  %}
+			{% set task_menu = {
+				'Task': 'title',
+			} %}
+			{% for program in task_programs %}
+				{% set task_menu = task_menu|merge({
+					(program.name): path('program_dashboard', {'program': program.id}),
+				}) %}
+			{% endfor %}
+		{% endif %}
+
+		{% if progress_programs is not empty  %}
+			{% set progress_menu = {
+				'Progress': 'title',
+			} %}
+			{% for program in progress_programs %}
+				{% set progress_menu = progress_menu|merge({
+					(program.name): path('program_dashboard', {'program': program.id}),
+				}) %}
+			{% endfor %}
+		{% endif %}
+
+		{% if export_menu is empty and import_menu is empty and task_menu is empty and progress_menu is empty %}
+			{{ nav.dropdown('Programs', {
+				'No program avialable': 'title',
+			}) }}
+		{% else %}
+			{{ nav.dropdown('Programs', export_menu|merge(import_menu)|merge(task_menu)|merge(progress_menu)) }}
+		{% endif %}
+	{% endif %}
+
+	{{ navbar.itemLogout() }}
+</ul>

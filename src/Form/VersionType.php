@@ -126,7 +126,7 @@ class VersionType extends AbstractType
 	private function buildField(string $label, string $id, string $codename, int $type, array $versions=null, $options=[])
 	{
 	   	
-	    if (($options['required'] ?? true) === true && $type != Metadata::BOOLEAN) {
+		if (($options['required'] ?? true) === true && $type != Metadata::BOOLEAN) {
 			$options['constraints'] = [new NotBlank()];
 		}
 		
@@ -137,7 +137,7 @@ class VersionType extends AbstractType
 		}
 		
 		if ($multiple === true) {
-		    $options['constraints'] = [];
+			$options['constraints'] = [];
 		}
 		
 		$version = reset($versions) ?? null;

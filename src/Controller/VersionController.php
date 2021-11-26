@@ -3,22 +3,23 @@
 namespace App\Controller;
 
 use App\Entity\Company;
-use App\Entity\Document;
 use App\Entity\Version;
-use App\Form\QuickVersionType;
+use App\Entity\Document;
 use App\Form\VersionType;
+use App\Service\FieldService;
+use App\Form\QuickVersionType;
+use App\Service\DocumentService;
+use App\Repository\StatusRepository;
+use App\Service\AjaxRedirectService;
 use App\Repository\CompanyRepository;
+use App\Repository\VersionRepository;
 use App\Repository\DocumentRepository;
 use App\Repository\MetadataRepository;
-use App\Repository\StatusRepository;
-use App\Repository\VersionRepository;
-use App\Service\AjaxRedirectService;
-use App\Service\DocumentService;
-use App\Service\FieldService;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class VersionController extends AbstractController
 {
@@ -51,6 +52,9 @@ class VersionController extends AbstractController
 		$this->fieldService = $fieldService;
 	}
 	
+	/**
+	 * @Route("/project/serie/document/version/{version}/detail", name="version_detail", requirements={"version"="\d+"})
+	 */
 	public function detail(Version $version): Response
 	{
 		$document = $version->getDocument();
@@ -64,7 +68,7 @@ class VersionController extends AbstractController
 			$this->createAccessDeniedException();
 		}
 		
-		return $this->render('version/detail.html.twig', [
+		return $this->renderForm('version/detail.html.twig', [
 			'version' => $version,
 			'document' => $document,
 			'project' => $project,
@@ -72,6 +76,9 @@ class VersionController extends AbstractController
 		]);
 	}
 	
+	/**
+	 * @Route("/project/serie/document/{document}/version/new", name="version_new", requirements={"document"="\d+"}, defaults={"document"=0})
+	 */
 	public function new(Request $request, Document $document = null): Response
 	{
 		
@@ -79,12 +86,12 @@ class VersionController extends AbstractController
 			$documents = $this->documentRepository->getDocumentsByRequest($request);
 			if ($documents == false) {
 				$this->addFlash('danger', $this->translator->trans('None documents selected'));
-				return $this->render('ajax/error.html.twig');
+				return $this->renderForm('ajax/error.html.twig');
 			}
 			
 			if (count($documents) > 1) {
 				$this->addFlash('danger', $this->translator->trans('Only one reference must be selected'));
-				return $this->render('ajax/error.html.twig');
+				return $this->renderForm('ajax/error.html.twig');
 			}
 			$document = reset($documents);
 		}
@@ -141,9 +148,8 @@ class VersionController extends AbstractController
 				
 				if ($value === null && $metadata->getIsMandatory()) {
 					$this->addFlash('danger', $this->translator->trans('notEmpty.field', ['field' => $metadata->getName()]));
-					$view = $form->createView();
-					return $this->render('ajax/form.html.twig', [
-						'form' => $view,
+					return $this->renderForm('ajax/form.html.twig', [
+						'form' => $form,
 					]);
 				}
 				
@@ -152,9 +158,8 @@ class VersionController extends AbstractController
 				} catch (\Error $e) {
 					if ($metadata->getIsMandatory() === true) {
 						$this->addFlash('danger', $e->getMessage());
-						$view = $form->createView();
-						return $this->render('ajax/form.html.twig', [
-							'form' => $view,
+						return $this->renderForm('ajax/form.html.twig', [
+							'form' => $form,
 						]);
 					}
 				}
@@ -172,19 +177,21 @@ class VersionController extends AbstractController
 			}
 			
 		} else {
-			$view = $form->createView();
-			return $this->render('ajax/form.html.twig', [
-				'form' => $view,
+			return $this->renderForm('ajax/form.html.twig', [
+				'form' => $form,
 			]);
 		}
 	}
 	
+	/**
+	 * @Route("/project/serie/document/version/edit", name="version_edit")
+	 */
 	public function edit(Request $request): Response
 	{
 		$documents = $this->documentRepository->getDocumentsByRequest($request);
 		if ($documents == false) {
 			$this->addFlash('danger', $this->translator->trans('None documents selected'));
-			return $this->render('ajax/error.html.twig');
+			return $this->renderForm('ajax/error.html.twig');
 		}
 		
 		$document = reset($documents);
@@ -243,9 +250,8 @@ class VersionController extends AbstractController
 						$value = $form->get($metadata->getFullId())->getData();
 						if ($value === null && $metadata->getIsMandatory()) {
 							$this->addFlash('danger', $this->translator->trans('notEmpty.field', ['field' => $metadata->getName()]));
-							$view = $form->createView();
-							return $this->render('ajax/form.html.twig', [
-								'form' => $view,
+							return $this->renderForm('ajax/form.html.twig', [
+								'form' => $form,
 							]);
 						}
 						
@@ -254,9 +260,8 @@ class VersionController extends AbstractController
 						} catch (\Error $e) {
 							if ($metadata->getIsMandatory() === true) {
 								$this->addFlash('danger', $e->getMessage());
-								$view = $form->createView();
-								return $this->render('ajax/form.html.twig', [
-									'form' => $view,
+								return $this->renderForm('ajax/form.html.twig', [
+									'form' => $form,
 								]);
 							}
 						}
@@ -288,13 +293,15 @@ class VersionController extends AbstractController
 			}
 			
 		} else {
-			$view = $form->createView();
-			return $this->render('ajax/form.html.twig', [
-				'form' => $view,
+			return $this->renderForm('ajax/form.html.twig', [
+				'form' => $form,
 			]);
 		}
 	}
 	
+	/**
+	 * @Route("/project/serie/document/version/delete", name="version_delete")
+	 */
 	public function delete(Request $request): Response
 	{
 		
@@ -331,13 +338,16 @@ class VersionController extends AbstractController
 			}
 			
 		} else {
-			return $this->render('ajax/delete.html.twig', [
+			return $this->renderForm('ajax/delete.html.twig', [
 				'entities' => $versions,
 			]);
 		}
 		
 	}
 	
+	/**
+	 * @Route("/project/serie/document/{document}/version/{version}/{company}/quick_new", name="version_quick_new", requirements={"document"="\d+", "version"="\d+", "company"="\d+"})
+	 */
 	public function quickNew(Request $request, Document $document, Version $version, Company $company): Response
 	{
 		
@@ -382,15 +392,17 @@ class VersionController extends AbstractController
 			
 			return $this->ajaxRedirectService->get($this->generateUrl('document_detail', ['version' => $version->getId()]), '#modal_detail');
 		} else {
-			$view = $form->createView();
-			return $this->render('review/form.html.twig', [
+			return $this->renderForm('review/form.html.twig', [
 				'company' => $company,
 				'version' => $version,
-				'form' => $view,
+				'form' => $form,
 			]);
 		}
 	}
 	
+	/**
+	 * @Route("/project/serie/document/version/{version}/quick_edit/{fieldId}", name="version_quick_edit", requirements={"version"="\d+", "fieldId"="\w+"})
+	 */
 	public function quickEdit(Request $request, Version $version, string $fieldId): Response
 	{
 		$document = $version->getDocument();
@@ -408,7 +420,7 @@ class VersionController extends AbstractController
 			if ($field['id'] == $fieldId) {
 				
 				if ($field['display']['header'] && $field['permissions']['write']) {
-				    
+					
 					$form = $this->createForm(QuickVersionType::class, $version, [
 						'field' => $field,
 					]);
@@ -427,18 +439,17 @@ class VersionController extends AbstractController
 						$entityManager->persist($version);
 						$entityManager->flush();
 						
-						return $this->render('version/quick_edit.html.twig', [
+						return $this->renderForm('version/quick_edit.html.twig', [
 							'property' => $version->getPropertyValue($field['codename']),
 						]);
 					} else {
-						$view = $form->createView();
-						return $this->render('version/quick_edit.html.twig', [
-							'form' => $view,
+						return $this->renderForm('version/quick_edit.html.twig', [
+							'form' => $form,
 						]);
 					}
 					
 				} else {
-					return $this->render('version/quick_edit.html.twig', [
+					return $this->renderForm('version/quick_edit.html.twig', [
 						'property' => $version->getPropertyValue($field['codename']),
 					]);
 				}

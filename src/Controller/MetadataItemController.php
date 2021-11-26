@@ -1,15 +1,15 @@
 <?php
 namespace App\Controller;
 
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Contracts\Translation\TranslatorInterface;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
+use App\Entity\Metadata;
 use App\Entity\MetadataItem;
 use App\Form\MetadataItemType;
 use App\Repository\MetadataItemRepository;
-use App\Entity\Metadata;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Contracts\Translation\TranslatorInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class MetadataItemController extends AbstractController
 {
@@ -21,6 +21,9 @@ class MetadataItemController extends AbstractController
 		$this->translator = $translator;
 	}
 	
+	/**
+	 * @Route("/project/metadata/{metadata}/item", name="metadata_item", requirements={"metadata"="\d+"})
+	 */
 	public function index(MetadataItemRepository $metadataItemRepository, Metadata $metadata): Response
 	{
 		$project = $metadata->getProject();
@@ -29,7 +32,7 @@ class MetadataItemController extends AbstractController
 			return $this->redirectToRoute('project');
 		}
 		
-		return $this->render('generic/list.html.twig', [
+		return $this->renderForm('generic/list.html.twig', [
 			'header' => $this->translator->trans('List for the metadata') . ' : ' . $metadata->getName(),
 			'route_back' =>  $this->generateUrl('metadata', [
 				'project' => $metadata->getProject()->getId(),
@@ -39,6 +42,9 @@ class MetadataItemController extends AbstractController
 		]);
 	}
 
+	/**
+	 * @Route("/project/metadata/{metadata}/item/new", name="metadata_item_new", requirements={"metadata"="\d+"})
+	 */
 	public function new(Request $request, Metadata $metadata): Response
 	{
 		$project = $metadata->getProject();
@@ -62,18 +68,17 @@ class MetadataItemController extends AbstractController
 				'metadata' => $metadata->getId()
 			]);
 		} else {
-			$view = $form->createView();
-			return $this->render('generic/form.html.twig', [
+			return $this->renderForm('generic/form.html.twig', [
 				'route_back' =>  $this->generateUrl('metadata_item', [
 					'metadata' => $metadata->getId(),
 				]),
-				'form' => $view
+				'form' => $form
 			]);
 		}
 	}
 	
 	/**
-	 * @ParamConverter("metadataItem", options={"mapping": {"metadata_item" : "id"}})
+	 * @Route("/project/metadata/item/{id}/edit", name="metadata_item_edit", requirements={"id"="\d+"})
 	 */
 	public function edit(Request $request, MetadataItem $metadataItem): Response
 	{
@@ -95,18 +100,17 @@ class MetadataItemController extends AbstractController
 				'metadata' => $metadataItem->getMetadata()->getId()
 			]);
 		} else {
-			$view = $form->createView();
-			return $this->render('generic/form.html.twig', [
+			return $this->renderForm('generic/form.html.twig', [
 				'route_back' =>  $this->generateUrl('metadata_item', [
 					'metadata' => $metadataItem->getMetadata()->getId(),
 				]),
-				'form' => $view
+				'form' => $form
 			]);
 		}
 	}
 	
 	/**
-	 * @ParamConverter("metadataItem", options={"mapping": {"metadata_item" : "id"}})
+	 * @Route("/project/metadata/item/{id}/delete", name="metadata_item_delete", methods={"GET", "DELETE"}, requirements={"id"="\d+"})
 	 */
 	public function delete(Request $request, MetadataItem $metadataItem): Response
 	{
@@ -126,7 +130,7 @@ class MetadataItemController extends AbstractController
 				'metadata' => $metadataItem->getMetadata()->getId()
 			]);
 		} else {
-			return $this->render('generic/delete.html.twig', [
+			return $this->renderForm('generic/delete.html.twig', [
 				'route_back' =>  $this->generateUrl('metadata_item', [
 					'metadata' => $metadataItem->getMetadata()->getId(),
 				]),

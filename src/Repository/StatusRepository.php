@@ -67,7 +67,7 @@ class StatusRepository extends RepositoryService
 	}
 	
 	/**
-	 * @return Status[]
+	 * @return Status
 	 *
 	 */
 	public function getDefaultStatus(Project $project)

@@ -2,19 +2,20 @@
 
 namespace App\Controller;
 
-use App\Entity\Automation;
 use App\Entity\Project;
+use App\Entity\Automation;
 use App\Form\AutomationType;
-use App\Repository\AutomationRepository;
 use App\Service\ProgramService;
-use Symfony\Bundle\FrameworkBundle\Console\Application;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\Console\Input\ArrayInput;
-use Symfony\Component\Console\Output\BufferedOutput;
+use App\Repository\AutomationRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Console\Input\ArrayInput;
+use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpKernel\KernelInterface;
+use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Contracts\Translation\TranslatorInterface;
+use Symfony\Bundle\FrameworkBundle\Console\Application;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class AutomationController extends AbstractController
 {
@@ -32,14 +33,20 @@ class AutomationController extends AbstractController
 		$this->programService = $programService;
 	}
 	
+	/**
+	 * @Route("/project/{project}/automation", name="automation", requirements={"project"="\d+"})
+	 */
 	public function index(Project $project): Response
 	{
-		return $this->render('automation/index.html.twig', [
+		return $this->renderForm('automation/index.html.twig', [
 			'project' => $project,
 			'automations' => $this->automationRepository->getAutomations($project),
 		]);
 	}
 	
+	/**
+	 * @Route("/project/automation/{automation}/edit", name="automation_edit", requirements={"automation"="\d+"})
+	 */
 	public function edit(Request $request, Automation $automation): Response
 	{
 		$form = $this->createForm(AutomationType::class, $automation);
@@ -56,16 +63,18 @@ class AutomationController extends AbstractController
 				'project' => $automation->getProject()->getId(),
 			]);
 		} else {
-			$view = $form->createView();
-			return $this->render('generic/form.html.twig', [
+			return $this->renderForm('generic/form.html.twig', [
 				'route_back' => $this->generateUrl('automation', [
 					'project' => $automation->getProject()->getId(),
 				]),
-				'form' => $view
+				'form' => $form
 			]);
 		}
 	}
 	
+	/**
+	 * @Route("/automation/cron", name="automation_cron")
+	 */
 	public function cron(KernelInterface $kernel): Response
 	{
 		

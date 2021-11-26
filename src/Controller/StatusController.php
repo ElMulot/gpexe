@@ -1,14 +1,15 @@
 <?php
 namespace App\Controller;
 
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Contracts\Translation\TranslatorInterface;
 use App\Entity\Status;
+use App\Entity\Project;
 use App\Form\StatusType;
 use App\Repository\StatusRepository;
-use App\Entity\Project;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Contracts\Translation\TranslatorInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class StatusController extends AbstractController
 {
@@ -20,6 +21,9 @@ class StatusController extends AbstractController
 		$this->translator = $translator;
 	}
 	
+	/**
+	 * @Route("/project/{project}/status", name="status", requirements={"project"="\d+"})
+	 */
 	public function index(StatusRepository $statusRepository, Project $project): Response
 	{
 		if ($this->isGranted('ROLE_ADMIN') === false &&
@@ -27,7 +31,7 @@ class StatusController extends AbstractController
 			return $this->redirectToRoute('project');
 		}
 		
-		return $this->render('generic/list.html.twig', [
+		return $this->renderForm('generic/list.html.twig', [
 			'header' => $this->translator->trans('Statuses for') . ' : ' . $project->getName(),
 			'route_back' =>  $this->generateUrl('project_view', [
 				'project' => $project->getId(),
@@ -37,6 +41,9 @@ class StatusController extends AbstractController
 		]);
 	}
 
+	/**
+	 * @Route("/project/{project}/status/new", name="status_new", requirements={"project"="\d+"})
+	 */
 	public function new(Request $request, Project $project): Response
 	{
 		if ($this->isGranted('ROLE_ADMIN') === false &&
@@ -59,16 +66,18 @@ class StatusController extends AbstractController
 				'project' => $project->getId()
 			]);
 		} else {
-			$view = $form->createView();
-			return $this->render('generic/form.html.twig', [
+			return $this->renderForm('generic/form.html.twig', [
 				'route_back' =>  $this->generateUrl('status', [
 					'project' => $project->getId(),
 				]),
-				'form' => $view
+				'form' => $form
 			]);
 		}
 	}
 
+	/**
+	 * @Route("/project/status/{status}/edit", name="status_edit", requirements={"status"="\d+"})
+	 */
 	public function edit(Request $request, Status $status): Response
 	{
 		$project = $status->getProject();
@@ -91,16 +100,18 @@ class StatusController extends AbstractController
 				'project' => $status->getProject()->getId()
 			]);
 		} else {
-			$view = $form->createView();
-			return $this->render('generic/form.html.twig', [
+			return $this->renderForm('generic/form.html.twig', [
 				'route_back' =>  $this->generateUrl('status', [
 					'project' => $status->getProject()->getId(),
 				]),
-				'form' => $view
+				'form' => $form
 			]);
 		}
 	}
 
+	/**
+	 * @Route("/project/status/{status}/delete", name="status_delete", methods={"GET", "DELETE"}, requirements={"status"="\d+"})
+	 */
 	public function delete(Request $request, Status $status): Response
 	{
 		$project = $status->getProject();
@@ -119,7 +130,7 @@ class StatusController extends AbstractController
 				'project' => $status->getProject()->getId()
 			]);
 		} else {
-			return $this->render('generic/delete.html.twig', [
+			return $this->renderForm('generic/delete.html.twig', [
 				'route_back' =>  $this->generateUrl('status', [
 					'project' => $status->getProject()->getId(),
 				]),

@@ -1,6 +1,10 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout.html.twig' %}
 
-{% block stylesheets %}
+{% block nav %}
+	{{ include('nav/_document.html.twig') }}
+{% endblock %}
+
+{# {% block stylesheets %}
 	{{ encore_entry_link_tags('document') }}
 	{{ parent() }}
 {% endblock %}
@@ -186,4 +190,4 @@
     		<a class="nav-link" href="{{ path('logout') }}">{% trans %}Logout{% endtrans %}</a>
     	{% endif %}
     </li>
-{% endblock %}
+{% endblock %} #}

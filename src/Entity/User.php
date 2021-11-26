@@ -28,8 +28,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 	private $email;
 
 	/**
-     * @var string The hashed password
-     * @ORM\Column(type="string")
+	 * @var string The hashed password
+	 * @ORM\Column(type="string")
 	 */
 	private $password;
 

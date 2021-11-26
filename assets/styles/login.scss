@@ -1,0 +1,62 @@
+@import "~bootswatch/dist/slate/variables";
+@import "~bootstrap/scss/functions";
+@import "~bootstrap/scss/variables";
+@import "~bootstrap/scss/mixins";
+
+#background_img {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-position: center;
+	background-repeat: no-repeat;
+	-webkit-background-size: cover;
+	-moz-background-size: cover;
+	background-size: cover;
+	-o-background-size: cover;
+}
+
+#background_gradient {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: linear-gradient(transparent, transparent 50%, $body-bg 95%);
+}
+
+#form_content {
+	@include media-breakpoint-down(sm) {
+		position: relative;
+	}
+	@include media-breakpoint-up(sm) {
+		position: absolute;
+		bottom: 5rem;
+		right: 2rem;
+	}
+	width: 25rem; 
+	padding: 1rem;
+	background-color: lighten($black, 10%);
+	border: 1px solid $card-border-color;
+	-webkit-border-radius: 10px 10px 10px 10px;
+	border-radius: 10px 10px 10px 10px;
+	-webkit-box-shadow: 0 30px 60px 0 rgba(0,0,0,0.3);
+	box-shadow: 0 30px 60px 0 rgba(0,0,0,0.3);
+}
+
+#credits_content {
+	@include media-breakpoint-down(sm) {
+		position: relative;
+	}
+	@include media-breakpoint-up(sm) {
+		position: absolute;
+		bottom: 2rem;
+		right: 2rem;
+	}
+	width: 25rem;
+}
+
+label {
+	margin-top: 1rem;
+}

@@ -17,7 +17,7 @@ class ParseService
 	
 	public function getValidatedCode($code): string
 	{
-		$code = Regex::replace('/\t/', '    ', $code)->result();
+		$code = Regex::replace('/\t/', '	', $code)->result();
 		$code = Regex::replace("/'([^'\n]*)'*\r\n/", "'$1'\r\n", $code)->result();
 		
 		$parsedCode = Yaml::parse($code ?? '') ?? [];

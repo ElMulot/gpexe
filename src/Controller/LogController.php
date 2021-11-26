@@ -2,11 +2,11 @@
 
 namespace App\Controller;
 
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Contracts\Translation\TranslatorInterface;
 use App\Repository\LogRepository;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Contracts\Translation\TranslatorInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class LogController extends AbstractController
 {
@@ -21,16 +21,22 @@ class LogController extends AbstractController
 		$this->logRepository = $logRepository;
 	}
 	
+	/**
+	 * @Route("/log", name="log")
+	 */
 	public function index(): Response
 	{
 		
 		$log = $this->logRepository->getLog();
 		
-		return $this->render('log/index.html.twig', [
+		return $this->renderForm('log/index.html.twig', [
 			'log' => $log,
 		]);
 	}
 	
+	/**
+	 * @Route("/log/clear", name="log_clear")
+	 */
 	public function clear(): Response
 	{
 		$this->logRepository->clearLog();

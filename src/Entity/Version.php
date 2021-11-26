@@ -173,7 +173,7 @@ class Version
 	
 	public function setDate(?\DateTimeInterface $date): self
 	{
-	    if ($this->isRequired === true) {
+		if ($this->isRequired === true) {
 			$this->setScheduledDate($date);
 		} else {
 			$this->setDeliveryDate($date);
@@ -383,16 +383,16 @@ class Version
 				}
 				break;
 			default:
-			    if ($value === '') {
-			        $value = null;
-			    }
+				if ($value === '') {
+					$value = null;
+				}
 		}
 		
 		if ($value === null) {
-		    if ($metadata->getIsMandatory() === true) {
-		        throw new \Error(sprintf('Erreur: la valeur "%s" ne peut être vide', $metadata->getCodename()));
-		        return $this;
-		    }
+			if ($metadata->getIsMandatory() === true) {
+				throw new \Error(sprintf('Erreur: la valeur "%s" ne peut être vide', $metadata->getCodename()));
+				return $this;
+			}
 		}
 		
 		switch ($metadata->getType()) {
@@ -616,7 +616,7 @@ class Version
 					return $this;
 				} elseif (($date = Date::fromFormat($value, 'd-m-Y'))->isValid() === true) {
 					if ($date > new Date('today')) {
-					    $this->isRequired = true;
+						$this->isRequired = true;
 					}
 					$this->setDate($date);
 					return $this;
@@ -762,8 +762,8 @@ class Version
 									
 								case 'username':
 									if ($review = $this->getReviewByCompany($visa->getCompany())) {
-									    if ($review->getUser()->getName() != $value) {
-										    foreach ($visa->getCompany()->getUsers()->getValues() as $user) {
+										if ($review->getUser()->getName() != $value) {
+											foreach ($visa->getCompany()->getUsers()->getValues() as $user) {
 												if ($user->getName() == $value) {
 													$review->setUser($user);
 													return $this;

@@ -45,8 +45,6 @@ class LoginFormAuthenticator extends AbstractLoginFormAuthenticator
 	
 	public function authenticate(Request $request): PassportInterface
 	{
-// 		$request->getSession()->set(Security::LAST_USERNAME, $email);
-		
 		return new Passport(
 			new UserBadge($request->request->get('email', '')),
 			new PasswordCredentials($request->request->get('password', '')),
@@ -56,49 +54,6 @@ class LoginFormAuthenticator extends AbstractLoginFormAuthenticator
 			]
 		);
 	}
-
-// 	public function getCredentials(Request $request)
-// 	{
-// 		$credentials = [
-// 			'email' => $request->request->get('email'),
-// 			'password' => $request->request->get('password'),
-// 			'csrf_token' => $request->request->get('_csrf_token'),
-// 		];
-// 		$request->getSession()->set(Security::LAST_USERNAME, $credentials['email']);
-		
-// 		return $credentials;
-// 	}
-
-// 	public function getUser($credentials, UserProviderInterface $userProvider)
-// 	{
-// 		$token = new CsrfToken('authenticate', $credentials['csrf_token']);
-// 		if (!$this->csrfTokenManager->isTokenValid($token)) {
-// 			throw new InvalidCsrfTokenException();
-// 		}
-
-// 		$user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $credentials['email']]);
-		
-// 		if (!$user) {
-// 			// fail authentication with a custom error
-// 			throw new CustomUserMessageAuthenticationException('Invalid credentials.');
-// 		}
-		
-// 		return $user;
-// 	}
-
-// 	public function checkCredentials($credentials, UserInterface $user)
-// 	{
-// 		//return true;
-// 		return $this->passwordHasher->isPasswordValid($user, $credentials['password']);
-// 	}
-
-// 	/**
-// 	 * Used to upgrade (rehash) the user's password automatically over time.
-// 	 */
-// 	public function getPassword($credentials): ?string
-// 	{
-// 		return $credentials['password'];
-// 	}
 
 	public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response
 	{

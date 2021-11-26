@@ -2,16 +2,17 @@
 
 namespace App\Controller;
 
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Contracts\Translation\TranslatorInterface;
 use App\Entity\Serie;
-use App\Entity\Project;
 use App\Entity\Company;
+use App\Entity\Project;
 use App\Form\SerieType;
 use App\Repository\SerieRepository;
 use App\Repository\MetadataRepository;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Contracts\Translation\TranslatorInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class SerieController extends AbstractController
 {
@@ -28,6 +29,9 @@ class SerieController extends AbstractController
 		$this->metadataRepository = $metadataRepository;
 	}
 	
+	/**
+	 * @Route("/project/{project}/{company}/serie", name="serie", requirements={"project"="\d+", "company"="\d+"})
+	 */
 	public function index(Project $project, Company $company): Response
 	{
 		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
@@ -40,7 +44,7 @@ class SerieController extends AbstractController
 				'project' => $project->getId(),
 			]);
 		} else {
-			return $this->render('generic/list.html.twig', [
+			return $this->renderForm('generic/list.html.twig', [
 				'header' => $this->translator->trans('Series for') . ' : ' . $project->getName(),
 				'route_back' => $this->generateUrl('serie_route', [
 					'project' => $project->getId(),
@@ -52,6 +56,10 @@ class SerieController extends AbstractController
 		}
 	}
 
+	/**
+	 * @Route("/project/{project}/{company}", name="serie_route", requirements={"project"="\d+", "company"="\d+"})
+	 * redirect directly to document or vers serie_new (if no serie has been created)
+	 */
 	public function route(Project $project, Company $company): Response
 	{
 		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
@@ -73,6 +81,10 @@ class SerieController extends AbstractController
 		}
 	}
 	
+	/**
+	 * @Route("/project/{project}/{type}", name="serie_route_by_type", requirements={"project"="\d+", "type"="sdr|mdr|all"})
+	 * redirect directly to document
+	 */
 	public function routeByType(Project $project, string $type): Response
 	{
 		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
@@ -85,6 +97,9 @@ class SerieController extends AbstractController
 		]);		
 	}
 	
+	/**
+	 * @Route("/project/{project}/{company}/serie/new", name="serie_new", requirements={"project"="\d+", "company"="\d+"})
+	 */
 	public function new(Request $request, Project $project, Company $company): Response
 	{
 		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
@@ -104,22 +119,20 @@ class SerieController extends AbstractController
 				
 				if ($value === null && $metadata->getIsMandatory()) {
 					$this->addFlash('danger', $this->translator->trans('notEmpty.field', ['field' => $metadata->getName()]));
-					$view = $form->createView();
-					return $this->render('ajax/form.html.twig', [
-						'form' => $view,
+					return $this->renderForm('ajax/form.html.twig', [
+						'form' => $form,
 					]);
 				}
 				
 				try {
-				    $serie->setMetadataValue($metadata, $value);
+					$serie->setMetadataValue($metadata, $value);
 				} catch (\Error $e) {
-				    if ($metadata->getIsMandatory() === true) {
-				        $this->addFlash('danger', $e->getMessage());
-				        $view = $form->createView();
-				        return $this->render('ajax/form.html.twig', [
-				            'form' => $view,
-				        ]);
-				    }
+					if ($metadata->getIsMandatory() === true) {
+						$this->addFlash('danger', $e->getMessage());
+						return $this->renderForm('ajax/form.html.twig', [
+							'form' => $form,
+						]);
+					}
 				}
 			}
 			
@@ -133,17 +146,19 @@ class SerieController extends AbstractController
 				'company' => $company->getId(),
 			]);
 		} else {
-			$view = $form->createView();
-			return $this->render('generic/form.html.twig', [
+			return $this->renderForm('generic/form.html.twig', [
 				'route_back' =>  $this->generateUrl('serie', [
 					'project' => $project->getId(),
 					'company' => $company->getId(),
 				]),
-				'form' => $view,
+				'form' => $form,
 			]);
 		}
 	}
 	
+	/**
+	 * @Route("/project/serie/{serie}/edit", name="serie_edit", requirements={"serie"="\d+"})
+	 */
 	public function edit(Request $request, Serie $serie): Response
 	{
 		$project = $serie->getProject();
@@ -163,25 +178,23 @@ class SerieController extends AbstractController
 				
 				if ($value === null && $metadata->getIsMandatory()) {
 					$this->addFlash('danger', $this->translator->trans('notEmpty.field', ['field' => $metadata->getName()]));
-					$view = $form->createView();
-					return $this->render('generic/form.html.twig', [
+					return $this->renderForm('generic/form.html.twig', [
 						'route_back' =>  $this->generateUrl('document', [
 							'serie' => $serie->getId(),
 						]),
-						'form' => $view,
+						'form' => $form,
 					]);
 				}
 				
 				try {
-				    $serie->setMetadataValue($metadata, $value);
+					$serie->setMetadataValue($metadata, $value);
 				} catch (\Error $e) {
-				    if ($metadata->getIsMandatory() === true) {
-				        $this->addFlash('danger', $e->getMessage());
-				        $view = $form->createView();
-				        return $this->render('ajax/form.html.twig', [
-				            'form' => $view,
-				        ]);
-				    }
+					if ($metadata->getIsMandatory() === true) {
+						$this->addFlash('danger', $e->getMessage());
+						return $this->renderForm('ajax/form.html.twig', [
+							'form' => $form,
+						]);
+					}
 				}
 			}
 			
@@ -194,17 +207,19 @@ class SerieController extends AbstractController
 				'company' => $serie->getCompany()->getId(),
 			]);
 		} else {
-			$view = $form->createView();
-			return $this->render('generic/form.html.twig', [
+			return $this->renderForm('generic/form.html.twig', [
 				'route_back' =>  $this->generateUrl('serie', [
 					'project' => $project->getId(),
 					'company' => $serie->getCompany()->getId(),
 				]),
-				'form' => $view,
+				'form' => $form,
 			]);
 		}
 	}
 	
+	/**
+	 * @Route("/project/serie/{serie}/delete", name="serie_delete", methods={"GET", "DELETE"}, requirements={"serie"="\d+"})
+	 */
 	public function delete(Request $request, Serie $serie): Response
 	{
 		$project = $serie->getProject();
@@ -224,7 +239,7 @@ class SerieController extends AbstractController
 				'company' => $serie->getCompany()->getId(),
 			]);
 		} else {
-			return $this->render('generic/delete.html.twig', [
+			return $this->renderForm('generic/delete.html.twig', [
 				'route_back' =>  $this->generateUrl('serie', [
 					'project' => $serie->getProject()->getId(),
 					'company' => $serie->getCompany()->getId(),

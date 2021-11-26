@@ -1,14 +1,15 @@
 <?php
 namespace App\Controller;
 
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\Request;
 use App\Entity\Project;
-use App\Repository\CompanyRepository;
-use App\Repository\ProjectRepository;
-use App\Repository\ProgramRepository;
 use App\Form\ProjectType;
+use App\Repository\CompanyRepository;
+use App\Repository\ProgramRepository;
+use App\Repository\ProjectRepository;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class ProjectController extends AbstractController
 {
@@ -26,6 +27,10 @@ class ProjectController extends AbstractController
 		$this->programRepository = $programRepository;
 	}
 
+	/**
+	 * @Route("/project", name="project")
+	 * redirigé vers project_view si un seul projet (sauf ROLE_ADMIN)
+	 */
 	public function index(): Response
 	{
 		if ($this->isGranted('ROLE_ADMIN')) {
@@ -44,11 +49,14 @@ class ProjectController extends AbstractController
 			
 		}
 		
-		return $this->render('project/index.html.twig', [
+		return $this->renderForm('project/index.html.twig', [
 			'projects' => $projects
 		]);
 	}
 
+	/**
+	 * @Route("/project/{project}", name="project_view", requirements={"project"="\d+"})
+	 */
 	public function view(Request $request, Project $project, CompanyRepository $companyRepository): Response
 	{
 		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
@@ -81,7 +89,7 @@ class ProjectController extends AbstractController
 			$projects = $this->projectRepository->getProjects($this->getUser());
 			
 			if (sizeof($projects) == 1) {
-				return $this->render('project/view.html.twig', [
+				return $this->renderForm('project/view.html.twig', [
 					'project' => $project,
 					'main_contractors' => $mainContractors,
 					'sub_contractors' => $subContractors,
@@ -91,7 +99,7 @@ class ProjectController extends AbstractController
 			}
 		}
 			
-		return $this->render('project/view.html.twig', [
+		return $this->renderForm('project/view.html.twig', [
 			'project' => $project,
 			'main_contractors' => $mainContractors,
 			'sub_contractors' => $subContractors,
@@ -100,6 +108,9 @@ class ProjectController extends AbstractController
 		]);
 	}
 
+	/**
+	 * @Route("/project/new", name="project_new")
+	 */
 	public function new(Request $request): Response
 	{
 		if ($this->isGranted('ROLE_ADMIN') === false) {
@@ -118,14 +129,16 @@ class ProjectController extends AbstractController
 			$this->addFlash('success', 'New entry created');
 			return $this->redirectToRoute('project');
 		} else {
-			$view = $form->createView();
-			return $this->render('generic/form.html.twig', [
+			return $this->renderForm('generic/form.html.twig', [
 				'route_back' =>  $this->generateUrl('project'),
-				'form' => $view
+				'form' => $form
 			]);
 		}
 	}
 
+	/**
+	 * @Route("/project/{project}/edit", name="project_edit", requirements={"project"="\d+"})
+	 */
 	public function edit(Request $request, Project $project): Response
 	{
 		if ($this->isGranted('ROLE_ADMIN') === false &&
@@ -143,14 +156,16 @@ class ProjectController extends AbstractController
 			$this->addFlash('success', 'Datas updated');
 			return $this->redirectToRoute('project');
 		} else {
-			$view = $form->createView();
-			return $this->render('project/form.html.twig', [
+			return $this->renderForm('project/form.html.twig', [
 				'route_back' =>  $this->generateUrl('project'),
-				'form' => $view
+				'form' => $form
 			]);
 		}
 	}
 
+	/**
+	 * @Route("/project/{project}/delete", name="project_delete", methods={"GET", "DELETE"}, requirements={"project"="\d+"})
+	 */
 	public function delete(Request $request, Project $project): Response
 	{
 		if ($this->isGranted('ROLE_ADMIN') === false) {
@@ -165,7 +180,7 @@ class ProjectController extends AbstractController
 			$this->addFlash('success', 'Entry deleted');
 			return $this->redirectToRoute('project');
 		} else {
-			return $this->render('generic/delete.html.twig', [
+			return $this->renderForm('generic/delete.html.twig', [
 				'route_back' =>  $this->generateUrl('project'),
 				'entities' => [$project],
 			]);

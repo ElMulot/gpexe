@@ -1,0 +1,45 @@
+{% macro item(label, url) %}
+	{% if url is not empty %}
+		<li class="nav-item{% if app.request.requestUri == url %} active{% endif %}">
+			<a class="nav-link{% if app.request.requestUri == url %} active{% endif %}" href={{ url }}>
+				{{ label|trans }}
+			</a>
+		</li>
+	{% endif %}
+{% endmacro %}
+
+{% macro dropdown(label, object) %}
+	{% set uuid = random() %}
+	<li class="nav-item dropdown">
+		<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown_{{ uuid }}" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-turbo="false">
+			{{ label|trans }}
+		</a>
+		<div class="dropdown-menu" aria-labelledby="navbarDropdown_{{ uuid }}">
+			{% for label, url in object %}
+				{% if url == 'title' %}
+					<a class="dropdown-item disabled pl-2 bg-dark font-weight-bold text-light" href="#">
+						{{ label|trans }}
+					</a>
+				{% elseif url is not empty %}
+					<a class="dropdown-item" href="{{ url }}">
+						{{ label|trans }}
+					</a>
+				{% endif %}
+			{% endfor %}
+		</div>
+	</li>
+{% endmacro %}
+
+{% macro title(label) %}
+	<div class="nav-title">
+		{{ label }}
+	</div>
+{% endmacro %}
+
+{% macro itemLogout() %}
+	{% if is_granted('IS_IMPERSONATOR') %}
+		{{ _self.item('Exit impersonation', impersonation_exit_path(path('home'))) }}
+	{% else %}
+		{{ _self.item('Logout', path('logout')) }}
+	{% endif %}
+{% endmacro %}

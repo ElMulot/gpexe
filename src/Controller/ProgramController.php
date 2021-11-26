@@ -2,29 +2,27 @@
 
 namespace App\Controller;
 
-use App\Entity\Automation;
 use App\Entity\Program;
 use App\Entity\Project;
-use App\Form\LauncherType;
 use App\Form\ProgramType;
-use App\Repository\AutomationRepository;
-use App\Repository\ProgramRepository;
-use App\Repository\ProgressRepository;
-use App\Repository\SerieRepository;
-use App\Service\Code\ProgramCache;
+use App\Form\LauncherType;
 use App\Service\FieldService;
 use App\Service\ParseService;
 use App\Service\ProgramService;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Security\Core\Security;
+use App\Service\Code\ProgramCache;
+use App\Repository\SerieRepository;
+use App\Repository\ProgramRepository;
+use App\Repository\ProgressRepository;
+use App\Repository\AutomationRepository;
 use Symfony\Component\Serializer\Serializer;
-use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Security\Core\Security;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Contracts\Translation\TranslatorInterface;
-use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\HttpFoundation\File\Exception\FileException;
+use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 
 class ProgramController extends AbstractController
@@ -58,6 +56,9 @@ class ProgramController extends AbstractController
 		$this->fieldService = $fieldService;
 	}
 	
+	/**
+	 * @Route("/project/{project}/program", name="program", requirements={"project"="\d+"})
+	 */
 	public function index(Project $project): Response
 	{
 		if ($this->isGranted('ROLE_ADMIN') === false &&
@@ -65,7 +66,7 @@ class ProgramController extends AbstractController
 				return $this->redirectToRoute('project');
 			}
 			
-			return $this->render('generic/list.html.twig', [
+			return $this->renderForm('generic/list.html.twig', [
 				'header' => $this->translator->trans('Programs for') . ' : ' . $project->getName(),
 				'route_back' =>  $this->generateUrl('project_view', [
 					'project' => $project->getId(),
@@ -75,6 +76,9 @@ class ProgramController extends AbstractController
 			]);
 	}
 	
+	/**
+	 * @Route("/project/program/{program}/dashboard", name="program_dashboard", requirements={"program"="\d+"})
+	 */
 	public function dashboard(Request $request, Program $program): Response
 	{
 		$project = $program->getProject();
@@ -93,7 +97,7 @@ class ProgramController extends AbstractController
 				case Program::EXPORT:
 				case Program::IMPORT:
 				case Program::TASK:
-					return $this->render('program/dashboard.html.twig', [
+					return $this->renderForm('program/dashboard.html.twig', [
 						'program' => $program,
 						'route_back' =>  $this->generateUrl('project_view', [
 							'project' => $project->getId(),
@@ -101,7 +105,7 @@ class ProgramController extends AbstractController
 					]);
 					
 				case Program::PROGRESS:
-					return $this->render('program/progress.html.twig', [
+					return $this->renderForm('program/progress.html.twig', [
 						'program' => $program,
 						'route_back' =>  $this->generateUrl('project_view', [
 							'project' => $project->getId(),
@@ -116,6 +120,9 @@ class ProgramController extends AbstractController
 			}
 	}
 	
+	/**
+	 * @Route("/project/program/{program}/preload", name="program_preload", requirements={"program"="\d+"})
+	 */
 	public function preload(Request $request, Program $program): Response
 	{
 		$project = $program->getProject();
@@ -136,7 +143,7 @@ class ProgramController extends AbstractController
 					if ($this->programService->getCache()->getOption('ready_to_persist') == true) {	//launch import
 						try {
 							$this->programService->preload($program, $request);
-							return $this->render('program/preload.html.twig', [
+							return $this->renderForm('program/preload.html.twig', [
 								'program' => $program,
 							]);
 						} catch (\Error $e) {
@@ -168,7 +175,7 @@ class ProgramController extends AbstractController
 					
 				default:																	//error
 					$this->addFlash('danger', 'Erreur : programme invalide');
-					return $this->render('program/error.html.twig');
+					return $this->renderForm('program/error.html.twig');
 					
 			}
 			
@@ -181,7 +188,7 @@ class ProgramController extends AbstractController
 					case Program::EXPORT:													//launch export
 						try {
 							$this->programService->preload($program, $request);
-							return $this->render('program/preload.html.twig', [
+							return $this->renderForm('program/preload.html.twig', [
 								'program' => $program,
 							]);
 						} catch (\Exception $e) {
@@ -195,7 +202,7 @@ class ProgramController extends AbstractController
 						$file = $form->get('file')->getData();
 						try {
 							$this->programService->preload($program, $request, $file);
-							return $this->render('program/preload.html.twig', [
+							return $this->renderForm('program/preload.html.twig', [
 								'program' => $program,
 							]);
 						} catch (\Exception $e) {
@@ -208,7 +215,7 @@ class ProgramController extends AbstractController
 					case Program::TASK:														//launch task
 						try {
 							$this->programService->preload($program, $request);
-							return $this->render('program/preload.html.twig', [
+							return $this->renderForm('program/preload.html.twig', [
 								'program' => $program,
 							]);
 						} catch (\Exception $e) {
@@ -220,13 +227,16 @@ class ProgramController extends AbstractController
 				}
 			}
 			
-			return $this->render('program/launcher.html.twig', [
-				'form' => $form->createView(),
+			return $this->renderForm('program/launcher.html.twig', [
+				'form' => $form,
 				'program' => $program,
 			]);
 			
 	}
 	
+	/**
+	 * @Route("/project/program/{program}/load", name="program_load", requirements={"program"="\d+"})
+	 */
 	public function load(Request $request, Program $program): Response
 	{
 		$project = $program->getProject();
@@ -249,7 +259,7 @@ class ProgramController extends AbstractController
 				case Program::EXPORT:																	//launch export
 					try {
 						$this->programService->load($program);
-						return $this->render('program/load.html.twig', [
+						return $this->renderForm('program/load.html.twig', [
 							'program' => $program,
 						]);
 					} catch (\Exception $e) {
@@ -266,7 +276,7 @@ class ProgramController extends AbstractController
 						
 						try {
 							$this->programService->load($program);
-							return $this->render('program/load.html.twig', [
+							return $this->renderForm('program/load.html.twig', [
 								'program' => $program,
 							]);
 						} catch (\Exception $e) {
@@ -281,7 +291,7 @@ class ProgramController extends AbstractController
 						
 						try {
 							$this->programService->load($program);
-							return $this->render('program/load.html.twig', [
+							return $this->renderForm('program/load.html.twig', [
 								'program' => $program,
 							]);
 						} catch (\Exception $e) {
@@ -297,7 +307,7 @@ class ProgramController extends AbstractController
 				case Program::TASK:																		//launch task
 					try {
 						$this->programService->load($program);
-						return $this->render('program/load.html.twig', [
+						return $this->renderForm('program/load.html.twig', [
 							'program' => $program,
 						]);
 					} catch (\Exception $e) {
@@ -329,7 +339,7 @@ class ProgramController extends AbstractController
 					} catch (\Exception $e) {
 						$this->addFlash('danger', $e->getMessage());
 						$this->programService->unload();
-						return $this->render('program/error.html.twig');
+						return $this->renderForm('program/error.html.twig');
 					}
 					
 				default:
@@ -341,6 +351,9 @@ class ProgramController extends AbstractController
 			}
 	}
 	
+	/**
+	 * @Route("/project/program/{program}/completed", name="program_completed", requirements={"program"="\d+"})
+	 */
 	public function completed(Request $request, Program $program): Response
 	{
 		$project = $program->getProject();
@@ -357,7 +370,7 @@ class ProgramController extends AbstractController
 					$pathParts = pathinfo($filePath);
 					
 					$this->programService->unload();
-					return $this->render('program/export.html.twig', [
+					return $this->renderForm('program/export.html.twig', [
 						'program' => $program,
 						'file_path' => $this->getParameter('uploads_directory') . '/' . $pathParts['basename'],
 					]);
@@ -366,7 +379,7 @@ class ProgramController extends AbstractController
 					if ($this->programService->getCache()->getOption('ready_to_persist')) {					//launch import
 						
 						$this->programService->unload();
-						return $this->render('program/import.html.twig', [
+						return $this->renderForm('program/import.html.twig', [
 							'program' => $program,
 						]);
 						
@@ -376,7 +389,7 @@ class ProgramController extends AbstractController
 						$pathParts = pathinfo($filePath);
 						
 						$this->programService->getCache()->setOption('ready_to_persist', true);
-						return $this->render('program/check.html.twig', [
+						return $this->renderForm('program/check.html.twig', [
 							'program' => $program,
 							'file_path' => $this->getParameter('uploads_directory') . '/' . $pathParts['basename'],
 						]);
@@ -387,21 +400,21 @@ class ProgramController extends AbstractController
 					if ($this->programService->getCache()->getOption('ready_to_persist')) {					//launch task
 						
 						$this->programService->unload();
-						return $this->render('program/preload.html.twig', [
+						return $this->renderForm('program/preload.html.twig', [
 							'program' => $program,
 						]);
 						
 					} else {																	//check task
 						
 						$this->programService->getCache()->setOption('ready_to_persist', true);
-						return $this->render('program/check.html.twig', [
+						return $this->renderForm('program/check.html.twig', [
 							'program' => $program,
 						]);
 						
 					}
 					
 					$this->programService->unload();
-					return $this->render('program/preload.html.twig', [
+					return $this->renderForm('program/preload.html.twig', [
 						'program' => $program,
 					]);
 					
@@ -414,6 +427,9 @@ class ProgramController extends AbstractController
 			}
 	}
 	
+	/**
+	 * @Route("/project/program/{program}/console", name="program_console", requirements={"program"="\d+"})
+	 */
 	public function console(Request $request, Program $program): Response
 	{
 		
@@ -447,13 +463,16 @@ class ProgramController extends AbstractController
 				$redirect = ProgramCache::PRELOAD;
 		}
 		
-		return $this->render('program/console.html.twig', [
+		return $this->renderForm('program/console.html.twig', [
 			'program' => $program,
 			'redirect' => $redirect,
 		]);
 			
 	}
 	
+	/**
+	 * @Route("/project/{project}/program/new", name="program_new", requirements={"project"="\d+"})
+	 */
 	public function new(Request $request, Project $project): Response
 	{
 		if ($this->isGranted('ROLE_ADMIN') === false &&
@@ -483,22 +502,20 @@ class ProgramController extends AbstractController
 							break;
 						default:
 							$form = $this->createForm(ProgramType::class, null);
-							$view = $form->createView();
-							return $this->render('generic/form.html.twig', [
-								'form' => $view
+							return $this->renderForm('generic/form.html.twig', [
+								'form' => $form
 							]);
 					}
 					
 					$form = $this->createForm(ProgramType::class, $program);
 					
-					$view = $form->createView();
 					$fields = $this->fieldService->getFields($project);
 					
-					return $this->render('program/form.html.twig', [
+					return $this->renderForm('program/form.html.twig', [
 						'route_back' =>  $this->generateUrl('program', [
 							'project' => $project->getId(),
 						]),
-						'form' => $view,
+						'form' => $form,
 						'fields' => $fields,
 					]);
 					
@@ -541,13 +558,15 @@ class ProgramController extends AbstractController
 				}
 				
 			} else {
-				$view = $form->createView();
-				return $this->render('generic/form.html.twig', [
-					'form' => $view
+				return $this->renderForm('generic/form.html.twig', [
+					'form' => $form
 				]);
 			}
 	}
 	
+	/**
+	 * @Route("/project/program/{program}/edit", name="program_edit", requirements={"program"="\d+"})
+	 */
 	public function edit(Request $request, Program $program): Response
 	{
 		$project = $program->getProject();
@@ -570,12 +589,11 @@ class ProgramController extends AbstractController
 				$this->addFlash('success', 'Programme mis à jour');
 				
 				if ($request->request->get('submit') == 'save') {
-					$view = $form->createView();
-					return $this->render('program/form.html.twig', [
+					return $this->renderForm('program/form.html.twig', [
 						'route_back' =>  $this->generateUrl('program', [
 							'project' => $project->getId(),
 						]),
-						'form' => $view,
+						'form' => $form,
 						'fields' => $fields,
 					]);
 				} else {
@@ -584,17 +602,19 @@ class ProgramController extends AbstractController
 					]);
 				}
 			} else {
-				$view = $form->createView();
-				return $this->render('program/form.html.twig', [
+				return $this->renderForm('program/form.html.twig', [
 					'route_back' =>  $this->generateUrl('program', [
 						'project' => $project->getId(),
 					]),
-					'form' => $view,
+					'form' => $form,
 					'fields' => $fields,
 				]);
 			}
 	}
 	
+	/**
+	 * @Route("/project/program/{program}/delete", name="program_delete", methods={"GET", "DELETE"}, requirements={"program"="\d+"})
+	 */
 	public function delete(Request $request, Program $program): Response
 	{
 		$project = $program->getProject();
@@ -613,7 +633,7 @@ class ProgramController extends AbstractController
 					'project' => $project->getId()
 				]);
 			} else {
-				return $this->render('generic/delete.html.twig', [
+				return $this->renderForm('generic/delete.html.twig', [
 					'route_back' =>  $this->generateUrl('program', [
 						'project' => $project->getId(),
 					]),

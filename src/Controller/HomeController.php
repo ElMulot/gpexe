@@ -2,16 +2,16 @@
 
 namespace App\Controller;
 
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Contracts\Translation\TranslatorInterface;
-use Symfony\Component\Yaml\Yaml;
 use App\Entity\Project;
 use App\Service\FieldService;
-use App\Repository\ProjectRepository;
+use Symfony\Component\Yaml\Yaml;
 use App\Repository\StatusRepository;
+use App\Repository\ProjectRepository;
 use App\Repository\VersionRepository;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Contracts\Translation\TranslatorInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class HomeController extends AbstractController
 {
@@ -35,18 +35,25 @@ class HomeController extends AbstractController
 		$this->statusRepository = $statusRepository;
 	}
 	
+	/**
+	 * @Route("/", name="home")
+	 */
 	public function index(): Response
 	{
 		$projects = $this->projectRepository->getProjects($this->getUser());
 		
-		return $this->render('home/index.html.twig', [
+		return $this->renderForm('home/index.html.twig', [
 			'projects' => $this->projectRepository->getProjects($this->getUser()),
 		]);
 
 	}
 	
+	/**
+	 * @Route("/project/{project}/alert", name="alert", requirements={"project"="\d+"})
+	 */
 	public function alert(Project $project): Response
 	{
+		sleep(1);
 		$fields = $this->fieldService->getFields($project);
 		$company = $this->getUser()->getCompany();
 		
@@ -67,7 +74,7 @@ class HomeController extends AbstractController
 				'version_first_scheduled' => 1,
 			],
 			'highlight' => 'version_date',
-		    'sortAsc' => 'version_date',
+			'sortAsc' => 'version_date',
 			'results_per_page' => 50,
 			'page' => 1,
 		];
@@ -88,17 +95,17 @@ class HomeController extends AbstractController
 					'status_value' => $this->statusRepository->getNonCancelledStatuses($project),
 					'version_checker' => [$this->getUser()->getId()],
 					'version_last_delivered' => 1,
-				    'visa_' . $company->getId() => [0],
+					'visa_' . $company->getId() => [0],
 				],
-			    'sortAsc' => 'version_date',
-			    'results_per_page' => 50,
+				'sortAsc' => 'version_date',
+				'results_per_page' => 50,
 				'page' => 1,
 			];
 		} else {
 			$checkSettings = [];
 		}
 		
-		return $this->render('home/alert.html.twig', [
+		return $this->renderForm('home/alert.html.twig', [
 			'project' => $project,
 			'prod_alerts' => $this->versionRepository->getProdAlerts($project, $this->getUser()),
 			'check_alerts' => $this->versionRepository->getCheckAlerts($project, $this->getUser()),
@@ -108,9 +115,12 @@ class HomeController extends AbstractController
 		
 	}
 	
+	/**
+	 * @Route("/about", name="about")
+	 */
 	public function about(): Response
 	{
-		return $this->render('home/about.html.twig', [
+		return $this->renderForm('home/about.html.twig', [
 			'items' => Yaml::parseFile($this->getParameter('kernel.project_dir') . '/config/ressources/about.yaml'),
 		]);
 	}

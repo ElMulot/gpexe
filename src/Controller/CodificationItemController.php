@@ -1,15 +1,15 @@
 <?php
 namespace App\Controller;
 
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Contracts\Translation\TranslatorInterface;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
+use App\Entity\Codification;
 use App\Entity\CodificationItem;
 use App\Form\CodificationItemType;
+use Symfony\Component\HttpFoundation\Request;
 use App\Repository\CodificationItemRepository;
-use App\Entity\Codification;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Contracts\Translation\TranslatorInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class CodificationItemController extends AbstractController
 {
@@ -20,7 +20,10 @@ class CodificationItemController extends AbstractController
 	{
 		$this->translator = $translator;
 	}
-	
+
+	/**
+	 * @Route("/project/codification/{codification}/item", name="codification_item", requirements={"codification"="\d+"})
+	 */
 	public function index(CodificationItemRepository $codificationItemRepository, Codification $codification): Response
 	{
 		$project = $codification->getProject();
@@ -29,7 +32,7 @@ class CodificationItemController extends AbstractController
 			return $this->redirectToRoute('project');
 		}
 		
-		return $this->render('generic/list.html.twig', [
+		return $this->renderForm('generic/list.html.twig', [
 			'header' => $this->translator->trans('List for the code') . ' : ' . $codification->getName(),
 			'route_back' =>  $this->generateUrl('codification', [
 				'project' => $codification->getProject()->getId(),
@@ -40,6 +43,9 @@ class CodificationItemController extends AbstractController
 		]);
 	}
 
+	/**
+	 * @Route("/project/codification/{codification}/item/new", name="codification_item_new", requirements={"codification"="\d+"})
+	 */
 	public function new(Request $request, Codification $codification): Response
 	{
 		$project = $codification->getProject();
@@ -63,18 +69,17 @@ class CodificationItemController extends AbstractController
 				'codification' => $codification->getId()
 			]);
 		} else {
-			$view = $form->createView();
-			return $this->render('generic/form.html.twig', [
+			return $this->renderForm('generic/form.html.twig', [
 				'route_back' =>  $this->generateUrl('codification_item', [
 					'codification' => $codification->getId(),
 				]),
-				'form' => $view
+				'form' => $form
 			]);
 		}
 	}
 	
 	/**
-	 * @ParamConverter("codificationItem", options={"mapping": {"codification_item" : "id"}})
+	 * @Route("/project/codification/item/{id}/edit", name="codification_item_edit", requirements={"id"="\d+"})
 	 */
 	public function edit(Request $request, CodificationItem $codificationItem): Response
 	{
@@ -96,18 +101,17 @@ class CodificationItemController extends AbstractController
 				'codification' => $codificationItem->getCodification()->getId()
 			]);
 		} else {
-			$view = $form->createView();
-			return $this->render('generic/form.html.twig', [
+			return $this->renderForm('generic/form.html.twig', [
 				'route_back' =>  $this->generateUrl('codification_item', [
 					'codification' => $codificationItem->getCodification()->getId(),
 				]),
-				'form' => $view
+				'form' => $form
 			]);
 		}
 	}
 	
 	/**
-	 * @ParamConverter("codificationItem", options={"mapping": {"codification_item" : "id"}})
+	 * @Route("/project/codification/item/{id}/delete", name="codification_item_delete", methods={"GET", "DELETE"}, requirements={"id"="\d+"})
 	 */
 	public function delete(Request $request, CodificationItem $codificationItem): Response
 	{
@@ -127,7 +131,7 @@ class CodificationItemController extends AbstractController
 				'codification_item' => $codificationItem->getCodification()->getId()
 			]);
 		} else {
-			return $this->render('generic/delete.html.twig', [
+			return $this->renderForm('generic/delete.html.twig', [
 				'route_back' =>  $this->generateUrl('codification_item', [
 					'codification_item' => $codificationItem->getCodification()->getId(),
 				]),
