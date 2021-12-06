@@ -1,0 +1,31 @@
+{% extends 'layout.html.twig' %}
+{% import "macros/_nav.html.twig" as nav %}
+
+{% block stylesheets %}
+	{{ encore_entry_link_tags('home') }}
+	{{ parent() }}
+{% endblock %}
+
+{% block nav %}
+	{{ include('nav/_home.html.twig') }}
+{% endblock %}
+
+{% block content %}
+	<div class="container-lg">
+		{{ nav.turbo('form_content', [
+			{
+				'name': "Main"|trans,
+				'href': path('personal'),
+				'class': 'active'
+			},
+			{
+				'name': "Change password"|trans,
+				'href': path('change_password'),
+			}
+		]) }}
+	</div>
+{% endblock %}
+
+{% block footer %}
+
+{% endblock %}

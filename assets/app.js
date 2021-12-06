@@ -15,13 +15,4 @@ import { Tooltip, Toast, Popover } from 'bootstrap';
 import './bootstrap';
 import './helpers/turbo_helper';
 
-// document.addEventListener('turbo:before-fetch-request', (event) => {
-// 	console.log('doc > turbo:before-fetch-request');
-
-// 	if (event.originalTarget.classList.contains('active')) {
-// 		console.log('doc > cancel');
-// 		event.preventDefault;
-// 		event.stopImmediatePropagation;
-// 	}
-	
-// });
+// import './helpers/turbo_debug';

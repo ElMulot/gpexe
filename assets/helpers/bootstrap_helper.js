@@ -1,4 +1,5 @@
 import { Collapse } from 'bootstrap';
+import i18n from './../i18n';
 
 const BsCollapse = class {
 	
@@ -9,7 +10,6 @@ const BsCollapse = class {
 		}
 		
 		if (e.classList.contains('collapse show')) {
-			console.log('k');
 			return false;
 		}
 		
@@ -20,7 +20,7 @@ const BsCollapse = class {
 		e.innerHTML = 
 			'<div class="d-flex justify-content-center">' +
 				'<div class="spinner-border" role="status">' +
-					'<span class="visually-hidden">{% trans %}Loading{% endtrans %}...</span>' +
+					'<span class="visually-hidden">' + i18n.t('loading') + '</span>' +
 				'</div>' +
 			'</div>';
 		let bsCollapse = new Collapse(e, { toggle: false });

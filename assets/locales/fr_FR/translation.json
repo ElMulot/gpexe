@@ -1,0 +1,29 @@
+{
+	"@metadata": {
+		"authors": ["Mulot"],
+		"last-updated": "2020-10-14",
+		"locale": "fr_FR",
+		"message-documentation": "",
+		"AnotherMetadata": "Translation file for locale fr_FR"
+	},
+	"yes": "Oui",
+	"no": "Non",
+	"noneSelected": "Aucun sélectionné",
+	"multipleSeparator": " ",
+	"selectAll": "Sectionner tout",
+	"notApplicable": "n/a",
+	"filter": "Filtrer",
+	"loading": "Chargement...",
+	"details": "Détails",
+	"error": "Erreur",
+	"reload": "Relancer",
+	"edit": "Editer",
+	"delete": "Supprimer",
+	"close": "Fermer",
+	"all": "Tout",
+	"fromDate": "De",
+	"toDate": "A",
+	"highlight": "Surligner",
+	"empty": "Vide",
+	"date": "Date"
+}

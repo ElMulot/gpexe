@@ -1,0 +1,51 @@
+<!-- {% macro tabs(items) %}
+	<ul class="nav nav-tabs" data-controller="nav" role="tablist">
+		{% for item in items %}
+			{% set uuid = uuid() %}
+			{% if item.class is defined and 'active' in item.class %}
+				{% set item = item|merge({
+					'aria-selected': 'true'
+				}) %}
+			{% endif %}
+			<li class="nav-item">
+				<a id="{{ uuid }}-tab" data-bs-toggle="tab" data-bs-target="#{{ uuid }}" aria-controls="{{ uuid }}" {{ block('attributes') }}>
+					{{ item.name }}
+				</a>
+			</li>
+		{% endfor %}
+	</ul>
+{% endmacro %} -->
+
+{% macro turbo(id, items) %}
+	<ul class="nav nav-tabs" data-controller="nav">
+		{% for item in items %}
+			{% if item.class is defined and 'active' in item.class %}
+				{% set item = item|merge({'aria-current': 'page'}) %}
+			{% endif %}
+			<li class="nav-item">
+				<a data-turbo-frame="{{ id }}" {{ block('attributes') }}>
+					{{ item.name }}
+				</a>
+			</li>
+		{% endfor %}
+	</ul>
+	<div class="tab-content">
+		<turbo-frame id="{{ id }}"></turbo-frame>
+	</div>
+{% endmacro %}
+
+{% block attributes %}
+	{% set item = item|merge({
+		'class': (item.class|default('') ~ ' nav-link')|trim
+	}) %}
+	{% for attrname, attrvalue in item|filter((v, k) => k != 'name') %}
+		{{ " " }}
+		{% if attrname in ['placeholder', 'title'] %}
+			{{ attrname }}="{{ translation_domain is same as(false) ? attrvalue : attrvalue|trans(attr_translation_parameters, translation_domain) }}"
+		{% elseif attrvalue is same as(true) %}
+			{{ attrname }}="{{ attrname }}"
+		{% elseif attrvalue is not same as(false) %}
+			{{ attrname }}="{{ attrvalue }}"
+		{% endif %}
+	{% endfor %}
+{% endblock attributes %}

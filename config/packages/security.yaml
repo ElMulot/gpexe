@@ -22,6 +22,9 @@ security:
             lazy: true
             provider: users_in_db
             custom_authenticator: App\Security\LoginFormAuthenticator
+            # ne fonctionne pas. Todo : https://symfony.com/doc/current/security/user_checkers.html
+            # pattern: ^/
+            # user_checker: App\Security\UserChecker
 
             # This allows the user to login by submitting a username and password
             # Reference: https://symfony.com/doc/current/security/form_login_setup.html

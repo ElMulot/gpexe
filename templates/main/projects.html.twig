@@ -1,0 +1,68 @@
+{% extends 'layout.html.twig' %}
+
+{% block nav %}
+	<div class="navbar-collapse">
+		<ul class="navbar-nav mr-auto ">
+			<li class="nav-item" style="{{ block('nav_item') }}">
+				<a class="nav-link" href={{ path('home') }}>{% trans %}Home{% endtrans %}</a>
+			</li>
+			<li class="nav-item active" style="{{ block('nav_item') }}">
+				<a class="nav-link" href={{ path('project') }}>{% trans %}Projects{% endtrans %}</a>
+			</li>
+			{% if is_granted('ROLE_ADMIN') %}
+				<li class="nav-item dropdown" style="{{ block('nav_item') }}">
+					<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown2" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{% trans %}Admin{% endtrans %}</a>
+					<div class="dropdown-menu" style="{{ block('nav_item') }}">
+						<a class="dropdown-item" href="{{ path('project_new') }}">{% trans %}New project{% endtrans %}</a>
+						<a class="dropdown-item" href="{{ path('company') }}">{% trans %}Company{% endtrans %}</a>
+						<a class="dropdown-item" href="{{ path('user') }}">{% trans %}User{% endtrans %}</a>
+						<a class="dropdown-item" href="{{ path('profil') }}">{% trans %}Profil{% endtrans %}</a>
+						<a class="dropdown-item" href="{{ path('log') }}">{% trans %}Log{% endtrans %}</a>
+					</div>
+				</li>
+			{% endif %}
+		</ul>
+	</div>
+	<div class="navbar-collapse "></div>
+	<div class="navbar-collapse">
+		<ul class="navbar-nav ml-auto">
+			<li class="nav-item" style="{{ block('nav_item') }}">
+				<a class="nav-link" href="{{ path('account') }}">{% trans %}Account{% endtrans %}</a>
+			</li>
+			<li class="nav-item dropdown" style="{{ block('nav_item') }}">
+				<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown2" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{% trans %}GPExe{% endtrans %}</a>
+				<div class="dropdown-menu" style="{{ block('nav_item') }}">
+					<a class="dropdown-item" href="https://github.com/ElMulot/gpexe/wiki" target="_blank">{% trans %}Wiki{% endtrans %}</a>
+					<a class="dropdown-item" href="https://github.com/ElMulot/gpexe/issues" target="_blank">{% trans %}Report bug{% endtrans %}</a>
+					<a class="dropdown-item" href="{{ path('about') }}">{% trans %}About{% endtrans %}</a>
+				</div>
+			</li>
+			{{ block('logout') }}
+		</ul>
+	</div>
+{% endblock %}
+
+{% block content %}
+	<div class="jumbotron">
+		<div class="row">
+			{% for project in projects %} 
+				<div class="col">
+					<div class="card text-white bg-primary mb-3" style="width: 20rem;">
+						<a role="button" class="btn btn-primary text-center font-weight-bold" href="{{ path('project_view', {'project': project.id}) }}">{{ project.name }}</a>
+						<div class="card-body">
+							<p class="card-text"></p>
+						</div>
+						{% if (is_granted('ROLE_CONTROLLER') and app.user in project.users) or is_granted('ROLE_ADMIN') %}
+							<div class="card-body text-end">
+								<a class="btn btn-sm btn-success text-nowrap" href="{{ path('project_edit', {'project': project.id}) }}">{% trans %}Edit{% endtrans %}</a>
+								<a class="btn btn-sm btn-danger text-nowrap" href="{{ path('project_delete', {'project': project.id}) }}">{% trans %}Delete{% endtrans %}</a>
+							</div>
+						{% endif %}
+					</div>
+				</div>
+			{% else %}
+				<div>{% trans %}Empty list{% endtrans %}</div>
+			{% endfor %}
+		</div>
+	</div>
+{% endblock %}

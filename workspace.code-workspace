@@ -19,6 +19,7 @@
 			".project": true,
 			".settings": true,
 			".snyk": true,
+			"*.code-workspace": true,
 			"**/.DS_Store": true,
 			"**/.git": true,
 			"**/.gitignore": true,
@@ -35,6 +36,25 @@
 			"symfony.lock": true,
 			"var": true
 		},
-		"explorerExclude.backup": null
+		"explorerExclude.backup": null,
+		"files.watcherExclude": {
+			"public/**": true
+		},
+		"outline.showConstants": false,
+		"outline.showArrays": false,
+		"outline.showEnums": false,
+		"outline.showNamespaces": false,
+		"outline.showNumbers": false,
+		"outline.showNull": false,
+		"outline.showObjects": false,
+		"outline.showOperators": false,
+		"outline.showStrings": false,
+		"outline.showStructs": false,
+		"outline.showVariables": false,
+		"outline.showTypeParameters": false,
+		"outline.showBooleans": false,
+		"outline.showEnumMembers": false,
+		"outline.showFields": false,
+		"outline.showProperties": false
 	}
 }

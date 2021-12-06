@@ -49,7 +49,7 @@ class ProjectController extends AbstractController
 			
 		}
 		
-		return $this->renderForm('project/index.html.twig', [
+		return $this->renderForm('home/projects.html.twig', [
 			'projects' => $projects
 		]);
 	}

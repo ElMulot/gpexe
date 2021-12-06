@@ -26,8 +26,15 @@ class AccountController extends AbstractController
 	 */
 	public function index(Request $request): Response
 	{
-		return $this->renderForm('account/index.html.twig', [
-			'route_back' => $this->generateUrl('home'),
+		return $this->renderForm('main/account.html.twig');
+	}
+
+	/**
+	 * @Route("/account/personal", name="personal")
+	 */
+	public function personal(Request $request): Response
+	{
+		return $this->renderForm('main/account/_personal_infos.html.twig', [
 			'user' => $this->getUser()
 		]);
 	}
@@ -66,6 +73,7 @@ class AccountController extends AbstractController
 		$form->handleRequest($request);
 		
 		if ($form->isSubmitted() && $form->isValid()) {
+			
 			$changePassword = $form->getData();
 			$user = $this->getUser();
 			$user->setPassword($this->passwordHasher->hashPassword($user, $changePassword['new_password']));
@@ -74,10 +82,9 @@ class AccountController extends AbstractController
 			$entityManager->flush();
 			
 			$this->addFlash('success', 'Password changed');
-			return $this->redirectToRoute('account');
+			return $this->redirectToRoute('personal');
 		} else {
-			return $this->renderForm('generic/form.html.twig', [
-				'route_back' => $this->generateUrl('account'),
+			return $this->renderForm('form/partials/_content.html.twig', [
 				'form' => $form,
 			]);
 		}

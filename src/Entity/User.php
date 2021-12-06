@@ -64,7 +64,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 	 * @ORM\JoinColumn(nullable=false)
 	 */
 	private $company;
-	
+
 	private $roles = [];
 
 	/**
@@ -76,15 +76,20 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 	 * @ORM\OneToMany(targetEntity=View::class, mappedBy="user", orphanRemoval=true)
 	 */
 	private $views;
-	
-	
+
+	/**
+	 * @ORM\Column(type="datetime")
+	 */
+	private $createdOn;
+
+
 	public function __construct()
 	{
 		$this->locale = 'fr_FR';
 		$this->lastConnected = new \DateTime();
 		$this->projects = new ArrayCollection();
-	 	$this->versions = new ArrayCollection();
-	  $this->views = new ArrayCollection();
+		$this->versions = new ArrayCollection();
+		$this->views = new ArrayCollection();
 	}
 
 	public function getId(): ?int
@@ -113,7 +118,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 	{
 		return (string) $this->email;
 	}
-	
+
 	public function getUsername(): string
 	{
 		return $this->getUserIdentifier();
@@ -133,7 +138,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
 		return $this;
 	}
-	
+
 	public function getName(): ?string
 	{
 		return $this->name;
@@ -165,6 +170,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 	public function setActivated(bool $activated): self
 	{
 		$this->activated = $activated;
+
+		return $this;
+	}
+
+	public function getCreatedOn(): ?\DateTimeInterface
+	{
+		return $this->createdOn;
+	}
+
+	public function setCreatedOn(\DateTimeInterface $createdOn): self
+	{
+		$this->createdOn = $createdOn;
 
 		return $this;
 	}
@@ -263,7 +280,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
 		return $this;
 	}
-	
+
 	/**
 	 * Returning a salt is only needed, if you are not using a modern
 	 * hashing algorithm (e.g. bcrypt or sodium) in your security.yaml.
@@ -274,7 +291,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 	{
 		// not needed when using the "bcrypt" algorithm in security.yaml
 	}
-	
+
 	/**
 	 * @see UserInterface
 	 */
@@ -283,7 +300,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 		// If you store any temporary, sensitive data on the user, clear it here
 		// $this->plainPassword = null;
 	}
-	
+
 	public function getRoles(): array
 	{
 		if (empty($this->roles)) {
@@ -295,10 +312,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 		$this->roles[] = 'ROLE_USER';
 		return array_unique($this->roles);
 	}
-	
+
 	public function __toString(): string
 	{
 		return (string)$this->getName();
 	}
 }
-?>

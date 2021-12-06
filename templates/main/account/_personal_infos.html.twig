@@ -1,0 +1,16 @@
+<turbo-frame id="form_content">
+	<div class="row px-md-5 mt-3">
+		<div class="col">
+			<p>{% trans %}User Name{% endtrans %} : {{ user.name }}</p><br/>
+			<p>{% trans %}Email{% endtrans %} : {{ user.email }}</p><br/>
+			<p>{% trans %}Profil{% endtrans %} : {{ user.profil.name }}</p><br/>
+			<p>{% trans %}Created on{% endtrans %} : {{ user.createdOn|date('d-m-Y h:m:s') }}</p><br/>
+			<p>{% trans %}Last connected{% endtrans %} : {{ user.lastConnected|date('d-m-Y h:m:s') }}</p><br/>
+		</div>
+	</div>
+	<div class="row justify-content-center mt-5">
+		<div class="col-md-auto">
+			<a class="btn btn-secondary px-md-5 w-100" role="button" href="{{ path('account_edit') }}">{% trans %}Edit account properties{% endtrans %}</a>
+		</div>
+	</div>
+</turbo-frame>

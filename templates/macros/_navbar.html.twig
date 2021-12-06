@@ -9,12 +9,12 @@
 {% endmacro %}
 
 {% macro dropdown(label, object) %}
-	{% set uuid = random() %}
+	{% set uuid = uuid() %}
 	<li class="nav-item dropdown">
-		<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown_{{ uuid }}" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-turbo="false">
+		<a class="nav-link dropdown-toggle" href="#" id="{{ uuid }}" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-turbo="false">
 			{{ label|trans }}
 		</a>
-		<div class="dropdown-menu" aria-labelledby="navbarDropdown_{{ uuid }}">
+		<div class="dropdown-menu" aria-labelledby="{{ uuid }}">
 			{% for label, url in object %}
 				{% if url == 'title' %}
 					<a class="dropdown-item disabled pl-2 bg-dark font-weight-bold text-light" href="#">
