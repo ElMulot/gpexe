@@ -19,6 +19,10 @@ a {
 	@extend .text-truncate;
 }
 
+a.btn {
+	width: 6rem;
+}
+
 // --------------------
 // Navs
 // --------------------
@@ -54,6 +58,20 @@ a {
 	border-right: $nav-tabs-border-width solid $nav-tabs-border-color;
 	border-bottom: $nav-tabs-border-width solid $nav-tabs-border-color;
 	@include border-bottom-radius($border-radius);
+}
+
+// --------------------
+// Cards
+// --------------------
+
+.card {
+	@extend #{'.bg-primary', '.mb-3', '.text-white'};
+	width: 20rem;
+}
+
+.card-header {
+	@extend #{'.card-header', '.fw-bold', '.text-center'};
+	// @include btn-shadow($gray-800);
 }
 
 // --------------------

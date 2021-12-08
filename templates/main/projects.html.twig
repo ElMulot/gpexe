@@ -1,68 +1,45 @@
 {% extends 'layout.html.twig' %}
+{% import "macros/_nav.html.twig" as nav %}
+
+{% block stylesheets %}
+	{{ encore_entry_link_tags('main') }}
+	{{ parent() }}
+{% endblock %}
 
 {% block nav %}
-	<div class="navbar-collapse">
-		<ul class="navbar-nav mr-auto ">
-			<li class="nav-item" style="{{ block('nav_item') }}">
-				<a class="nav-link" href={{ path('home') }}>{% trans %}Home{% endtrans %}</a>
-			</li>
-			<li class="nav-item active" style="{{ block('nav_item') }}">
-				<a class="nav-link" href={{ path('project') }}>{% trans %}Projects{% endtrans %}</a>
-			</li>
-			{% if is_granted('ROLE_ADMIN') %}
-				<li class="nav-item dropdown" style="{{ block('nav_item') }}">
-					<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown2" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{% trans %}Admin{% endtrans %}</a>
-					<div class="dropdown-menu" style="{{ block('nav_item') }}">
-						<a class="dropdown-item" href="{{ path('project_new') }}">{% trans %}New project{% endtrans %}</a>
-						<a class="dropdown-item" href="{{ path('company') }}">{% trans %}Company{% endtrans %}</a>
-						<a class="dropdown-item" href="{{ path('user') }}">{% trans %}User{% endtrans %}</a>
-						<a class="dropdown-item" href="{{ path('profil') }}">{% trans %}Profil{% endtrans %}</a>
-						<a class="dropdown-item" href="{{ path('log') }}">{% trans %}Log{% endtrans %}</a>
-					</div>
-				</li>
-			{% endif %}
-		</ul>
-	</div>
-	<div class="navbar-collapse "></div>
-	<div class="navbar-collapse">
-		<ul class="navbar-nav ml-auto">
-			<li class="nav-item" style="{{ block('nav_item') }}">
-				<a class="nav-link" href="{{ path('account') }}">{% trans %}Account{% endtrans %}</a>
-			</li>
-			<li class="nav-item dropdown" style="{{ block('nav_item') }}">
-				<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown2" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{% trans %}GPExe{% endtrans %}</a>
-				<div class="dropdown-menu" style="{{ block('nav_item') }}">
-					<a class="dropdown-item" href="https://github.com/ElMulot/gpexe/wiki" target="_blank">{% trans %}Wiki{% endtrans %}</a>
-					<a class="dropdown-item" href="https://github.com/ElMulot/gpexe/issues" target="_blank">{% trans %}Report bug{% endtrans %}</a>
-					<a class="dropdown-item" href="{{ path('about') }}">{% trans %}About{% endtrans %}</a>
-				</div>
-			</li>
-			{{ block('logout') }}
-		</ul>
-	</div>
+	{{ include('nav/_main.html.twig') }}
 {% endblock %}
 
 {% block content %}
-	<div class="jumbotron">
+	<div class="container-lg">
 		<div class="row">
-			{% for project in projects %} 
-				<div class="col">
-					<div class="card text-white bg-primary mb-3" style="width: 20rem;">
-						<a role="button" class="btn btn-primary text-center font-weight-bold" href="{{ path('project_view', {'project': project.id}) }}">{{ project.name }}</a>
+			{% for project in projects|merge(projects)|merge(projects)|merge(projects) %}
+				<div class="col pt-5">
+					<div class="card">
+						<div class="card-header">{{ project.name }}</div>
 						<div class="card-body">
-							<p class="card-text"></p>
+							<div class="overlay">
+								<a href="{{ path('project_view', {'project': project.id}) }}" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-original-title="{% trans %}Engineering{% endtrans %}">
+									<img src="{{ asset('icons/engineering.png') }}" alt="{% trans %}Engineering{% endtrans %}"/>
+									<div ></div>
+								</a>
+							</div>
 						</div>
 						{% if (is_granted('ROLE_CONTROLLER') and app.user in project.users) or is_granted('ROLE_ADMIN') %}
 							<div class="card-body text-end">
-								<a class="btn btn-sm btn-success text-nowrap" href="{{ path('project_edit', {'project': project.id}) }}">{% trans %}Edit{% endtrans %}</a>
-								<a class="btn btn-sm btn-danger text-nowrap" href="{{ path('project_delete', {'project': project.id}) }}">{% trans %}Delete{% endtrans %}</a>
+								<a class="btn btn-sm btn-success" href="{{ path('project_edit', {'project': project.id}) }}">{% trans %}Edit{% endtrans %}</a>
+								<a class="btn btn-sm btn-danger" href="{{ path('project_delete', {'project': project.id}) }}">{% trans %}Delete{% endtrans %}</a>
 							</div>
 						{% endif %}
 					</div>
 				</div>
 			{% else %}
-				<div>{% trans %}Empty list{% endtrans %}</div>
+				<div class="col">{% trans %}Empty list{% endtrans %}</div>
 			{% endfor %}
-		</div>
 	</div>
+</div>
+{% endblock %}
+
+{% block footer %}
+	
 {% endblock %}

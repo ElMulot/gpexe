@@ -1,5 +1,14 @@
-import { Collapse } from 'bootstrap';
+import { Tooltip, Collapse } from 'bootstrap';
 import i18n from './../i18n';
+
+const BsPopper = class {
+
+    constructor() {
+		document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(e => new Tooltip(e));
+	}
+}
+
+export const Popper = new BsPopper();
 
 const BsCollapse = class {
 	

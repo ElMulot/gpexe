@@ -1,0 +1,40 @@
+@import "~bootswatch/dist/slate/variables";
+@import "~bootstrap/scss/bootstrap";
+@import "~bootswatch/dist/slate/bootswatch";
+
+
+.overlay {
+	@extend .d-inline-flex;
+	@extend .mx-1;
+	position: relative;
+	width: 60px;
+	height: 80px;
+}
+
+.overlay > a > div {
+	position: absolute;
+	display: block;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	height: 100%;
+	width: 100%;
+	opacity: 0;
+	transition: .3s ease;
+	background-color: $dark;
+	@include border-radius($border-radius);
+}
+
+.overlay:hover img {
+	opacity: 0.6;
+	transition: .3s ease;
+}
+
+.overlay:hover div {
+	opacity: 0.4;
+}
+
+.tooltip-arrow {
+    display: none !important;
+}

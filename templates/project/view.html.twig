@@ -3,9 +3,26 @@
 {% block nav %}
 	{{ include('nav/_project.html.twig') }}
 {% endblock %}
-{# 
+
 {% block content %}
+<div class="container-lg">
+	{{ nav.turbo('project_companies', [
+		{
+			'name': "Companies"|trans,
+			'href': path('personal'),
+			'class': 'active'
+		},
+		{
+			'name': "Main contractors"|trans,
+			'href': path('change_password'),
+		},
+		{
+			'name': "All"|trans,
+			'href': path('change_password'),
+		}
+	]) }}
 	{% if sub_contractors is not empty %}
+		
 		<div class="jumbotron w-100 p-2">
 			<ul class="nav nav-tabs mb-3">
 				<li class="nav-item">
@@ -72,8 +89,9 @@
 			</div>
 		</div>
 	{% endif %}
+</div>
 {% endblock %}
 
-{% block javascripts %}
-	{{ parent() }}
-{% endblock %} #}
+{% block footer %}
+	
+{% endblock %}

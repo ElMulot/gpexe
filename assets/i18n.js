@@ -1,17 +1,24 @@
 import i18next from 'i18next';
-import resourcesToBackend from 'i18next-resources-to-backend';
-import Backend from 'i18next-chained-backend';
-import HttpBackend from 'i18next-http-backend';
+
+const locale = document.documentElement.getAttribute('lang') || 'fr_FR';
 
 i18next
-	.use(Backend)
 	.init({
-		lng: document.documentElement.getAttribute('lang') || 'fr_FR',
-		fallbackLng: document.documentElement.getAttribute('lang') || 'fr_FR',
-		debug: true,
-		backend: {
-			loadPath: '/locales/{{lng}}/{{ns}}.json'
-		}
+		lng: locale,
+		fallbackLng: 'fr_FR',
+		debug: false,
+		resources: Object.assign(
+				{
+					[locale]: {
+						translation: require(`./locales/${locale}.json`),
+					}
+				},
+				{
+					'fr_FR': {
+						translation: require('./locales/fr_FR.json'),
+					}
+				})
+
 	});
 
 export default i18next;

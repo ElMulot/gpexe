@@ -22,7 +22,7 @@ const TurboHelper = class {
     noCache = false;
 
     constructor() {
-
+        
         document.addEventListener('turbo:before-cache', (event) => {
             this.closeModal();
             this.reenableSubmitButtons();
@@ -105,7 +105,6 @@ const TurboHelper = class {
     }
 
     renderLoading(e) {
-        console.log(i18n.t('loading'));
         e.innerHTML =
             '<div class="d-flex justify-content-center">' +
                 '<div class="spinner-border" role="status">' +
@@ -122,37 +121,37 @@ const TurboHelper = class {
             if (event.target.clientWidth > 720) {
                 event.originalTarget.innerHTML =
                     '<div class="card border-danger overflow-hidden">' +
-                    '<div class="card-header text-white">' +
-                    responseHTML.querySelector('[href="#trace-box-1"]').innerHTML + responseHTML.querySelector('.exception-http').innerHTML +
-                    '</div>' +
-                    '<div class="card-body">' +
-                    '<h5 class="card-title">' +
-                    responseHTML.querySelector('.exception-message-wrapper > div > h1').innerHTML +
-                    '<br />' +
-                    '<small>' +
-                    responseHTML.querySelector('#trace-html-1 span.block.trace-file-path').innerHTML +
-                    '</small>' +
-                    '</h5>' +
-                    '<div class="card-text trace-code">' +
-                    responseHTML.querySelector('#trace-html-1-0').innerHTML +
-                    '</div>' +
-                    '</div>' +
+                        '<div class="card-header text-white">' +
+                            responseHTML.querySelector('[href="#trace-box-1"]').innerHTML + responseHTML.querySelector('.exception-http').innerHTML +
+                        '</div>' +
+                        '<div class="card-body">' +
+                            '<h5 class="card-title">' +
+                                responseHTML.querySelector('.exception-message-wrapper > div > h1').innerHTML +
+                                '<br />' +
+                                '<small>' +
+                                    responseHTML.querySelector('#trace-html-1 span.block.trace-file-path').innerHTML +
+                                '</small>' +
+                            '</h5>' +
+                            '<div class="card-text trace-code">' +
+                                responseHTML.querySelector('#trace-html-1-0').innerHTML +
+                            '</div>' +
+                        '</div>' +
                     '</div>';
             } else {
                 event.originalTarget.innerHTML =
                     '<div class="card border-danger overflow-hidden">' +
-                    '<div class="card-header">' +
-                    responseHTML.querySelector('[href="#trace-box-1"]').innerHTML +
-                    '</div>' +
-                    '<div class="card-body">' +
-                    '<p class="card-text">' +
-                    responseHTML.querySelector('.exception-message-wrapper > div > h1').innerHTML +
-                    '<br />' +
-                    '<small>' +
-                    responseHTML.querySelector('#trace-html-1 span.block.trace-file-path').innerHTML +
-                    '</small>' +
-                    '</p>' +
-                    '</div>' +
+                        '<div class="card-header">' +
+                            responseHTML.querySelector('[href="#trace-box-1"]').innerHTML +
+                        '</div>' +
+                        '<div class="card-body">' +
+                            '<p class="card-text">' +
+                                responseHTML.querySelector('.exception-message-wrapper > div > h1').innerHTML +
+                                '<br />' +
+                                '<small>' +
+                                    responseHTML.querySelector('#trace-html-1 span.block.trace-file-path').innerHTML +
+                                '</small>' +
+                            '</p>' +
+                        '</div>' +
                     '</div>';
             }
         })

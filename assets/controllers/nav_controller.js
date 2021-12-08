@@ -1,11 +1,10 @@
 import { Controller } from 'stimulus';
 import { Collapse } from './../helpers/bootstrap_helper';
-import i18n from './../i18n';
 
 export default class extends Controller {
     
     connect() {
-        console.log(i18n.t('loading'));
+        
         this.element.addEventListener('click', (event) => {
             
             var $turboFrame = document.getElementById(event.originalTarget.dataset.turboFrame);

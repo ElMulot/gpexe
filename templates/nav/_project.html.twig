@@ -72,11 +72,11 @@
 		{% endif %}
 
 		{% if export_menu is empty and import_menu is empty and task_menu is empty and progress_menu is empty %}
-			{{ nav.dropdown('Programs', {
+			{{ navbar.dropdown('Programs', {
 				'No program avialable': 'title',
 			}) }}
 		{% else %}
-			{{ nav.dropdown('Programs', export_menu|merge(import_menu)|merge(task_menu)|merge(progress_menu)) }}
+			{{ navbar.dropdown('Programs', export_menu|merge(import_menu)|merge(task_menu)|merge(progress_menu)) }}
 		{% endif %}
 	{% endif %}
 

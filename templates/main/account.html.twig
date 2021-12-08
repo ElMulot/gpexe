@@ -2,12 +2,12 @@
 {% import "macros/_nav.html.twig" as nav %}
 
 {% block stylesheets %}
-	{{ encore_entry_link_tags('home') }}
+	{{ encore_entry_link_tags('main') }}
 	{{ parent() }}
 {% endblock %}
 
 {% block nav %}
-	{{ include('nav/_home.html.twig') }}
+	{{ include('nav/_main.html.twig') }}
 {% endblock %}
 
 {% block content %}
