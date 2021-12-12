@@ -26,6 +26,7 @@ Encore
     .addStyleEntry('form', './assets/styles/form.scss')
     .addStyleEntry('menu', './assets/styles/menu.scss')
     .addStyleEntry('main', './assets/styles/main.scss')
+    .addStyleEntry('project', './assets/styles/project.scss')
     
 
     // enables the Symfony UX Stimulus bridge (used in assets/bootstrap.js)
@@ -48,6 +49,7 @@ Encore
     .cleanupOutputBeforeBuild()
     .enableBuildNotifications()
     .enableSourceMaps(!Encore.isProduction())
+
     // enables hashed filenames (e.g. app.abc123.css)
     .enableVersioning(Encore.isProduction())
 
@@ -64,12 +66,24 @@ Encore
     // enables Sass/SCSS support
     .enableSassLoader()
 
+    // .copyFiles({
+    //     from: './assets',
+    //     to: './../[path][name].[ext]',
+    //     pattern: /\.(png|jpg|jpeg|svg)$/
+    // })
+
     // uncomment if you use TypeScript
     //.enableTypeScriptLoader()
 
     // uncomment if you use React
     //.enableReactPreset()
 
+    // uncomment if you use Vue
+    .enableVueLoader(() => {}, {
+        version: 3,
+        runtimeCompilerBuild: false,
+    })
+    
     // uncomment to get integrity="..." attributes on your script & link tags
     // requires WebpackEncoreBundle 1.4 or higher
     //.enableIntegrityHashes(Encore.isProduction())

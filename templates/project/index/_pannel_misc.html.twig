@@ -1,0 +1,36 @@
+<turbo-frame id="project_pannel">
+
+	<div class="row row-cols-auto">
+		<div class="col pt-5">
+			<div class="card card-width">
+				<div class="card-header">{% trans %}All documents{% endtrans %}</div>
+				<div class="card-body">
+					<a class="btn btn-engineering" href="{{ path('serie_route_by_type', {'project': project.id, 'type': 'all'}) }}" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-original-title="{% trans %}Engineering{% endtrans %}">
+						<img src="{{ asset('icons/engineering.svg') }}" alt="{% trans %}Egnineering{% endtrans %}">
+					</a>
+				</div>
+			</div>
+		</div>
+		<div class="col pt-5">
+			<div class="card card-width">
+				<div class="card-header">{% trans %}Whole MDR{% endtrans %}</div>
+				<div class="card-body">
+					<a class="btn btn-engineering" href="{{ path('serie_route_by_type', {'project': project.id, 'type': 'mdr'}) }}" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-original-title="{% trans %}Engineering{% endtrans %}">
+						<img src="{{ asset('icons/engineering.svg') }}" alt="{% trans %}Egnineering{% endtrans %}">
+					</a>
+				</div>
+			</div>
+		</div>
+		<div class="col pt-5">
+			<div class="card card-width">
+				<div class="card-header">{% trans %}Whole SDR{% endtrans %}</div>
+				<div class="card-body">
+					<a class="btn btn-engineering" href="{{ path('serie_route_by_type', {'project': project.id, 'type': 'sdr'}) }}" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-original-title="{% trans %}Engineering{% endtrans %}">
+						<img src="{{ asset('icons/engineering.svg') }}" alt="{% trans %}Egnineering{% endtrans %}">
+					</a>
+				</div>
+			</div>
+		</div>
+	</div>
+
+</turbo-frame>

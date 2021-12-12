@@ -19,8 +19,11 @@ a {
 	@extend .text-truncate;
 }
 
-a.btn {
-	width: 6rem;
+a {
+	&.btn-success,
+	&.btn-danger {
+		width: 6rem;
+	}
 }
 
 // --------------------
@@ -64,14 +67,18 @@ a.btn {
 // Cards
 // --------------------
 
-.card {
+.card-width {
 	@extend #{'.bg-primary', '.mb-3', '.text-white'};
-	width: 20rem;
+	width: 18rem;
 }
 
 .card-header {
 	@extend #{'.card-header', '.fw-bold', '.text-center'};
 	// @include btn-shadow($gray-800);
+}
+
+.card-body {
+	padding: 0.75rem 0.75rem;
 }
 
 // --------------------

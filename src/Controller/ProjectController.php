@@ -1,8 +1,10 @@
 <?php
 namespace App\Controller;
 
+use App\Entity\Company;
 use App\Entity\Project;
 use App\Form\ProjectType;
+use App\Service\FileUploaderService;
 use App\Repository\CompanyRepository;
 use App\Repository\ProgramRepository;
 use App\Repository\ProjectRepository;
@@ -13,25 +15,27 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class ProjectController extends AbstractController
 {
-	
 	private $companyRepository;
 	
 	private $projectRepository;
 	
 	private $programRepository;
+
+	private $fileUploadService;
 	
-	public function __construct(CompanyRepository $companyRepository, ProjectRepository $projectRepository, ProgramRepository $programRepository)
+	public function __construct(CompanyRepository $companyRepository, ProjectRepository $projectRepository, ProgramRepository $programRepository, FileUploaderService $fileUploadService)
 	{
 		$this->companyRepository = $companyRepository;
 		$this->projectRepository = $projectRepository;
 		$this->programRepository = $programRepository;
+		$this->fileUploadService = $fileUploadService;
 	}
 
 	/**
-	 * @Route("/project", name="project")
+	 * @Route("/project/all", name="projects_list")
 	 * redirigé vers project_view si un seul projet (sauf ROLE_ADMIN)
 	 */
-	public function index(): Response
+	public function projects(): Response
 	{
 		if ($this->isGranted('ROLE_ADMIN')) {
 			
@@ -42,7 +46,7 @@ class ProjectController extends AbstractController
 			$projects = $this->projectRepository->getProjects($this->getUser());
 			
 			if (sizeof($projects) == 1) {
-				return $this->redirectToRoute('project_view', [
+				return $this->redirectToRoute('project', [
 					'project' => reset($projects)->getId(),
 				]);
 			}
@@ -55,26 +59,12 @@ class ProjectController extends AbstractController
 	}
 
 	/**
-	 * @Route("/project/{project}", name="project_view", requirements={"project"="\d+"})
+	 * @Route("/project/{project}", name="project", requirements={"project"="\d+"})
 	 */
-	public function view(Request $request, Project $project, CompanyRepository $companyRepository): Response
+	public function index(Request $request, Project $project, CompanyRepository $companyRepository): Response
 	{
 		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
 			return $this->redirectToRoute('project');
-		}
-		
-		if ($this->isGranted('ROLE_ADMIN') ||
-			$this->isGranted('ROLE_CONTROLLER') && $this->getUser()->getCompany()->isMainContractor() ||
-			$this->isGranted('ROLE_EDIT_DOCUMENTS') && $project->hasUser($this->getUser())) {
-			
-			$mainContractors = $companyRepository->getMainContractors($project);
-			$subContractors= $companyRepository->getSubContractors($project);
-			
-		} else {
-			
-			$mainContractors = $companyRepository->getMainContractors($project, $this->getUser());
-			$subContractors= $companyRepository->getSubContractors($project, $this->getUser());
-			
 		}
 		
 		$programs = [];
@@ -84,28 +74,53 @@ class ProjectController extends AbstractController
 		} else if ($this->isGranted('ROLE_USER') && $this->getUser()->getCompany()->isMainContractor()) {
 			$programs = $this->programRepository->getEnabledProgressPrograms($project);
 		}
-		
-		if ($this->isGranted('ROLE_ADMIN') === false) {
-			$projects = $this->projectRepository->getProjects($this->getUser());
 			
-			if (sizeof($projects) == 1) {
-				return $this->renderForm('project/view.html.twig', [
-					'project' => $project,
-					'main_contractors' => $mainContractors,
-					'sub_contractors' => $subContractors,
-					'programs' => $programs,
-					'route_back' => $this->generateUrl('home'),
-				]);
-			}
-		}
-			
-		return $this->renderForm('project/view.html.twig', [
+		return $this->renderForm('project/index.html.twig', [
 			'project' => $project,
-			'main_contractors' => $mainContractors,
-			'sub_contractors' => $subContractors,
 			'programs' => $programs,
-			'route_back' => $this->generateUrl('project'),
+			'route_back' => $this->generateUrl('projects_list'),
 		]);
+	}
+
+/**
+	 * @Route("/project/{project}/{type}", name="project_pannel", requirements={"project"="\d+", "type"="sdr|mdr|misc"})
+	 */
+	public function pannel(Request $request, Project $project, string $type, CompanyRepository $companyRepository): Response
+	{
+		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
+			return $this->redirectToRoute('project');
+		}
+		
+		if ($this->isGranted('ROLE_ADMIN') ||
+			$this->isGranted('ROLE_CONTROLLER') && $this->getUser()->getCompany()->isMainContractor() ||
+			$this->isGranted('ROLE_EDIT_DOCUMENTS') && $project->hasUser($this->getUser())) {
+			$user = null;
+		} else {
+			$user = $this->getUser();
+		}
+
+		switch ($type) {
+			case 'sdr':
+				$companies = $companyRepository->getCompaniesByProject($project, [Company::MAIN_CONTRACTOR], $user);
+				return $this->renderForm('project/index/_pannel.html.twig', [
+					'project' => $project,
+					'companies' => $companies,
+				]);
+			case 'mdr':
+				$companies = $companyRepository->getCompaniesByProject($project, [Company::SUB_CONTRACTOR, Company::SUPPLIER], $user);
+				return $this->renderForm('project/index/_pannel.html.twig', [
+					'project' => $project,
+					'companies' => $companies,
+				]);
+			default:
+				return $this->renderForm('project/index/_pannel_misc.html.twig', [
+					'project' => $project,
+				]);
+		}
+
+		
+		
+
 	}
 
 	/**
@@ -122,6 +137,9 @@ class ProjectController extends AbstractController
 		$form->handleRequest($request);
 
 		if ($form->isSubmitted() && $form->isValid()) {
+			$imageFile = $form->get('image')->getData();
+			$imageFileName = $this->fileUploader->upload($imageFile);
+			$project->setImage($imageFileName);
 			$entityManager = $this->getDoctrine()->getManager();
 			$entityManager->persist($project);
 			$entityManager->flush();
@@ -150,6 +168,9 @@ class ProjectController extends AbstractController
 		$form->handleRequest($request);
 		
 		if ($form->isSubmitted() && $form->isValid()) {
+			$imageFile = $form->get('image')->getData();
+			$imageFileName = $this->fileUploader->upload($imageFile);
+			$project->setImage($imageFileName);
 			$entityManager = $this->getDoctrine()->getManager();
 			$entityManager->flush();
 

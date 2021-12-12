@@ -38,35 +38,14 @@ class CompanyRepository extends RepositoryService
 	/**
 	 * @return Company[]
 	 */
-	public function getMainContractors(Project $project, User $user = null)
+	public function getCompaniesByProject(Project $project, $types = [], User $user = null)
 	{
 		$qb = $this->newQb('c');
 		
 		$qb->innerJoin('c.users', 'u')
 			->innerJoin('u.projects', 'p')
 			->andWhere($qb->eq('p.id',  $project->getId()))
-			->andWhere($qb->eq('c.type', Company::MAIN_CONTRACTOR))
-			->addOrderBy('c.name')
-		;
-		
-		if ($user !== null) {
-			$qb->andWhere($qb->eq('u.id', $user));
-		}
-		
-		return $qb->getQuery()->getResult();
-	}
-	
-	/**
-	 * @return Company[]
-	 */
-	public function getSubContractors(Project $project, User $user = null)
-	{
-		$qb = $this->newQb('c');
-		
-		$qb->innerJoin('c.users', 'u')
-			->innerJoin('u.projects', 'p')
-			->andWhere($qb->eq('p.id',  $project->getId()))
-			->andWhere($qb->in('c.type', [Company::SUB_CONTRACTOR, Company::SUPPLIER]))
+			->andWhere($qb->in('c.type', $types))
 			->addOrderBy('c.name')
 		;
 		

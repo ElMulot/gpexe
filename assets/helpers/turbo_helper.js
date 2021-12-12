@@ -1,6 +1,8 @@
 import { Modal } from 'bootstrap';
 import * as Turbo from '@hotwired/turbo';
 import i18n from './../i18n';
+import { createApp } from 'vue';
+import Loading from './../components/loading_component';
 
 // -------------------------------------------------------------------------------------
 // |                    |            Drive             |              Frame            |
@@ -22,7 +24,6 @@ const TurboHelper = class {
     noCache = false;
 
     constructor() {
-        
         document.addEventListener('turbo:before-cache', (event) => {
             this.closeModal();
             this.reenableSubmitButtons();
@@ -53,6 +54,10 @@ const TurboHelper = class {
 
         document.addEventListener('turbo:before-fetch-response', (event) => {
             
+            // this.loadingApp.unmount();
+            // this.loadingApp = createApp(Loading);
+            // console.log('ok');
+
             if (event.detail.fetchResponse.failed === true) {
                 if (event.detail.fetchResponse.response.headers.get('Turbo-Frame')) {
                     this.renderErrorMessage(event);
@@ -105,19 +110,15 @@ const TurboHelper = class {
     }
 
     renderLoading(e) {
-        e.innerHTML =
-            '<div class="d-flex justify-content-center">' +
-                '<div class="spinner-border" role="status">' +
-                    '<span class="visually-hidden">' + i18n.t('loading') + '</span>' +
-                '</div>' +
-            '</div>';
+        createApp(Loading).mount(e);
     }
 
     renderErrorMessage(event) {
 
         event.detail.fetchResponse.responseHTML.then((html) => {
+
             const responseHTML = new DOMParser().parseFromString(html, 'text/html');
-            
+
             if (event.target.clientWidth > 720) {
                 event.originalTarget.innerHTML =
                     '<div class="card border-danger overflow-hidden">' +

@@ -2,17 +2,16 @@
 
 namespace App\Form;
 
-use App\Entity\Project;
 use App\Entity\User;
+use App\Entity\Project;
 
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
-use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
-use Symfony\Component\Form\Extension\Core\Type\IntegerType;
-use Symfony\Component\OptionsResolver\OptionsResolver;
-
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
+use Symfony\Component\Validator\Constraints\File;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 
 class ProjectType extends AbstractType
 {
@@ -20,6 +19,24 @@ class ProjectType extends AbstractType
 	{
 		$builder
 			->add('name')
+			->add('image', FileType::class, [
+				'label' => 'Project Image',
+				'mapped' => false,
+				'required' => false,
+				'constraints' => [
+                    new File([
+                        'maxSize' => '1024k',
+                        'mimeTypes' => [
+                            'image/bmp',
+							'image/gif',
+                            'image/jpeg',
+							'image/png',
+							'image/tiff'
+                        ],
+                        'mimeTypesMessage' => 'Please upload a valid image',
+                    ])
+				]
+			])
 			->add('splitter', TextType::class, [
 				'help' => 'Character used as separation between each item of the document codification.'
 			])

@@ -1,5 +1,6 @@
 import { Tooltip, Collapse } from 'bootstrap';
-import i18n from './../i18n';
+import { createApp } from 'vue';
+import Loading from './../components/loading_component.vue';
 
 const BsPopper = class {
 
@@ -25,15 +26,11 @@ const BsCollapse = class {
 		if (!e.classList.contains('collapse')) {
 			e.classList.add('collapse');
 		}
-
-		e.innerHTML = 
-			'<div class="d-flex justify-content-center">' +
-				'<div class="spinner-border" role="status">' +
-					'<span class="visually-hidden">' + i18n.t('loading') + '</span>' +
-				'</div>' +
-			'</div>';
+		
+		createApp(Loading).mount(e);
 		let bsCollapse = new Collapse(e, { toggle: false });
 		bsCollapse.show();
+		e.innerHTML = "Loading";
 		return true;
     }
 

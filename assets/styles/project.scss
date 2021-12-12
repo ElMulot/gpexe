@@ -1,0 +1,24 @@
+@import "~bootswatch/dist/slate/variables";
+@import "~bootstrap/scss/bootstrap";
+@import "~bootswatch/dist/slate/bootswatch";
+
+.btn > img {
+	height: 3rem;
+	width: 3.1rem;
+}
+
+.btn-engineering {
+	@include btn-shadow($blue-300);
+	color: $white;
+
+	&:not([disabled]):not(.disabled):hover,
+	&:not([disabled]):not(.disabled):focus,
+	&:not([disabled]):not(.disabled):active,
+	&:not([disabled]):not(.disabled).active {
+		@include btn-shadow-inverse($blue-300);
+	}
+}
+
+.tooltip-arrow {
+    display: none !important;
+}

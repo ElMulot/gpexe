@@ -2,7 +2,7 @@
 
 <ul class="navbar-nav me-auto">
 	{{ navbar.item('Home', path('home')) }}
-	{{ navbar.item('Projects', path('project')) }}
+	{{ navbar.item('Projects', path('projects_list')) }}
 
 	{% if is_granted('ROLE_ADMIN') %}
 		{{ navbar.dropdown('Admin', {

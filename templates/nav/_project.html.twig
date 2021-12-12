@@ -1,7 +1,7 @@
 {% import "macros/_navbar.html.twig" as navbar %}
 
 <ul class="navbar-nav me-auto">
-	{{ navbar.item('Back', path('project')) }}
+	{{ navbar.item('Back', path('projects_list')) }}
 
 	{% if (is_granted('ROLE_CONTROLLER') and app.user in project.users) or is_granted('ROLE_ADMIN') %}
 		{{ navbar.dropdown('Project admin', {

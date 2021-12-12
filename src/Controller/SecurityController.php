@@ -18,7 +18,7 @@ class SecurityController extends AbstractController
 	
 	public function __construct(KernelInterface $kernel)
 	{
-		$this->imgDir = $kernel->getProjectDir() . '/public/img/';
+		$this->imgDir = $kernel->getProjectDir() . '/assets/images/';
 	}
 	
 	/**
@@ -62,7 +62,7 @@ class SecurityController extends AbstractController
 		return $this->renderForm('security/login.html.twig', [
 			'last_username' => $lastUsername, 
 			'error' => $error,
-			'img_name' => $imgName,
+			'img_name' => 'images/' . $imgName,
 			'logout' => $logout,
 		]);
 	}

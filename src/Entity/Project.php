@@ -28,6 +28,11 @@ class Project
 	private $name;
 
 	/**
+	 * @ORM\Column(type="string", length=255, nullable=true)
+	 */
+	private $image;
+
+	/**
 	 * @ORM\Column(type="string", length=4, nullable=true)
 	 */
 	private $splitter;
@@ -36,27 +41,27 @@ class Project
 	 * @ORM\Column(type="integer")
 	 */
 	private $newVersionTime;
-	
+
 	/**
 	 * @ORM\Column(type="integer")
 	 */
 	private $prodWarningLimit;
-	
+
 	/**
 	 * @ORM\Column(type="integer")
 	 */
 	private $prodDangerLimit;
-	
+
 	/**
 	 * @ORM\Column(type="integer")
 	 */
 	private $checkWarningLimit;
-	
+
 	/**
 	 * @ORM\Column(type="integer")
 	 */
 	private $checkDangerLimit;
-	
+
 	/**
 	 * @ORM\ManyToMany(targetEntity=User::class, inversedBy="projects")
 	 */
@@ -76,7 +81,7 @@ class Project
 	 * @ORM\OneToMany(targetEntity=Status::class, mappedBy="project", orphanRemoval=true)
 	 */
 	private $statuses;
-	
+
 	/**
 	 * @ORM\OneToMany(targetEntity=Visa::class, mappedBy="project", orphanRemoval=true)
 	 */
@@ -123,6 +128,17 @@ class Project
 	public function setName(string $name): self
 	{
 		$this->name = $name;
+		return $this;
+	}
+
+	public function getImage(): ?string
+	{
+		return $this->image;
+	}
+
+	public function setImage(?string $image): self
+	{
+		$this->image = $image;
 
 		return $this;
 	}
@@ -138,64 +154,64 @@ class Project
 
 		return $this;
 	}
-	
+
 	public function getNewVersionTime(): ?int
 	{
 		return $this->newVersionTime;
 	}
-	
+
 	public function setNewVersionTime(int $newVersionTime): self
 	{
 		$this->newVersionTime = $newVersionTime;
-		
+
 		return $this;
 	}
-	
+
 	public function getProdWarningLimit(): ?int
 	{
 		return $this->prodWarningLimit;
 	}
-	
+
 	public function setProdWarningLimit(int $prodWarningLimit): self
 	{
 		$this->prodWarningLimit = $prodWarningLimit;
-		
+
 		return $this;
 	}
-	
+
 	public function getProdDangerLimit(): ?int
 	{
 		return $this->prodDangerLimit;
 	}
-	
+
 	public function setProdDangerLimit(int $prodDangerLimit): self
 	{
 		$this->prodDangerLimit = $prodDangerLimit;
-		
+
 		return $this;
 	}
-	
+
 	public function getCheckWarningLimit(): ?int
 	{
 		return $this->checkWarningLimit;
 	}
-	
+
 	public function setCheckWarningLimit(int $checkWarningLimit): self
 	{
 		$this->checkWarningLimit = $checkWarningLimit;
-		
+
 		return $this;
 	}
-	
+
 	public function getCheckDangerLimit(): ?int
 	{
 		return $this->checkDangerLimit;
 	}
-	
+
 	public function setCheckDangerLimit(int $checkDangerLimit): self
 	{
 		$this->checkDangerLimit = $checkDangerLimit;
-		
+
 		return $this;
 	}
 
@@ -224,7 +240,7 @@ class Project
 
 		return $this;
 	}
-	
+
 	public function hasUser(User $user): bool
 	{
 		return $this->users->contains($user);
@@ -291,7 +307,7 @@ class Project
 
 		return $this;
 	}
-	
+
 	/**
 	 * @return Collection|Status[]
 	 */
@@ -299,17 +315,17 @@ class Project
 	{
 		return $this->statuses;
 	}
-	
+
 	public function addStatus(Status $status): self
 	{
 		if (!$this->statuses->contains($status)) {
 			$this->statuses[] = $status;
 			$status->setProject($this);
 		}
-		
+
 		return $this;
 	}
-	
+
 	public function removeStatus(Status $status): self
 	{
 		if ($this->statuses->contains($status)) {
@@ -319,7 +335,7 @@ class Project
 				$status->setProject(null);
 			}
 		}
-		
+
 		return $this;
 	}
 
@@ -329,8 +345,8 @@ class Project
 	public function getVisas(): Collection
 	{
 		return $this->visas;
-	} 
-	
+	}
+
 	/**
 	 * @return Collection|Visa[]
 	 */
@@ -429,8 +445,8 @@ class Project
 
 		return $this;
 	}
-	
-	
+
+
 	/**
 	 * @return Collection|Program[]
 	 */
@@ -438,17 +454,17 @@ class Project
 	{
 		return $this->programs;
 	}
-	
+
 	public function addProgram(Program $program): self
 	{
 		if (!$this->programs->contains($program)) {
 			$this->programs[] = $program;
 			$program->setProject($this);
 		}
-		
+
 		return $this;
 	}
-	
+
 	public function removeProgram(Program $program): self
 	{
 		if ($this->programs->contains($program)) {
@@ -458,14 +474,12 @@ class Project
 				$program->setProject(null);
 			}
 		}
-		
+
 		return $this;
 	}
-	
+
 	public function __toString(): string
 	{
 		return (string)$this->getName();
 	}
-	
 }
-?>

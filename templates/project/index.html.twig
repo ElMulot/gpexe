@@ -1,0 +1,103 @@
+{% extends 'layout.html.twig' %}
+{% import "macros/_nav.html.twig" as nav %}
+
+{% block stylesheets %}
+	{{ encore_entry_link_tags('project') }}
+	{{ parent() }}
+{% endblock %}
+
+{% block nav %}
+	{{ include('nav/_project.html.twig') }}
+{% endblock %}
+
+{% block content %}
+<div class="container-lg">
+	{{ nav.turbo('project_pannel', [
+		{
+			'name': "Companies"|trans,
+			'href': path('project_pannel', {'project': project.id, 'type': 'sdr'}),
+			'class': 'active'
+		},
+		{
+			'name': "Main contractors"|trans,
+			'href': path('project_pannel', {'project': project.id, 'type': 'mdr'}),
+		},
+		{
+			'name': "Miscellaneous"|trans,
+			'href': path('project_pannel', {'project': project.id, 'type': 'misc'}),
+		}
+	]) }}
+	{# {% if sub_contractors is not empty %}
+		
+		<div class="jumbotron w-100 p-2">
+			<ul class="nav nav-tabs mb-3">
+				<li class="nav-item">
+					<a class="nav-link active" data-toggle="collapse" href="#sub_contractors" role="button" aria-expanded="true">{% trans %}Companies{% endtrans %}</a>
+				</li>
+			</ul>
+			<div id="sub_contractors" class="row collapse show mb-5">
+				{% if sub_contractors is not empty and app.user.company.isMainContractor %}
+					<div class="card text-white bg-primary m-3">
+						<a role="button" class="btn btn-primary text-center font-weight-bold" href="{{ path('serie_route_by_type', {'project': project.id, 'type': 'sdr'}) }}">{% trans %}Whole SDR{% endtrans %}</a>
+						<div class="card-body text-right">
+						</div>
+					</div>
+				{% endif %}
+				{% for sub_contractor in sub_contractors %}
+					<div class="card text-white bg-primary m-3">
+						<a role="button" class="btn btn-primary text-center font-weight-bold" href="{{ path('serie_route', {'project': project.id, 'company': sub_contractor.id}) }}">{{ sub_contractor.name }}</a>
+						<div class="card-body text-right">
+						</div>
+					</div>
+				{% endfor %}
+			</div>
+		</div>
+	{% endif %}
+	{% if main_contractors is not empty %}
+		<div class="jumbotron w-100 p-2">
+		   <ul class="nav nav-tabs mb-3">
+				<li class="nav-item">
+					<a class="nav-link active" data-toggle="collapse" href="#main_contractors" role="button" aria-expanded="true">{% trans %}Main contractors{% endtrans %}</a>
+				</li>
+			</ul>
+			<div id="main_contractors" class="row collapse show"> 
+				{% if main_contractors is not empty and app.user.company.isMainContractor %}
+					<div class="card text-white bg-primary m-3">
+						<a role="button" class="btn btn-primary text-center font-weight-bold" href="{{ path('serie_route_by_type', {'project': project.id, 'type': 'mdr'}) }}">{% trans %}Whole MDR{% endtrans %}</a>
+						<div class="card-body text-right">
+						</div>
+					</div>
+				{% endif %}
+				{% for main_contractor in main_contractors %}
+					<div class="card text-white bg-primary m-3">
+						<a role="button" class="btn btn-primary text-center font-weight-bold" href="{{ path('serie_route', {'project': project.id, 'company': main_contractor.id}) }}">{{ main_contractor.name }}</a>
+						<div class="card-body">
+							<p class="card-text"></p>
+						</div>
+					</div>
+				{% endfor %}
+			</div>
+		</div>
+	{% endif %}
+	{% if sub_contractors is not empty and main_contractors is not empty %}
+		<div class="jumbotron w-100 p-2">
+		   <ul class="nav nav-tabs mb-3">
+				<li class="nav-item">
+					<a class="nav-link active" data-toggle="collapse" href="#main_contractors" role="button" aria-expanded="true">{% trans %}All{% endtrans %}</a>
+				</li>
+			</ul>
+			<div id="main_contractors" class="row collapse show"> 
+				<div class="card text-white bg-primary m-3">
+					<a role="button" class="btn btn-primary text-center font-weight-bold" href="{{ path('serie_route_by_type', {'project': project.id, 'type': 'all'}) }}">{% trans %}All documents{% endtrans %}</a>
+					<div class="card-body text-right">
+					</div>
+				</div>
+			</div>
+		</div>
+	{% endif %}
+</div> #}
+{% endblock %}
+
+{% block footer %}
+	
+{% endblock %}

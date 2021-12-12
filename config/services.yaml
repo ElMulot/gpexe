@@ -90,6 +90,10 @@ services:
     App\Service\ProgramService:
         arguments:
             $targetDirectory: '%kernel.project_dir%/public/%uploads_directory%/'
+
+    App\Service\FileUploaderService:
+        arguments:
+            $targetDirectory: '%kernel.project_dir%/public/%uploads_directory%/'
             
     App\Service\RepositoryService:
         autowire: false

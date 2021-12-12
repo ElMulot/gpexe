@@ -7,11 +7,10 @@
 {% set check_warning = check_alerts|filter(v => v.max <= project.checkDangerLimit and v.max > project.checkWarningLimit) %}
 {% set check_info	= check_alerts|filter(v => v.max <= project.checkWarningLimit) %}
 
-<html>
 <turbo-frame id="project_detail">
 	{% if prod_delayed %}
 		<div class="row alert alert-danger mx-0">
-			<div class="col-12 mb-2">{% trans %}alert.prod.delayed{% endtrans %} :</div>
+			<div class="col-12 mb-2">{% tranz %}alert.prod.delayed{% endtrans %} :</div>
 			{% for alert in prod_delayed %}
 				{% set type = (alert.companyType is constant('App\\Entity\\Company::MAIN_CONTRACTOR'))?'mdr':'sdr' %}
 				<div class="col-6 p-1">
@@ -134,4 +133,3 @@
 		</div>
 	{% endif %}
 </turbo-frame>
-</html>

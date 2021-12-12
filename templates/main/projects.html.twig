@@ -12,18 +12,15 @@
 
 {% block content %}
 	<div class="container-lg">
-		<div class="row">
+		<div class="row row-cols-auto">
 			{% for project in projects|merge(projects)|merge(projects)|merge(projects) %}
 				<div class="col pt-5">
-					<div class="card">
+					<div class="card card-width">
 						<div class="card-header">{{ project.name }}</div>
-						<div class="card-body">
-							<div class="overlay">
-								<a href="{{ path('project_view', {'project': project.id}) }}" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-original-title="{% trans %}Engineering{% endtrans %}">
-									<img src="{{ asset('icons/engineering.png') }}" alt="{% trans %}Engineering{% endtrans %}"/>
-									<div ></div>
-								</a>
-							</div>
+						<div class="card-body align-self-center">
+							<a class="btn btn-project" href="{{ path('project', {'project': project.id}) }}" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-original-title="{% trans %}Engineering{% endtrans %}">
+								<img src="{{ asset(uploads_directory ~ '/' ~ project.image) }}" alt="{{ project.name }}">
+							</a>
 						</div>
 						{% if (is_granted('ROLE_CONTROLLER') and app.user in project.users) or is_granted('ROLE_ADMIN') %}
 							<div class="card-body text-end">
