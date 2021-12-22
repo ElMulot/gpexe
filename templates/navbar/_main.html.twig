@@ -1,0 +1,60 @@
+{% import "macros/_navbar.html.twig" as navbar %}
+
+<ul class="navbar-nav me-auto">
+	{{ navbar.item('Home', path('home')) }}
+	{{ navbar.item('Projects', path('projects_list')) }}
+
+	{% if is_granted('ROLE_ADMIN') %}
+		{{ navbar.dropdown('Admin', [
+			{
+				'name': 'New project',
+				'href': path('project_new'),
+				'data-turbo-frame': 'main_modal',
+			},
+			{
+				'name': 'Company',
+				'href': path('company'),
+				'data-turbo-frame': 'main_modal',
+			},
+			{
+				'name': 'User',
+				'href': path('user'),
+				'data-turbo-frame': 'main_modal',
+			},
+			{
+				'name': 'Profil',
+				'href': path('profil'),
+				'data-turbo-frame': 'main_modal',
+			},		
+		]) }}
+	{% endif %}
+</ul>
+
+<ul class="navbar-nav ms-auto">
+	{{ navbar.item('Account', path('account')) }}
+	{{ navbar.dropdown('GPExe', [
+		{
+			'name': 'Wiki',
+			'href': 'https://github.com/ElMulot/gpexe/wiki',
+		},
+		{
+			'name': 'Report bug',
+			'href': 'https://github.com/ElMulot/gpexe/issues',
+		},
+		{
+			'name': 'About',
+			'href': path('about'),
+			'target': 'main_modal',
+		},
+		{
+			'name': 'Log',
+			'href': path('log'),
+			'target': 'main_modal',
+		},
+		{
+			'name': 'Test',
+			'href': is_granted('ROLE_SUPER_ADMIN')?path('test'),
+		},
+	]) }}
+	{{ navbar.itemLogout() }}
+</ul>

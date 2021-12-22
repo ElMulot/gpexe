@@ -1,0 +1,24 @@
+{% form_theme form 'form/layout.html.twig' %}
+
+{% block stylesheets %}
+	{{ encore_entry_link_tags('form') }}
+{% endblock %}
+
+<turbo-frame id="main_modal">
+	<div class="modal modal-fullscreen fade" tabindex="-1" aria-labelledby="main_modal_label" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="main_modal_label">{{ title|trans }}</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans %}Close{% endtrans %}"></button>
+				</div>
+				<div class="modal-body">
+					{{ form(form) }}
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans %}Close{% endtrans %}</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</turbo-frame>

@@ -8,23 +8,22 @@
 	{% endif %}
 {% endmacro %}
 
-{% macro dropdown(label, object) %}
+{% macro dropdown(label, items) %}
 	{% set uuid = uuid() %}
 	<li class="nav-item dropdown">
 		<a class="nav-link dropdown-toggle" href="#" id="{{ uuid }}" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-turbo="false">
 			{{ label|trans }}
 		</a>
 		<div class="dropdown-menu" aria-labelledby="{{ uuid }}">
-			{% for label, url in object %}
-				{% if url == 'title' %}
-					<a class="dropdown-item disabled pl-2 bg-dark font-weight-bold text-light" href="#">
-						{{ label|trans }}
-					</a>
-				{% elseif url is not empty %}
-					<a class="dropdown-item" href="{{ url }}">
-						{{ label|trans }}
-					</a>
+			{% for item in items %}
+				{% if item.href is defined %}
+					{% set item = item|merge({'class': item.class|default('') ~ ' dropdown-item'}) %}
+				{% else %}
+					{% set item = item|merge({'class': item.class|default('') ~ ' dropdown-item disabled pl-2 bg-dark font-weight-bold text-light', 'href': '#'}) %}	
 				{% endif %}
+				<a{{ block('attributes') }}>
+					{{ item.name }}
+				</a>
 			{% endfor %}
 		</div>
 	</li>
@@ -32,7 +31,7 @@
 
 {% macro title(label) %}
 	<div class="nav-title">
-		{{ label }}
+		{{ label|trans }}
 	</div>
 {% endmacro %}
 
@@ -43,3 +42,16 @@
 		{{ _self.item('Logout', path('logout')) }}
 	{% endif %}
 {% endmacro %}
+
+{% block attributes %}
+	{% for attrname, attrvalue in item|filter((v, k) => k != 'name') %}
+		{{ " " }}
+		{% if attrname in ['placeholder', 'title'] %}
+			
+		{% elseif attrvalue is same as(true) %}
+			{{ attrname }}="{{ attrname }}"
+		{% elseif attrvalue is not same as(false) %}
+			{{ attrname }}="{{ attrvalue }}"
+		{% endif %}
+	{% endfor %}
+{% endblock attributes %}

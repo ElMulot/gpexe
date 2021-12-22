@@ -9,15 +9,18 @@
 	<header class="sticky-top">
 		<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
 			<div class="container-fluid">
-				<button class="navbar-toggler ms-auto" type="button" data-bs-toggle="collapse" data-bs-target="#navContent" aria-controls="navContent" aria-expanded="false" aria-label="Toggle navigation">
+				<button class="navbar-toggler ms-auto" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
 					<span class="navbar-toggler-icon"></span>
 				</button>
-				<div id="navContent" class="collapse navbar-collapse">
-					{{ block('nav') }}
+				<div id="navbarContent" class="collapse navbar-collapse">
+					{{ block('navbar') }}
 				</div>
 			</div>
 		</nav>
 	</header>
+	<turbo-frame id="main_modal">
+		
+	</turbo-frame>
 	<main class="container-fluid d-flex justify-content-center">
 		{{ block('content') }}
 	</main>
@@ -25,8 +28,8 @@
 		{{ block('footer') }}
 	</footer>
 	{# <main class="mt-3">
-		<div id="content" class="d-flex flex-column align-items-center mx-1">
-			{{ block('content') }}
-		</div>
+			<div id="content" class="d-flex flex-column align-items-center mx-1">
+				{{ block('content') }}
+			</div>
 	</main> #}
 {% endblock %}

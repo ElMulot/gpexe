@@ -1,8 +1,8 @@
 import { Modal } from 'bootstrap';
 import * as Turbo from '@hotwired/turbo';
 import i18n from './../i18n';
-import { createApp } from 'vue';
-import Loading from './../components/loading_component';
+import { renderComponent } from 'helpers/vue_helper';
+import Loading from 'components/loading_component';
 
 // -------------------------------------------------------------------------------------
 // |                    |            Drive             |              Frame            |
@@ -20,7 +20,6 @@ import Loading from './../components/loading_component';
 
 const TurboHelper = class {
     
-    noLoadingAnimation = false;
     noCache = false;
 
     constructor() {
@@ -41,7 +40,7 @@ const TurboHelper = class {
             
             const $frame = document.querySelector(`#${frameId}`);
 
-            if ($frame && this.noLoadingAnimation === false) {
+            if ($frame) {
                 this.renderLoading($frame);
             }
 
@@ -53,10 +52,6 @@ const TurboHelper = class {
         });
 
         document.addEventListener('turbo:before-fetch-response', (event) => {
-            
-            // this.loadingApp.unmount();
-            // this.loadingApp = createApp(Loading);
-            // console.log('ok');
 
             if (event.detail.fetchResponse.failed === true) {
                 if (event.detail.fetchResponse.response.headers.get('Turbo-Frame')) {
@@ -75,14 +70,6 @@ const TurboHelper = class {
             Turbo.clearCache();
             Turbo.visit(redirectLocation);
         });
-
-        // document.addEventListener('turbo:render', () => {
-        //     if (document.documentElement.hasAttribute("data-turbo-preview")) {
-        //         this.noLoadingAnimation = true;
-        //     } else if (this.noLoadingAnimation === true) {
-        //         this.noLoadingAnimation === false;
-        //     }
-        // });
     }
 
     closeModal() {
@@ -110,7 +97,7 @@ const TurboHelper = class {
     }
 
     renderLoading(e) {
-        createApp(Loading).mount(e);
+        renderComponent(Loading).mount(e);
     }
 
     renderErrorMessage(event) {

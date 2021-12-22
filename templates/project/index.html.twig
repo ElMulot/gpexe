@@ -6,8 +6,8 @@
 	{{ parent() }}
 {% endblock %}
 
-{% block nav %}
-	{{ include('nav/_project.html.twig') }}
+{% block navbar %}
+	{{ include('navbar/_project.html.twig') }}
 {% endblock %}
 
 {% block content %}
@@ -21,10 +21,6 @@
 		{
 			'name': "Main contractors"|trans,
 			'href': path('project_pannel', {'project': project.id, 'type': 'mdr'}),
-		},
-		{
-			'name': "Miscellaneous"|trans,
-			'href': path('project_pannel', {'project': project.id, 'type': 'misc'}),
 		}
 	]) }}
 	{# {% if sub_contractors is not empty %}

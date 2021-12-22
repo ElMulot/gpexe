@@ -1,0 +1,150 @@
+{% import "macros/_navbar.html.twig" as navbar %}
+
+<ul class="navbar-nav me-auto">
+	{{ navbar.item('Back', path('projects_list')) }}
+
+	{% if (is_granted('ROLE_CONTROLLER') and app.user in project.users) or is_granted('ROLE_ADMIN') %}
+		{{ navbar.dropdown('Project admin', [
+			{
+				'name': 'Edit project',
+				'href': path('project_edit', {'project': project.id}),
+				'data-turbo-frame': 'main_modal',
+			},
+			{
+				'name': 'Codification',
+				'href': path('codification', {'project': project.id}),
+				'data-turbo-frame': 'main_modal',
+			},
+			{
+				'name': 'Metadatas',
+				'href': path('metadata', {'project': project.id}),
+				'data-turbo-frame': 'main_modal',
+			},
+			{
+				'name': 'Statuses',
+				'href': path('status', {'project': project.id}),
+				'data-turbo-frame': 'main_modal',
+			},
+			{
+				'name': 'Visas',
+				'href': path('visa', {'project': project.id}),
+				'data-turbo-frame': 'main_modal',
+			},
+			{
+				'name': 'Programs',
+				'href': path('program', {'project': project.id}),
+				'data-turbo-frame': 'main_modal',
+			},
+			{
+				'name': 'Automations',
+				'href': path('status', {'project': project.id}),
+				'data-turbo-frame': 'automation',
+			},
+		]) }}
+	{% endif %}
+</ul>
+
+{{ navbar.title(project.name)}}
+
+<ul class="navbar-nav ms-auto">
+
+	{{ navbar.dropdown('Documents', [
+		{
+			'name': 'All documents',
+			'href': path('serie_route_by_type', {'project': project.id, 'type': 'all'}),
+		},
+		{
+			'name': 'MDR Only',
+			'href': path('serie_route_by_type', {'project': project.id, 'type': 'mdr'}),
+		},
+		{
+			'name': 'SDR Only',
+			'href': path('serie_route_by_type', {'project': project.id, 'type': 'sdr'}),
+		},
+	]) }}
+
+	{% if programs is not empty %}
+
+		{% set export_programs = programs|filter(v => v.type == constant('App\\Entity\\Program::EXPORT')) %}
+		{% set import_programs = programs|filter(v => v.type == constant('App\\Entity\\Program::IMPORT')) %}
+		{% set task_programs = programs|filter(v => v.type == constant('App\\Entity\\Program::TASK')) %}
+		{% set progress_programs = programs|filter(v => v.type == constant('App\\Entity\\Program::PROGRESS')) %}
+
+
+		{% if export_programs is not empty  %}
+			{% set export_menu = [
+				{
+					'name': 'Export'
+				}
+			] %}
+			{% for program in export_programs %}
+				{% set export_menu = export_menu|merge([
+					{
+						'name': program.name,
+						'href': path('program_dashboard', {'program': program.id}),
+					}
+				]) %}
+			{% endfor %}
+		{% endif %}
+
+		{% if import_programs is not empty  %}
+			{% set import_menu = [
+				{
+					'name': 'Import'
+				}
+			] %}
+			{% for program in import_programs %}
+				{% set import_menu = import_menu|merge([
+					{
+						'name': program.name,
+						'href': path('program_dashboard', {'program': program.id}),
+					}
+				]) %}
+			{% endfor %}
+		{% endif %}
+
+		{% if task_programs is not empty  %}
+			{% set task_menu = [
+				{
+					'name': 'Task'
+				}
+			] %}
+			{% for program in task_programs %}
+				{% set task_menu = task_menu|merge([
+					{
+						'name': program.name,
+						'href': path('program_dashboard', {'program': program.id}),
+					}
+				]) %}
+			{% endfor %}
+		{% endif %}
+
+		{% if progress_programs is not empty  %}
+			{% set progress_menu = [
+				{
+					'name': 'Progress'
+				}
+			] %}
+			{% for program in progress_programs %}
+				{% set progress_menu = progress_menu|merge([
+					{
+						'name': program.name,
+						'href': path('program_dashboard', {'program': program.id}),
+					}
+				]) %}
+			{% endfor %}
+		{% endif %}
+
+		{% if export_menu is empty and import_menu is empty and task_menu is empty and progress_menu is empty %}
+			{{ navbar.dropdown('Programs', [
+				{
+					'name': 'No program avialable',
+				}
+			]) }}
+		{% else %}
+			{{ navbar.dropdown('Programs', export_menu|merge(import_menu)|merge(task_menu)|merge(progress_menu)) }}
+		{% endif %}
+	{% endif %}
+
+	{{ navbar.itemLogout() }}
+</ul>

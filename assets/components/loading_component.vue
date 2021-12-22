@@ -6,12 +6,12 @@
 	</div>
 </template>
 <script>
-	import i18n from './../i18n';
+import i18n from 'i18n';
 
-	export default {
-		name: 'Loading',
-		methods: {
-			t: i18n.t
-		}
-	};
+export default {
+	name: 'Loading',
+	methods: {
+		t: i18n.t
+	}
+};
 </script>

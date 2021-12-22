@@ -13,5 +13,6 @@ import { Tooltip, Toast, Popover } from 'bootstrap';
 
 // start the Stimulus application
 import './bootstrap';
-import './helpers/bootstrap_helper';
-import './helpers/turbo_helper';
+
+import 'helpers/bootstrap_helper';
+import 'helpers/turbo_helper';

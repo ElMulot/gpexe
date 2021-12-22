@@ -6,8 +6,8 @@
 	{{ parent() }}
 {% endblock %}
 
-{% block nav %}
-	{{ include('nav/_main.html.twig') }}
+{% block navbar %}
+	{{ include('navbar/_main.html.twig') }}
 {% endblock %}
 
 {% block content %}
@@ -21,7 +21,7 @@
 			}]) %}
 		{% endfor %}
 		{{ nav.turbo('project_detail', items) }}
-
+	</div>
 {% endblock %}
 
 {% block footer %}
