@@ -1,3 +1,11 @@
+@import "~bootswatch/dist/slate/variables";
+@import "~bootstrap/scss/functions";
+@import "~bootstrap/scss/variables";
+@import "~bootstrap/scss/mixins";
+@import "~bootstrap/scss/utilities";
+@import "~bootstrap/scss/utilities/api";
+@import "~bootswatch/dist/slate/bootswatch";
+
 // html, body {
 // 	height:calc(100% - 36px);
 // }
@@ -24,3 +32,17 @@
 // 		width: 100%
 // 	}
 // }
+
+.modal-dialog-scrollable > div {
+	height: 100%;
+}
+
+.form-group {
+	@extend .mt-3;
+}
+
+.modal-body > ul {
+	position: sticky;
+	top: calc(-1 * map-get($spacers, 3));
+	background-color: $modal-content-bg;
+}

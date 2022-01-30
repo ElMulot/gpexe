@@ -2,11 +2,15 @@
 @import "~bootstrap/scss/bootstrap";
 @import "~bootswatch/dist/slate/bootswatch";
 
-.btn-project > img {
-	height: calc(60px + $btn-padding-x);
-	width: calc(120px + $btn-padding-y);
-	object-fit: cover;
-	@include border-radius($border-radius);
+.btn-project > {
+	img, div {
+		height: calc(60px + $btn-padding-x);
+		width: calc(120px + $btn-padding-y);
+		@include border-radius($border-radius);
+	}
+	img {
+		object-fit: cover;
+	}
 }
 
 .btn-project {

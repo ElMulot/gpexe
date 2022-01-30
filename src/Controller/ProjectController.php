@@ -53,7 +53,7 @@ class ProjectController extends AbstractController
 			}
 			
 		}
-		
+
 		return $this->renderForm('main/projects.html.twig', [
 			'projects' => $projects
 		]);
@@ -118,10 +118,6 @@ class ProjectController extends AbstractController
 					'project' => $project,
 				]);
 		}
-
-		
-		
-
 	}
 
 	/**
@@ -139,16 +135,19 @@ class ProjectController extends AbstractController
 
 		if ($form->isSubmitted() && $form->isValid()) {
 			$imageFile = $form->get('image')->getData();
-			$imageFileName = $this->fileUploader->upload($imageFile);
+			$imageFileName = $this->fileUploadService->upload($imageFile);
 			$project->setImage($imageFileName);
 			$entityManager = $this->getDoctrine()->getManager();
 			$entityManager->persist($project);
 			$entityManager->flush();
 
 			$this->addFlash('success', 'New entry created');
-			return $this->redirectToRoute('project');
+			
+			return $this->renderForm('generic/success.stream.html.twig', [
+				'redirect' => $this->generateUrl('projects_list'),
+			], new TurboStreamResponse());
 		} else {
-			return $this->renderForm('form/_modal.html.twig', [
+			return $this->renderForm('project/form.html.twig', [
 				'title' => 'New project',
 				'form' => $form
 			]);
@@ -170,16 +169,20 @@ class ProjectController extends AbstractController
 		
 		if ($form->isSubmitted() && $form->isValid()) {
 			$imageFile = $form->get('image')->getData();
-			$imageFileName = $this->fileUploader->upload($imageFile);
+			$imageFileName = $this->fileUploadService->upload($imageFile);
 			$project->setImage($imageFileName);
 			$entityManager = $this->getDoctrine()->getManager();
 			$entityManager->flush();
 
 			$this->addFlash('success', 'Datas updated');
-			return $this->redirectToRoute('project');
+
+			return $this->renderForm('generic/success.stream.html.twig', [
+				'target' => 'projects',
+				'redirect' => $this->generateUrl('projects_list'),
+			], new TurboStreamResponse());
 		} else {
 			return $this->renderForm('project/form.html.twig', [
-				'route_back' =>  $this->generateUrl('project'),
+				'title' => 'Edit project',
 				'form' => $form
 			]);
 		}
@@ -200,10 +203,14 @@ class ProjectController extends AbstractController
 			$entityManager->flush();
 
 			$this->addFlash('success', 'Entry deleted');
-			return $this->redirectToRoute('project');
+
+			return $this->renderForm('generic/success.stream.html.twig', [
+				'target' => 'projects',
+				'redirect' => $this->generateUrl('projects_list'),
+			], new TurboStreamResponse());
 		} else {
 			return $this->renderForm('generic/delete.html.twig', [
-				'route_back' =>  $this->generateUrl('project'),
+				'title' => 'Delete project',
 				'entities' => [$project],
 			]);
 		}  

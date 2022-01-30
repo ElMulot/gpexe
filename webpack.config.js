@@ -81,7 +81,11 @@ Encore
 	//.enableReactPreset()
 
 	// uncomment if you use Vue
-	.enableVueLoader(() => { }, {
+	.enableVueLoader(options => {
+        return {
+			customElement: /\.vue$/,
+		};
+    }, {
 		version: 3,
 		runtimeCompilerBuild: false,
 	})
@@ -97,7 +101,7 @@ Encore
 	.addAliases({
 		'components': path.resolve('assets/components'),
 		'helpers': path.resolve('assets/helpers'),
-		'i18n': path.resolve('assets/i18n.js'),
+		'i18n': path.resolve('assets/i18n'),
 	})
 
 	// uncomment to get integrity="..." attributes on your script & link tags
@@ -107,5 +111,6 @@ Encore
 	// uncomment if you're having problems with a jQuery plugin
 	//.autoProvidejQuery()
 	;
+
 
 module.exports = Encore.getWebpackConfig();

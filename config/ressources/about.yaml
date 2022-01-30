@@ -139,3 +139,11 @@
     date: 29/09/2021
     changes:
         - Correction de bugs
+- 
+    version: 0.6.0
+    date: xx/xx/2022
+    changes:
+        - Migration sous php 8.1
+        - Migration sous Symfony 5.4
+        - Passage en application monopage (spa) et refonte de l'interface
+        - Correction de bugs

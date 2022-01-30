@@ -17,9 +17,9 @@ class Company
 	
 	const MAIN_CONTRACTOR   = 1;
 	const SUB_CONTRACTOR	= 2;
-	const SUPPLIER		  = 3;
-	const CHECKER		   = 4;
-	const DEFAULT		   = self::SUPPLIER;
+	const SUPPLIER			= 3;
+	const CHECKER			= 4;
+	const DEFAULT			= self::SUPPLIER;
 	
 	/**
 	 * @ORM\Id()
@@ -63,10 +63,16 @@ class Company
 	 */
 	private $visas;
 
+	/**
+	 * @ORM\Column(type="company_enum")
+	 */
+    private $status;
+
 	public function __construct()
 	{
 		$this->type = self::DEFAULT;
 		$this->users = new ArrayCollection();
+
 	 	$this->series = new ArrayCollection();
 	}
 
@@ -209,6 +215,19 @@ class Company
 	public function __toString(): string
 	{
 		return (string)$this->getName();
+	}
+
+	public function getStatus(): string
+	{
+		return $this->status;
+	}
+
+	public function setStatus(string $status): self
+	{
+		// CompanyEnum::assertValidChoice($type);
+		$this->status = $status;
+
+		return $this;
 	}
 }
 ?>

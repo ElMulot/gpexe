@@ -27,3 +27,7 @@ nav > div {
 	}
     @extend .fs-5;
 }
+
+.nav-item > * {
+    width: 100%;
+}

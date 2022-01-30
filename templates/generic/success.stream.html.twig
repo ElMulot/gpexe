@@ -1,0 +1,14 @@
+<turbo-stream action="update" target="footer">
+	<template>
+		{% include "generic/_footer.html.twig" %}
+	</template>
+</turbo-stream>
+
+{% if redirect is defined and app.request.headers.has('Turbo-Stream-Replace') is same as(true) %}
+	<turbo-stream action="replace" target="{{ app.request.headers.get('Turbo-Stream-Replace') }}">
+		<template>
+			<turbo-frame id="{{ app.request.headers.get('Turbo-Stream-Replace') }}" src="{{ redirect }}">
+			</turbo-frame>
+		</template>
+	</turbo-stream>
+{% endif %}

@@ -15,12 +15,15 @@
 	</div>
 </template>
 <script>
+
+	import i18n from 'i18n';
+	
 	export default {
 		name: 'Loading',
 		
 		props: {
 			html: String,
-			
+			modal: Boolean,
 		},
 
 		data() {

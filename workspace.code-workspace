@@ -55,7 +55,9 @@
         "outline.showBooleans": false,
         "outline.showEnumMembers": false,
         "outline.showFields": false,
-        "outline.showProperties": false
+        "outline.showProperties": false,
+        "twig-language.elseLine": true,
+        "intelephense.environment.phpVersion": "8.1.2"
     }
 
 }

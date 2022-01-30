@@ -7,11 +7,11 @@
 {% endblock default_row_attr %}
 
 {% block default_widget_attr %}
-	col-9 mt-2 
+	col-8 mt-2 
 {% endblock default_widget_attr %}
 
 {% block default_multiple_attr %}
-	col-2 mt-2 
+	col-3 mt-2 
 {% endblock default_multiple_attr %}
 
 {# Widgets #}
@@ -64,11 +64,13 @@
 {% block number_widget %}
 	{# type="number" doesn't work with floats in localized formats #}
 	{% set type = type|default('text') %}
+	{% set attr = attr|merge({style: (attr.style|default('') ~ ' max-width:20rem')|trim}) %}
 	{{ block('form_widget_simple') }}
 {% endblock number_widget %}
 
 {% block integer_widget %}
 	{% set type = type|default('number') %}
+	{% set attr = attr|merge({style: (attr.style|default('') ~ ' max-width:20rem')|trim}) %}
 	{{ block('form_widget_simple') }}
 {% endblock integer_widget %}
 

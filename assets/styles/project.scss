@@ -2,9 +2,10 @@
 @import "~bootstrap/scss/bootstrap";
 @import "~bootswatch/dist/slate/bootswatch";
 
-.btn > img {
+.btn > img, .btn > div {
 	height: 3rem;
 	width: 3.1rem;
+	border-radius: 0.25rem;
 }
 
 .btn-engineering {

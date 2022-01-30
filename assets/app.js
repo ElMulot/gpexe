@@ -1,18 +1,28 @@
-/*
- * Welcome to your app's main JavaScript file!
- *
- * We recommend including the built version of this JavaScript file
- * (and its CSS file) in your base layout (base.html.twig).
- */
+import { startStimulusApp } from '@symfony/stimulus-bridge';
+import { defineCustomElement } from 'vue';
 
-// any CSS you import will output into a single css file (app.css in this case)
+// Registers Stimulus controllers from controllers.json and in the controllers/ directory
+export const app = startStimulusApp(require.context(
+    '@symfony/stimulus-bridge/lazy-controller-loader!./controllers',
+    true,
+    /\.(j|t)sx?$/
+));
+
+// Register vue custom elements
+(components => {
+	components.keys().forEach(filePath => {
+		components(filePath).then(module => {
+			const customElement = defineCustomElement(module.default);
+			customElements.define(filePath.replace(/\W+(\w+)\.vue/, '$1').replace(/_/g, '-'), customElement);
+		})
+	});
+})(require.context('./components', true, /\.vue$/, 'lazy'));
+
+// CSS import
 import './styles/app.scss';
-
-// You can specify which plugins you need
-import { Tooltip, Toast, Popover } from 'bootstrap';
-
-// start the Stimulus application
-import './bootstrap';
 
 import 'helpers/bootstrap_helper';
 import 'helpers/turbo_helper';
+// import 'helpers/turbo_debug';
+
+

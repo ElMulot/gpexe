@@ -26,6 +26,7 @@ Various: Multiple
 New entry created: Nouvelle entrée créée
 Datas updated: Informations mises à jour
 Confirm deletion: Confirmer la suppression
+Entry deleted: Entrée supprimée
 
 #Control access
 Connection: Connexion
@@ -102,9 +103,11 @@ List for the metadata: Liste pour la metadonnée
 Projects: Projets
 New project: Nouveau projet
 Edit project: Editer le projet
+Delete project: Supprimer le projet
 Main: Principal
 Warning limits: Limites sur les alertes
 Miscellaneous: Divers
+Project Image: Image du projet
 Splitter: Séparateur
 Character used as separation between each item of the document codification.: Caractère utilisé en séparation de chaque élément de codification.
 Prod warning limit: Seuil d'alerte mineure en production

@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Company;
+use App\Entity\Enum\CompanyEnum;
 use App\Form\CompanyType;
 use App\Repository\CompanyRepository;
 use Symfony\Component\HttpFoundation\Request;
@@ -10,6 +11,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Doctrine\DBAL\Types\Type;
 
 class CompanyController extends AbstractController
 {
@@ -28,7 +30,6 @@ class CompanyController extends AbstractController
 	{
 		return $this->renderForm('generic/list.html.twig', [
 			'header' => $this->translator->trans('Company'),
-			'route_back' => $this->generateUrl('project'),
 			'class' => Company::class,
 			'entities' => $companyRepository->getCompanies(),
 		]);

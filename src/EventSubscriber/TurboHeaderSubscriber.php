@@ -10,6 +10,8 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class TurboHeaderSubscriber implements EventSubscriberInterface
 {
+    const ALLOWED_HEADERS = ['Turbo-Frame', 'Turbo-Stream-Replace', 'Turbo-Location'];
+    
     private UrlGeneratorInterface $urlGenerator;
 
     public function __construct(UrlGeneratorInterface $urlGenerator)
@@ -18,14 +20,14 @@ class TurboHeaderSubscriber implements EventSubscriberInterface
     }
 
     public function onKernelResponse(ResponseEvent $event)
-    {
-        $frameId = $event->getRequest()->headers->get('Turbo-Frame');
-        
-        if ($frameId == true) {
-            $event->getResponse()->headers->set('Turbo-Frame', $frameId);
+    {        
+        foreach (self::ALLOWED_HEADERS as $header) {
+            if ($event->getRequest()->headers->has($header) === true) {
+                $event->getResponse()->headers->set($header, $event->getRequest()->headers->get($header));
+            }
         }
         
-        if ($this->shouldWrapRedirect($event->getRequest(), $event->getResponse()) === true) {
+        if ($event->getResponse()->isRedirection() === true) {
             $response = new Response(null, 200, [
                 'Turbo-Location' => $event->getResponse()->headers->get('Location'),
             ]);
@@ -40,19 +42,20 @@ class TurboHeaderSubscriber implements EventSubscriberInterface
         ];
     }
 
-    private function shouldWrapRedirect(Request $request, Response $response): bool
-    {
-        if ($response->isRedirection() === false) {
-            return false;
-        }
+    // private function shouldWrapRedirect(Request $request, Response $response): bool
+    // {
+    //     if ($response->isRedirection() === false) {
+    //         return false;
+    //     }
+        
+    //     $location = $response->headers->get('Location');
+    //     if ($location === $this->urlGenerator->generate('login', [], UrlGeneratorInterface::ABSOLUTE_URL)) {
+    //         return true;
+    //     }
 
-        $location = $response->headers->get('Location');
-        if ($location === $this->urlGenerator->generate('login', [], UrlGeneratorInterface::ABSOLUTE_URL)) {
-            return true;
-        }
-
-        return (bool)$request->headers->get('Turbo-Frame-Redirect');
-    }
+    //     return true;
+    //     return (bool)$request->headers->get('Turbo-Frame-Redirect');
+    // }
 }
 
 ?>

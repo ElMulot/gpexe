@@ -22,7 +22,7 @@
 					{% set item = item|merge({'class': item.class|default('') ~ ' dropdown-item disabled pl-2 bg-dark font-weight-bold text-light', 'href': '#'}) %}	
 				{% endif %}
 				<a{{ block('attributes') }}>
-					{{ item.name }}
+					{{ item.name|trans }}
 				</a>
 			{% endfor %}
 		</div>

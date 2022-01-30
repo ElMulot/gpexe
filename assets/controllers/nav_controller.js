@@ -20,7 +20,6 @@ export default class extends Controller {
                 
                 this.element.querySelectorAll('.active').forEach(e => e.classList.remove('active'));
                 event.originalTarget.classList.add('active');
-                
                 Collapse.show($turboFrame);
 
             }
@@ -28,9 +27,7 @@ export default class extends Controller {
         });
         
         // render active link at startup
-        this.element.querySelectorAll('.active').forEach(e => {
-            document.getElementById(e.dataset.turboFrame).src = e.href;
-        });
+        this.element.querySelectorAll('.active').forEach(e => document.getElementById(e.dataset.turboFrame).src = e.href);
 
     }
 

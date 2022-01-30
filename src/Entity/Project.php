@@ -105,6 +105,11 @@ class Project
 
 	public function __construct()
 	{
+		$this->newVersionTime = 15;
+		$this->prodWarningLimit = 10;
+		$this->prodDangerLimit = 15;
+		$this->checkWarningLimit = 10;
+		$this->checkDangerLimit = 15;
 		$this->users = new ArrayCollection();
 		$this->codifications = new ArrayCollection();
 		$this->metadatas = new ArrayCollection();
@@ -113,6 +118,7 @@ class Project
 		$this->series = new ArrayCollection();
 		$this->views = new ArrayCollection();
 		$this->programs = new ArrayCollection();
+		$this->name = "Test9";
 	}
 
 	public function getId(): ?int

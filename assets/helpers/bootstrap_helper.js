@@ -5,7 +5,14 @@ import Loading from 'components/loading_component.vue';
 const BsPopper = class {
 
 	constructor() {
+
 		document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(e => new Tooltip(e));
+
+		document.addEventListener('hidden.bs.modal', event => {
+			if (document.body.querySelectorAll('.modal.show').length === 0) {
+				document.querySelectorAll('modal-backdrop-component').forEach(e => e.remove());
+			}
+		});
 	}
 }
 
@@ -54,7 +61,7 @@ const BsCollapse = class {
 		let bsCollapse = new Collapse(e, { toggle: false });
 		bsCollapse.hide();
 
-		e.addEventListener('hidden.bs.collapse', (e) => { e.target.innerHTML = '' }, { once: true });
+		e.addEventListener('hidden.bs.collapse', e => { e.target.innerHTML = '' }, { once: true });
 		return true;
 	}
 

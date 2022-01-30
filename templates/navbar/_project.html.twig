@@ -8,37 +8,37 @@
 			{
 				'name': 'Edit project',
 				'href': path('project_edit', {'project': project.id}),
-				'data-turbo-frame': 'main_modal',
+				'data-turbo-frame': 'std_modal',
 			},
 			{
 				'name': 'Codification',
 				'href': path('codification', {'project': project.id}),
-				'data-turbo-frame': 'main_modal',
+				'data-turbo-frame': 'fs_modal',
 			},
 			{
 				'name': 'Metadatas',
 				'href': path('metadata', {'project': project.id}),
-				'data-turbo-frame': 'main_modal',
+				'data-turbo-frame': 'fs_modal',
 			},
 			{
 				'name': 'Statuses',
 				'href': path('status', {'project': project.id}),
-				'data-turbo-frame': 'main_modal',
+				'data-turbo-frame': 'fs_modal',
 			},
 			{
 				'name': 'Visas',
 				'href': path('visa', {'project': project.id}),
-				'data-turbo-frame': 'main_modal',
+				'data-turbo-frame': 'fs_modal',
 			},
 			{
 				'name': 'Programs',
 				'href': path('program', {'project': project.id}),
-				'data-turbo-frame': 'main_modal',
+				'data-turbo-frame': 'fs_modal',
 			},
 			{
 				'name': 'Automations',
 				'href': path('status', {'project': project.id}),
-				'data-turbo-frame': 'automation',
+				'data-turbo-frame': 'fs_modal',
 			},
 		]) }}
 	{% endif %}

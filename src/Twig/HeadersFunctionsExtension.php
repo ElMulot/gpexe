@@ -14,11 +14,13 @@ use Spatie\Regex\Regex;
 
 class HeadersFunctionsExtension extends AbstractExtension
 {
-	
+
+	private $entityManager;
 	private $doctrineExtractor;
 	
 	public function __construct(EntityManagerInterface $entityManager)
 	{
+		$this->entityManager = $entityManager;
 		$this->doctrineExtractor = new DoctrineExtractor($entityManager);
 	}
 	
@@ -33,17 +35,25 @@ class HeadersFunctionsExtension extends AbstractExtension
 	{
 		$headers = [];
 		
+		// $metadata = $this->entityManager->getClassMetadata($class);
+		// dump($metadata);
+		dd(PHP_VERSION_ID);
+
 		$properties = $this->doctrineExtractor->getProperties($class);
-		
 		foreach ($properties as $property) {
 			$type = $this->doctrineExtractor->getTypes($class, $property);
-			if (current($type)->isCollection() === false) {
-				$headers[$property] = ucfirst(strtolower(Regex::replace("#([A-Z])#", ' $1', $property)->result()));
+			if ($type === null) { //enum type
+				$metadata = $this->entityManager->getClassMetadata($class);
+				if (Regex::match('/_enum$/', $metadata->getTypeOfField($property))->hasMatch() === true) {
+					$headers[$property] = ucfirst(strtolower(Regex::replace('/([A-Z])/', ' $1', $property)->result()));
+				}
+			} elseif (current($type)->isCollection() === false) {
+				$headers[$property] = ucfirst(strtolower(Regex::replace('/([A-Z])/', ' $1', $property)->result()));
 			}
 		}
 		return $headers;
 	}
-
+	
 	private function getProperties($class)
 	{
 		$propertiesName = [];
