@@ -2,6 +2,7 @@
 
 namespace App\Form;
 
+use App\Entity\Enum\StatusTypeEnum;
 use App\Entity\Status;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -17,12 +18,7 @@ class StatusType extends AbstractType
 			->add('name')
 			->add('value')
 			->add('type', ChoiceType::class, [
-				'choices' => [
-					'Information' => Status::INFORMATION,
-					'Review' => Status::REVIEW,
-					'Cancel' => Status::CANCEL,
-					'As built' => Status::AS_BUILT,
-				],
+				'choices' => StatusTypeEnum::getChoices(),
 				'expanded' => true,
 				'disabled' => ($builder->getData()->getId() != null),
 			])

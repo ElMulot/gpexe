@@ -13,14 +13,8 @@ use App\Form\DataTransformer\ViewTransformer;
 class ViewType extends AbstractType
 {
  	
-	private $security;
-	
-	private $transformer;
-	
-	public function __construct(Security $security, ViewTransformer $transformer)
+	public function __construct(private readonly Security $security, private readonly ViewTransformer $transformer)
 	{
-		$this->security = $security;
-		$this->transformer = $transformer;
 	}
 	
 	public function buildForm(FormBuilderInterface $builder, array $options)

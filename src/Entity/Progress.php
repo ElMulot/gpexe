@@ -5,45 +5,33 @@ namespace App\Entity;
 use App\Repository\ProgressRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass=ProgressRepository::class)
- */
+#[ORM\Entity(repositoryClass: ProgressRepository::class)]
 class Progress
 {
-	/**
-	 * @ORM\Id
-	 * @ORM\GeneratedValue
-	 * @ORM\Column(type="integer")
-	 */
+	#[ORM\Id]
+	#[ORM\GeneratedValue]
+	#[ORM\Column(type: 'integer')]
 	private $id;
 
-	/**
-	 * @ORM\Column(type="date")
-	 */
+	#[ORM\Column(type: 'date')]
 	private $date;
 
-	/**
-	 * @ORM\Column(type="float")
-	 */
+	#[ORM\Column(type: 'float')]
 	private $value;
 
-	/**
-	 * @ORM\ManyToOne(targetEntity=Serie::class, inversedBy="progress")
-	 * @ORM\JoinColumn(nullable=false)
-	 */
+	#[ORM\ManyToOne(targetEntity: Serie::class, inversedBy: 'progress')]
+	#[ORM\JoinColumn(nullable: false)]
 	private $serie;
 
-	/**
-	 * @ORM\ManyToOne(targetEntity=Program::class, cascade={"persist"}, inversedBy="progress")
-	 * @ORM\JoinColumn(nullable=false)
-	 */
+	#[ORM\ManyToOne(targetEntity: Program::class, cascade: ['persist'], inversedBy: 'progress')]
+	#[ORM\JoinColumn(nullable: false)]
 	private $program;
 
 	public function __construct()
 	{
 		$this->date = new \DateTime();
 	}
-	
+
 	public function getId(): ?int
 	{
 		return $this->id;
@@ -89,7 +77,7 @@ class Progress
 	{
 		return $this->program;
 	}
-
+	
 	public function setProgram(?Program $program): self
 	{
 		$this->program = $program;

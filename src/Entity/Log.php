@@ -6,58 +6,39 @@ use App\Repository\LogRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Fresh\DoctrineEnumBundle\Validator\Constraints as DoctrineAssert;
+use App\Entity\Enum\LogTypeEnum;
 
-/**
- * @ORM\Entity(repositoryClass=LogRepository::class)
- */
-class Log
+#[ORM\Entity(repositoryClass: LogRepository::class)]
+class Log implements \Stringable
 {
 
-	const INSERT	= 1;
-	const UPDATE	= 2;
-	const DELETE	= 3;
-	
-	/**
-	 * @ORM\Id()
-	 * @ORM\GeneratedValue()
-	 * @ORM\Column(type="integer")
-	 */
+	#[ORM\Id]
+	#[ORM\GeneratedValue]
+	#[ORM\Column(type: 'integer')]
 	private $id;
 
-	/**
-	 * @ORM\Column(type="smallint")
-	 */
+	#[ORM\Column(type: 'log_type_enum')]
+	#[DoctrineAssert\EnumType(entity: LogTypeEnum::class)]
 	private $type;
-
-	/**
-	 * @ORM\Column(type="string", length=100)
-	 */
+	
+	#[ORM\Column(type: 'string', length: 100)]
 	private $entity;
 
-	/**
-	 * @ORM\Column(type="integer", nullable=true)
-	 */
+	#[ORM\Column(type: 'integer', nullable: true)]
 	private $entityId;
 
-	/**
-	 * @ORM\Column(type="string", length=255, nullable=true)
-	 */
+	#[ORM\Column(type: 'string', length: 255, nullable: true)]
 	private $entityName;
 
-	/**
-	 * @ORM\ManyToOne(targetEntity=User::class)
-	 * @ORM\JoinColumn(nullable=false)
-	 */
+	#[ORM\ManyToOne(targetEntity: User::class)]
+	#[ORM\JoinColumn(nullable: false)]
 	private $user;
 
-	/**
-	 * @ORM\Column(type="datetime")
-	 */
+	#[ORM\Column(type: 'datetime')]
 	private $date;
 
-	/**
-	 * @ORM\OneToMany(targetEntity=ChangeSet::class, mappedBy="log", orphanRemoval=true)
-	 */
+	#[ORM\OneToMany(targetEntity: ChangeSet::class, mappedBy: 'log', orphanRemoval: true)]
 	private $changeSets;
 
 	public function __construct()
@@ -70,42 +51,43 @@ class Log
 		return $this->id;
 	}
 
-	public function getType(): ?int
+	public function getType(): string
 	{
 		return $this->type;
 	}
 
-	public function setType(int $type): self
+	public function setType(string $type): self
 	{
+		LogTypeEnum::assertValidChoice($type);
 		$this->type = $type;
 
 		return $this;
 	}
-
+	
 	public function getEntity(): ?string
 	{
 		return $this->entity;
 	}
-
+	
 	public function setEntity(string $entity): self
 	{
 		$this->entity = $entity;
 
 		return $this;
 	}
-
+	
 	public function getEntityId(): ?int
 	{
 		return $this->entityId;
 	}
-
+	
 	public function setEntityId(?int $entityId): self
 	{
 		$this->entityId = $entityId;
 
 		return $this;
 	}
-
+	
 	public function getEntityName(): ?string
 	{
 		return $this->entityName;
@@ -172,23 +154,9 @@ class Log
 
 		return $this;
 	}
-	
-	public function getTypeName(): string
-	{
-		switch ($this->getType()) {
-			case self::INSERT:
-				return 'INSERT';
-			case self::UPDATE:
-				return 'UPDATE';
-			case self::DELETE:
-				return 'DELETE';
-			case ddefault:
-				return 'UNKNOWN';
-		}
-	}
-	
+
 	public function __toString(): string
 	{
-		return (string)$this->getEntity() . '->' . $this->getTypeName();
+		return (string)$this->getEntity() . '->' . $this->getType();
 	}
 }

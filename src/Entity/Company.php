@@ -6,73 +6,47 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Fresh\DoctrineEnumBundle\Validator\Constraints as DoctrineAssert;
+use App\Entity\Enum\CompanyTypeEnum;
+use App\Repository\CompanyRepository;
 
-/**
- * @ORM\Entity(repositoryClass="App\Repository\CompanyRepository")
- * 
- * @UniqueEntity(fields="name", message="A company with this name already exist.")
- */
-class Company
+#[ORM\Entity(repositoryClass: CompanyRepository::class)]
+#[UniqueEntity(fields: "name", message: "A company with this name already exist.")]
+class Company implements \Stringable
 {
 	
-	const MAIN_CONTRACTOR   = 1;
-	const SUB_CONTRACTOR	= 2;
-	const SUPPLIER			= 3;
-	const CHECKER			= 4;
-	const DEFAULT			= self::SUPPLIER;
-	
-	/**
-	 * @ORM\Id()
-	 * @ORM\GeneratedValue()
-	 * @ORM\Column(type="integer")
-	 */
+	#[ORM\Id()]
+	#[ORM\GeneratedValue()]
+	#[ORM\Column(type: "integer")]
 	private $id;
 
-	/**
-	 * @ORM\Column(type="string", length=100, unique=true)
-	 */
+	#[ORM\Column(type: "string", length: 100, unique: true)]
 	private $name;
 	
-	/**
-	 * @ORM\Column(type="string", length=100)
-	 */
+	#[ORM\Column(type: "string", length: 100)]
 	private $codename;
 	
-	/**
-	 * @ORM\Column(type="smallint")
-	 */
+	#[ORM\Column(type: 'company_type_enum')]
+	#[DoctrineAssert\EnumType(entity: CompanyTypeEnum::class)]
 	private $type;
 
-	/**
-	 * @ORM\Column(type="integer")
-	 */
+	#[ORM\Column(type: "integer")]
 	private $priority;
 
-	/**
-	 * @ORM\OneToMany(targetEntity=User::class, mappedBy="company", orphanRemoval=true)
-	 */
+	#[ORM\OneToMany(targetEntity: User::class, mappedBy: "company", orphanRemoval: true)]
 	private $users;
 
-	/**
-	 * @ORM\OneToMany(targetEntity=Serie::class, mappedBy="company", orphanRemoval=true)
-	 */
+	#[ORM\OneToMany(targetEntity: Serie::class, mappedBy: "company", orphanRemoval: true)]
 	private $series;
 	
-	/**
-	 * @ORM\OneToMany(targetEntity=Visa::class, mappedBy="company", orphanRemoval=true)
-	 */
+	#[ORM\OneToMany(targetEntity: Visa::class, mappedBy: "company", orphanRemoval: true)]
 	private $visas;
-
-	/**
-	 * @ORM\Column(type="company_enum")
-	 */
-    private $status;
 
 	public function __construct()
 	{
-		$this->type = self::DEFAULT;
+		$this->type = CompanyTypeEnum::getDefaultValue();
+		$this->priority = 0;
 		$this->users = new ArrayCollection();
-
 	 	$this->series = new ArrayCollection();
 	}
 
@@ -106,13 +80,14 @@ class Company
 		return $this;
 	}
 
-	public function getType(): ?int
+	public function getType(): string
 	{
 		return $this->type;
 	}
 
-	public function setType(int $type): self
+	public function setType(string $type): self
 	{
+		CompanyTypeEnum::assertValidChoice($type);
 		$this->type = $type;
 
 		return $this;
@@ -130,9 +105,6 @@ class Company
 		return $this;
 	}
 
-	/**
-	 * @return Collection|User[]
-	 */
 	public function getUsers(): Collection
 	{
 		return $this->users;
@@ -161,9 +133,6 @@ class Company
 		return $this;
 	}
 
-	/**
-	 * @return Collection|Serie[]
-	 */
 	public function getSeries(): Collection
 	{
 		return $this->series;
@@ -194,40 +163,27 @@ class Company
 	
 	public function isMainContractor(): bool
 	{
-		return ($this->getType() == self::MAIN_CONTRACTOR);
+		return ($this->getType() == CompanyTypeEnum::MAIN_CONTRACTOR);
 	}
 	
 	public function isSubContractor(): bool
 	{
-		return ($this->getType() == self::SUB_CONTRACTOR);
+		return ($this->getType() == CompanyTypeEnum::SUB_CONTRACTOR);
 	}
 	
 	public function isSupplier(): bool
 	{
-		return ($this->getType() == self::SUPPLIER);
+		return ($this->getType() == CompanyTypeEnum::SUPPLIER);
 	}
 	
 	public function isChecker(): bool
 	{
-		return ($this->getType() == self::CHECKER);
+		return ($this->getType() == CompanyTypeEnum::CHECKER);
 	}
 	
 	public function __toString(): string
 	{
 		return (string)$this->getName();
-	}
-
-	public function getStatus(): string
-	{
-		return $this->status;
-	}
-
-	public function setStatus(string $status): self
-	{
-		// CompanyEnum::assertValidChoice($type);
-		$this->status = $status;
-
-		return $this;
 	}
 }
 ?>

@@ -2,6 +2,7 @@
 
 namespace App\EventSubscriber;
 
+use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Security\Http\Event\InteractiveLoginEvent;
@@ -13,22 +14,20 @@ use Symfony\Component\Security\Http\SecurityEvents;
  */
 class LastConnectedSubscriber implements EventSubscriberInterface
 {
-	private $entityManagerInterface;
-	
-	public function __construct(EntityManagerInterface $entityManagerInterface)
+	public function __construct(private readonly EntityManagerInterface $entityManagerInterface)
 	{
-		$this->entityManagerInterface = $entityManagerInterface;
 	}
 	
 	public function onInteractiveLogin(InteractiveLoginEvent $event)
 	{
+		/** @var User $user */
 		$user = $event->getAuthenticationToken()->getUser();
 		$user->setLastConnected(new \DateTime());
 		$this->entityManagerInterface->persist($user);
 		$this->entityManagerInterface->flush();
 	}
 	
-	public static function getSubscribedEvents()
+	public static function getSubscribedEvents(): array
 	{
 		return [
 			SecurityEvents::INTERACTIVE_LOGIN => 'onInteractiveLogin',

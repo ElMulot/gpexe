@@ -13,34 +13,24 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Doctrine\Persistence\ManagerRegistry;
+
 
 class SerieController extends AbstractController
 {
-	private $translator;
-	
-	private $serieRepository;
-	
-	private $metadataRepository;
-	
-	public function __construct(TranslatorInterface $translator, SerieRepository $serieRepository, MetadataRepository $metadataRepository)
+	public function __construct(private readonly TranslatorInterface $translator, private readonly ManagerRegistry $doctrine, private readonly SerieRepository $serieRepository, private readonly MetadataRepository $metadataRepository)
 	{
-		$this->translator = $translator;
-		$this->serieRepository = $serieRepository;
-		$this->metadataRepository = $metadataRepository;
 	}
 	
-	/**
-	 * @Route("/project/{project}/{company}/serie", name="serie", requirements={"project"="\d+", "company"="\d+"})
-	 */
-	public function index(Project $project, Company $company): Response
+	#[Route(path: '/project/{project}/{company}/serie', name: 'serie', requirements: ['project' => '\d+', 'company' => '\d+'])]
+	public function index(Project $project, Company $company) : Response
 	{
 		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
 			return $this->redirectToRoute('project');
 		}
-		
 		$series = $this->serieRepository->getSeriesByCompany($project, $company);
 		if (empty($series)) {
-			return $this->redirectToRoute('project_view', [
+			return $this->redirectToRoute('project', [
 				'project' => $project->getId(),
 			]);
 		} else {
@@ -56,16 +46,12 @@ class SerieController extends AbstractController
 		}
 	}
 
-	/**
-	 * @Route("/project/{project}/{company}", name="serie_route", requirements={"project"="\d+", "company"="\d+"})
-	 * redirect directly to document or vers serie_new (if no serie has been created)
-	 */
-	public function route(Project $project, Company $company): Response
+	#[Route(path: '/project/{project}/{company}', name: 'serie_route', requirements: ['project' => '\d+', 'company' => '\d+'])]
+	public function route(Project $project, Company $company) : Response
 	{
 		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
 			return $this->redirectToRoute('project');
 		}
-		
 		$series = $this->serieRepository->getSeriesByCompanyAsArray($project, $company);
 		if (empty($series)) {
 			return $this->redirectToRoute('serie_new', [
@@ -81,37 +67,29 @@ class SerieController extends AbstractController
 		}
 	}
 	
-	/**
-	 * @Route("/project/{project}/{type}", name="serie_route_by_type", requirements={"project"="\d+", "type"="sdr|mdr|all"})
-	 * redirect directly to document
-	 */
-	public function routeByType(Project $project, string $type): Response
+	#[Route(path: '/project/{project}/{type}', name: 'serie_route_by_type', requirements: ['project' => '\d+', 'type' => 'sdr|mdr|all'])]
+	public function routeByType(Project $project, string $type) : Response
 	{
 		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
 			return $this->redirectToRoute('project');
 		}
-		
 		return $this->redirectToRoute('document', [
 			'project' => $project->getId(),
 			'type' => $type,
-		]);		
+		]);
 	}
 	
-	/**
-	 * @Route("/project/{project}/{company}/serie/new", name="serie_new", requirements={"project"="\d+", "company"="\d+"})
-	 */
-	public function new(Request $request, Project $project, Company $company): Response
+	#[Route(path: '/project/{project}/{company}/serie/new', name: 'serie_new', requirements: ['project' => '\d+', 'company' => '\d+'])]
+	public function new(Request $request, Project $project, Company $company) : Response
 	{
 		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
 			return $this->redirectToRoute('project');
 		}
-		
 		$serie = new Serie();
 		$serie->setProject($project);
 		$serie->setCompany($company);
 		$form = $this->createForm(SerieType::class, $serie);
 		$form->handleRequest($request);
-		
 		if ($form->isSubmitted() && $form->isValid()) {
 			
 			foreach ($this->metadataRepository->getMetadatasForSerie($project) as $metadata) {
@@ -136,7 +114,7 @@ class SerieController extends AbstractController
 				}
 			}
 			
-			$entityManager = $this->getDoctrine()->getManager();
+			$entityManager = $this->doctrine->getManager();
 			$entityManager->persist($serie);
 			$entityManager->flush();
 			
@@ -156,21 +134,15 @@ class SerieController extends AbstractController
 		}
 	}
 	
-	/**
-	 * @Route("/project/serie/{serie}/edit", name="serie_edit", requirements={"serie"="\d+"})
-	 */
-	public function edit(Request $request, Serie $serie): Response
+	#[Route(path: '/project/serie/{serie}/edit', name: 'serie_edit', requirements: ['serie' => '\d+'])]
+	public function edit(Request $request, Serie $serie) : Response
 	{
 		$project = $serie->getProject();
-		
 		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
 			return $this->redirectToRoute('project');
 		}
-		
 		$form = $this->createForm(SerieType::class, $serie);
 		$form->handleRequest($request);
-		
-		
 		if ($form->isSubmitted() && $form->isValid()) {
 			
 			foreach ($this->metadataRepository->getMetadatasForSerie($project) as $metadata) {
@@ -198,7 +170,7 @@ class SerieController extends AbstractController
 				}
 			}
 			
-			$entityManager = $this->getDoctrine()->getManager();
+			$entityManager = $this->doctrine->getManager();
 			$entityManager->persist($serie);
 			$entityManager->flush();
 			$this->addFlash('success', 'Serie updated');
@@ -217,19 +189,15 @@ class SerieController extends AbstractController
 		}
 	}
 	
-	/**
-	 * @Route("/project/serie/{serie}/delete", name="serie_delete", methods={"GET", "DELETE"}, requirements={"serie"="\d+"})
-	 */
-	public function delete(Request $request, Serie $serie): Response
+	#[Route(path: '/project/serie/{serie}/delete', name: 'serie_delete', methods: ['GET', 'DELETE'], requirements: ['serie' => '\d+'])]
+	public function delete(Request $request, Serie $serie) : Response
 	{
 		$project = $serie->getProject();
-		
 		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
 			return $this->redirectToRoute('project');
 		}
-		
 		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
-			$entityManager = $this->getDoctrine()->getManager();
+			$entityManager = $this->doctrine->getManager();
 			$entityManager->remove($serie);
 			$entityManager->flush();
 			

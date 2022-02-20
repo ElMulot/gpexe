@@ -10,28 +10,24 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Doctrine\Persistence\ManagerRegistry;
+
 
 class MetadataItemController extends AbstractController
 {
 
-	private $translator;
-	
-	public function __construct(TranslatorInterface $translator)
+	public function __construct(private readonly TranslatorInterface $translator, private readonly ManagerRegistry $doctrine)
 	{
-		$this->translator = $translator;
 	}
 	
-	/**
-	 * @Route("/project/metadata/{metadata}/item", name="metadata_item", requirements={"metadata"="\d+"})
-	 */
-	public function index(MetadataItemRepository $metadataItemRepository, Metadata $metadata): Response
+	#[Route(path: '/project/metadata/{metadata}/item', name: 'metadata_item', requirements: ['metadata' => '\d+'])]
+	public function index(MetadataItemRepository $metadataItemRepository, Metadata $metadata) : Response
 	{
 		$project = $metadata->getProject();
 		if ($this->isGranted('ROLE_ADMIN') === false &&
 			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
 			return $this->redirectToRoute('project');
 		}
-		
 		return $this->renderForm('generic/list.html.twig', [
 			'header' => $this->translator->trans('List for the metadata') . ' : ' . $metadata->getName(),
 			'route_back' =>  $this->generateUrl('metadata', [
@@ -42,24 +38,20 @@ class MetadataItemController extends AbstractController
 		]);
 	}
 
-	/**
-	 * @Route("/project/metadata/{metadata}/item/new", name="metadata_item_new", requirements={"metadata"="\d+"})
-	 */
-	public function new(Request $request, Metadata $metadata): Response
+	#[Route(path: '/project/metadata/{metadata}/item/new', name: 'metadata_item_new', requirements: ['metadata' => '\d+'])]
+	public function new(Request $request, Metadata $metadata) : Response
 	{
 		$project = $metadata->getProject();
 		if ($this->isGranted('ROLE_ADMIN') === false &&
 			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
 			return $this->redirectToRoute('project');
 		}
-		
 		$metadataItem = new MetadataItem();
 		$metadataItem->setMetadata($metadata);
 		$form = $this->createForm(MetadataItemType::class, $metadataItem);
 		$form->handleRequest($request);
-
 		if ($form->isSubmitted() && $form->isValid()) {
-			$entityManager = $this->getDoctrine()->getManager();
+			$entityManager = $this->doctrine->getManager();
 			$entityManager->persist($metadataItem);
 			$entityManager->flush();
 
@@ -77,22 +69,18 @@ class MetadataItemController extends AbstractController
 		}
 	}
 	
-	/**
-	 * @Route("/project/metadata/item/{id}/edit", name="metadata_item_edit", requirements={"id"="\d+"})
-	 */
-	public function edit(Request $request, MetadataItem $metadataItem): Response
+	#[Route(path: '/project/metadata/item/{id}/edit', name: 'metadata_item_edit', requirements: ['id' => '\d+'])]
+	public function edit(Request $request, MetadataItem $metadataItem) : Response
 	{
 		$project = $metadataItem->getMetadata()->getProject();
 		if ($this->isGranted('ROLE_ADMIN') === false &&
 			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
 			return $this->redirectToRoute('project');
 		}
-		
 		$form = $this->createForm(MetadataItemType::class, $metadataItem);
 		$form->handleRequest($request);
-
 		if ($form->isSubmitted() && $form->isValid()) {
-			$entityManager = $this->getDoctrine()->getManager();
+			$entityManager = $this->doctrine->getManager();
 			$entityManager->flush();
 
 			$this->addFlash('success', 'Datas updated');
@@ -109,19 +97,16 @@ class MetadataItemController extends AbstractController
 		}
 	}
 	
-	/**
-	 * @Route("/project/metadata/item/{id}/delete", name="metadata_item_delete", methods={"GET", "DELETE"}, requirements={"id"="\d+"})
-	 */
-	public function delete(Request $request, MetadataItem $metadataItem): Response
+	#[Route(path: '/project/metadata/item/{id}/delete', name: 'metadata_item_delete', methods: ['GET', 'DELETE'], requirements: ['id' => '\d+'])]
+	public function delete(Request $request, MetadataItem $metadataItem) : Response
 	{
 		$project = $metadataItem->getMetadata()->getProject();
 		if ($this->isGranted('ROLE_ADMIN') === false &&
 			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
 			return $this->redirectToRoute('project');
 		}
-		
 		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
-			$entityManager = $this->getDoctrine()->getManager();
+			$entityManager = $this->doctrine->getManager();
 			$entityManager->remove($metadataItem);
 			$entityManager->flush();
 

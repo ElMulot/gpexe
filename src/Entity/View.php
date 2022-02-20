@@ -3,49 +3,34 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use App\Repository\ViewRepository;
 
-/**
- * @ORM\Entity(repositoryClass="App\Repository\ViewRepository")
- */
-class View
+#[ORM\Entity(repositoryClass: ViewRepository::class)]
+class View implements \Stringable
 {
-	/**
-	 * @ORM\Id()
-	 * @ORM\GeneratedValue()
-	 * @ORM\Column(type="integer")
-	 */
+	#[ORM\Id]
+	#[ORM\GeneratedValue]
+	#[ORM\Column(type: 'integer')]
 	private $id;
 
-	/**
-	 * @ORM\Column(type="string", length=100)
-	 */
+	#[ORM\Column(type: 'string', length: 100)]
 	private $name;
 
-	/**
-	 * @ORM\Column(type="json")
-	 */
-	private $value = [];
+	#[ORM\Column(type: 'json')]
+	private array $value = [];
 
-	/**
-	 * @ORM\Column(type="boolean")
-	 */
+	#[ORM\Column(type: 'boolean')]
 	private $isShared;
-	
-	/**
-	 * @ORM\Column(type="boolean")
-	 */
+
+	#[ORM\Column(type: 'boolean')]
 	private $isDefault;
 
-	/**
-	 * @ORM\ManyToOne(targetEntity=Project::class, inversedBy="views")
-	 * @ORM\JoinColumn(nullable=false)
-	 */
+	#[ORM\ManyToOne(targetEntity: Project::class, inversedBy: 'views')]
+	#[ORM\JoinColumn(nullable: false)]
 	private $project;
 
-	/**
-	 * @ORM\ManyToOne(targetEntity=User::class, inversedBy="views")
-	 * @ORM\JoinColumn(nullable=false)
-	 */
+	#[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'views')]
+	#[ORM\JoinColumn(nullable: false)]
 	private $user;
 
 	public function getId(): ?int
@@ -69,7 +54,7 @@ class View
 	{
 		return $this->value;
 	}
-	
+
 	public function setValue(array $value): self
 	{
 		$this->value = $value;
@@ -88,12 +73,12 @@ class View
 
 		return $this;
 	}
-	
+
 	public function getIsDefault(): ?bool
 	{
 		return $this->isDefault;
 	}
-	
+
 	public function setIsDefault(bool $isDefault): self
 	{
 		$this->isDefault = $isDefault;

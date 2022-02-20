@@ -2,30 +2,25 @@
 
 namespace App\Security;
 
-use App\Entity\User as AppUser;
-use Symfony\Component\Security\Core\Exception\AccountExpiredException;
+use App\Entity\User;
 use Symfony\Component\Security\Core\Exception\CustomUserMessageAccountStatusException;
 use Symfony\Component\Security\Core\User\UserCheckerInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
-
-// ne fonctionne pas. Todo : https://symfony.com/doc/current/security/user_checkers.html
 
 class UserChecker implements UserCheckerInterface
 {
     public function checkPreAuth(UserInterface $user): void
     {
-        if (!$user instanceof AppUser) {
+        if (!$user instanceof User) {
             return;
         }
-
-        if ($user->getActivated() === true) {
+        if ($user->getActivated() === false) {
             throw new CustomUserMessageAccountStatusException('This account is desactivated.');
         }
     }
 
     public function checkPostAuth(UserInterface $user): void
     {
-        return;
     }
 }
 

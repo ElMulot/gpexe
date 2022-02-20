@@ -8,11 +8,8 @@ use Spatie\Regex\Regex;
 class ParseService
 {
 	
-	private $ressourcesDirectory;
-
-	public function __construct(string $ressourcesDirectory)
+	public function __construct(private readonly string $ressourcesDirectory)
 	{
-		$this->ressourcesDirectory = $ressourcesDirectory;
 	}
 	
 	public function getValidatedCode($code): string
@@ -24,22 +21,22 @@ class ParseService
 		
 		switch ($parsedCode['type'] ?? '') {
 			case 'export':
-				$structure = self::getExportScheme();
+				$structure = $this->getExportScheme();
 				break;
 			case 'import':
-				$structure = self::getImportScheme();
+				$structure = $this->getImportScheme();
 				break;
 			case 'task':
-				$structure = self::getTaskScheme();
+				$structure = $this->getTaskScheme();
 				break;
 			case 'progress':
-				$structure = self::getProgressScheme();
+				$structure = $this->getProgressScheme();
 				break;
 			default:
 				return '';
 		}
 		
-		$parsedCode = self::validateStructure($structure, $parsedCode);
+		$parsedCode = $this->validateStructure($structure, $parsedCode);
 		
 		return Yaml::dump($parsedCode, 10, 4);
 	}
@@ -66,29 +63,29 @@ class ParseService
 	
 	private function validateStructure($structure, $parsedCode = '')
 	{
-		if (self::structureHasSubStructures($structure)) {
+		if ($this->structureHasSubStructures($structure)) {
 			
 			foreach ($structure as $key => $value) {
 				
 				if (is_array($parsedCode) === false) {
 					
-					$parsedCode = self::copyStructure([$key => $value]);
+					$parsedCode = $this->copyStructure([$key => $value]);
 					
 				} else {
 					
 					if ($key === 0) {
 						
 						array_walk($parsedCode, function(&$item, $key, $value) {
-							$item = self::validateStructure($value, $item);
+							$item = $this->validateStructure($value, $item);
 						}, $value);
 							
 					} elseif (array_key_exists($key, $parsedCode)) {
 						
-						$parsedCode[$key] = self::validateStructure($value, $parsedCode[$key]);
+						$parsedCode[$key] = $this->validateStructure($value, $parsedCode[$key]);
 						
 					} else {
 						
-						$parsedCode[$key] = self::validateStructure($value);
+						$parsedCode[$key] = $this->validateStructure($value);
 						
 					}
 				}
@@ -103,9 +100,9 @@ class ParseService
 		} else {
 			
 			if (is_array($parsedCode)) {
-				$parsedCode = self::setDefaultValue($structure);
+				$parsedCode = $this->setDefaultValue($structure);
 			} else {
-				$parsedCode = self::checkRegex($structure, $parsedCode);
+				$parsedCode = $this->checkRegex($structure, $parsedCode);
 			}
 		}
 		return $parsedCode;
@@ -121,6 +118,7 @@ class ParseService
 	
 	private function copyStructure($structure)
 	{
+		$result = [];
 		if (is_array($structure)) {
 			foreach ($structure as $key => $value) {
 				if ($key === 'default') {
@@ -128,7 +126,7 @@ class ParseService
 				} elseif ($key === 'regex' || $key === 'type') {
 					$result = '';
 				} else {
-					$result[$key] = self::copyStructure($value);
+					$result[$key] = $this->copyStructure($value);
 				}
 			}
 			return $result;
@@ -157,7 +155,7 @@ class ParseService
 				return (is_numeric($result->group(0)))?+$result->group(0):$result->group(0);
 			}
 		}
-		return self::setDefaultValue($structure);
+		return $this->setDefaultValue($structure);
 	}
 	
 }

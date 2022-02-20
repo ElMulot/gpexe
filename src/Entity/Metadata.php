@@ -7,76 +7,49 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use App\Entity\Project;
 use App\Entity\MetadataItem;
+use Fresh\DoctrineEnumBundle\Validator\Constraints as DoctrineAssert;
+use App\Entity\Enum\MetadataTypeEnum;
+use App\Entity\Enum\MetadataParentEnum;
+use App\Repository\MetadataRepository;
 
-/**
- * @ORM\Entity(repositoryClass="App\Repository\MetadataRepository")
- */
-class Metadata
+#[ORM\Entity(repositoryClass: MetadataRepository::class)]
+class Metadata implements \Stringable
 {
-	
-	const BOOLEAN   		= 11;
-	const TEXT				= 12;
-	const DATE				= 13;
-	const LINK				= 14;
-	const LIST	  			= 15;
-	const DEFAULT		   	= self::LIST;
-	
-	const SERIE				= 1;
-	const DOCUMENT			= 2;
-	const VERSION			= 3;
-	
-	
-	/**
-	 * @ORM\Id()
-	 * @ORM\GeneratedValue()
-	 * @ORM\Column(type="integer")
-	 */
+	#[ORM\Id]
+	#[ORM\GeneratedValue]
+	#[ORM\Column(type: 'integer')]
 	private $id;
 
-	/**
-	 * @ORM\Column(type="string", length=100)
-	 */
+	#[ORM\Column(type: 'string', length: 100)]
 	private $name;
 
-	/**
-	 * @ORM\Column(type="string", length=100)
-	 */
+	#[ORM\Column(type: 'string', length: 100)]
 	private $codename;
-	
-	/**
-	 * @ORM\Column(type="smallint")
-	 */
+
+	#[ORM\Column(type: 'metadata_type_enum')]
+	#[DoctrineAssert\EnumType(entity: MetadataTypeEnum::class)]
 	private $type;
 
-	/**
-	 * @ORM\Column(type="boolean")
-	 */
+	#[ORM\Column(type: 'boolean')]
 	private $isMandatory;
 
-	/**
-	 * @ORM\Column(type="smallint")
-	 */
+	#[ORM\Column(type: 'metadata_parent_enum')]
+	#[DoctrineAssert\EnumType(entity: MetadataParentEnum::class)]
 	private $parent;
-	
-	/**
-	 * @ORM\ManyToOne(targetEntity=Project::class, inversedBy="metadatas", fetch="EAGER")
-	 * @ORM\JoinColumn(nullable=false)
-	 */
+
+	#[ORM\ManyToOne(targetEntity: Project::class, inversedBy: 'metadatas', fetch: 'EAGER')]
+	#[ORM\JoinColumn(nullable: false)]
 	private $project;
 
-	/**
-	 * @ORM\OneToMany(targetEntity=MetadataItem::class, mappedBy="metadata", orphanRemoval=true)
-	 */
+	#[ORM\OneToMany(targetEntity: MetadataItem::class, mappedBy: 'metadata', orphanRemoval: true)]
 	private $metadataItems;
-	
-	/**
-	 * @ORM\OneToMany(targetEntity=MetadataValue::class, mappedBy="metadata", orphanRemoval=true)
-	 */
+
+	#[ORM\OneToMany(targetEntity: MetadataValue::class, mappedBy: 'metadata', orphanRemoval: true)]
 	private $metadataValues;
 
 	public function __construct()
 	{
-		$this->type = self::DEFAULT;
+		$this->type = MetadataTypeEnum::getDefaultValue();
 		$this->metadataItems = new ArrayCollection();
 	}
 
@@ -101,27 +74,25 @@ class Metadata
 	{
 		return $this->codename;
 	}
-	
+
 	public function setCodename(string $codename): self
 	{
 		$this->codename = strtolower($codename);
 		
 		return $this;
 	}
-	
-	public function getType(): ?int
+
+	public function getType(): string
 	{
 		return $this->type;
 	}
 
-	public function setType(int $type): self
+	public function setType(string $type): self
 	{
-		switch ($type) {
-			case self::BOOLEAN:
-				$this->isMandatory = true;
-				break;
+		MetadataTypeEnum::assertValidChoice($type);
+		if ($type === MetadataTypeEnum::BOOLEAN) {
+			$this->isMandatory = true;
 		}
-		
 		$this->type = $type;
 
 		return $this;
@@ -129,37 +100,29 @@ class Metadata
 
 	public function getIsMandatory(): ?bool
 	{
-		switch ($this->type) {
-			case self::BOOLEAN:
-				return true;
-			default:
-				return $this->isMandatory;
-		}
-		
+		return $this->isMandatory;
 	}
 
 	public function setIsMandatory(bool $isMandatory): self
 	{
-		switch ($this->type) {
-			case self::BOOLEAN:
-				$this->isMandatory = false;
-				break;
-			default:
-				$this->isMandatory = $isMandatory;
+		if ($this->type === MetadataTypeEnum::BOOLEAN) {
+			$isMandatory = true;
 		}
+		$this->isMandatory = $isMandatory;
 		
 		return $this;
 	}
-	
-	public function getParent(): ?int
+
+	public function getParent(): string
 	{
 		return $this->parent;
 	}
-	
-	public function setParent(int $parent): self
+
+	public function setParent(string $parent): self
 	{
+		MetadataParentEnum::assertValidChoice($parent);
 		$this->parent = $parent;
-		
+
 		return $this;
 	}
 
@@ -204,7 +167,7 @@ class Metadata
 
 		return $this;
 	}
-	
+
 	/**
 	 * @return Collection|MetadataValue[]
 	 */
@@ -212,7 +175,7 @@ class Metadata
 	{
 		return $this->metadataValues;
 	}
-	
+
 	public function addMetadataValue(MetadataValue $metadataValue): self
 	{
 		if (!$this->metadataValues->contains($metadataValue)) {
@@ -222,7 +185,7 @@ class Metadata
 		
 		return $this;
 	}
-	
+
 	public function removeMetadataValue(MetadataValue $metadataValue): self
 	{
 		if ($this->metadataValues->contains($metadataValue)) {
@@ -234,69 +197,57 @@ class Metadata
 		
 		return $this;
 	}
-	
-	public function getParentName(): string
-	{
-		switch ($this->parent) {
-			case self::SERIE:
-				return 'serie';
-			case self::DOCUMENT:
-				return 'document';
-			case self::VERSION:
-				return 'version';
-		}
-	}
-	
+
 	public function getFullId(): string
 	{
 		return 'metadata_' . $this->id;
 	}
-	
+
 	public function getFullCodename(): string
 	{
-		return $this->getParentName() . '.' . $this->codename;
+		return $this->getParent() . '.' . $this->codename;
 	}
-	
+
 	public function isBoolean(): bool
 	{
-		return ($this->getType() == self::BOOLEAN);
+		return ($this->getType() == MetadataTypeEnum::BOOLEAN);
 	}
-	
+
 	public function isText(): bool
 	{
-		return ($this->getType() == self::TEXT);
+		return ($this->getType() == MetadataTypeEnum::TEXT);
 	}
-	
+
 	public function isDate(): bool
 	{
-		return ($this->getType() == self::DATE);
+		return ($this->getType() == MetadataTypeEnum::DATE);
 	}
-	
+
 	public function isLink(): bool
 	{
-		return ($this->getType() == self::LINK);
+		return ($this->getType() == MetadataTypeEnum::LINK);
 	}
-	
+
 	public function isList(): bool
 	{
-		return ($this->getType() == self::LIST);
+		return ($this->getType() == MetadataTypeEnum::LIST);
 	}
-	
+
 	public function parentIsSerie(): bool
 	{
-		return ($this->getParent() == self::SERIE);
+		return ($this->getParent() == MetadataParentEnum::SERIE);
 	}
-	
+
 	public function parentIsDocument(): bool
 	{
-		return ($this->getParent() == self::DOCUMENT);
+		return ($this->getParent() == MetadataParentEnum::DOCUMENT);
 	}
-	
+
 	public function parentIsVersion(): bool
 	{
-		return ($this->getParent() == self::VERSION);
+		return ($this->getParent() == MetadataParentEnum::VERSION);
 	}
-	
+
 	public function __toString(): string
 	{
 		return (string)$this->getName();

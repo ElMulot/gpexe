@@ -6,6 +6,9 @@
         {
             "name": "SSH FS - gpexe",
             "uri": "ssh://gpexe/home/gpexeff/www/gpexe"
+        },
+        {
+            "path": "..\\test"
         }
     ],
     "settings": {
@@ -57,7 +60,7 @@
         "outline.showFields": false,
         "outline.showProperties": false,
         "twig-language.elseLine": true,
-        "intelephense.environment.phpVersion": "8.1.2"
-    }
-
+        "intelephense.environment.phpVersion": "8.1.2",
+        "intelephense.environment.documentRoot": "./gpexe/public/",
+    },
 }

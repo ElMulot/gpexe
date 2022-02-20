@@ -5,38 +5,26 @@ namespace App\Entity;
 use App\Repository\ChangeSetRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass=ChangeSetRepository::class)
- */
+#[ORM\Entity(repositoryClass: ChangeSetRepository::class)]
 class ChangeSet
 {
-	/**
-	 * @ORM\Id()
-	 * @ORM\GeneratedValue()
-	 * @ORM\Column(type="integer")
-	 */
+	#[ORM\Id]
+	#[ORM\GeneratedValue]
+	#[ORM\Column(type: 'integer')]
 	private $id;
 
-	/**
-	 * @ORM\Column(type="string", length=255)
-	 */
+	#[ORM\Column(type: 'string', length: 255)]
 	private $field;
 
-	/**
-	 * @ORM\Column(type="string", length=255, nullable=true)
-	 */
+	#[ORM\Column(type: 'string', length: 255, nullable: true)]
 	private $oldValue;
 
-	/**
-	 * @ORM\Column(type="string", length=255)
-	 */
+	#[ORM\Column(type: 'string', length: 255)]
 	private $newValue;
 
-	/**
-	 * @ORM\ManyToOne(targetEntity=Log::class, inversedBy="changeSets")
-	 */
+	#[ORM\ManyToOne(targetEntity: Log::class, inversedBy: 'changeSets')]
 	private $log;
-
+	
 	public function getId(): ?int
 	{
 		return $this->id;
@@ -82,7 +70,7 @@ class ChangeSet
 	{
 		return $this->log;
 	}
-
+	
 	public function setLog(?Log $log): self
 	{
 		$this->log = $log;

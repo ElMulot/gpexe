@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\User;
 use App\Entity\Program;
 use App\Entity\Project;
 use App\Form\ProgramType;
@@ -11,9 +12,11 @@ use App\Service\ParseService;
 use App\Service\ProgramService;
 use App\Service\Code\ProgramCache;
 use App\Repository\SerieRepository;
+use App\Entity\Enum\ProgramTypeEnum;
 use App\Repository\ProgramRepository;
 use App\Repository\ProgressRepository;
 use App\Repository\AutomationRepository;
+use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Security;
@@ -23,123 +26,87 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
 
 
 class ProgramController extends AbstractController
 {
 	
-	private $translator;
-	
-	private $automationRepository;
-	
-	private $programRepository;
-	
-	private $progressRepository;
-	
-	private $serieRepository;
-	
-	private $parseService;
-	
-	private $programService;
-	
-	private $fieldService;
-		
-	public function __construct(TranslatorInterface $translator, AutomationRepository $automationRepository, ProgramRepository $programRepository, ProgressRepository $progressRepository, SerieRepository $serieRepository, ParseService $parseService, ProgramService $programService, FieldService $fieldService, Security $security)
+	public function __construct(private readonly TranslatorInterface $translator, private readonly ManagerRegistry $doctrine, private readonly AutomationRepository $automationRepository, private readonly ProgramRepository $programRepository, private readonly ProgressRepository $progressRepository, private readonly SerieRepository $serieRepository, private readonly ParseService $parseService, private readonly ProgramService $programService, private readonly FieldService $fieldService, Security $security)
 	{
-		$this->translator = $translator;
-		$this->automationRepository = $automationRepository;
-		$this->programRepository = $programRepository;
-		$this->progressRepository = $progressRepository;
-		$this->serieRepository = $serieRepository;
-		$this->parseService = $parseService;
-		$this->programService = $programService;
-		$this->fieldService = $fieldService;
 	}
 	
-	/**
-	 * @Route("/project/{project}/program", name="program", requirements={"project"="\d+"})
-	 */
-	public function index(Project $project): Response
+	#[Route(path: '/project/{project}/program', name: 'program', requirements: ['project' => '\d+'])]
+	public function index(Project $project) : Response
 	{
 		if ($this->isGranted('ROLE_ADMIN') === false &&
 			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
-				return $this->redirectToRoute('project');
-			}
-			
-			return $this->renderForm('generic/list.html.twig', [
-				'header' => $this->translator->trans('Programs for') . ' : ' . $project->getName(),
-				'route_back' =>  $this->generateUrl('project_view', [
-					'project' => $project->getId(),
-				]),
-				'class' => Program::class,
-				'entities' => $this->programRepository->getPrograms($project),
-			]);
+			return $this->redirectToRoute('project');
+		}
+
+		return $this->renderForm('generic/list.html.twig', [
+			'title' => $this->translator->trans('Programs for') . ' : ' . $project->getName(),
+			'class' => Program::class,
+			'entities' => $this->programRepository->getPrograms($project),
+		]);
 	}
 	
-	/**
-	 * @Route("/project/program/{program}/dashboard", name="program_dashboard", requirements={"program"="\d+"})
-	 */
-	public function dashboard(Request $request, Program $program): Response
+	#[Route(path: '/project/program/{program}/dashboard', name: 'program_dashboard', requirements: ['program' => '\d+'])]
+	public function dashboard(Request $request, FlashBagInterface $flashBag, Program $program) : Response
 	{
 		$project = $program->getProject();
-		
 		if ($this->isGranted('ROLE_ADMIN') === false &&
 			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false) &&
 			($this->isGranted('ROLE_USER') === false || $project->hasUser($this->getUser()) === false || $this->getUser()->getCompany()->isMainContractor() === false || $program->isTypeProgress() === false)) {
 				return $this->redirectToRoute('project');
 			}
-			
-			$request->getSession()->getFlashBag()->clear();
-			$this->programService->unload();
-			
-			switch ($program->getType()) {
+		$flashBag->clear();
+		$this->programService->unload();
+		switch ($program->getType()) {
 				
-				case Program::EXPORT:
-				case Program::IMPORT:
-				case Program::TASK:
+				case ProgramTypeEnum::EXPORT:
+				case ProgramTypeEnum::IMPORT:
+				case ProgramTypeEnum::TASK:
 					return $this->renderForm('program/dashboard.html.twig', [
 						'program' => $program,
-						'route_back' =>  $this->generateUrl('project_view', [
+						'route_back' =>  $this->generateUrl('project', [
 							'project' => $project->getId(),
 						]),
 					]);
 					
-				case Program::PROGRESS:
+				case ProgramTypeEnum::PROGRESS:
 					return $this->renderForm('program/progress.html.twig', [
 						'program' => $program,
-						'route_back' =>  $this->generateUrl('project_view', [
+						'route_back' =>  $this->generateUrl('project', [
 							'project' => $project->getId(),
 						]),
 					]);
 					
 				default:
 					$this->addFlash('danger', 'Programme invalide');
-					return $this->redirectToRoute('project_view', [
+					return $this->redirectToRoute('project', [
 						'project' => $project->getId(),
 					]);
 			}
 	}
 	
-	/**
-	 * @Route("/project/program/{program}/preload", name="program_preload", requirements={"program"="\d+"})
-	 */
-	public function preload(Request $request, Program $program): Response
+	#[Route(path: '/project/program/{program}/preload', name: 'program_preload', requirements: ['program' => '\d+'])]
+	public function preload(Request $request, Program $program) : Response
 	{
+		$form = null;
 		$project = $program->getProject();
-		
 		if ($this->isGranted('ROLE_ADMIN') === false &&
 			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false) &&
 			($this->isGranted('ROLE_USER') === false || $project->hasUser($this->getUser()) === false || $program->isTypeProgress() === false)) {
 				return $this->redirectToRoute('project');
 			}
-			
-			switch ($program->getType()) {
+		switch ($program->getType()) {
 				
-				case Program::EXPORT:														//launch export
+				case ProgramTypeEnum::EXPORT:														//launch export
 					$form = $this->createForm(LauncherType::class, $program);
 					break;
 					
-				case Program::IMPORT:
+				case ProgramTypeEnum::IMPORT:
 					if ($this->programService->getCache()->getOption('ready_to_persist') == true) {	//launch import
 						try {
 							$this->programService->preload($program, $request);
@@ -156,11 +123,11 @@ class ProgramController extends AbstractController
 					}
 					break;
 					
-				case Program::TASK:															//launch task
+				case ProgramTypeEnum::TASK:															//launch task
 					$form = $this->createForm(LauncherType::class, $program);
 					break;
 					
-				case Program::PROGRESS:														//launch progress
+				case ProgramTypeEnum::PROGRESS:														//launch progress
 					try {
 						$this->programService->preload($program, $request);
 						return $this->redirectToRoute('program_load', [
@@ -178,14 +145,12 @@ class ProgramController extends AbstractController
 					return $this->renderForm('program/error.html.twig');
 					
 			}
-			
-			$form->handleRequest($request);
-			
-			if ($form->isSubmitted() && $form->isValid()) {
+		$form->handleRequest($request);
+		if ($form->isSubmitted() && $form->isValid()) {
 				
 				switch ($program->getType()) {
 					
-					case Program::EXPORT:													//launch export
+					case ProgramTypeEnum::EXPORT:													//launch export
 						try {
 							$this->programService->preload($program, $request);
 							return $this->renderForm('program/preload.html.twig', [
@@ -198,7 +163,7 @@ class ProgramController extends AbstractController
 						}
 						break;
 						
-					case Program::IMPORT:													//check import
+					case ProgramTypeEnum::IMPORT:													//check import
 						$file = $form->get('file')->getData();
 						try {
 							$this->programService->preload($program, $request, $file);
@@ -212,7 +177,7 @@ class ProgramController extends AbstractController
 						}
 						break;
 						
-					case Program::TASK:														//launch task
+					case ProgramTypeEnum::TASK:														//launch task
 						try {
 							$this->programService->preload($program, $request);
 							return $this->renderForm('program/preload.html.twig', [
@@ -226,21 +191,16 @@ class ProgramController extends AbstractController
 						break;
 				}
 			}
-			
-			return $this->renderForm('program/launcher.html.twig', [
+		return $this->renderForm('program/launcher.html.twig', [
 				'form' => $form,
 				'program' => $program,
 			]);
-			
 	}
 	
-	/**
-	 * @Route("/project/program/{program}/load", name="program_load", requirements={"program"="\d+"})
-	 */
-	public function load(Request $request, Program $program): Response
+	#[Route(path: '/project/program/{program}/load', name: 'program_load', requirements: ['program' => '\d+'])]
+	public function load(Request $request, Program $program) : Response
 	{
 		$project = $program->getProject();
-		
 		if ($this->isGranted('ROLE_ADMIN') === false &&
 			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false) &&
 			($this->isGranted('ROLE_USER') === false || $project->hasUser($this->getUser()) === false || (
@@ -253,10 +213,9 @@ class ProgramController extends AbstractController
 				) || $program->isTypeProgress() === false)) {
 				return $this->redirectToRoute('project');
 			}
-			
-			switch ($program->getType()) {
+		switch ($program->getType()) {
 				
-				case Program::EXPORT:																	//launch export
+				case ProgramTypeEnum::EXPORT:																	//launch export
 					try {
 						$this->programService->load($program);
 						return $this->renderForm('program/load.html.twig', [
@@ -271,7 +230,7 @@ class ProgramController extends AbstractController
 					}
 					
 					
-				case Program::IMPORT:
+				case ProgramTypeEnum::IMPORT:
 					if ($this->programService->getCache()->getOption('ready_to_persist') == true) {		//launch import
 						
 						try {
@@ -304,7 +263,7 @@ class ProgramController extends AbstractController
 						
 					}
 					
-				case Program::TASK:																		//launch task
+				case ProgramTypeEnum::TASK:																		//launch task
 					try {
 						$this->programService->load($program);
 						return $this->renderForm('program/load.html.twig', [
@@ -318,10 +277,12 @@ class ProgramController extends AbstractController
 						]);
 					}
 					
-				case Program::PROGRESS:																	//launch progress
+				case ProgramTypeEnum::PROGRESS:																	//launch progress
 					try {
 						$this->programService->load($program);
 						$serializer = new Serializer([new DateTimeNormalizer(['datetime_format' => 'd-m-Y'])]);
+						
+						/** @var array $series */
 						if ($series = $request->query->get('series')) {
 							return new JsonResponse([
 								'series' => $this->serieRepository->getSeriesByIdAsArray($series),
@@ -351,21 +312,17 @@ class ProgramController extends AbstractController
 			}
 	}
 	
-	/**
-	 * @Route("/project/program/{program}/completed", name="program_completed", requirements={"program"="\d+"})
-	 */
-	public function completed(Request $request, Program $program): Response
+	#[Route(path: '/project/program/{program}/completed', name: 'program_completed', requirements: ['program' => '\d+'])]
+	public function completed(Request $request, Program $program) : Response
 	{
 		$project = $program->getProject();
-		
 		if ($this->isGranted('ROLE_ADMIN') === false &&
 			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
 				return $this->redirectToRoute('project');
 			}
-			
-			switch ($program->getType()) {
+		switch ($program->getType()) {
 				
-				case Program::EXPORT:
+				case ProgramTypeEnum::EXPORT:
 					$filePath = $this->programService->getCache()->getParameter('file_path');
 					$pathParts = pathinfo($filePath);
 					
@@ -375,7 +332,7 @@ class ProgramController extends AbstractController
 						'file_path' => $this->getParameter('uploads_directory') . '/' . $pathParts['basename'],
 					]);
 					
-				case Program::IMPORT:
+				case ProgramTypeEnum::IMPORT:
 					if ($this->programService->getCache()->getOption('ready_to_persist')) {					//launch import
 						
 						$this->programService->unload();
@@ -396,7 +353,7 @@ class ProgramController extends AbstractController
 						
 					}
 					
-				case Program::TASK:
+				case ProgramTypeEnum::TASK:
 					if ($this->programService->getCache()->getOption('ready_to_persist')) {					//launch task
 						
 						$this->programService->unload();
@@ -420,26 +377,21 @@ class ProgramController extends AbstractController
 					
 				default:
 					$this->addFlash('danger', 'Programme invalide');
-					return $this->redirectToRoute('project_view', [
+					return $this->redirectToRoute('project', [
 						'project' => $project->getId(),
 					]);
 					
 			}
 	}
 	
-	/**
-	 * @Route("/project/program/{program}/console", name="program_console", requirements={"program"="\d+"})
-	 */
-	public function console(Request $request, Program $program): Response
+	#[Route(path: '/project/program/{program}/console', name: 'program_console', requirements: ['program' => '\d+'])]
+	public function console(Request $request, Program $program) : Response
 	{
-		
 		$project = $program->getProject();
-		
 		if ($this->isGranted('ROLE_ADMIN') === false &&
 			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
 				return $this->redirectToRoute('project');
 		}
-		
 		switch ($this->programService->getCache()->getStatus()) {
 			case ProgramCache::LOAD:
 				$redirect = ProgramCache::LOAD;
@@ -462,25 +414,23 @@ class ProgramController extends AbstractController
 			default:
 				$redirect = ProgramCache::PRELOAD;
 		}
-		
 		return $this->renderForm('program/console.html.twig', [
 			'program' => $program,
 			'redirect' => $redirect,
 		]);
-			
 	}
 	
-	/**
-	 * @Route("/project/{project}/program/new", name="program_new", requirements={"project"="\d+"})
-	 */
-	public function new(Request $request, Project $project): Response
+	#[Route(path: '/project/{project}/program/new', name: 'program_new', requirements: ['project' => '\d+'])]
+	public function new(Request $request, Project $project) : Response
 	{
+		$form = null;
+		$program = null;
 		if ($this->isGranted('ROLE_ADMIN') === false &&
 			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
-				return $this->redirectToRoute('project');
-			}
-			
-			if ($request->request->has('program')) {														//validation du type de programme et affichage du formulaire principal
+			return $this->redirectToRoute('project');
+		}
+		
+		if ($request->request->has('program')) {														//validation du type de programme et affichage du formulaire principal
 				
 				if ($type = $request->request->get('program')['type'] ?? null) {
 					
@@ -488,16 +438,16 @@ class ProgramController extends AbstractController
 					$program->setEnabled(true);
 					
 					switch ($type) {
-						case Program::EXPORT:
+						case ProgramTypeEnum::EXPORT:
 							$program->setCode($this->parseService->getValidatedCode('type: export'));
 							break;
-						case Program::IMPORT:
+						case ProgramTypeEnum::IMPORT:
 							$program->setCode($this->parseService->getValidatedCode('type: import'));
 							break;
-						case Program::TASK:
+						case ProgramTypeEnum::TASK:
 							$program->setCode($this->parseService->getValidatedCode('type: task'));
 							break;
-						case Program::PROGRESS:
+						case ProgramTypeEnum::PROGRESS:
 							$program->setCode($this->parseService->getValidatedCode('type: progress'));
 							break;
 						default:
@@ -531,17 +481,15 @@ class ProgramController extends AbstractController
 				$form = $this->createForm(ProgramType::class, null);
 				
 			}
-			
-			$form->handleRequest($request);
-			
-			if ($form->isSubmitted() && $form->isValid()) {
+		$form->handleRequest($request);
+		if ($form->isSubmitted() && $form->isValid()) {
 				
 				$program->setProject($project);
 				$program->setEnabled(true);
 				$program->setCreatedBy($this->getUser());
 				$program->setLastModifiedBy($this->getUser());
 				
-				$entityManager = $this->getDoctrine()->getManager();
+				$entityManager = $this->doctrine->getManager();
 				$entityManager->persist($program);
 				$entityManager->flush();
 				
@@ -564,27 +512,22 @@ class ProgramController extends AbstractController
 			}
 	}
 	
-	/**
-	 * @Route("/project/program/{program}/edit", name="program_edit", requirements={"program"="\d+"})
-	 */
-	public function edit(Request $request, Program $program): Response
+	#[Route(path: '/project/program/{program}/edit', name: 'program_edit', requirements: ['program' => '\d+'])]
+	public function edit(Request $request, Program $program) : Response
 	{
 		$project = $program->getProject();
 		if ($this->isGranted('ROLE_ADMIN') === false &&
 			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
 				return $this->redirectToRoute('project');
 			}
-			
-			$fields = $this->fieldService->getFields($project);
-			$form = $this->createForm(ProgramType::class, $program);
-			
-			$form->handleRequest($request);
-			
-			if ($form->isSubmitted() && $form->isValid()) {
+		$fields = $this->fieldService->getFields($project);
+		$form = $this->createForm(ProgramType::class, $program);
+		$form->handleRequest($request);
+		if ($form->isSubmitted() && $form->isValid()) {
 				
 				$program->setLastModifiedBy($this->getUser());
 				
-				$entityManager = $this->getDoctrine()->getManager();
+				$entityManager = $this->doctrine->getManager();
 				$entityManager->flush();
 				$this->addFlash('success', 'Programme mis à jour');
 				
@@ -612,35 +555,35 @@ class ProgramController extends AbstractController
 			}
 	}
 	
-	/**
-	 * @Route("/project/program/{program}/delete", name="program_delete", methods={"GET", "DELETE"}, requirements={"program"="\d+"})
-	 */
-	public function delete(Request $request, Program $program): Response
+	#[Route(path: '/project/program/{program}/delete', name: 'program_delete', methods: ['GET', 'DELETE'], requirements: ['program' => '\d+'])]
+	public function delete(Request $request, Program $program) : Response
 	{
 		$project = $program->getProject();
 		if ($this->isGranted('ROLE_ADMIN') === false &&
 			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
 				return $this->redirectToRoute('project');
-			}
+		}
+		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
+			$entityManager = $this->doctrine->getManager();
+			$entityManager->remove($program);
+			$entityManager->flush();
 			
-			if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
-				$entityManager = $this->getDoctrine()->getManager();
-				$entityManager->remove($program);
-				$entityManager->flush();
-				
-				$this->addFlash('success', 'Programme supprimé');
-				return $this->redirectToRoute('program', [
-					'project' => $project->getId()
-				]);
-			} else {
-				return $this->renderForm('generic/delete.html.twig', [
-					'route_back' =>  $this->generateUrl('program', [
-						'project' => $project->getId(),
-					]),
-					'entities' => [$program],
-				]);
-			}
-			
-			
+			$this->addFlash('success', 'Programme supprimé');
+			return $this->redirectToRoute('program', [
+				'project' => $project->getId()
+			]);
+		} else {
+			return $this->renderForm('generic/delete.html.twig', [
+				'route_back' =>  $this->generateUrl('program', [
+					'project' => $project->getId(),
+				]),
+				'entities' => [$program],
+			]);
+		}
+	}
+
+	public function getUser(): User
+	{
+		return parent::getUser();
 	}
 }

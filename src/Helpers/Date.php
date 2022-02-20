@@ -3,7 +3,7 @@
 namespace App\Helpers;
 
 
-class Date extends \DateTime {
+class Date extends \DateTime implements \Stringable {
 	
 	private $isValid;
 	
@@ -32,25 +32,25 @@ class Date extends \DateTime {
 		}
 	}
 	
-	public function add($interval): Date
+	public function add(\DateInterval|string $interval): Date
 	{
 		if ($this->isValid) {
-			$dateInterval = new \DateInterval($interval);
+			$dateInterval = new \DateInterval(strval($interval));
 			parent::add($dateInterval);
 		}
 		return $this;
 	}
 	
-	public function sub($interval): Date
+	public function sub(\DateInterval|string $interval): Date
 	{
 		if ($this->isValid) {
-			$dateInterval = new \DateInterval($interval);
+			$dateInterval = new \DateInterval(strval($interval));
 			parent::sub($dateInterval);
 		}
 		return $this;
 	}
 	
-	public static function fromFormat(string $expression, $format = 'd-m-Y'): ?\DateTime
+	public static function fromFormat(string $expression, $format = 'd-m-Y'): ?Date //?\DateTime
 	{
 		$date = \DateTime::createFromFormat('!' . $format, $expression);
 		if ($date && $date->format($format) === $expression) {
@@ -105,6 +105,7 @@ class Date extends \DateTime {
 		return $nbFullWeeks * 5 + max($nbRemainingDays, 0);
 	}
 	
+	#[\ReturnTypeWillChange]
 	public function diff($date2, $absolute = null): ?\DateInterval
 	{
 		if ($this->isValid === false)

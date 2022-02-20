@@ -9,8 +9,7 @@ security:
         
     # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
     providers:
-        users_in_memory: { memory: null }
-        users_in_db:
+        app_user_provider:
             entity:
                 class: App\Entity\User
                 property: email
@@ -20,11 +19,10 @@ security:
             security: false
         main:
             lazy: true
-            provider: users_in_db
-            custom_authenticator: App\Security\LoginFormAuthenticator
-            # ne fonctionne pas. Todo : https://symfony.com/doc/current/security/user_checkers.html
-            # pattern: ^/
-            # user_checker: App\Security\UserChecker
+            provider: app_user_provider
+            
+            pattern: ^/
+            user_checker: App\Security\UserChecker
 
             # This allows the user to login by submitting a username and password
             # Reference: https://symfony.com/doc/current/security/form_login_setup.html
@@ -37,29 +35,24 @@ security:
                 # Secure the login form against CSRF
                 # Reference: https://symfony.com/doc/current/security/csrf.html
                 enable_csrf: true
-                # The page users are redirect to when there is no previous page stored in the
+                # Define the always_use_default_target_path boolean option to ignore the previously requested URL and always redirect to the default page
                 # session (for example when the users access directly to the login page).
                 default_target_path: home
+                # Ignore the previously requested URL and always redirect to the default page
+                always_use_default_target_path: true
+        
+            remember_me:
+                secret: '%kernel.secret%'
+                lifetime: 604800 # 1 week in seconds
+
+            # https://symfony.com/doc/current/security/impersonating_user.html
+            switch_user: true
 
             logout:
                 # The route name the user can go to in order to logout
                 path: logout
                 # The name of the route to redirect to after logging out
                 target: login
-            
-            # needed because in tests we redefine the 'main' firewall to use
-            # HTTP Basic instead of the login form, so this firewall has
-            # multiple authenticators
-            # See https://symfony.com/doc/current/security/experimental_authenticators.html#configuring-the-authentication-entry-point
-            entry_point: 'form_login'
-        
-            remember_me:
-                secret:   '%kernel.secret%'
-                lifetime: 604800 # 1 week in seconds
-                path:     /
-
-            # https://symfony.com/doc/current/security/impersonating_user.html
-            switch_user: true
 
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
@@ -99,7 +92,7 @@ security:
         - { path: '^/profil',                                                      roles: ROLE_ADMIN }
         - { path: '^/log',                                                         roles: ROLE_ADMIN }
 
-        - { path: '.',                                                             roles: ROLE_USER }
+        - { path: '^/',                                                            roles: ROLE_USER }
 
     role_hierarchy:
         ROLE_SUPER_ADMIN: [ROLE_ADMIN, ROLE_ALLOWED_TO_SWITCH]

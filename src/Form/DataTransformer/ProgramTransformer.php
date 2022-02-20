@@ -11,11 +11,8 @@ use App\Service\ParseService;
 class ProgramTransformer implements DataTransformerInterface
 {
 	
-	private $parseService;
-	
-	public function __construct(ParseService $parseService)
+	public function __construct(private readonly ParseService $parseService)
 	{
-		$this->parseService = $parseService;
 	}
 	
 	public function transform($value)

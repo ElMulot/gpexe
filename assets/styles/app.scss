@@ -92,7 +92,7 @@ a {
 // Modal
 // --------------------
 
-#std_modal > div  {
+#std_modal .modal-dialog  {
 	
 	@include media-breakpoint-up(xl) {
 		max-width: $modal-xl;

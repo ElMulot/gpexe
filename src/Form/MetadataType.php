@@ -8,6 +8,8 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use App\Entity\Metadata;
+use App\Entity\Enum\MetadataTypeEnum;
+use App\Entity\Enum\MetadataParentEnum;
 
 class MetadataType extends AbstractType
 {
@@ -18,13 +20,7 @@ class MetadataType extends AbstractType
 			->add('name')
 			->add('codename')
 			->add('type', ChoiceType::class, [
-				'choices' => [
-					'Checkbox' => Metadata::BOOLEAN,
-					'Text' => Metadata::TEXT,
-					'Date' => Metadata::DATE,
-					'Link' => Metadata::LINK,
-					'List' => Metadata::LIST,
-				],
+				'choices' => MetadataTypeEnum::getChoices(),
 				'expanded' => true,
 				'disabled' => ($builder->getData()->getId() != null),
 			])
@@ -33,11 +29,7 @@ class MetadataType extends AbstractType
 				'disabled' => $builder->getData()->getId() && ($builder->getData()->getIsMandatory() === false || $builder->getData()->isBoolean() === true),
 			])
 			->add('parent', ChoiceType::class, [
-				'choices' => [
-					'Serie' => Metadata::SERIE,
-					'Document' => Metadata::DOCUMENT,
-					'Version' => Metadata::VERSION,
-				],
+				'choices' => MetadataParentEnum::getChoices(),
 				'expanded' => true,
 				'disabled' => ($builder->getData()->getId() != null),
 			])

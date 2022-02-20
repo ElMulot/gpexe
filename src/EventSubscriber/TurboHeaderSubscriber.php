@@ -10,32 +10,32 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class TurboHeaderSubscriber implements EventSubscriberInterface
 {
-    const ALLOWED_HEADERS = ['Turbo-Frame', 'Turbo-Stream-Replace', 'Turbo-Location'];
-    
-    private UrlGeneratorInterface $urlGenerator;
+    final const ALLOWED_HEADERS = ['Turbo-Frame', 'Turbo-Stream-Replace', 'Turbo-Location'];
 
-    public function __construct(UrlGeneratorInterface $urlGenerator)
+    public function __construct(private readonly UrlGeneratorInterface $urlGenerator)
     {
-        $this->urlGenerator = $urlGenerator;
     }
 
     public function onKernelResponse(ResponseEvent $event)
     {        
+        $request = $event->getRequest();
+        $response = $event->getResponse();
+        
         foreach (self::ALLOWED_HEADERS as $header) {
-            if ($event->getRequest()->headers->has($header) === true) {
-                $event->getResponse()->headers->set($header, $event->getRequest()->headers->get($header));
+            if ($request->headers->has($header) === true) {
+                $response->headers->set($header, $request->headers->get($header));
             }
         }
         
-        if ($event->getResponse()->isRedirection() === true) {
+        if ($response->isRedirection() === true && $request->headers->has('Turbo-Frame') === true) {
             $response = new Response(null, 200, [
-                'Turbo-Location' => $event->getResponse()->headers->get('Location'),
+                'Turbo-Location' => $response->headers->get('Location'),
             ]);
             $event->setResponse($response);
         }
     }
 
-    public static function getSubscribedEvents()
+    public static function getSubscribedEvents(): array
     {
         return [
             ResponseEvent::class => 'onKernelResponse',

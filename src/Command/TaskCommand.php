@@ -3,34 +3,22 @@
 namespace App\Command;
 
 use App\Helpers\Date;
-use App\Repository\AutomationRepository;
-use App\Repository\ProgramRepository;
 use App\Service\ProgramService;
+use App\Repository\ProgramRepository;
+use App\Repository\AutomationRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
 
 class TaskCommand extends Command
 {
-	private $entityManager;
-	
-	private $programRepository;
-	
-	private $programService;
-	
 	protected static $defaultName = 'app:task';
 	
-	public function __construct(EntityManagerInterface $entityManager, RequestStack $requestStack, AutomationRepository $automationRepository, ProgramRepository $programRepository, ProgramService $programService)
+	public function __construct(private readonly EntityManagerInterface $entityManager, private readonly FlashBagInterface $flashBag, private readonly AutomationRepository $automationRepository, private readonly ProgramRepository $programRepository, private readonly ProgramService $programService)
 	{
-		$this->entityManager = $entityManager;
-		$this->flashBag = $requestStack->getSession()->getFlashBag();
-		$this->automationRepository = $automationRepository;
-		$this->programRepository = $programRepository;
-		$this->programService = $programService;
-		
 		parent::__construct();
 	}
 	
@@ -68,7 +56,7 @@ class TaskCommand extends Command
 			$automation->setNextRun($nextRun);
 			$this->entityManager->persist($automation);
 			$this->entityManager->flush();
-		} catch (\Exception $e) {
+		} catch (\Exception) {
 			$this->flashBag->clear();
 			return Command::FAILURE;
 		}

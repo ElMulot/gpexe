@@ -26,26 +26,8 @@ use App\Repository\StatusRepository;
 
 class SelectType extends AbstractType
 {	
-	private $translator;
-	
-	private $companyRepository;
-	
-	private $userRepository;
-	
-	private $codificationRepository;
-	
-	private $metadataRepository;
-	
-	private $statusRepository;
-	
-	public function __construct(TranslatorInterface $translator, CompanyRepository $companyRepository, UserRepository $userRepository, CodificationRepository $codificationRepository, MetadataRepository $metadataRepository, StatusRepository $statusRepository)
+	public function __construct(private readonly TranslatorInterface $translator, private readonly CompanyRepository $companyRepository, private readonly UserRepository $userRepository, private readonly CodificationRepository $codificationRepository, private readonly MetadataRepository $metadataRepository, private readonly StatusRepository $statusRepository)
 	{
-		$this->translator = $translator;
-		$this->companyRepository = $companyRepository;
-		$this->userRepository = $userRepository;
-		$this->codificationRepository = $codificationRepository;
-		$this->metadataRepository = $metadataRepository;
-		$this->statusRepository = $statusRepository;
 	}
 	
 	public function buildForm(FormBuilderInterface $builder, array $options)
@@ -68,7 +50,7 @@ class SelectType extends AbstractType
 			} elseif (is_object($control['choices'])) {
 				
 				$builder->add($control['full_id'], EntityType::class, [
-					'class' => get_class($control['choices']->first()),
+					'class' => $control['choices']->first()::class,
 					'choices' => $control['choices'],
 					'mapped' => false,
 					'required' => false,
@@ -83,7 +65,7 @@ class SelectType extends AbstractType
 			} else {
 				
 				$builder->add($control['full_id'], EntityType::class, [
-					'class' => get_class(current($control['choices'])),
+					'class' => current($control['choices'])::class,
 					'choices' => $control['choices'],
 					'mapped' => false,
 					'required' => false,

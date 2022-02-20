@@ -3,55 +3,38 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-/**
- * @ORM\Entity(repositoryClass="App\Repository\StatusRepository")
- */
-class Status
-{
-	
-	const INFORMATION		= 1;
-	const REVIEW			= 2;
-	const CANCEL			= 3;
-	const AS_BUILT	 		= 4;
-	const DEFAULT		   = self::REVIEW;
+use Fresh\DoctrineEnumBundle\Validator\Constraints as DoctrineAssert;
+use App\Entity\Enum\StatusTypeEnum;
+use App\Repository\StatusRepository;
 
-	/**
-	 * @ORM\Id()
-	 * @ORM\GeneratedValue()
-	 * @ORM\Column(type="integer")
-	 */
+#[ORM\Entity(repositoryClass: StatusRepository::class)]
+class Status implements \Stringable
+{
+	#[ORM\Id]
+	#[ORM\GeneratedValue]
+	#[ORM\Column(type: 'integer')]
 	private $id;
 
-	/**
-	 * @ORM\Column(type="string", length=100)
-	 */
+	#[ORM\Column(type: 'string', length: 100)]
 	private $name;
-	
-	/**
-	 * @ORM\Column(type="string", length=10)
-	 */
+
+	#[ORM\Column(type: 'string', length: 10)]
 	private $value;
 
-	/**
-	 * @ORM\Column(type="smallint")
-	 */
+	#[ORM\Column(type: 'status_type_enum')]
+	#[DoctrineAssert\EnumType(entity: StatusTypeEnum::class)]
 	private $type;
-	
-	/**
-	 * @ORM\Column(type="boolean")
-	 */
+
+	#[ORM\Column(type: 'boolean')]
 	private $isDefault;
-	
-	/**
-	 * @ORM\ManyToOne(targetEntity=Project::class, inversedBy="statuses")
-	 * @ORM\JoinColumn(nullable=false)
-	 */
+
+	#[ORM\ManyToOne(targetEntity: Project::class, inversedBy: 'statuses')]
+	#[ORM\JoinColumn(nullable: false)]
 	private $project;
 
-	
 	public function __construct()
 	{
-		$this->type = self::DEFAULT;
+		$this->type = StatusTypeEnum::getDefaultValue();
 	}
 
 	public function getId(): ?int
@@ -83,48 +66,49 @@ class Status
 		return $this;
 	}
 	
-	public function getType(): ?int
+	public function getType(): string
 	{
 		return $this->type;
 	}
-	
-	public function setType(int $type): self
+
+	public function setType(string $type): self
 	{
+		StatusTypeEnum::assertValidChoice($type);
 		$this->type = $type;
-		
+
 		return $this;
 	}
-	
+
 	public function getIsDefault(): ?bool
 	{
 		return $this->isDefault;
 	}
-	
+
 	public function setIsDefault(bool $isDefault): self
 	{
 		$this->isDefault = $isDefault;
 		
 		return $this;
 	}
-	
+
 	public function getIsInformation(): bool
 	{
-		return ($this->getType() == self::INFORMATION);
+		return $this->type === StatusTypeEnum::INFORMATION;
 	}
 
 	public function getIsReview(): bool
 	{
-		return ($this->getType() == self::REVIEW);
+		return $this->type === StatusTypeEnum::REVIEW;
 	}
-	
+
 	public function getIsCancel(): bool
 	{
-		return ($this->getType() == self::CANCEL);
+		return $this->type === StatusTypeEnum::CANCEL;
 	}
-	
+
 	public function getIsAsBuilt(): bool
 	{
-		return ($this->getType() == self::AS_BUILT);
+		return $this->type === StatusTypeEnum::AS_BUILT;
 	}
 
 	public function getProject(): ?Project
@@ -138,37 +122,21 @@ class Status
 
 		return $this;
 	}
-	
+
 	public function getPropertyValue(string $codename)
 	{
-		
-		switch ($codename) {
-			case 'status.name':
-				return $this->getName();
-				break;
-			case 'status.value':
-				return $this;
-				break;
-			case 'status.type':
-				return $this->getType();
-				break;
-			case 'status.isInformation':
-				return $this->getIsInformation();
-				break;
-			case 'status.isReview':
-				return $this->getIsReview();
-				break;
-			case 'status.isCancel':
-				return $this->getIsCancel();
-				break;
-			case 'status.isAsBuilt':
-				return $this->getIsAsBuilt();
-				break;
-		}
-		
-		return null;
+		return match ($codename) {
+			'status.name'			=> $this->getName(),
+			'status.value'			=> $this,
+			'status.type'			=> $this->getType(),
+			'status.isInformation'	=> $this->getIsInformation(),
+			'status.isReview'		=> $this->getIsReview(),
+			'status.isCancel'		=> $this->getIsCancel(),
+			'status.isAsBuilt'		=> $this->getIsAsBuilt(),
+			default 				=> null,
+		};
 	}
-	
+
 	public function __toString(): string
 	{
 		return (string)$this->getValue();

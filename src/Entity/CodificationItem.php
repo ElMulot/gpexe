@@ -4,35 +4,26 @@ namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use App\Entity\Codification;
+use App\Repository\CodificationItemRepository;
 
-/**
- * @ORM\Entity(repositoryClass="App\Repository\CodificationItemRepository")
- */
-class CodificationItem
+#[ORM\Entity(repositoryClass: CodificationItemRepository::class)]
+class CodificationItem implements \Stringable
 {
-	/**
-	 * @ORM\Id()
-	 * @ORM\GeneratedValue()
-	 * @ORM\Column(type="integer")
-	 */
+	#[ORM\Id]
+	#[ORM\GeneratedValue]
+	#[ORM\Column(type: 'integer')]
 	private $id;
 
-	/**
-	 * @ORM\Column(type="string", length=255)
-	 */
+	#[ORM\Column(type: 'string', length: 255)]
 	private $name;
 
-	/**
-	 * @ORM\Column(type="string", length=10)
-	 */
+	#[ORM\Column(type: 'string', length: 10)]
 	private $value;
 
-	/**
-	 * @ORM\ManyToOne(targetEntity=Codification::class, inversedBy="codificationItems")
-	 * @ORM\JoinColumn(nullable=false)
-	 */
+	#[ORM\ManyToOne(targetEntity: Codification::class, inversedBy: 'codificationItems')]
+	#[ORM\JoinColumn(nullable: false)]
 	private $codification;
-
+	
 	public function getId(): ?int
 	{
 		return $this->id;

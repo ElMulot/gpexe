@@ -10,28 +10,23 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Doctrine\Persistence\ManagerRegistry;
 
 class CodificationItemController extends AbstractController
 {
 
-	private $translator;
-	
-	public function __construct(TranslatorInterface $translator)
+	public function __construct(private readonly TranslatorInterface $translator, private readonly ManagerRegistry $doctrine)
 	{
-		$this->translator = $translator;
 	}
 
-	/**
-	 * @Route("/project/codification/{codification}/item", name="codification_item", requirements={"codification"="\d+"})
-	 */
-	public function index(CodificationItemRepository $codificationItemRepository, Codification $codification): Response
+	#[Route(path: '/project/codification/{codification}/item', name: 'codification_item', requirements: ['codification' => '\d+'])]
+	public function index(CodificationItemRepository $codificationItemRepository, Codification $codification) : Response
 	{
 		$project = $codification->getProject();
 		if ($this->isGranted('ROLE_ADMIN') === false &&
 			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
 			return $this->redirectToRoute('project');
 		}
-		
 		return $this->renderForm('generic/list.html.twig', [
 			'header' => $this->translator->trans('List for the code') . ' : ' . $codification->getName(),
 			'route_back' =>  $this->generateUrl('codification', [
@@ -43,24 +38,20 @@ class CodificationItemController extends AbstractController
 		]);
 	}
 
-	/**
-	 * @Route("/project/codification/{codification}/item/new", name="codification_item_new", requirements={"codification"="\d+"})
-	 */
-	public function new(Request $request, Codification $codification): Response
+	#[Route(path: '/project/codification/{codification}/item/new', name: 'codification_item_new', requirements: ['codification' => '\d+'])]
+	public function new(Request $request, Codification $codification) : Response
 	{
 		$project = $codification->getProject();
 		if ($this->isGranted('ROLE_ADMIN') === false &&
 			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
 			return $this->redirectToRoute('project');
 		}
-		
 		$codificationItem = new CodificationItem();
 		$codificationItem->setCodification($codification);
 		$form = $this->createForm(CodificationItemType::class, $codificationItem);
 		$form->handleRequest($request);
-
 		if ($form->isSubmitted() && $form->isValid()) {
-			$entityManager = $this->getDoctrine()->getManager();
+			$entityManager = $this->doctrine->getManager();
 			$entityManager->persist($codificationItem);
 			$entityManager->flush();
 
@@ -78,22 +69,18 @@ class CodificationItemController extends AbstractController
 		}
 	}
 	
-	/**
-	 * @Route("/project/codification/item/{id}/edit", name="codification_item_edit", requirements={"id"="\d+"})
-	 */
-	public function edit(Request $request, CodificationItem $codificationItem): Response
+	#[Route(path: '/project/codification/item/{id}/edit', name: 'codification_item_edit', requirements: ['id' => '\d+'])]
+	public function edit(Request $request, CodificationItem $codificationItem) : Response
 	{
 		$project = $codificationItem->getCodification()->getProject();
 		if ($this->isGranted('ROLE_ADMIN') === false &&
 			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
 			return $this->redirectToRoute('project');
 		}
-		
 		$form = $this->createForm(CodificationItemType::class, $codificationItem);
 		$form->handleRequest($request);
-		
 		if ($form->isSubmitted() && $form->isValid()) {
-			$entityManager = $this->getDoctrine()->getManager();
+			$entityManager = $this->doctrine->getManager();
 			$entityManager->flush();
 			
 			$this->addFlash('success', 'Datas updated');
@@ -110,19 +97,16 @@ class CodificationItemController extends AbstractController
 		}
 	}
 	
-	/**
-	 * @Route("/project/codification/item/{id}/delete", name="codification_item_delete", methods={"GET", "DELETE"}, requirements={"id"="\d+"})
-	 */
-	public function delete(Request $request, CodificationItem $codificationItem): Response
+	#[Route(path: '/project/codification/item/{id}/delete', name: 'codification_item_delete', methods: ['GET', 'DELETE'], requirements: ['id' => '\d+'])]
+	public function delete(Request $request, CodificationItem $codificationItem) : Response
 	{
 		$project = $codificationItem->getCodification()->getProject();
 		if ($this->isGranted('ROLE_ADMIN') === false &&
 			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
 			return $this->redirectToRoute('project');
 		}
-		
 		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
-			$entityManager = $this->getDoctrine()->getManager();
+			$entityManager = $this->doctrine->getManager();
 			$entityManager->remove($codificationItem);
 			$entityManager->flush();
 

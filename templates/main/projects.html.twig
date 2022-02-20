@@ -19,7 +19,7 @@
 						<div class="card card-width">
 							<div class="card-header">{{ project.name }}</div>
 							<div class="card-body align-self-center">
-								<a class="btn btn-project" href="{{ path('project', {'project': project.id}) }}" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-original-title="{% trans %}Engineering{% endtrans %}">
+								<a class="btn btn-project" href="{{ path('project', {'project': project.id}) }}" target="_top" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-original-title="{{ project.name }}">
 									{% if project.image is not empty %}
 										<img src="{{ asset(uploads_directory ~ '/' ~ project.image) }}" alt="{{ project.name }}">
 									{% else %}

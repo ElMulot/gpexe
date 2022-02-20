@@ -9,9 +9,9 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
+use Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationException;
 
-
-class SecurityController extends AbstractController
+class LoginController extends AbstractController
 {
 	
 	private $imgDir;
@@ -21,20 +21,20 @@ class SecurityController extends AbstractController
 		$this->imgDir = $kernel->getProjectDir() . '/assets/images/';
 	}
 	
-	/**
-	 * @Route("/login", name="login")
-	 */
-	public function login(AuthenticationUtils $authenticationUtils, Request $request): Response
+	#[Route(path: '/login', name: 'login')]
+	public function index(AuthenticationUtils $authenticationUtils, Request $request) : Response
 	{
 		if ($this->getUser()) {
 			return $this->redirectToRoute('home');
 		}
-		
 		// get the login error if there is one
 		$error = $authenticationUtils->getLastAuthenticationError();
+
 		// last username entered by the user
 		$lastUsername = $authenticationUtils->getLastUsername();
 		
+		$logout = false;
+
 		$finder = new Finder();
 		$finder->files()
 			->in($this->imgDir)
@@ -42,24 +42,25 @@ class SecurityController extends AbstractController
 			->name('*.jpeg')
 			->name('*.png')
 		;
-		
+
 		$imgName = null;
-		
 		if ($finder->hasResults()) {
 			$rand = random_int(0, $finder->count()-1);
 			$files = iterator_to_array($finder, false);
 			$imgName = $files[$rand]->getRelativePathname();
 		}
-		
-		$logout = false;
-		if ($request->cookies->has('sf_redirect')) {
-			$cookie = json_decode($request->cookies->get('sf_redirect'), true);
+
+		//maintenance mode
+		if ($this->getParameter('maintenance_mode') === true) {
+			$error = new CustomUserMessageAuthenticationException();
+			$error->setSafeMessage('Maintenance on going.');
+		} elseif ($request->cookies->has('sf_redirect')) {
+			$cookie = json_decode($request->cookies->get('sf_redirect'), true, 512, JSON_THROW_ON_ERROR);
 			if ($cookie['route'] === 'logout') {
 				$logout = true;
 			}
 		}
-		
-		return $this->renderForm('security/login.html.twig', [
+		return $this->renderForm('login/index.html.twig', [
 			'last_username' => $lastUsername, 
 			'error' => $error,
 			'img_name' => 'images/' . $imgName,
@@ -67,11 +68,9 @@ class SecurityController extends AbstractController
 		]);
 	}
 
-    /**
-     * @Route("/logout", name="logout", methods={"GET"})
-     */
-    public function logout(): void
-    {
-    }
+    #[Route(path: '/logout', name: 'logout', methods: ['GET'])]
+	public function logout(Request $request) : void
+	{
+	}
 }
 ?>

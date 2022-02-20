@@ -7,69 +7,47 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use App\Entity\Project;
 use App\Entity\CodificationItem;
+use Fresh\DoctrineEnumBundle\Validator\Constraints as DoctrineAssert;
+use App\Entity\Enum\CodificationTypeEnum;
+use App\Repository\CodificationRepository;
 
-/**
- * @ORM\Entity(repositoryClass="App\Repository\CodificationRepository")
- */
-class Codification
+#[ORM\Entity(repositoryClass: CodificationRepository::class)]
+class Codification implements \Stringable
 {
-	
-	const FIXED   			= 1;
-	const LIST				= 2;
-	const REGEX	  		= 3;
-	const DEFAULT		   = self::LIST;
-	
-	/**
-	 * @ORM\Id()
-	 * @ORM\GeneratedValue()
-	 * @ORM\Column(type="integer")
-	 */
+	#[ORM\Id]
+	#[ORM\GeneratedValue]
+	#[ORM\Column(type: 'integer')]
 	private $id;
 
-	/**
-	 * @ORM\Column(type="string", length=100)
-	 */
+	#[ORM\Column(type: 'string', length: 100)]
 	private $name;
-	
-	/**
-	 * @ORM\Column(type="string", length=100)
-	 */
+
+	#[ORM\Column(type: 'string', length: 100)]
 	private $codename;
 
-	/**
-	 * @ORM\Column(type="smallint")
-	 */
+	#[ORM\Column(type: 'codification_type_enum')]
+	#[DoctrineAssert\EnumType(entity: CodificationTypeEnum::class)]
 	private $type;
-	
-	/**
-	 * @ORM\Column(type="string", length=10, nullable=true)
-	 */
+
+	#[ORM\Column(type: 'string', length: 10, nullable: true)]
 	private $value;
-	
-	/**
-	 * @ORM\Column(type="boolean")
-	 */
+
+	#[ORM\Column(type: 'boolean')]
 	private $isMandatory;
 
-	/**
-	 * @ORM\ManyToOne(targetEntity=Project::class, inversedBy="codifications", fetch="EAGER")
-	 * @ORM\JoinColumn(nullable=false)
-	 */
+	#[ORM\ManyToOne(targetEntity: Project::class, inversedBy: 'codifications', fetch: 'EAGER')]
+	#[ORM\JoinColumn(nullable: false)]
 	private $project;
 
-	/**
-	 * @ORM\OneToMany(targetEntity=CodificationItem::class, mappedBy="codification", orphanRemoval=true)
-	 */
+	#[ORM\OneToMany(targetEntity: CodificationItem::class, mappedBy: 'codification', orphanRemoval: true)]
 	private $codificationItems;
-	
-	/**
-	 * @ORM\OneToMany(targetEntity=CodificationValue::class, mappedBy="codification", orphanRemoval=true)
-	 */
+
+	#[ORM\OneToMany(targetEntity: CodificationValue::class, mappedBy: 'codification', orphanRemoval: true)]
 	private $codificationValues;
 
 	public function __construct()
 	{
-		$this->type = self::DEFAULT;
+		$this->type = CodificationTypeEnum::getDefaultValue();
 		$this->isMandatory = true;
 		$this->codificationItems = new ArrayCollection();
 	}
@@ -90,31 +68,32 @@ class Codification
 
 		return $this;
 	}
-	
+
 	public function getCodename(): ?string
 	{
 		return $this->codename;
 	}
-	
+
 	public function setCodename(string $codename): self
 	{
 		$this->codename = strtolower($codename);
 		
 		return $this;
 	}
-	
-	public function getType(): ?int
+
+	public function getType(): string
 	{
 		return $this->type;
 	}
-	
-	public function setType(int $type): self
+
+	public function setType(string $type): self
 	{
+		CodificationTypeEnum::assertValidChoice($type);
 		$this->type = $type;
-		
+
 		return $this;
 	}
-	
+
 	public function getValue(): ?string
 	{
 		return $this->value;
@@ -180,7 +159,7 @@ class Codification
 
 		return $this;
 	}
-	
+
 	/**
 	 * @return Collection|CodificationValue[]
 	 */
@@ -188,7 +167,7 @@ class Codification
 	{
 		return $this->codificationValues;
 	}
-	
+
 	public function addCodificationValue(CodificationValue $codificationValue): self
 	{
 		if (!$this->codificationValues->contains($codificationValue)) {
@@ -198,7 +177,7 @@ class Codification
 		
 		return $this;
 	}
-	
+
 	public function removeCodificationValue(CodificationValue $codificationValue): self
 	{
 		if ($this->codificationValues->contains($codificationValue)) {
@@ -210,36 +189,35 @@ class Codification
 		
 		return $this;
 	}
-	
+
 	public function getFullId(): string
 	{
 		return 'codification_' . $this->id;
 	}
-	
+
 	public function getFullCodename(): string
 	{
 		return 'codification.' . $this->codename;
 	}
-	
+
 	public function isFixed(): bool
 	{
-		return ($this->getType() == self::FIXED);
+		return $this->type === CodificationTypeEnum::FIXED;
 	}
-	
+
 	public function isList(): bool
 	{
-		return ($this->getType() == self::LIST);
+		return $this->type === CodificationTypeEnum::LIST;
 	}
-	
+
 	public function isRegex(): bool
 	{
-		return ($this->getType() == self::REGEX);
+		return $this->type === CodificationTypeEnum::REGEX;
 	}
-	
+
 	public function __toString(): string
 	{
 		return (string)$this->getName();
 	}
-
 }
 ?>

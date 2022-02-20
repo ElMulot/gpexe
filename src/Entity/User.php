@@ -8,80 +8,57 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use App\Repository\UserRepository;
+use Symfony\Component\Security\Core\User\EquatableInterface;
 
-/**
- * @ORM\Entity(repositoryClass="App\Repository\UserRepository")
- * @UniqueEntity(fields="email", message="An user with this email already exist.")
- */
-class User implements UserInterface, PasswordAuthenticatedUserInterface
+#[ORM\Entity(repositoryClass: UserRepository::class)]
+#[UniqueEntity(fields: 'email', message: 'An user with this email already exist.')]
+class User implements UserInterface, PasswordAuthenticatedUserInterface, EquatableInterface, \Stringable
 {
-	/**
-	 * @ORM\Id()
-	 * @ORM\GeneratedValue()
-	 * @ORM\Column(type="integer")
-	 */
+	#[ORM\Id]
+	#[ORM\GeneratedValue]
+	#[ORM\Column(type: 'integer')]
 	private $id;
 
-	/**
-	 * @ORM\Column(type="string", length=180, unique=true)
-	 */
+	#[ORM\Column(type: 'string', length: 180, unique: true)]
 	private $email;
 
 	/**
 	 * @var string The hashed password
-	 * @ORM\Column(type="string")
 	 */
-	private $password;
+	#[ORM\Column(type: 'string')]
+	private string $password;
 
-	/**
-	 * @ORM\Column(type="string", length=100)
-	 */
+	#[ORM\Column(type: 'string', length: 100)]
 	private $name;
 
-	/**
-	 * @ORM\Column(type="string", length=5)
-	 */
+	#[ORM\Column(type: 'string', length: 5)]
 	private $locale;
 
-	/**
-	 * @ORM\Column(type="boolean")
-	 */
+	#[ORM\Column(type: 'boolean')]
 	private $activated;
 
-	/**
-	 * @ORM\Column(type="datetime")
-	 */
+	#[ORM\Column(type: 'datetime')]
 	private $lastConnected;
 
-	/**
-	 * @ORM\ManyToOne(targetEntity=Profil::class)
-	 * @ORM\JoinColumn(nullable=false)
-	 */
+	#[ORM\ManyToOne(targetEntity: Profil::class)]
+	#[ORM\JoinColumn(nullable: false)]
 	private $profil;
 
-	/**
-	 * @ORM\ManyToOne(targetEntity=Company::class, inversedBy="users")
-	 * @ORM\JoinColumn(nullable=false)
-	 */
+	#[ORM\ManyToOne(targetEntity: Company::class, inversedBy: 'users')]
+	#[ORM\JoinColumn(nullable: false)]
 	private $company;
 
-	private $roles = [];
+	private array $roles = [];
 
-	/**
-	 * @ORM\ManyToMany(targetEntity=Project::class, mappedBy="users")
-	 */
+	#[ORM\ManyToMany(targetEntity: Project::class, mappedBy: 'users')]
 	private $projects;
 
-	/**
-	 * @ORM\OneToMany(targetEntity=View::class, mappedBy="user", orphanRemoval=true)
-	 */
+	#[ORM\OneToMany(targetEntity: View::class, mappedBy: 'user', orphanRemoval: true)]
 	private $views;
 
-	/**
-	 * @ORM\Column(type="datetime")
-	 */
+	#[ORM\Column(type: 'datetime')]
 	private $createdOn;
-
 
 	public function __construct()
 	{
@@ -118,7 +95,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 	{
 		return (string) $this->email;
 	}
-
+	
+    /**
+     * @deprecated since Symfony 5.3
+     */
 	public function getUsername(): string
 	{
 		return $this->getUserIdentifier();
@@ -221,7 +201,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
 		return $this;
 	}
-
+	
 	/**
 	 * @return Collection|Project[]
 	 */
@@ -290,6 +270,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 	public function getSalt()
 	{
 		// not needed when using the "bcrypt" algorithm in security.yaml
+		return null;
 	}
 
 	/**
@@ -304,13 +285,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 	public function getRoles(): array
 	{
 		if (empty($this->roles)) {
-			if ($this->getProfil()->getEditDocuments())		 $this->roles[] = 'ROLE_EDIT_DOCUMENTS';
-			if ($this->getProfil()->getIsController())		 	$this->roles[] = 'ROLE_CONTROLLER';
-			if ($this->getProfil()->getIsAdmin())			   $this->roles[] = 'ROLE_ADMIN';
-			if ($this->getProfil()->getIsSuperAdmin())		  $this->roles[] = 'ROLE_SUPER_ADMIN';
+			if ($this->getProfil()->getEditDocuments())		$this->roles[] = 'ROLE_EDIT_DOCUMENTS';
+			if ($this->getProfil()->getIsController())		$this->roles[] = 'ROLE_CONTROLLER';
+			if ($this->getProfil()->getIsAdmin())			$this->roles[] = 'ROLE_ADMIN';
+			if ($this->getProfil()->getIsSuperAdmin())		$this->roles[] = 'ROLE_SUPER_ADMIN';
 		}
 		$this->roles[] = 'ROLE_USER';
 		return array_unique($this->roles);
+	}
+
+	public function isEqualTo(UserInterface $user) {
+		return $this->activated;
 	}
 
 	public function __toString(): string

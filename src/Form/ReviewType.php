@@ -13,11 +13,8 @@ use App\Repository\VisaRepository;
 class ReviewType extends AbstractType
 {
 	
-	private $visaRepository;
-	
-	public function __construct(VisaRepository $visaRepository)
+	public function __construct(private readonly VisaRepository $visaRepository)
 	{
-		$this->visaRepository = $visaRepository;
 	}
 	
 	public function buildForm(FormBuilderInterface $builder, array $options)

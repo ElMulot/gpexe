@@ -4,28 +4,21 @@ namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use App\Entity\Metadata;
+use App\Repository\MetadataItemRepository;
 
-/**
- * @ORM\Entity(repositoryClass="App\Repository\MetadataItemRepository")
- */
-class MetadataItem
+#[ORM\Entity(repositoryClass: MetadataItemRepository::class)]
+class MetadataItem implements \Stringable
 {
-	/**
-	 * @ORM\Id()
-	 * @ORM\GeneratedValue()
-	 * @ORM\Column(type="integer")
-	 */
+	#[ORM\Id]
+	#[ORM\GeneratedValue]
+	#[ORM\Column(type: 'integer')]
 	private $id;
 
-	/**
-	 * @ORM\Column(type="string", length=255)
-	 */
+	#[ORM\Column(type: 'string', length: 255)]
 	private $value;
 
-	/**
-	 * @ORM\ManyToOne(targetEntity=Metadata::class, inversedBy="metadataItems")
-	 * @ORM\JoinColumn(nullable=false)
-	 */
+	#[ORM\ManyToOne(targetEntity: Metadata::class, inversedBy: 'metadataItems')]
+	#[ORM\JoinColumn(nullable: false)]
 	private $metadata;
 
 	public function getId(): ?int

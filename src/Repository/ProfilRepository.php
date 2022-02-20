@@ -31,10 +31,6 @@ class ProfilRepository extends RepositoryService
 		;
 	}
 	
-	/**
-	 * @return int
-	 *
-	 */
 	public function getCountAdminProfil(int $id): int
 	{
 		$qb = $this->newQB('p');

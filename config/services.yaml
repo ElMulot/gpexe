@@ -8,6 +8,7 @@ parameters:
     webmaster: 'Nicolas VEDEL'
     version: 0.5.8
     date: 29-09-2021
+    maintenance_mode: false
     disable_log: true
     uploads_directory: 'uploads'
     container.dumper.inline_factories: true
@@ -81,6 +82,10 @@ services:
 
     App\EventSubscriber\LocaleSubscriber:
         arguments: ['%kernel.default_locale%']
+
+    App\EventSubscriber\MaintenanceSubscriber:
+        arguments:
+            $maintenanceMode: '%maintenance_mode%'
  
     App\Service\ParseService:
         arguments:

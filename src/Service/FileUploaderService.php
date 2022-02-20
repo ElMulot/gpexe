@@ -8,13 +8,8 @@ use Symfony\Component\String\Slugger\SluggerInterface;
 
 class FileUploaderService
 {
-    private $targetDirectory;
-    private $slugger;
-
-    public function __construct($targetDirectory, SluggerInterface $slugger)
+    public function __construct(private $targetDirectory, private readonly SluggerInterface $slugger)
     {
-        $this->targetDirectory = $targetDirectory;
-        $this->slugger = $slugger;
     }
 
     public function upload(?UploadedFile $file): string
@@ -29,7 +24,7 @@ class FileUploaderService
 
         try {
             $file->move($this->getTargetDirectory(), $fileName);
-        } catch (FileException $e) {
+        } catch (FileException) {
             throw new \Exception('Erreur : impossible d\'écrire sur le serveur');
         }
 

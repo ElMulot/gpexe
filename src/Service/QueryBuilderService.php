@@ -12,7 +12,7 @@ class QueryBuilderService extends QueryBuilder
 	
 	private $uid;
 	
-	private $aliases = [];
+	private array $aliases = [];
 	
 	public function addSelect($select = null)
 	{

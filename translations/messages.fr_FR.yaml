@@ -42,16 +42,14 @@ Invalid credentials. : Identifiants invalides
 #Home
 GPExe: GPExe
 Home: Accueil
-Project: Projet
+Projects: Projets
 Admin: Administration
-Company: Entreprise
-User: Utilisateur
-Profil: Profil
 Account: Mon compte
 Log: Journal
 Wiki: Wiki
 Report bug: Signaler un bug
 About: A propos
+Test: Test
 Exit impersonation: Sortir de l'impersonation
 Logout: Se déconnecter
 
@@ -66,6 +64,8 @@ Confirm new password: Confirmation du nouveau mot de passe
 Password changed: Mot de passe changé
 
 #Company
+Company: Entreprise
+Codename: Nom de code
 Type: Type
 Priority: Priorité
 Main contractor: Entrepreneur principal
@@ -73,37 +73,32 @@ Sub-contractor: Sous-traitant
 Supplier: Fournisseur
 
 #Profil
-Profils: Profils
-Edit progress rules: Editer les règles d'avancement
-Edit references: Editer les réferences
-Edit metadatas: Editer les metadonnées
-Edit visas: Editer les visas
+Profil: Profil
+Edit documents: Editer les documents
+Is controller: Est contrôleur
 Is admin: Est admin
+Is super admin: Est super admin
 
 #User
-Edit user: Editer l'utilisateur
-Delete user: Supprimer l'utilisateur
-The last entry with Admin rights cannot be deleted: La dernière entrée avec des droits d'administrateur ne peut être supprimée
+User: Utilisateur
+The last profil with Admin rights cannot be deleted: Le dernier profil avec des droits d'administrateur ne peut être supprimée
 Switch: Basculer
 
 #Codification
-Codification for: Codification pour
 Codification: Codification
+Codifications for: Codifications pour
 Value: Valeur
 Is list: Est une liste
 Is mandatory: Est obligatoire
 List for the code: Liste pour le code
 
 #Metadata
-Metadatas: Metadonnées
+Metadata: Metadonnée
 Metadatas for: Metadonnées pour
 List for the metadata: Liste pour la metadonnée
 
 #Project
-Projects: Projets
-New project: Nouveau projet
-Edit project: Editer le projet
-Delete project: Supprimer le projet
+Project: Projet
 Main: Principal
 Warning limits: Limites sur les alertes
 Miscellaneous: Divers
@@ -120,14 +115,11 @@ Check danger limit: Seuil d'alerte majeure en vérification
 Number of working days delay before showing the line in red in the dashboard and in the documents list for documents to be checked.: Nombre de jours ouvrés de retard avant d'afficher la ligne en rouge sur le panneau d'accueil et dans la liste des documents pour les documents qui sont à vérifier.
 New version time: Délai pour une nouvelle révision
 Number of working days allowed to produce a new revision of a document.: Nombre de jours ouvrés autorisés pour produire une nouvelle révision d'un document.
-Users: Utilisateurs
 Project admin: Administration du projet
 Main contractors: Entrepreneurs principaux
-Companies: Entreprises
 
 #Serie
 Serie: Serie
-Series: Series
 Series for: Series pour
 Serie name: Nom de la série
 Manage series: Gestion des séries
@@ -139,7 +131,7 @@ Serie updated: Serie mise à jour
 Serie deleted: Serie supprimée
 
 #Document
-Documents: Documents
+Document: Document
 Reference: Reference
 Document detail: Détails sur le document
 Details: Détails
@@ -156,8 +148,7 @@ Document updated: Document mis à jour
 The document has been successfully moved: Le document a été déplacé avec succès
 
 #Version
-Version: Révision
-Versions: Révisions
+Version: Revision
 Initial scheduled date: Date initiale planifiée
 Scheduled date: Date planifiée
 Delivery date: Date de remise
@@ -185,8 +176,7 @@ New version: Nouvelle révision
 New version created: Nouvelle révision créée
 
 #Status
-Status: Status
-Statuses: Status
+Status: Statut
 Statuses for: Status pour
 Status value: Valeur du status
 Status type: Type de status
@@ -202,13 +192,11 @@ No visa yet: Pas encore de visa
 
 #Visa
 Visa: Visa
-Visas: Visas
 Visas for: Visas pour
 Revision required: Révision requise
 
 #View
-Views: Vues
-New view: Nouvelle vue
+View: Vue
 New view created: Nouvelle vue créée
 View updated: Vue mise à jour
 View deleted: Vue supprimée
@@ -217,7 +205,6 @@ Is shared: Partagée
 
 #Programs
 Program: Programme
-Programs: Programmes
 Programs for: Programmes pour
 Read: Lecture
 Write: Ecriture

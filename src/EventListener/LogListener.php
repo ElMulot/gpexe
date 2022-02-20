@@ -5,21 +5,16 @@ namespace App\EventListener;
 use Doctrine\ORM\Event\OnFlushEventArgs;
 use Symfony\Component\Security\Core\Security;
 use App\Entity\ChangeSet;
+use App\Entity\Enum\LogTypeEnum;
 use App\Entity\Log;
 
 class LogListener
 {
 
-	private $security;
-	
-	private $disableLog;
-	
 	private $entityManager;
 		
-	public function __construct(Security $security, string $disableLog)
+	public function __construct(private readonly Security $security, private readonly string $disableLog)
 	{
-		$this->security = $security;
-		$this->disableLog = $disableLog;
 	}
 	
 	public function onFlush(OnFlushEventArgs $args)
@@ -37,7 +32,7 @@ class LogListener
 				continue;
 			}
 			
-			$log = $this->setLog(Log::INSERT, $entity);
+			$log = $this->setLog(LogTypeEnum::INSERT, $entity);
 			
 			foreach ($uow->getEntityChangeSet($entity) as $field => $values) {
 				$changeSet = new ChangeSet();
@@ -59,7 +54,7 @@ class LogListener
 				continue;
 			}
 			
-			$log = $this->setLog(Log::UPDATE, $entity);
+			$log = $this->setLog(LogTypeEnum::UPDATE, $entity);
 			
 			foreach ($uow->getEntityChangeSet($entity) as $field => $values) {
 				$changeSet = new ChangeSet();
@@ -83,7 +78,7 @@ class LogListener
 				continue;
 			}
 			
-			$log = $this->setLog(Log::DELETE, $entity);
+			$log = $this->setLog(LogTypeEnum::DELETE, $entity);
 			$this->entityManager->persist($log);
 			$uow->computeChangeSet($this->entityManager->getClassMetadata(Log::class), $log);
 		}
@@ -93,7 +88,7 @@ class LogListener
 	{
 		$log = new Log();
 		$log->setType($type);
-		$reflect = new \ReflectionClass(get_class($entity));
+		$reflect = new \ReflectionClass($entity::class);
 		$log
 			->setEntity($reflect->getShortName())
 			->setEntityId($entity->getId())

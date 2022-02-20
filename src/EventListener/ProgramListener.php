@@ -5,6 +5,7 @@ namespace App\EventListener;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\Event\LifecycleEventArgs;
 use App\Entity\Automation;
+use App\Entity\Enum\ProgramTypeEnum;
 use App\Entity\Program;
 use App\Repository\AutomationRepository;
 use App\Repository\StatusRepository;
@@ -14,13 +15,10 @@ use App\Helpers\Date;
 class ProgramListener
 {
 	
-	private EntityManagerInterface $entityManager;
+	private readonly StatusRepository $statusRepository;
 	
-	private StatusRepository $statusRepository;
-	
-	public function __construct(EntityManagerInterface $entityManager, AutomationRepository $automationRepository)
+	public function __construct(private readonly EntityManagerInterface $entityManager, AutomationRepository $automationRepository)
 	{
-		$this->entityManager = $entityManager;
 		$this->automationRepository = $automationRepository;
 	}
 	
@@ -28,7 +26,7 @@ class ProgramListener
 	{
 		//create automation
 		switch ($program->getType()) {
-			case Program::TASK:
+			case ProgramTypeEnum::TASK:
 				$frequency = $program->getParsedCode('frequency') ?? 7;
 				$nextRun = (new Date('now'))->add('P' . $frequency . 'D');
 				$automation = new Automation;
@@ -41,7 +39,7 @@ class ProgramListener
 				$event->getObjectManager()->flush();
 				break;
 				
-			case Program::PROGRESS:
+			case ProgramTypeEnum::PROGRESS:
 				$frequency = $program->getParsedCode('frequency') ?? 7;
 				$nextRun = (new Date('now'))->add('P' . $frequency . 'D');
 				$automation = new Automation;
@@ -60,7 +58,7 @@ class ProgramListener
 	{
 		//update automation
 		switch ($program->getType()) {
-			case Program::TASK:
+			case ProgramTypeEnum::TASK:
 				$frequency = $program->getParsedCode('frequency') ?? 7;
 				$nextRun = (new Date('now'))->add('P' . $frequency . 'D');
 				
@@ -74,7 +72,7 @@ class ProgramListener
 				}
 				break;
 				
-			case Program::PROGRESS:
+			case ProgramTypeEnum::PROGRESS:
 				$frequency = $program->getParsedCode('frequency') ?? 7;
 				$nextRun = (new Date('now'))->add('P' . $frequency . 'D');
 				
@@ -94,14 +92,14 @@ class ProgramListener
 	{
 		//delete automation
 		switch ($program->getType()) {
-			case Program::TASK:
+			case ProgramTypeEnum::TASK:
 				if ($automation = $this->automationRepository->getAutomationByCommandAndByArguments('app:task', ['id' => $program->getId()])) {
 					$event->getObjectManager()->remove($automation);
 					$event->getObjectManager()->flush();
 				}
 				break;
 				
-			case Program::PROGRESS:
+			case ProgramTypeEnum::PROGRESS:
 				if ($automation = $this->automationRepository->getAutomationByCommandAndByArguments('app:progress', ['id' => $program->getId()])) {	
 					$event->getObjectManager()->remove($automation);
 					$event->getObjectManager()->flush();

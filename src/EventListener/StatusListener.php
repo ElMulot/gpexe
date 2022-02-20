@@ -10,14 +10,8 @@ use App\Repository\StatusRepository;
 class StatusListener
 {
 	
-	private EntityManagerInterface $entityManager;
-	
-	private StatusRepository $statusRepository;
-	
-	public function __construct(EntityManagerInterface $entityManager, StatusRepository $statusRepository)
+	public function __construct(private readonly EntityManagerInterface $entityManager, private readonly StatusRepository $statusRepository)
 	{
-		$this->entityManager = $entityManager;
-		$this->statusRepository = $statusRepository;
 	}
 	
 	public function setIsDefault(Status $status, LifecycleEventArgs $event)

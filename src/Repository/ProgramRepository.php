@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Enum\ProgramTypeEnum;
 use App\Entity\Program;
 use App\Entity\Project;
 use App\Entity\Serie;
@@ -18,12 +19,9 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 class ProgramRepository extends RepositoryService
 {
 	
-	private $router;
-	
-	public function __construct(ManagerRegistry $registry, UrlGeneratorInterface $router)
+	public function __construct(ManagerRegistry $registry, private readonly UrlGeneratorInterface $router)
 	{
 		parent::__construct($registry, Program::class);
-		$this->router = $router;
 	}
 	
 	/**
@@ -65,7 +63,7 @@ class ProgramRepository extends RepositoryService
 		return $qb
 			->andWhere($qb->eq('p.project', $project))
 			->andWhere($qb->eq('p.enabled', true))
-			->andWhere($qb->eq('p.type', Program::PROGRESS))
+			->andWhere($qb->eq('p.type', ProgramTypeEnum::PROGRESS))
 			->getQuery()
 			->getResult()
 		;
@@ -82,7 +80,7 @@ class ProgramRepository extends RepositoryService
 			->select('p.id, p.name')
 			->andWhere($qb->eq('p.project', $project))
 			->andWhere($qb->eq('p.enabled', true))
-			->andWhere($qb->eq('p.type', Program::PROGRESS))
+			->andWhere($qb->eq('p.type', ProgramTypeEnum::PROGRESS))
 			->getQuery()
 			->getArrayResult()
 		;
@@ -99,7 +97,7 @@ class ProgramRepository extends RepositoryService
 	
 	
 	/**
-	 * @return Program[]
+	 * @return Program
 	 *
 	 */
 	public function getProgramById(int $id)

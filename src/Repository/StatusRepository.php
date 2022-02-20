@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Enum\StatusTypeEnum;
 use App\Entity\Project;
 use App\Entity\Status;
 use App\Service\RepositoryService;
@@ -45,16 +46,12 @@ class StatusRepository extends RepositoryService
 		return $qb
 			->select('s.id')
 			->andWhere($qb->eq('s.project', $project))
-			->andWhere($qb->neq('s.type', Status::CANCEL))
+			->andWhere($qb->neq('s.type', StatusTypeEnum::CANCEL))
 			->getQuery()
 			->getResult()
 		;
 	}
 	
-	/**
-	 * @return int
-	 *
-	 */
 	public function getStatusesCount(Project $project): int
 	{
 		$qb = $this->newQb('s');

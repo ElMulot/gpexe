@@ -17,29 +17,10 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class ProgressCommand extends Command
 {
-	private $entityManager;
-	
-	private $automationRepository;
-	
-	private $programRepository;
-	
-	private $progressRepository;
-	
-	private $serieRepository;
-	
-	private $programService;
-	
 	protected static $defaultName = 'app:progress';
 	
-	public function __construct(EntityManagerInterface $entityManager, AutomationRepository $automationRepository, ProgramRepository $programRepository, ProgressRepository $progressRepository, SerieRepository $serieRepository, ProgramService $programService)
+	public function __construct(private readonly EntityManagerInterface $entityManager, private readonly AutomationRepository $automationRepository, private readonly ProgramRepository $programRepository, private readonly ProgressRepository $progressRepository, private readonly SerieRepository $serieRepository, private readonly ProgramService $programService)
 	{
-		$this->entityManager = $entityManager;
-		$this->automationRepository = $automationRepository;
-		$this->programRepository = $programRepository;
-		$this->progressRepository = $progressRepository;
-		$this->serieRepository = $serieRepository;
-		$this->programService = $programService;
-		
 		parent::__construct();
 	}
 	
@@ -94,7 +75,7 @@ class ProgressCommand extends Command
 			$automation->setNextRun($nextRun);
 			$this->entityManager->persist($automation);
 			$this->entityManager->flush();
-		} catch (\Exception $e) {
+		} catch (\Exception) {
 			return Command::FAILURE;
 		}
 		

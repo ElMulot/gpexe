@@ -12,7 +12,7 @@
 
 {% block content %}
 	<div class="container-lg">
-		{{ nav.turbo('form_content', [
+		{% set items = [
 			{
 				'name': "Main"|trans,
 				'href': path('personal'),
@@ -22,6 +22,7 @@
 				'name': "Change password"|trans,
 				'href': path('change_password'),
 			}
-		]) }}
+		] %}
+		{{ nav.turbo('account_tab', items) }}
 	</div>
 {% endblock %}

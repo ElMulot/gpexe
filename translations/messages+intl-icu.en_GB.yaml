@@ -1,15 +1,94 @@
-delay: >-
-      {count, plural,
-         one   {# day of delay}
-         other {# days of delay}
-      }
+list:
+    program: Programs
+    codification: Codifications
+    codificationItem: Entries
+    codificationValue: Entries
+    company: Companies
+    document: Documents
+    metadata: Metadatas
+    metadataItem: Entries
+    metadataValue: Entries
+    profil: Profils
+    project: Projects
+    serie: Series
+    status: Statuses
+    user: Users
+    version: Versions
+    visa: Visas
+    view: Views
 
-updated:
-   version: >-
-      {count, plural,
-         one   {Version updated}
-         other {Versions updated}
-      }
+new:
+    program: New program
+    codification: New codification
+    codificationItem: New entry
+    codificationValue: New entry
+    company: New company
+    document: New document
+    metadata: New metadata
+    metadataItem: New entry
+    metadataValue: New entry
+    profil: New profil
+    project: New project
+    serie: New serie
+    status: New status
+    user: New user
+    version: New version
+    visa: New visa
+    view: New view
+
+edit:
+    program: Edit program
+    codification: Edit codification
+    codificationItem: Edit entry
+    codificationValue: Edit entry
+    company: Edit company
+    document: Edit
+        {count, plural,
+            one   {document}
+            other {documents}
+        }
+    metadata: Edit la métadonnée
+    metadataItem: Edit entry
+    metadataValue: Edit entry
+    profil: Edit profil
+    project: Edit project
+    serie: Edit serie
+    status: Edit status
+    user: Edit user
+    version: Edit
+        {count, plural,
+            one   {version}
+            other {versions}
+        }
+    visa: Edit visa
+    view: Edit view
+
+delete:
+    program: Delete program
+    codification: Delete codification
+    codificationItem: Delete entry
+    codificationValue: Delete entry
+    company: Delete company
+    document: Delete
+        {count, plural,
+            one   {document}
+            other {documents}
+        }
+    metadata: Delete la métadonnée
+    metadataItem: Delete entry
+    metadataValue: Delete entry
+    profil: Delete profil
+    project: Delete project
+    serie: Delete serie
+    status: Delete status
+    user: Delete user
+    version: Delete
+        {count, plural,
+            one   {version}
+            other {versions}
+        }
+    visa: Delete visa
+    view: Delete view
 
 confirm:
     program: Confirm deletion of program
@@ -38,7 +117,18 @@ confirm:
     visa: Confirm deletion of visa
     view: Confirm deletion of view
 
+delay: >-
+      {count, plural,
+         one   {# day of delay}
+         other {# days of delay}
+      }
 
+updated:
+   version: >-
+      {count, plural,
+         one   {Version updated}
+         other {Versions updated}
+      }
       
 deleted:
     document: >-
@@ -58,3 +148,30 @@ notEmpty:
 
 alreadyExist:
     reference: 'The reference "{reference}" already exist'
+
+alert:
+    prod:
+        delayed: Certains documents devant être produits sont en retard
+        danger: >-
+            {count, plural,
+                one   {Certains documents doivent être produits dans # jour}
+                other {Certains documents doivent être produits dans les # jours}
+            }
+        warning: >-
+            {count, plural,
+                one   {Certains documents doivent être produits dans # jour}
+                other {Certains documents doivent être produits dans les # jours}
+            }
+        info: >-
+            {count, plural,
+                one   {Certains documents sont à produire dans plus de # jour}
+                other {Certains documents sont à produire dans plus de # jours}
+            }
+    check:
+        danger: Certains documents devant être vérifiés sont très en retard
+        warning: Certains documents devant être vérifiés sont en retard
+        info: >-
+            {count, plural,
+                one   {Certains documents sont à vérifier dans # jour}
+                other {Certains documents sont à vérifier dans les # jours}
+            }

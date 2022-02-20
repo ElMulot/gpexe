@@ -1,11 +1,17 @@
+{% set title = 'new.' ~ form.vars.value|short_name %}
+
 {% extends 'modal/std_modal.html.twig' %}
+
 {% form_theme form 'form/layout.html.twig' %}
 
 {% block modal_body %}
-
 	{{ encore_entry_link_tags('form') }}
 	
-	{{ form(form) }}
+	{% if app.request.headers.has('Turbo-Stream-Replace') is same as (true) %}
+		{{ form(form, {'attr': {'data-turbo-stream-replace': app.request.headers.get('Turbo-Stream-Replace') }}) }}
+	{% else %}
+		{{ form(form) }}
+	{% endif %}
 
 {% endblock %}
 

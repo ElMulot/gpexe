@@ -145,7 +145,7 @@
 	<div class="{{ attr.class }}">
 		{% set attr = attr|filter((v, k) => k != 'class') %}
 		<input id="{{ id }}" type="checkbox" class="custom-control-input mt-2" {{ block('widget_attributes') }}{% if required  %} data-required="true"{% endif %}{% if checked %} checked="checked"{% endif %}{% if value is defined %} value="{{ value }}"{% endif %} />
-		<label class="custom-control-label mt-2" for="{{ id }}">{{ label }}</label>
+		<label class="custom-control-label mt-2" for="{{ id }}">{{ translation_domain is same as(false) ? label : label|trans({}, translation_domain) }}</label>
 	</div>
 {% endblock checkbox_widget %}
 
@@ -154,7 +154,7 @@
 	<div class="{{ attr.class }}">
 		{% set attr = attr|filter((v, k) => k != 'class') %}
 		<input id="{{ id }}" type="radio" class="custom-control-input mt-2" {{ block('widget_attributes') }}{% if required  %} data-required="true"{% endif %}{% if checked %} checked="checked"{% endif %}{% if value is defined %} value="{{ value }}"{% endif %}{% if checked %} checked="checked"{% endif %} />
-		<label class="custom-control-label mt-2" for="{{ id }}">{{ label }}</label>
+		<label class="custom-control-label mt-2" for="{{ id }}">{{ translation_domain is same as(false) ? label : label|trans({}, translation_domain) }}</label>
 	</div>
 {% endblock radio_widget %}
 

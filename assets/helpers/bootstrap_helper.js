@@ -34,10 +34,9 @@ const BsCollapse = class {
 			e.classList.add('collapse');
 		}
 
-		renderComponent(Loading).mount(e);
 		let bsCollapse = new Collapse(e, { toggle: false });
 		bsCollapse.show();
-		e.innerHTML = "Loading";
+		e.innerHTML = "";
 		return true;
 	}
 

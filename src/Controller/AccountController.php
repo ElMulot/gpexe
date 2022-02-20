@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\User;
 use App\Form\AccountType;
 use App\Form\ChangePasswordType;
 use Symfony\Component\HttpFoundation\Request;
@@ -9,85 +10,85 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
-
+use Doctrine\Persistence\ManagerRegistry;
+use Symfony\UX\Turbo\Stream\TurboStreamResponse;
 
 class AccountController extends AbstractController
 {
 	
-	private $passwordHasher;
-	
-	public function __construct(UserPasswordHasherInterface $passwordHasher)
+	public function __construct(private readonly UserPasswordHasherInterface $passwordHasher, private readonly ManagerRegistry $doctrine)
 	{
-		$this->passwordHasher = $passwordHasher;
 	}
 	
-	/**
-	 * @Route("/account", name="account")
-	 */
-	public function index(Request $request): Response
+	#[Route(path: '/account', name: 'account')]
+	public function index(Request $request) : Response
 	{
 		return $this->renderForm('main/account.html.twig');
 	}
 
-	/**
-	 * @Route("/account/personal", name="personal")
-	 */
-	public function personal(Request $request): Response
+	#[Route(path: '/account/personal', name: 'personal')]
+	public function personal(Request $request) : Response
 	{
 		return $this->renderForm('main/account/_personal_infos.html.twig', [
 			'user' => $this->getUser()
 		]);
 	}
 	
-	/**
-	 * @Route("/account/edit", name="account_edit")
-	 */
-	public function edit(Request $request): Response
+	#[Route(path: '/account/edit', name: 'account_edit')]
+	public function edit(Request $request) : Response
 	{
 		$user = $this->getUser();
 		$form = $this->createForm(AccountType::class, $user);
 		$form->handleRequest($request);
-		
+
 		if ($form->isSubmitted() && $form->isValid()) {
-			$entityManager = $this->getDoctrine()->getManager();
+			$entityManager = $this->doctrine->getManager();
 			$entityManager->persist($user);
 			$entityManager->flush();
 			$request->getSession()->set('_locale', $user->getLocale());
 			
 			$this->addFlash('success', 'Datas updated');
-			return $this->redirectToRoute('account');
+
+			return $this->renderForm('generic/success.stream.html.twig', [
+				'redirect' => $this->generateUrl('personal'),
+			], new TurboStreamResponse());
+
 		} else {
-			return $this->renderForm('generic/form.html.twig', [
-				'route_back' => $this->generateUrl('account'),
+
+			return $this->renderForm('generic/edit.html.twig', [
 				'form' => $form
 			]);
+
 		}
 	}
 	
-	/**
-	 * @Route("/account/changePassword", name="change_password")
-	 */
-	public function changePassword(Request $request): Response
+	#[Route(path: '/account/change_password', name: 'change_password')]
+	public function changePassword(Request $request) : Response
 	{
 		$form = $this->createForm(ChangePasswordType::class);
 		$form->handleRequest($request);
-		
 		if ($form->isSubmitted() && $form->isValid()) {
 			
 			$changePassword = $form->getData();
 			$user = $this->getUser();
 			$user->setPassword($this->passwordHasher->hashPassword($user, $changePassword['new_password']));
-			$entityManager = $this->getDoctrine()->getManager();
+			$entityManager = $this->doctrine->getManager();
 			$entityManager->persist($user);
 			$entityManager->flush();
 			
 			$this->addFlash('success', 'Password changed');
+
 			return $this->redirectToRoute('personal');
 		} else {
-			return $this->renderForm('form/partials/_content.html.twig', [
+			return $this->renderForm('main/account/_change_password.html.twig', [
 				'form' => $form,
 			]);
 		}
+	}
+
+	public function getUser(): User
+	{
+		return parent::getUser();
 	}
 }
 ?>

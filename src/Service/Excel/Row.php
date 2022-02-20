@@ -13,17 +13,8 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 class Row
 {
 	
-	private $_row;
-	
-	private $rowAddress;
-	
-	private $sheet;
-	
-	public function __construct($_row, int $rowAddress, Sheet $sheet)
+	public function __construct(private $_row, private readonly int $rowAddress, private readonly Sheet $sheet)
 	{
-		$this->_row = $_row;
-		$this->sheet = $sheet;
-		$this->rowAddress = $rowAddress;
 	}
 	
 	public function add(): self

@@ -3,6 +3,7 @@
 namespace App\Form;
 
 use App\Entity\Codification;
+use App\Entity\Enum\CodificationTypeEnum;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -17,11 +18,7 @@ class CodificationType extends AbstractType
 		$builder
 			->add('name')
 			->add('type', ChoiceType::class, [
-				'choices' => [
-					'Fix' => Codification::FIXED,
-					'List' => Codification::LIST,
-					'Text' => Codification::REGEX,
-				],
+				'choices' => CodificationTypeEnum::getChoices(),
 				'expanded' => true,
 				'disabled' => ($builder->getData()->getId() != null),
 			])

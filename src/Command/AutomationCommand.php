@@ -15,29 +15,10 @@ use Symfony\Component\HttpKernel\KernelInterface;
 
 class AutomationCommand extends Command
 {
-		private $entityManager;
+		protected static $defaultName = 'app:cron';
 
-	private $kernel;
-
-	private $automationRepository;
-
-	private $codificationValueRepository;
-
-	private $metadataValueRepository;
-
-	private $programRepository;
-
-	protected static $defaultName = 'app:cron';
-
-	public function __construct(EntityManagerInterface $entityManager, KernelInterface $kernel, AutomationRepository $automationRepository, CodificationValueRepository $codificationValueRepository, MetadataValueRepository $metadataValueRepository, ProgramRepository $programRepository)
+	public function __construct(private readonly EntityManagerInterface $entityManager, private readonly KernelInterface $kernel, private readonly AutomationRepository $automationRepository, private readonly CodificationValueRepository $codificationValueRepository, private readonly MetadataValueRepository $metadataValueRepository, private readonly ProgramRepository $programRepository)
 	{
-		$this->entityManager = $entityManager;
-		$this->kernel = $kernel;
-		$this->automationRepository = $automationRepository;
-		$this->codificationValueRepository = $codificationValueRepository;
-		$this->metadataValueRepository = $metadataValueRepository;
-		$this->programRepository = $programRepository;
-
 		parent::__construct();
 	}
 

@@ -6,18 +6,12 @@ namespace App\Service\Code;
 abstract class AbstractNode
 {
 	
-	const CODE	= 1;
-	const FIELD = 2;
-	const EXCEL = 3;
+	final const CODE	= 1;
+	final const FIELD = 2;
+	final const EXCEL = 3;
 	
-	protected $type;
-	
-	protected $value;
-	
-	public function __construct(int $type, string $value)
+	public function __construct(protected int $type, protected string $value)
 	{
-		$this->type = $type;
-		$this->value = $value;
 	}
 	
 	public function getType(): int

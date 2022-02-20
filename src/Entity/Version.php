@@ -2,94 +2,66 @@
 
 namespace App\Entity;
 
+use App\Entity\Enum\MetadataTypeEnum;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use App\Helpers\Date;
 use Spatie\Regex\Regex;
+use App\Repository\VersionRepository;
 
-/**
- * @ORM\Entity(repositoryClass="App\Repository\VersionRepository")
- */
-class Version
+#[ORM\Entity(repositoryClass: VersionRepository::class)]
+class Version implements \Stringable
 {
-	/**
-	 * @ORM\Id()
-	 * @ORM\GeneratedValue()
-	 * @ORM\Column(type="integer")
-	 */
+	#[ORM\Id]
+	#[ORM\GeneratedValue]
+	#[ORM\Column(type: 'integer')]
 	private $id;
 
-	/**
-	 * @ORM\Column(type="string", length=100)
-	 */
+	#[ORM\Column(type: 'string', length: 100)]
 	private $name;
-	
-	/**
-	 * @ORM\Column(type="boolean")
-	 */
+
+	#[ORM\Column(type: 'boolean')]
 	private $isRequired;
-	
-	/**
-	 * @ORM\Column(type="date", nullable=true))
-	 */
+
+	#[ORM\Column(type: 'date', nullable: true)]
 	private $initialScheduledDate;
-	
-	/**
-	 * @ORM\Column(type="date", nullable=true)
-	 */
+
+	#[ORM\Column(type: 'date', nullable: true)]
 	private $scheduledDate;
-	
-	/**
-	 * @ORM\Column(type="date", nullable=true)
-	 */
+
+	#[ORM\Column(type: 'date', nullable: true)]
 	private $deliveryDate;
-	
-	/**
-	 * @ORM\ManyToOne(targetEntity=Status::class)
-	 * @ORM\JoinColumn(nullable=false)
-	 */
+
+	#[ORM\ManyToOne(targetEntity: Status::class)]
+	#[ORM\JoinColumn(nullable: false)]
 	private $status;
 
-	/**
-	 * @ORM\ManyToMany(targetEntity=MetadataItem::class, cascade={"persist"})
-	 * @ORM\JoinTable(name="version_metadata_item")
-	 */
+	#[ORM\ManyToMany(targetEntity: MetadataItem::class, cascade: ['persist'])]
+	#[ORM\JoinTable(name: 'version_metadata_item')]
 	private $metadataItems;
-	
-	/**
-	 * @ORM\ManyToMany(targetEntity=MetadataValue::class, cascade={"persist"})
-	 * @ORM\JoinTable(name="version_metadata_value")
-	 */
+
+	#[ORM\ManyToMany(targetEntity: MetadataValue::class, cascade: ['persist'])]
+	#[ORM\JoinTable(name: 'version_metadata_value')]
 	private $metadataValues;
 
-	/**
-	 * @ORM\ManyToOne(targetEntity=User::class)
-	 * @ORM\JoinColumn(onDelete="SET NULL")
-	 */
+	#[ORM\ManyToOne(targetEntity: User::class)]
+	#[ORM\JoinColumn(onDelete: 'SET NULL')]
 	private $writer;
 
-	/**
-	 * @ORM\ManyToOne(targetEntity=User::class)
-	 * @ORM\JoinColumn(onDelete="SET NULL")
-	 */
+	#[ORM\ManyToOne(targetEntity: User::class)]
+	#[ORM\JoinColumn(onDelete: 'SET NULL')]
 	private $checker;
 
-	/**
-	 * @ORM\ManyToOne(targetEntity=User::class)
-	 * @ORM\JoinColumn(onDelete="SET NULL")
-	 */
+	#[ORM\ManyToOne(targetEntity: User::class)]
+	#[ORM\JoinColumn(onDelete: 'SET NULL')]
 	private $approver;
 
-	/**
-	 * @ORM\ManyToOne(targetEntity=Document::class, inversedBy="versions", cascade={"persist"})
-	 * @ORM\JoinColumn(nullable=false)
-	 */
+	#[ORM\ManyToOne(targetEntity: Document::class, inversedBy: 'versions', cascade: ['persist'])]
+	#[ORM\JoinColumn(nullable: false)]
 	private $document;
 
-	/**
-	 * @ORM\OneToMany(targetEntity=Review::class, mappedBy="version", orphanRemoval=true, cascade={"persist"})
-	 */
+	#[ORM\OneToMany(targetEntity: Review::class, mappedBy: 'version', orphanRemoval: true, cascade: ['persist'])]
 	private $reviews;
 
 	public function __construct()
@@ -116,12 +88,12 @@ class Version
 
 		return $this;
 	}
-	
+
 	public function getIsRequired(): ?bool
 	{
 		return $this->isRequired;
 	}
-	
+
 	public function setIsRequired(bool $isRequired): self
 	{
 		$this->isRequired = $isRequired;
@@ -151,12 +123,12 @@ class Version
 		
 		return $this;
 	}
-	
+
 	public function getDeliveryDate(): ?\DateTimeInterface
 	{
 		return $this->deliveryDate;
 	}
-	
+
 	public function setDeliveryDate(?\DateTimeInterface $deliveryDate): self
 	{
 		if ($deliveryDate !== null) {
@@ -165,12 +137,12 @@ class Version
 		
 		return $this;
 	}
-	
+
 	public function getDate(): ?\DateTimeInterface
 	{
 		return ($this->isRequired === true)?$this->scheduledDate:$this->deliveryDate;
 	}
-	
+
 	public function setDate(?\DateTimeInterface $date): self
 	{
 		if ($this->isRequired === true) {
@@ -181,12 +153,12 @@ class Version
 		
 		return $this;
 	}
-	
+
 	public function getStatus(): ?Status
 	{
 		return $this->status;
 	}
-	
+
 	public function setStatus(?Status $status): self
 	{
 		$this->status = $status;
@@ -201,7 +173,7 @@ class Version
 	{
 		return $this->metadataItems;
 	}
-	
+
 	public function addMetadataItem(MetadataItem $metadataItem): self
 	{
 		if (!$this->metadataItems->contains($metadataItem)) {
@@ -210,7 +182,7 @@ class Version
 		
 		return $this;
 	}
-	
+
 	public function removeMetadataItem(MetadataItem $metadataItem): self
 	{
 		if ($this->metadataItems->contains($metadataItem)) {
@@ -223,12 +195,11 @@ class Version
 	/**
 	 * @return Collection|MetadataValue[]
 	 */
-	
 	public function getMetadataValues(): Collection
 	{
 		return $this->metadataValues;
 	}
-	
+
 	public function addMetadataValue(MetadataValue $metadataValue): self
 	{
 		if (!$this->metadataValues->contains($metadataValue)) {
@@ -237,7 +208,7 @@ class Version
 		
 		return $this;
 	}
-	
+
 	public function removeMetadataValue(MetadataValue $metadataValue): self
 	{
 		if ($this->metadataValues->contains($metadataValue)) {
@@ -275,7 +246,7 @@ class Version
 	{
 		return $this->approver;
 	}
-
+	
 	public function setApprover(?User $approver): self
 	{
 		$this->approver = $approver;
@@ -294,8 +265,7 @@ class Version
 
 		return $this;
 	}
-	
-	
+
 	/**
 	 * @return Collection|Review[]
 	 */
@@ -303,7 +273,7 @@ class Version
 	{
 		return $this->reviews;
 	}
-	
+
 	public function addReview(Review $review): self
 	{
 		if (!$this->reviews->contains($review)) {
@@ -313,7 +283,7 @@ class Version
 		
 		return $this;
 	}
-	
+
 	public function removeReview(Review $review): self
 	{
 		if ($this->reviews->contains($review)) {
@@ -326,7 +296,7 @@ class Version
 		
 		return $this;
 	}
-	
+
 	public function getReviewByCompany(Company $company): ?Review
 	{
 		foreach ($this->getReviews()->getValues() as $review) {
@@ -336,15 +306,15 @@ class Version
 		}
 		return null;
 	}
-	
+
 	public function getMetadataValue(Metadata $metadata) {
 		
 		switch ($metadata->getType()) {
 			
-			case Metadata::BOOLEAN:
-			case Metadata::TEXT:
-			case Metadata::DATE:
-			case Metadata::LINK:
+			case MetadataTypeEnum::BOOLEAN:
+			case MetadataTypeEnum::TEXT:
+			case MetadataTypeEnum::DATE:
+			case MetadataTypeEnum::LINK:
 				foreach ($this->getMetadataValues()->getValues() as $metadataValue) {
 					if ($metadataValue->getMetadata() == $metadata) {
 						return $metadataValue;
@@ -352,7 +322,7 @@ class Version
 				}
 				break;
 				
-			case Metadata::LIST:
+			case MetadataTypeEnum::LIST:
 				foreach ($this->getMetadataItems()->getValues() as $metadataItem) {
 					if ($metadataItem->getMetadata() == $metadata) {
 						return $metadataItem;
@@ -362,15 +332,15 @@ class Version
 		}
 		
 	}
-	
+
 	public function setMetadataValue(Metadata $metadata, $value): self
 	{
 		
 		switch ($metadata->getType()) {
-			case Metadata::BOOLEAN:
+			case MetadataTypeEnum::BOOLEAN:
 				$value = ($value)?true:false;
 				break;
-			case Metadata::DATE:
+			case MetadataTypeEnum::DATE:
 				if (is_string($value)) {
 					$date = Date::fromFormat($value);
 					if ($date->isValid() === false) {
@@ -397,10 +367,10 @@ class Version
 		
 		switch ($metadata->getType()) {
 			
-			case Metadata::BOOLEAN:
-			case Metadata::TEXT:
-			case Metadata::DATE:
-			case Metadata::LINK:
+			case MetadataTypeEnum::BOOLEAN:
+			case MetadataTypeEnum::TEXT:
+			case MetadataTypeEnum::DATE:
+			case MetadataTypeEnum::LINK:
 				foreach ($this->getMetadataValues()->getValues() as $metadataValue) {
 					if ($metadataValue->getMetadata() == $metadata) {
 						if ($metadataValue->getValue() == $value) {
@@ -426,7 +396,7 @@ class Version
 				}
 				break;
 				
-			case Metadata::LIST:
+			case MetadataTypeEnum::LIST:
 				foreach ($this->getMetadataItems()->getValues() as $metadataItem) {
 					if ($metadataItem->getMetadata() == $metadata) {
 						if ($metadataItem->getValue() == $value) {
@@ -448,12 +418,12 @@ class Version
 				break;
 		}
 		
-		if ($metadata->getType() === Metadata::BOOLEAN) {
+		if ($metadata->getType() === MetadataTypeEnum::BOOLEAN) {
 			return $this;
 		}
 		throw new \Error(sprintf('Erreur en écrivant la valeur "%s" dans le champ "%s"', $value, $metadata->getCodename()));
 	}
-	
+
 	public function getPropertyValue(string $codename)
 	{
 		
@@ -561,20 +531,11 @@ class Version
 					foreach ($this->getDocument()->getSerie()->getProject()->getVisas()->getValues() as $visa) {
 						if ($visa->getCompany()->getCodename() == $result->group(1)) {
 							if ($review = $this->getReviewByCompany($visa->getCompany())) {
-								switch ($result->group(2)) {
-									
-									case 'value':
-										return $review->getVisa();
-										break;
-										
-									case 'username':
-										return $review->getUser();
-										break;
-										
-									case 'date':
-										return $review->getDate();
-										break;
-								}
+								return match ($result->group(2)) {
+									'value'		=> $review->getVisa(),
+									'username'	=> $review->getUser(),
+									'date'		=> $review->getDate(),
+								};
 							}
 						}
 					}
@@ -588,7 +549,7 @@ class Version
 		
 		return null;
 	}
-	
+
 	public function setPropertyValue(string $codename, $value): self
 	{
 		

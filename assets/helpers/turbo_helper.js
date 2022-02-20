@@ -36,7 +36,7 @@ const TurboHelper = class {
 			// | clicking on a link                              |  <html> element           |  <a> element                     |
 			// | clicking on a link with turbo-frame attribute   |  <turbo-frame> element    |  <a> element                     |
 			// | submitting a form with button Submit            |  <form> element           |  Submit <button> or <a> element  |
-			// | submitting a form with key press Enter          |   <form> element          |  <input> element                 |
+			// | submitting a form with key press Enter          |  <form> element           |  <input> element                 |
 			// ------------------------------------------------------------------------------------------------------------------
 			
 			// event.detail.fetchOptions.headers['X-Requested-With'] = 'XMLHttpRequest';
@@ -87,16 +87,18 @@ const TurboHelper = class {
 			//in case a successfull form submission, close the modal
 			if (event.detail.success) {
 				const frameId = event.detail.fetchResponse.response.headers.get('Turbo-Frame');
-				document.querySelectorAll(`#${frameId}`).forEach(e => e.dispatchEvent(new Event('modal:close')));
+				document.querySelectorAll(`#${frameId} .modal`).forEach(e => e.dispatchEvent(new Event('modal:close')));
 			}
 		});
 
 		document.addEventListener('turbo:frame-render', (event) => {
 
-			//open the modal linked with the turbo-frame
-			if (event.target.classList.contains('modal')) {
-				event.target.dispatchEvent(new Event('modal:open'));
-			}
+			//open the modal in the turbo-frame
+			event.target.querySelectorAll('*').forEach(e => {
+				if (e.classList.contains('modal')) {
+					e.dispatchEvent(new Event('modal:open'));
+				}
+			});
 		});
 	}
 
@@ -130,7 +132,7 @@ const TurboHelper = class {
 			document.querySelectorAll('#navbarContent').forEach(e => e.classList.add('invisible'));
 		}
 
-		if (e.classList.contains('modal') || e instanceof HTMLBodyElement) {
+		if (e instanceof HTMLBodyElement || [...e.querySelectorAll('*')].some(e => e.classList.contains('modal'))) {
 			if (document.getElementsByTagName('loading-component').length === 0) {
 				document.body.appendChild(document.createElement('loading-component'));
 			}

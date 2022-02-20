@@ -9,14 +9,8 @@ use Doctrine\ORM\EntityManagerInterface;
 class DocumentService
 {
 	
-	private $entityManager;
-	
-	private $documentRepository;
-	
-	public function __construct(EntityManagerInterface $entityManager, DocumentRepository $documentRepository)
+	public function __construct(private readonly EntityManagerInterface $entityManager, private readonly DocumentRepository $documentRepository)
 	{
-		$this->entityManager = $entityManager;
-		$this->documentRepository = $documentRepository;
 	}
 
 	public function removeOrphans()
@@ -34,9 +28,7 @@ class DocumentService
 		if (empty($documents)) {
 			return true;
 		} elseif ($document->getId() !== null) {
-			return empty(array_filter($documents, function($item) use ($document) {
-				return ($item->getId() !== $document->getId());
-			}));
+			return empty(array_filter($documents, fn($item) => $item->getId() !== $document->getId()));
 		}
 		
 		return false;

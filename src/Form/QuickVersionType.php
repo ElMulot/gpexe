@@ -2,6 +2,7 @@
 
 namespace App\Form;
 
+use App\Entity\Enum\MetadataTypeEnum;
 use App\Entity\Metadata;
 use App\Entity\MetadataItem;
 use App\Entity\Status;
@@ -27,25 +28,10 @@ use Symfony\Component\Security\Core\Security;
 class QuickVersionType extends AbstractType
 {
 	
-	private $security;
-	
-	private $propertyService;
-	
-	private $metadataRepository;
-	
-	private $userRepository;
-	
-	private $visaRepository;
-	
 	private $builder;
 	
-	public function __construct(Security $security, PropertyService $propertyService, MetadataRepository $metadataRepository, UserRepository $userRepository, VisaRepository $visaRepository)
+	public function __construct(private readonly Security $security, private readonly PropertyService $propertyService, private readonly MetadataRepository $metadataRepository, private readonly UserRepository $userRepository, private readonly VisaRepository $visaRepository)
 	{
-		$this->security = $security;
-		$this->propertyService = $propertyService;
-		$this->metadataRepository = $metadataRepository;
-		$this->userRepository = $userRepository;
-		$this->visaRepository = $visaRepository;
 	}
 	
 	public function buildForm(FormBuilderInterface $builder, array $options)
@@ -72,30 +58,22 @@ class QuickVersionType extends AbstractType
 			switch ($field['id']) {
 				
 				case 'status_value':
-					$options = [
-						'class' 	=> Status::class,
-						'choices' 	=> $project->getStatuses(),
-					];
 					break;
 					
 				case (($result = Regex::match('/metadata_(\d+)/', $field['id']))->hasMatch()):
 					
 					foreach ($this->metadataRepository->getMetadatasForVersion($project) as $metadata) {
 						if ($metadata->getId() == $result->group(1)) {
-							switch ($metadata->getType()) {
-								case Metadata::LIST:
-									$options = [
+							$options = match ($metadata->getType()) {
+								MetadataTypeEnum::LIST => [
 										'required'	=> $metadata->getIsMandatory(),
 										'class' 	=> MetadataItem::class,
 										'choices' 	=> $metadata->getMetadataItems(),
-									];
-									break;
-								default:
-									$options = [
+									],
+								default => [
 										'required'	=> $metadata->getIsMandatory(),
-									];
-									break;
-							}
+									],
+							};
 						}
 					}
 					break;
@@ -122,7 +100,9 @@ class QuickVersionType extends AbstractType
 					foreach ($version->getDocument()->getSerie()->getProject()->getVisas()->getValues() as $visa) {
 						
 						if ($visa->getCompany()->getId() == $result->group(1)) {
-							if ($this->security->getUser()->getCompany() == $visa->getCompany() || ($this->security->isGranted('ROLE_CONTROLLER') && $project->hasUser($this->security->getUser())) || $this->security->isGranted('ROLE_ADMIN')) {
+							/** @var User $user */
+							$user = $this->security->getUser();
+							if ($user->getCompany() == $visa->getCompany() || ($this->security->isGranted('ROLE_CONTROLLER') && $project->hasUser($this->security->getUser())) || $this->security->isGranted('ROLE_ADMIN')) {
 								$options = [
 									'required'	=> false,
 									'class'		=> Visa::class,
@@ -146,7 +126,7 @@ class QuickVersionType extends AbstractType
 					]);
 					break;
 				
-				case Metadata::BOOLEAN:
+				case MetadataTypeEnum::BOOLEAN:
 					$builder->add($field['id'], ChoiceType::class, $options + [
 						'choices' => [
 							'Yes' => true,
@@ -157,15 +137,15 @@ class QuickVersionType extends AbstractType
 					]);
 					break;
 					
-				case Metadata::TEXT:
-				case Metadata::LINK:
+				case MetadataTypeEnum::TEXT:
+				case MetadataTypeEnum::LINK:
 					$builder->add($field['id'], TextareaType::class, $options + [
 						'mapped' => false,
 						'data' => $version->getPropertyValue($field['codename']),
 					]);
 					break;
 					
-				case Metadata::DATE:
+				case MetadataTypeEnum::DATE:
 					$builder->add($field['id'], DateType::class, $options + [
 						'widget' => 'single_text',
 						'format' => 'dd-MM-yyyy',
@@ -175,7 +155,7 @@ class QuickVersionType extends AbstractType
 					]);
 					break;
 					
-				case Metadata::LIST:
+				case MetadataTypeEnum::LIST:
 					$builder->add($field['id'], EntityType::class, $options + [
 						'mapped' => false,
 						'data' => $version->getPropertyValue($field['codename']),

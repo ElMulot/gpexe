@@ -4,6 +4,8 @@ namespace App\Form;
 use App\Entity\Codification;
 use App\Entity\CodificationItem;
 use App\Entity\Document;
+use App\Entity\Enum\CodificationTypeEnum;
+use App\Entity\Enum\MetadataTypeEnum;
 use App\Entity\Metadata;
 use App\Entity\MetadataItem;
 use App\Entity\MetadataValue;
@@ -28,17 +30,9 @@ class DocumentType extends AbstractType
 {
 
 	private $builder;
-	
-	private $codificationRepository;
 
-	private $metadataRepository;
-	
-	private $propertyService;
-
-	public function __construct(CodificationRepository $codificationRepository, MetadataRepository $metadataRepository, PropertyService $propertyService) {
-		$this->codificationRepository = $codificationRepository;
-		$this->metadataRepository = $metadataRepository;
-		$this->propertyService = $propertyService;
+	public function __construct(private readonly CodificationRepository $codificationRepository, private readonly MetadataRepository $metadataRepository, private readonly PropertyService $propertyService)
+	{
 	}
 
 	public function buildForm(FormBuilderInterface $builder, array $options)
@@ -50,24 +44,22 @@ class DocumentType extends AbstractType
 		
 		foreach ($this->codificationRepository->getCodifications($project) as $codification) {
 			switch ($codification->getType()) {
-				case Codification::LIST:
+				case CodificationTypeEnum::LIST:
 					$options = [
 						'required'	=> $codification->getIsMandatory(),
 						'class' 	=> CodificationItem::class,
 						'choices' 	=> $codification->getCodificationItems(),
-						'choice_label' => function($codification) {
-							return $codification->getValue() . ' - ' . $codification->getName();
-						},
+						'choice_label' => fn($codification) => $codification->getValue() . ' - ' . $codification->getName(),
 						'label' => $codification->getName(),
 					];
-					$this->buildField($codification->getName(), $codification->getFullId(), $codification->getFullCodename(), Codification::LIST, $documents, $options);
+					$this->buildField($codification->getName(), $codification->getFullId(), $codification->getFullCodename(), CodificationTypeEnum::LIST, $documents, $options);
 					break;
-				case Codification::REGEX:
+				case CodificationTypeEnum::REGEX:
 					$options = [
 						'required'	=> $codification->getIsMandatory(),
 						'constraints' 	=> [new Regex(['pattern' => '/' . $codification->getValue() . '/'])],
 					];
-					$this->buildField($codification->getName(), $codification->getFullId(), $codification->getFullCodename(), Codification::REGEX, $documents, $options);
+					$this->buildField($codification->getName(), $codification->getFullId(), $codification->getFullCodename(), CodificationTypeEnum::REGEX, $documents, $options);
 					break;
 			}
 		}
@@ -80,7 +72,7 @@ class DocumentType extends AbstractType
 		
 		foreach ($this->metadataRepository->getMetadatasForDocument($project) as $metadata) {
 			switch ($metadata->getType()) {
-				case Metadata::LIST:
+				case MetadataTypeEnum::LIST:
 					$options = [
 						'required'	=> $metadata->getIsMandatory(),
 						'class' 	=> MetadataItem::class,
@@ -121,14 +113,14 @@ class DocumentType extends AbstractType
 	
 	private function buildField(string $label, string $id, string $codename, int $type, $documents=[], $options=[])
 	{
-		if (($options['required'] ?? true) === true && $type !== Metadata::BOOLEAN && $type != Codification::REGEX) {
+		if (($options['required'] ?? true) === true && $type !== MetadataTypeEnum::BOOLEAN && $type != CodificationTypeEnum::REGEX) {
 			$options['constraints'] = [new NotBlank()];
 		}
 		
 		$field = null;
 		$multiple = false;
 		
-		if (count($documents) > 1) {
+		if ((is_countable($documents) ? count($documents) : 0) > 1) {
 			$multiple = $this->checkMultiple($documents, $codename);
 		}
 		
@@ -140,7 +132,7 @@ class DocumentType extends AbstractType
 		
 		switch ($type) {
 			
-			case Metadata::BOOLEAN:
+			case MetadataTypeEnum::BOOLEAN:
 				
 				$data = false;
 				if ($document && $multiple === false) {
@@ -163,7 +155,7 @@ class DocumentType extends AbstractType
 				]);
 				break;
 			
-			case Codification::REGEX:
+			case CodificationTypeEnum::REGEX:
 				
 				$data = null;
 				if ($document && $multiple === false) {
@@ -180,7 +172,7 @@ class DocumentType extends AbstractType
 				]);
 				break;
 				
-			case Metadata::TEXT:
+			case MetadataTypeEnum::TEXT:
 				
 				$data = null;
 				if ($document && $multiple === false) {
@@ -197,7 +189,7 @@ class DocumentType extends AbstractType
 				]);
 				break;
 				
-			case Metadata::DATE:
+			case MetadataTypeEnum::DATE:
 				
 				$data = null;
 				
@@ -225,7 +217,7 @@ class DocumentType extends AbstractType
 				
 				break;
 				
-			case Metadata::LINK:
+			case MetadataTypeEnum::LINK:
 				
 				$data = null;
 				if ($document && $multiple === false) {
@@ -247,8 +239,8 @@ class DocumentType extends AbstractType
 				]);
 				break;
 			
-			case Codification::LIST:
-			case Metadata::LIST:
+			case CodificationTypeEnum::LIST:
+			case MetadataTypeEnum::LIST:
 				$data = null;
 				if ($document && $multiple === false) {
 					$data = $document->getPropertyValue($codename);

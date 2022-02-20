@@ -3,39 +3,28 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use App\Repository\VisaRepository;
 
-/**
- * @ORM\Entity(repositoryClass="App\Repository\VisaRepository")
- */
-class Visa
+#[ORM\Entity(repositoryClass: VisaRepository::class)]
+class Visa implements \Stringable
 {
-	/**
-	 * @ORM\Id()
-	 * @ORM\GeneratedValue()
-	 * @ORM\Column(type="integer")
-	 */
+	#[ORM\Id]
+	#[ORM\GeneratedValue]
+	#[ORM\Column(type: 'integer')]
 	private $id;
 
-	/**
-	 * @ORM\Column(type="string", length=100)
-	 */
+	#[ORM\Column(type: 'string', length: 100)]
 	private $name;
 
-	/**
-	 * @ORM\Column(type="boolean")
-	 */
+	#[ORM\Column(type: 'boolean')]
 	private $revisionRequired;
 
-	/**
-	 * @ORM\ManyToOne(targetEntity=Company::class, inversedBy="visas")
-	 * @ORM\JoinColumn(nullable=false)
-	 */
+	#[ORM\ManyToOne(targetEntity: Company::class, inversedBy: 'visas')]
+	#[ORM\JoinColumn(nullable: false)]
 	private $company;
 
-	/**
-	 * @ORM\ManyToOne(targetEntity=Project::class, inversedBy="visas")
-	 * @ORM\JoinColumn(nullable=false)
-	 */
+	#[ORM\ManyToOne(targetEntity: Project::class, inversedBy: 'visas')]
+	#[ORM\JoinColumn(nullable: false)]
 	private $project;
 
 	public function getId(): ?int
@@ -90,7 +79,7 @@ class Visa
 
 		return $this;
 	}
-	
+
 	public function __toString(): string
 	{
 		return (string)$this->getName();

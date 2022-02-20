@@ -2,6 +2,7 @@
 
 namespace App\Service\Code;
 
+use App\Entity\Enum\ProgramTypeEnum;
 use App\Entity\Program;
 use App\Service\FieldService;
 use App\Helpers\Cache;
@@ -9,12 +10,10 @@ use App\Helpers\Cache;
 class ProgramCache
 {
 
-	const PRELOAD	= 0;
-	const LOAD		= 1;
-	const NEW_BATCH	= 2;
-	const COMPLETED	= 3;
-			
-	private $fieldService;
+	final const PRELOAD		= 0;
+	final const LOAD		= 1;
+	final const NEW_BATCH	= 2;
+	final const COMPLETED	= 3;
 		
 	private $type;
 	
@@ -26,11 +25,10 @@ class ProgramCache
 	
 	private $options; //library, dateFormat, move_from_mdr, move_from_sdr, rows_per_batch
 	
-	private $cache = [];
+	private array $cache = [];
 	
-	public function __construct(FieldService $fieldService)
+	public function __construct(private readonly FieldService $fieldService)
 	{
-		$this->fieldService = $fieldService;
 		$this->status = Cache::get('program.status') ?? self::PRELOAD;
 		$this->parameters = Cache::get('program.parameters') ?? [];
 		$this->cache = Cache::get('program.cache') ?? [];
@@ -56,16 +54,16 @@ class ProgramCache
 		
 		//parameters
 		switch ($this->type) {
-			case Program::EXPORT:
+			case ProgramTypeEnum::EXPORT:
 				$this->setParameter('first_row', $program->getParsedCode('first_row'));
 				break;
-			case Program::IMPORT:
+			case ProgramTypeEnum::IMPORT:
 				$this->setParameter('first_row', $program->getParsedCode('first_row'));
 				$this->setParameter('main_column', $program->getParsedCode('main_column'));
 				$this->setParameter('comments_column', $program->getParsedCode('comments_column'));
 				break;
-			case Program::TASK:
-			case Program::PROGRESS:
+			case ProgramTypeEnum::TASK:
+			case ProgramTypeEnum::PROGRESS:
 				$this->setParameter('frequency', $program->getParsedCode('frequency'));
 				break;
 		}
@@ -79,7 +77,7 @@ class ProgramCache
 		
 		//cache
 		switch ($this->type) {
-			case Program::EXPORT:
+			case ProgramTypeEnum::EXPORT:
 				$this->cache['exclude'] = $this->walk($program->getParsedCode('exclude'), false);
 				$this->cache['headers'] = $this->walk($program->getParsedCode('headers'));
 				foreach ($program->getParsedCode('write') as $write) {
@@ -99,7 +97,7 @@ class ProgramCache
 				
 				break;
 				
-			case Program::IMPORT:
+			case ProgramTypeEnum::IMPORT:
 				$this->cache['exclude'] = $this->walk($program->getParsedCode('exclude'), false);
 				$this->cache['get_serie'] = $this->walk($program->getParsedCode('get_serie'), true);
 				$this->cache['get_document'] = [
@@ -121,7 +119,7 @@ class ProgramCache
 				
 				break;
 				
-			case Program::TASK:
+			case ProgramTypeEnum::TASK:
 				$this->cache['exclude'] = $this->walk($program->getParsedCode('exclude'), false);
 				foreach ($program->getParsedCode('update') as $update) {
 					$this->cache['update'][] = [
@@ -139,18 +137,12 @@ class ProgramCache
 				
 				break;
 				
-			case Program::PROGRESS:
+			case ProgramTypeEnum::PROGRESS:
 				$this->cache['exclude'] = $this->walk($program->getParsedCode('exclude'), false);
 				$this->cache['rules'] = $this->walk($program->getParsedCode('rules'), true);
 				
 				//sort rules by value descending order
-				usort($this->cache['rules'], function ($a, $b) {
-					if ($a['value']->getValue() == $b['value']->getValue()) {
-						return 0;
-					} else {
-						return ($a['value']->getValue() > $b['value']->getValue())?-1:1;
-					}
-				});
+				usort($this->cache['rules'], fn($a, $b) => $a['value']->getValue() <=> $b['value']->getValue());
 				
 				break;
 				
@@ -198,10 +190,10 @@ class ProgramCache
 		
 		if ($name === 'date_format') {
 			switch ($this->type) {
-				case Program::EXPORT:
+				case ProgramTypeEnum::EXPORT:
 					$this->options['date_format_output'] = $value;
 					break;
-				case Program::IMPORT:
+				case ProgramTypeEnum::IMPORT:
 					$this->options['date_format_input'] = $value;
 					break;
 			}

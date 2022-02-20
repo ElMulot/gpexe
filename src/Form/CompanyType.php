@@ -3,7 +3,7 @@
 namespace App\Form;
 
 use App\Entity\Company;
-use App\Entity\Enum\CompanyEnum;
+use App\Entity\Enum\CompanyTypeEnum;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -18,20 +18,11 @@ class CompanyType extends AbstractType
 			->add('name')
 			->add('codename')
 			->add('type', ChoiceType::class, [
-				'choices' => [
-					'Main contractor' => Company::MAIN_CONTRACTOR, 
-					'Sub-contractor' => Company::SUB_CONTRACTOR,
-					'Supplier' => Company::SUPPLIER,
-					'Checker' => Company::CHECKER,
-				],
+				'choices' => CompanyTypeEnum::getChoices(),
 				'expanded' => true,
 			])
 			->add('priority', NumberType::class, [
 				'required' => false,
-				'empty_data' => '0',
-			])
-			->add('status', ChoiceType::class, [
-				'choices' => CompanyEnum::getTypesMap()
 			])
 		;
 	}

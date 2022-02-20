@@ -7,7 +7,7 @@
 	{% if is_granted('ROLE_ADMIN') %}
 		{{ navbar.dropdown('Admin', [
 			{
-				'name': 'New project',
+				'name': 'new.project',
 				'href': path('project_new'),
 				'data-turbo-frame': 'std_modal',
 			},

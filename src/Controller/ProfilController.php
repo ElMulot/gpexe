@@ -8,101 +8,106 @@ use App\Repository\ProfilRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Contracts\Translation\TranslatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Doctrine\Persistence\ManagerRegistry;
+use Symfony\UX\Turbo\Stream\TurboStreamResponse;
 
 class ProfilController extends AbstractController
 {
 	
-	private $translator;
-	
-	public function __construct(TranslatorInterface $translator)
+	public function __construct(private readonly ManagerRegistry $doctrine)
 	{
-		$this->translator = $translator;
 	}
 	
-	/**
-	 * @Route("/profil", name="profil")
-	 */
-	public function index(ProfilRepository $profilRepository): Response
+	#[Route(path: '/profil', name: 'profil')]
+	public function index(ProfilRepository $profilRepository) : Response
 	{
 		return $this->renderForm('generic/list.html.twig', [
-			'header' => $this->translator->trans('Profils'),
-			'route_back' =>  $this->generateUrl('project'),
 			'class' => Profil::class,
 			'entities' => $profilRepository->getProfils(),
 		]);
 	}
 
-	/**
-	 * @Route("/profil/new", name="profil_new")
-	 */
-	public function new(Request $request): Response
+	#[Route(path: '/profil/new', name: 'profil_new')]
+	public function new(Request $request) : Response
 	{
 		$profil = new Profil();
 		$form = $this->createForm(ProfilType::class, $profil);
 		$form->handleRequest($request);
-		
+
 		if ($form->isSubmitted() && $form->isValid()) {
-			$entityManager = $this->getDoctrine()->getManager();
+			$entityManager = $this->doctrine->getManager();
 			$entityManager->persist($profil);
 			$entityManager->flush();
 			
 			$this->addFlash('success', 'New entry created');
-			return $this->redirectToRoute('profil');
+
+			return $this->renderForm('generic/success.stream.html.twig', [
+				'redirect' => $this->generateUrl('profil'),
+			], new TurboStreamResponse());
+
 		} else {
-			return $this->renderForm('generic/form.html.twig', [
-				'route_back' =>  $this->generateUrl('profil'),
+
+			return $this->renderForm('generic/new.html.twig', [
 				'form' => $form,
 			]);
+
 		}
 	}
 	
-	/**
-	 * @Route("/profil/{profil}/edit", name="profil_edit", requirements={"profil"="\d+"})
-	 */
-	public function edit(Request $request, Profil $profil): Response
+	#[Route(path: '/profil/{profil}/edit', name: 'profil_edit', requirements: ['profil' => '\d+'])]
+	public function edit(Request $request, Profil $profil) : Response
 	{
 		$form = $this->createForm(ProfilType::class, $profil);
 		$form->handleRequest($request);
-		
 		if ($form->isSubmitted() && $form->isValid()) {
-			$entityManager = $this->getDoctrine()->getManager();
+			$entityManager = $this->doctrine->getManager();
 			$entityManager->flush();
 			
 			$this->addFlash('success', 'Datas updated');
-			return $this->redirectToRoute('profil');
+
+			return $this->renderForm('generic/success.stream.html.twig', [
+				'redirect' => $this->generateUrl('profil'),
+			], new TurboStreamResponse());
+
 		} else {
-			return $this->renderForm('generic/form.html.twig', [
-				'route_back' =>  $this->generateUrl('profil'),
+
+			return $this->renderForm('generic/edit.html.twig', [
 				'form' => $form,
 			]);
+
 		}
 	}
 	
-	/**
-	 * @Route("/profil/{profil}/delete", name="profil_delete", methods={"GET", "DELETE"}, requirements={"profil"="\d+"})
-	 */
-	public function delete(Request $request, Profil $profil, ProfilRepository $profilRepository): Response
+	#[Route(path: '/profil/{profil}/delete', name: 'profil_delete', methods: ['GET', 'DELETE'], requirements: ['profil' => '\d+'])]
+	public function delete(Request $request, Profil $profil, ProfilRepository $profilRepository) : Response
 	{
 		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
-			$entityManager = $this->getDoctrine()->getManager();
+			$entityManager = $this->doctrine->getManager();
 			$entityManager->remove($profil);
 			$entityManager->flush();
 			
 			$this->addFlash('success', 'Entry deleted');
-			return $this->redirectToRoute('profil');
+
+			return $this->renderForm('generic/success.stream.html.twig', [
+				'redirect' => $this->generateUrl('profil'),
+			], new TurboStreamResponse());
+
 		} elseif ($profilRepository->getCountAdminProfil($profil->getId()) == 0) {
-			$this->addFlash('danger', 'The last entry with Admin rights cannot be deleted');
-			return $this->redirectToRoute('profil');
+
+			$this->addFlash('danger', 'The last profil with Admin rights cannot be deleted');
+
+			return $this->renderForm('generic/success.stream.html.twig', [
+				'redirect' => $this->generateUrl('profil'),
+			], new TurboStreamResponse());
+			
 		} else {
+
 			return $this->renderForm('generic/delete.html.twig', [
-				'route_back' =>  $this->generateUrl('profil'),
 				'entities' => [$profil],
 			]);
+
 		}
-		
-		
 	}
 	
 }

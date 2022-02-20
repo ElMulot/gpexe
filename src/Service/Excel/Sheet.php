@@ -4,20 +4,14 @@ namespace App\Service\Excel;
 
 class Sheet
 {
-	private $_sheet;
-	
-	private $workbook;
-	
 	private $_rowIterator;
 	
 	private $row;
 	
-	public function __construct($_sheet, Workbook $workbook)
+	public function __construct(private $_sheet, private readonly Workbook $workbook)
 	{
-		$this->_sheet = $_sheet;
 		$this->_rowIterator = $this->_sheet->getRowIterator();
 		$this->_rowIterator->rewind();
-		$this->workbook = $workbook;
 	}
 	
 	public function getWorkbook(): Workbook
@@ -27,14 +21,11 @@ class Sheet
 	
 	private function getRowIteratorKey(): int
 	{
-		switch ($this->workbook->getLibrary()) {
-			case Workbook::SPOUT:
-				return $this->_rowIterator->key()-1;
-			case Workbook::PHPSPREADSHEET:
-				return $this->_rowIterator->key();
-			default:
-				throw new Exception('Library not defined.');
-		}
+		return match ($this->workbook->getLibrary()) {
+			Workbook::SPOUT => $this->_rowIterator->key()-1,
+			Workbook::PHPSPREADSHEET => $this->_rowIterator->key(),
+			default => throw new Exception('Library not defined.'),
+		};
 	}
 	
 	public function getRow(int $rowAddress): Row

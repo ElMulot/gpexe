@@ -4,6 +4,9 @@ namespace App\Service;
 
 use Symfony\Contracts\Translation\TranslatorInterface;
 use App\Entity\Codification;
+use App\Entity\Enum\CodificationTypeEnum;
+use App\Entity\Enum\MetadataTypeEnum;
+use App\Entity\Enum\StatusTypeEnum;
 use App\Entity\Metadata;
 use App\Entity\Project;
 use App\Entity\Status;
@@ -20,38 +23,8 @@ use Symfony\Component\Security\Core\Security;
 class FieldService
 {
 	
-	private $translator;
-	
-	private $security;
-	
-	private $companyRepository;
-	
-	private $codificationRepository;
-	
-	private $codificationItemRepository;
-	
-	private $metadataRepository;
-	
-	private $metadataItemRepository;
-	
-	private $statusRepository;
-	
-	private $userRepository;
-	
-	private $visaRepository;
-	
-	public function __construct(TranslatorInterface $translator, Security $security, CompanyRepository $companyRepository, CodificationRepository $codificationRepository, CodificationItemRepository $codificationItemRepository, MetadataRepository $metadataRepository, MetadataItemRepository $metadataItemRepository, StatusRepository $statusRepository, UserRepository $userRepository, VisaRepository $visaRepository)
+	public function __construct(private readonly TranslatorInterface $translator, private readonly Security $security, private readonly CompanyRepository $companyRepository, private readonly CodificationRepository $codificationRepository, private readonly CodificationItemRepository $codificationItemRepository, private readonly MetadataRepository $metadataRepository, private readonly MetadataItemRepository $metadataItemRepository, private readonly StatusRepository $statusRepository, private readonly UserRepository $userRepository, private readonly VisaRepository $visaRepository)
 	{
-		$this->translator = $translator;
-		$this->security = $security;
-		$this->companyRepository = $companyRepository;
-		$this->codificationRepository = $codificationRepository;
-		$this->codificationItemRepository = $codificationItemRepository;
-		$this->metadataRepository = $metadataRepository;
-		$this->metadataItemRepository = $metadataItemRepository;
-		$this->statusRepository = $statusRepository;
-		$this->userRepository = $userRepository;
-		$this->visaRepository = $visaRepository;
 	}
 	
 	//---------------------------
@@ -78,7 +51,7 @@ class FieldService
 				'id' =>'document_reference',
 				'codename' => 'document.reference',
 				'title' => $this->translator->trans('Reference'),
-				'type' => Metadata::LIST,
+				'type' => MetadataTypeEnum::LIST,
 				'parent' => 'document',
 				'default_width' => 15,
 				'mandatory' => true,
@@ -96,7 +69,7 @@ class FieldService
 				'id' =>'version_name',
 				'codename' => 'version.name',
 				'title' => $this->translator->trans('Version'),
-				'type' => Metadata::TEXT,
+				'type' => MetadataTypeEnum::TEXT,
 				'parent' => 'version',
 				'default_width' => 4,
 				'mandatory' => true,
@@ -114,7 +87,7 @@ class FieldService
 				'id' =>'document_name',
 				'codename' => 'document.name',
 				'title' => $this->translator->trans('Name'),
-				'type' => Metadata::TEXT,
+				'type' => MetadataTypeEnum::TEXT,
 				'parent' => 'document',
 				'default_width' => 30,
 				'mandatory' => true,
@@ -132,7 +105,7 @@ class FieldService
 				'id' =>'version_initial_scheduled_date',
 				'codename' => 'version.initialScheduledDate',
 				'title' => $this->translator->trans('Initial scheduled date'),
-				'type' => Metadata::DATE,
+				'type' => MetadataTypeEnum::DATE,
 				'parent' => 'version',
 				'default_width' => 8,
 				'mandatory' => true,
@@ -150,7 +123,7 @@ class FieldService
 				'id' =>'version_scheduled_date',
 				'codename' => 'version.scheduledDate',
 				'title' => $this->translator->trans('Scheduled date'),
-				'type' => Metadata::DATE,
+				'type' => MetadataTypeEnum::DATE,
 				'parent' => 'version',
 				'default_width' => 8,
 				'mandatory' => false,
@@ -168,7 +141,7 @@ class FieldService
 				'id' =>'version_delivery_date',
 				'codename' => 'version.deliveryDate',
 				'title' => $this->translator->trans('Delivery date'),
-				'type' => Metadata::DATE,
+				'type' => MetadataTypeEnum::DATE,
 				'parent' => 'version',
 				'default_width' => 8,
 				'mandatory' => false,
@@ -186,7 +159,7 @@ class FieldService
 				'id' =>'version_date',
 				'codename' => 'version.date',
 				'title' => $this->translator->trans('Date'),
-				'type' => Metadata::DATE,
+				'type' => MetadataTypeEnum::DATE,
 				'parent' => 'version',
 				'default_width' => 8,
 				'mandatory' => true,
@@ -204,7 +177,7 @@ class FieldService
 				'id' =>'version_is_required',
 				'codename' => 'version.isRequired',
 				'title' => $this->translator->trans('Required'),
-				'type' => Metadata::BOOLEAN,
+				'type' => MetadataTypeEnum::BOOLEAN,
 				'parent' => 'version',
 				'default_width' => 8,
 				'mandatory' => true,
@@ -222,7 +195,7 @@ class FieldService
 				'id' =>'version_writer',
 				'codename' => 'version.writer',
 				'title' => $this->translator->trans('Writer'),
-				'type' => Metadata::LIST,
+				'type' => MetadataTypeEnum::LIST,
 				'parent' => 'version',
 				'default_width' => 10,
 				'mandatory' => false,
@@ -240,7 +213,7 @@ class FieldService
 				'id' =>'version_checker',
 				'codename' => 'version.checker',
 				'title' => $this->translator->trans('Checker'),
-				'type' => Metadata::LIST,
+				'type' => MetadataTypeEnum::LIST,
 				'parent' => 'version',
 				'default_width' => 10,
 				'mandatory' => false,
@@ -258,7 +231,7 @@ class FieldService
 				'id' =>'version_approver',
 				'codename' => 'version.approver',
 				'title' => $this->translator->trans('Approver'),
-				'type' => Metadata::LIST,
+				'type' => MetadataTypeEnum::LIST,
 				'parent' => 'version',
 				'default_width' => 10,
 				'mandatory' => false,
@@ -276,7 +249,7 @@ class FieldService
 				'id' =>'serie_name',
 				'codename' => 'serie.name',
 				'title' => $this->translator->trans('Serie name'),
-				'type' => Metadata::LIST,
+				'type' => MetadataTypeEnum::LIST,
 				'parent' => 'serie',
 				'default_width' => 10,
 				'mandatory' => true,
@@ -294,7 +267,7 @@ class FieldService
 				'id' =>'serie_company',
 				'codename' => 'serie.company',
 				'title' => $this->translator->trans('Company'),
-				'type' => Metadata::LIST,
+				'type' => MetadataTypeEnum::LIST,
 				'parent' => 'serie',
 				'default_width' => 10,
 				'mandatory' => true,
@@ -312,7 +285,7 @@ class FieldService
 				'id' =>'status_value',
 				'codename' => 'status.value',
 				'title' => $this->translator->trans('Status value'),
-				'type' => Metadata::LIST,
+				'type' => MetadataTypeEnum::LIST,
 				'parent' => 'status',
 				'default_width' => 10,
 				'mandatory' => true,
@@ -330,7 +303,7 @@ class FieldService
 				'id' =>'status_type',
 				'codename' => 'status.type',
 				'title' => $this->translator->trans('Status type'),
-				'type' => Metadata::LIST,
+				'type' => MetadataTypeEnum::LIST,
 				'parent' => 'status',
 				'default_width' => 10,
 				'mandatory' => true,
@@ -348,7 +321,7 @@ class FieldService
 				'id' =>'',
 				'codename' => 'document.versionsCount',
 				'title' => '',
-				'type' => Metadata::TEXT,
+				'type' => MetadataTypeEnum::TEXT,
 				'parent' => 'document',
 				'default_width' => 0,
 				'mandatory' => true,
@@ -391,7 +364,7 @@ class FieldService
 				'codename' => $metadata->getFullCodename(),
 				'title' => $metadata->getName(),
 				'type' => $metadata->getType(),
-				'parent' => $metadata->getParentName(),
+				'parent' => $metadata->getParent(),
 				'default_width' => 10,
 				'mandatory' => $metadata->getIsMandatory(),
 				'display' => [
@@ -412,7 +385,7 @@ class FieldService
 					'id' =>'visa_' . $company->getId(),
 					'codename' => 'visa.' . $company->getCodename() . '.value',
 					'title' => $this->translator->trans('Visa') . ' ' . $company->getName(),
-					'type' => Metadata::LIST,
+					'type' => MetadataTypeEnum::LIST,
 					'parent' => 'visa',
 					'default_width' => 10,
 					'mandatory' => false,
@@ -431,7 +404,7 @@ class FieldService
 					'id' =>'',
 					'codename' => 'visa.' . $company->getCodename() . '.username',
 					'title' => '',
-					'type' => Metadata::LIST,
+					'type' => MetadataTypeEnum::LIST,
 					'parent' => 'visa',
 					'default_width' => 0,
 					'mandatory' => false,
@@ -450,7 +423,7 @@ class FieldService
 					'id' =>'',
 					'codename' => 'visa.' . $company->getCodename() . '.date',
 					'title' => '',
-					'type' => Metadata::LIST,
+					'type' => MetadataTypeEnum::LIST,
 					'parent' => 'visa',
 					'default_width' => 0,
 					'mandatory' => false,
@@ -580,20 +553,20 @@ class FieldService
 			
 			switch ($codification->getType()) {
 				
-				case Codification::LIST:
+				case CodificationTypeEnum::LIST:
 					$choices = [];
 					foreach ($this->codificationItemRepository->getCodificationItem($codification) as $codificationItem) {
 						$choices[$codificationItem->getId()] = $codificationItem->getValue();
 					}
 					$element['filter'] = [
-						'type'			=> Metadata::LIST,
+						'type'			=> MetadataTypeEnum::LIST,
 						'choices' 		=> $choices,
 					];
 					break;
 					
-				case Codification::REGEX:
+				case CodificationTypeEnum::REGEX:
 					$element['filter'] = [
-						'type'			=> Metadata::TEXT,
+						'type'			=> MetadataTypeEnum::TEXT,
 					];
 					break;
 					
@@ -611,7 +584,7 @@ class FieldService
 			'title' 	=> $this->translator->trans('Name'),
 			'sort'		=> true,
 			'filter' 	=> [		
-				'type'		=> Metadata::TEXT,
+				'type'		=> MetadataTypeEnum::TEXT,
 			],
 		];
 		
@@ -620,7 +593,7 @@ class FieldService
 			'title' 	=> $this->translator->trans('Initial scheduled date'),
 			'sort'		=> true,
 			'filter'	=> [
-				'type'		=> Metadata::DATE,
+				'type'		=> MetadataTypeEnum::DATE,
 			],
 		];
 		
@@ -629,7 +602,7 @@ class FieldService
 			'title' 	=> $this->translator->trans('Scheduled date'),
 			'sort'		=> true,
 			'filter'	=> [
-				'type'		=> Metadata::DATE,
+				'type'		=> MetadataTypeEnum::DATE,
 			]
 		];
 		
@@ -638,7 +611,7 @@ class FieldService
 			'title' 	=> $this->translator->trans('Delivery date'),
 			'sort'		=> true,
 			'filter'	=> [
-				'type'		=> Metadata::DATE,
+				'type'		=> MetadataTypeEnum::DATE,
 			]
 		];
 		
@@ -647,7 +620,7 @@ class FieldService
 			'title' 	=> $this->translator->trans('Date'),
 			'sort'		=> true,
 			'filter'	=> [
-				'type'		=> Metadata::DATE,
+				'type'		=> MetadataTypeEnum::DATE,
 			]
 		];
 		
@@ -656,7 +629,7 @@ class FieldService
 			'title' 	=> $this->translator->trans('Required'),
 			'sort'		=> true,
 			'filter'	=> [
-				'type'		=> Metadata::BOOLEAN,
+				'type'		=> MetadataTypeEnum::BOOLEAN,
 			]
 		];
 		
@@ -665,7 +638,7 @@ class FieldService
 			'title' 	=> $this->translator->trans('Writer'),
 			'sort'		=> true,
 			'filter'	=> [
-				'type'		=> Metadata::LIST,
+				'type'		=> MetadataTypeEnum::LIST,
 				'choices' 	=> $writers,
 			]
 		];
@@ -675,7 +648,7 @@ class FieldService
 			'title' 	=> $this->translator->trans('Checker'),
 			'sort'		=> true,
 			'filter'	=> [
-				'type'		=> Metadata::LIST,
+				'type'		=> MetadataTypeEnum::LIST,
 				'choices' 	=> $checkers,
 			]
 		];
@@ -685,7 +658,7 @@ class FieldService
 			'title' 	=> $this->translator->trans('Approver'),
 			'sort'		=> true,
 			'filter'	=> [
-				'type'		=> Metadata::LIST,
+				'type'		=> MetadataTypeEnum::LIST,
 				'choices' 	=> $checkers,
 			]
 		];
@@ -695,7 +668,7 @@ class FieldService
 			'title' 	=> $this->translator->trans('Serie name'),
 			'sort'		=> true,
 			'filter'	=> [
-				'type'		=> Metadata::LIST,
+				'type'		=> MetadataTypeEnum::LIST,
 				'choices' 	=> $series,
 			]
 		];
@@ -705,7 +678,7 @@ class FieldService
 			'title' 	=> $this->translator->trans('Company'),
 			'sort'		=> true,
 			'filter'	=> [
-				'type'		=> Metadata::LIST,
+				'type'		=> MetadataTypeEnum::LIST,
 				'choices' 	=> $this->companyRepository->getCompaniesByProjectAsArray($project),
 			]
 		];
@@ -715,7 +688,7 @@ class FieldService
 			'title' 	=> $this->translator->trans('Status value'),
 			'sort'		=> true,
 			'filter'	=> [
-				'type'		=> Metadata::LIST,
+				'type'		=> MetadataTypeEnum::LIST,
 				'choices' 	=> $this->statusRepository->getStatusesAsArray($project),
 			]
 		];
@@ -725,45 +698,32 @@ class FieldService
 			'title' 	=> $this->translator->trans('Status type'),
 			'sort'		=> true,
 			'filter'	=> [
-				'type'		=> Metadata::LIST,
-				'choices' => [
-					Status::INFORMATION	=> $this->translator->trans('Information'),
-					Status::REVIEW		=> $this->translator->trans('Review'),
-					Status::CANCEL		=> $this->translator->trans('Cancel'),
-					Status::AS_BUILT	=> $this->translator->trans('As built'),
-				],
+				'type'		=> MetadataTypeEnum::LIST,
+				'choices' 	=> StatusTypeEnum::getChoices(),
 			]
 		];
 		
 		foreach ($this->metadataRepository->getMetadatas($project) as $metadata) {
 			
-			switch ($metadata->getType()) {
-
-				case Metadata::BOOLEAN:
-				case Metadata::TEXT:
-				case Metadata::DATE:
-					$fields[$metadata->getFullCodename()]['elements'][] = [
+			$fields[$metadata->getFullCodename()]['elements'][] = match ($metadata->getType()) {
+				MetadataTypeEnum::BOOLEAN, MetadataTypeEnum::TEXT, MetadataTypeEnum::DATE => [
 						'id' 		=> $metadata->getFullId(),
 						'title' 	=> $metadata->getName(),
 						'sort'		=> true,
 						'filter'	=> [
 							'type'		=> $metadata->getType(),
 						]
-					];
-					break;
-					
-				case Metadata::LIST:
-					$fields[$metadata->getFullCodename()]['elements'][] = [
+					],
+				MetadataTypeEnum::LIST => [
 						'id' 		=> $metadata->getFullId(),
 						'title' 	=> $metadata->getName(),
 						'sort'		=> true,
 						'filter'	=> [
-							'type'		=> Metadata::LIST,
+							'type'		=> MetadataTypeEnum::LIST,
 							'choices' 	=> $this->metadataItemRepository->getMetadataItemAsArray($metadata),
 						]
-					];
-					break;
-			}
+					],
+			};
 		}
 		
 		foreach ($this->companyRepository->getCheckerCompanies($project) as $checkerCompany) {
@@ -773,7 +733,7 @@ class FieldService
 					'title' 	=> $this->translator->trans('Visa') . ' ' . $checkerCompany->getName(),
 					'sort'		=> true,
 					'filter'	=> [
-						'type'		=> Metadata::LIST,
+						'type'		=> MetadataTypeEnum::LIST,
 						'choices' 	=> $this->visaRepository->getVisasByCompanyAsArray($project, $checkerCompany),
 					]
 				];

@@ -6,7 +6,7 @@
 	{% if (is_granted('ROLE_CONTROLLER') and app.user in project.users) or is_granted('ROLE_ADMIN') %}
 		{{ navbar.dropdown('Project admin', [
 			{
-				'name': 'Edit project',
+				'name': 'edit.project',
 				'href': path('project_edit', {'project': project.id}),
 				'data-turbo-frame': 'std_modal',
 			},
@@ -37,7 +37,7 @@
 			},
 			{
 				'name': 'Automations',
-				'href': path('status', {'project': project.id}),
+				'href': path('automation', {'project': project.id}),
 				'data-turbo-frame': 'fs_modal',
 			},
 		]) }}
@@ -65,10 +65,10 @@
 
 	{% if programs is not empty %}
 
-		{% set export_programs = programs|filter(v => v.type == constant('App\\Entity\\Program::EXPORT')) %}
-		{% set import_programs = programs|filter(v => v.type == constant('App\\Entity\\Program::IMPORT')) %}
-		{% set task_programs = programs|filter(v => v.type == constant('App\\Entity\\Program::TASK')) %}
-		{% set progress_programs = programs|filter(v => v.type == constant('App\\Entity\\Program::PROGRESS')) %}
+		{% set export_programs = programs|filter(v => v.type == constant('App\\Entity\\Enum\\ProgramTypeEnum::EXPORT')) %}
+		{% set import_programs = programs|filter(v => v.type == constant('App\\Entity\\Enum\\ProgramTypeEnum::IMPORT')) %}
+		{% set task_programs = programs|filter(v => v.type == constant('App\\Entity\\Enum\\ProgramTypeEnum::TASK')) %}
+		{% set progress_programs = programs|filter(v => v.type == constant('App\\Entity\\Enum\\ProgramTypeEnum::PROGRESS')) %}
 
 
 		{% if export_programs is not empty  %}
@@ -135,7 +135,7 @@
 			{% endfor %}
 		{% endif %}
 
-		{% if export_menu is empty and import_menu is empty and task_menu is empty and progress_menu is empty %}
+		{% if export_programs is empty and import_programs is empty and task_programs is empty and progress_programs is empty %}
 			{{ navbar.dropdown('Programs', [
 				{
 					'name': 'No program avialable',

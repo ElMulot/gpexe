@@ -2,7 +2,7 @@
 
 namespace App\Form;
 
-
+use App\Entity\Enum\MetadataTypeEnum;
 use App\Entity\Metadata;
 use App\Entity\MetadataItem;
 use App\Entity\MetadataValue;
@@ -23,11 +23,8 @@ class SerieType extends AbstractType
 	
 	private $builder;
 	
-	private $metadataRepository;
-	
-	public function __construct(MetadataRepository $metadataRepository)
+	public function __construct(private readonly MetadataRepository $metadataRepository)
 	{
-		$this->metadataRepository = $metadataRepository;
 	}
 	
 	public function buildForm(FormBuilderInterface $builder, array $options)
@@ -43,7 +40,7 @@ class SerieType extends AbstractType
 			
 			switch ($metadata->getType()) {
 				
-				case Metadata::BOOLEAN:
+				case MetadataTypeEnum::BOOLEAN:
 					
 					$builder->add($metadata->getCodeName(), ChoiceType::class, [
 						'label' => $metadata->getName(),
@@ -56,7 +53,7 @@ class SerieType extends AbstractType
 					]);
 					break;
 					
-				case Metadata::DATE:
+				case MetadataTypeEnum::DATE:
 					
 					if ($data instanceof MetadataValue) {
 						$data = new \DateTime($data->getValue());
@@ -77,7 +74,7 @@ class SerieType extends AbstractType
 					
 					break;
 					
-				case Metadata::TEXT:
+				case MetadataTypeEnum::TEXT:
 					
 					$builder->add($metadata->getCodeName(), TextareaType::class, [
 						'label'			=> $metadata->getName(),
@@ -88,7 +85,7 @@ class SerieType extends AbstractType
 					]);
 					break;
 					
-				case Metadata::LINK:
+				case MetadataTypeEnum::LINK:
 					
 					$builder->add($metadata->getCodeName(), TextType::class, [
 						'label'			=> $metadata->getName(),
@@ -99,7 +96,7 @@ class SerieType extends AbstractType
 					]);
 					break;
 					
-				case Metadata::LIST:
+				case MetadataTypeEnum::LIST:
 					
 					$builder->add($metadata->getCodeName(), EntityType::class, [
 						'class'			=> MetadataItem::class,

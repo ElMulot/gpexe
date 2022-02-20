@@ -14,17 +14,17 @@
 		{% if logout is same as(true) %}
 			<div class="alert alert-success">{% trans %}Logout successful{% endtrans %}</div>
 		{% endif %}
-		<form method="post">
+		<form method="POST" action="{{ path('login') }}" >
 			{% if error %}
 			<div class="alert alert-danger">
 				{{ error.messageKey|trans(error.messageData, 'security') }}
 			</div>
 			{% endif %}
 			
-			<label for="inputEmail">{% trans %}Email{% endtrans %}</label>
-			<input type="email" {% if last_username is defined %}value="{{ last_username }}"{% endif %} name="email" id="inputEmail" class="form-control" required autofocus>
-			<label for="inputPassword">{% trans %}Password{% endtrans %}</label>
-			<input type="password" name="password" id="inputPassword" class="form-control" required>
+			<label for="username">{% trans %}Email{% endtrans %}</label>
+			<input type="text" id="username" name="_username" value="{{ last_username }}" class="form-control" required autofocus>
+			<label for="password">{% trans %}Password{% endtrans %}</label>
+			<input type="password" id="password" name="_password" class="form-control" required>
 			<input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
 			<div class="mb-3">
 				<input type="checkbox" id="remember_me" name="_remember_me" checked/>

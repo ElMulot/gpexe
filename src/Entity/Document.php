@@ -2,66 +2,51 @@
 
 namespace App\Entity;
 
+use App\Entity\Enum\CodificationTypeEnum;
+use App\Entity\Enum\MetadataTypeEnum;
 use App\Helpers\Date;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Spatie\Regex\Regex;
 use Doctrine\ORM\Mapping as ORM;
+use App\Repository\DocumentRepository;
 
-/**
- * @ORM\Entity(repositoryClass="App\Repository\DocumentRepository")
- */
-class Document
+#[ORM\Entity(repositoryClass: DocumentRepository::class)]
+class Document implements \Stringable
 {
-	/**
-	 * @ORM\Id()
-	 * @ORM\GeneratedValue()
-	 * @ORM\Column(type="integer")
-	 */
+	#[ORM\Id]
+	#[ORM\GeneratedValue]
+	#[ORM\Column(type: 'integer')]
 	private $id;
 
-	/**
-	 * @ORM\Column(type="string", length=255)
-	 */
+	#[ORM\Column(type: 'string', length: 255)]
 	private $name;
 
-	/**
-	 * @ORM\ManyToMany(targetEntity=CodificationItem::class, cascade={"persist"})
-	 * @ORM\JoinTable(name="document_codification_item")
-	 */
+	#[ORM\ManyToMany(targetEntity: CodificationItem::class, cascade: ['persist'])]
+	#[ORM\JoinTable(name: 'document_codification_item')]
 	private $codificationItems;
-	
-	/**
-	 * @ORM\ManyToMany(targetEntity=CodificationValue::class, cascade={"persist"})
-	 * @ORM\JoinTable(name="document_codification_value")
-	 */
+
+	#[ORM\ManyToMany(targetEntity: CodificationValue::class, cascade: ['persist'])]
+	#[ORM\JoinTable(name: 'document_codification_value')]
 	private $codificationValues;
 
-	/**
-	 * @ORM\ManyToMany(targetEntity=MetadataItem::class, cascade={"persist"})
-	 * @ORM\JoinTable(name="document_metadata_item")
-	 */
+	#[ORM\ManyToMany(targetEntity: MetadataItem::class, cascade: ['persist'])]
+	#[ORM\JoinTable(name: 'document_metadata_item')]
 	private $metadataItems;
-	
-	/**
-	 * @ORM\ManyToMany(targetEntity=MetadataValue::class, cascade={"persist"})
-	 * @ORM\JoinTable(name="document_metadata_value")
-	 */
+
+	#[ORM\ManyToMany(targetEntity: MetadataValue::class, cascade: ['persist'])]
+	#[ORM\JoinTable(name: 'document_metadata_value')]
 	private $metadataValues;
-	
-	/**
-	 * @ORM\OneToMany(targetEntity=Version::class, mappedBy="document", cascade={"persist"}, orphanRemoval=true)
-	 */
+
+	#[ORM\OneToMany(targetEntity: Version::class, mappedBy: 'document', cascade: ['persist'], orphanRemoval: true)]
 	private $versions;
 
-	/**
-	 * @ORM\ManyToOne(targetEntity=Serie::class, inversedBy="documents", cascade={"persist"})
-	 * @ORM\JoinColumn(nullable=false)
-	 */
+	#[ORM\ManyToOne(targetEntity: Serie::class, inversedBy: 'documents', cascade: ['persist'])]
+	#[ORM\JoinColumn(nullable: false)]
 	private $serie;
-	
+
 	private $reference;
-	
+
 	public function __construct()
 	{
 		$this->codificationItems = new ArrayCollection();
@@ -70,7 +55,6 @@ class Document
 		$this->metadataValues = new ArrayCollection();
 		$this->versions = new ArrayCollection();
 	}
-
 	public function getId(): ?int
 	{
 		return $this->id;
@@ -115,16 +99,14 @@ class Document
 
 		return $this;
 	}
-	
 	/**
 	 * @return Collection|CodificationValue[]
 	 */
-	
 	public function getCodificationValues(): Collection
 	{
 		return $this->codificationValues;
 	}
-	
+
 	public function addCodificationValue(CodificationValue $codificationValue): self
 	{
 		if (!$this->codificationValues->contains($codificationValue)) {
@@ -134,7 +116,7 @@ class Document
 		
 		return $this;
 	}
-	
+
 	public function removeCodificationValue(CodificationValue $codificationValue): self
 	{
 		if ($this->codificationValues->contains($codificationValue)) {
@@ -144,7 +126,7 @@ class Document
 		
 		return $this;
 	}
-	
+
 	/**
 	 * @return Collection|MetadataItem[]
 	 */
@@ -152,7 +134,7 @@ class Document
 	{
 		return $this->metadataItems;
 	}
-	
+
 	public function addMetadataItem(MetadataItem $metadataItem): self
 	{
 		if (!$this->metadataItems->contains($metadataItem)) {
@@ -161,7 +143,7 @@ class Document
 		
 		return $this;
 	}
-	
+
 	public function removeMetadataItem(MetadataItem $metadataItem): self
 	{
 		if ($this->metadataItems->contains($metadataItem)) {
@@ -170,16 +152,15 @@ class Document
 		
 		return $this;
 	}
-	
+
 	/**
 	 * @return Collection|MetadataValue[]
 	 */
-	
 	public function getMetadataValues(): Collection
 	{
 		return $this->metadataValues;
 	}
-	
+
 	public function addMetadataValue(MetadataValue $metadataValue): self
 	{
 		if (!$this->metadataValues->contains($metadataValue)) {
@@ -188,7 +169,7 @@ class Document
 		
 		return $this;
 	}
-	
+
 	public function removeMetadataValue(MetadataValue $metadataValue): self
 	{
 		if ($this->metadataValues->contains($metadataValue)) {
@@ -197,7 +178,7 @@ class Document
 		
 		return $this;
 	}
-	
+
 	/**
 	 * @return Collection|Version[]
 	 */
@@ -205,7 +186,7 @@ class Document
 	{
 		return $this->versions;
 	}
-	
+
 	public function addVersion(Version $version): self
 	{
 		if (!$this->versions->contains($version)) {
@@ -239,7 +220,7 @@ class Document
 		$this->serie = $serie;
 		return $this;
 	}
-	   
+
 	public function getCodificationItemByCodification($codification): ?CodificationItem
 	{
 		foreach ($this->getCodificationItems()->getValues() as $codificationItem) {		
@@ -249,7 +230,7 @@ class Document
 		}
 		return null;
 	}
-	
+
 	public function getCodificationValueByCodification($codification): ?CodificationValue
 	{
 		foreach ($this->getCodificationValues() as $codificationValue) {
@@ -259,7 +240,7 @@ class Document
 		}
 		return null;
 	}
-	
+
 	public function getReference(): ?string
 	{
 		if ($this->reference !== null) {
@@ -302,11 +283,11 @@ class Document
 		return $this->reference;
 		
 	}
-	
+
 	public function setReference($value): self
 	{
 		$project = $this->getSerie()->getProject();
-		$references = explode($project->getSplitter(), $value);
+		$references = explode($project->getSplitter(), (string) $value);
 		
 		$reference = null;
 		foreach ($project->getCodifications()->getValues() as $codification) {
@@ -322,22 +303,22 @@ class Document
 			try {
 				$this->setCodificationValue($codification, $reference);
 				$reference = null;
-			} catch (\Error $e) {
+			} catch (\Error) {
 				continue;
 			}
 		}
 		
 		return $this;
 	}
-	
+
 	public function getCodificationValue(Codification $codification)
 	{
 		
 		switch ($codification->getType()) {
 			
-			case Codification::FIXED:
+			case CodificationTypeEnum::FIXED;
 					return $codification->getValue();
-			case Codification::REGEX:
+			case CodificationTypeEnum::REGEX:
 				foreach ($this->getCodificationValues()->getValues() as $codificationValue) {
 					if ($codificationValue->getCodification() == $codification) {
 						return $codificationValue;
@@ -345,7 +326,7 @@ class Document
 				}
 				break;
 				
-			case Codification::LIST:
+			case CodificationTypeEnum::LIST:
 				foreach ($this->getCodificationItems()->getValues() as $codificationItem) {
 					if ($codificationItem->getCodification() == $codification) {
 						return $codificationItem;
@@ -355,7 +336,7 @@ class Document
 		}
 		
 	}
-	
+
 	public function setCodificationValue(Codification $codification, $value): self
 	{
 		
@@ -368,10 +349,10 @@ class Document
 		}
 		
 		switch ($codification->getType()) {
-			case Codification::FIXED:
+			case CodificationTypeEnum::FIXED:
 				return $this;
 				
-			case Codification::LIST:
+			case CodificationTypeEnum::LIST:
 				
 				if ($codificationItem = $this->getCodificationItemByCodification($codification)) {
 					if ($codificationItem->getValue() == $value) {
@@ -390,7 +371,7 @@ class Document
 				
 				break;
 					
-			case Codification::REGEX:
+			case CodificationTypeEnum::REGEX:
 				
 				if ($codificationValue = $this->getCodificationValueByCodification($codification)) {
 					if ($codificationValue->getValue() == $value) {
@@ -419,7 +400,7 @@ class Document
 		
 		throw new \Error(sprintf('Erreur en écrivant la valeur "%s" dans la codification "%s".', $value, $codification->getCodename()));
 	}
-	
+
 	public function getVersionsCount(): int
 	{
 		$count = 0;
@@ -432,15 +413,15 @@ class Document
 		
 		return $count;
 	}
-	
+
 	public function getMetadataValue(Metadata $metadata) {
 		
 		switch ($metadata->getType()) {
 			
-			case Metadata::BOOLEAN:
-			case Metadata::TEXT:
-			case Metadata::DATE:
-			case Metadata::LINK:
+			case MetadataTypeEnum::BOOLEAN:
+			case MetadataTypeEnum::TEXT:
+			case MetadataTypeEnum::DATE:
+			case MetadataTypeEnum::LINK:
 				foreach ($this->getMetadataValues()->getValues() as $metadataValue) {
 					if ($metadataValue->getMetadata() == $metadata) {
 						return $metadataValue;
@@ -448,7 +429,7 @@ class Document
 				}
 				break;
 				
-			case Metadata::LIST:
+			case MetadataTypeEnum::LIST:
 				foreach ($this->getMetadataItems()->getValues() as $metadataItem) {
 					if ($metadataItem->getMetadata() == $metadata) {
 						return $metadataItem;
@@ -458,7 +439,7 @@ class Document
 		}
 		
 	}
-	
+
 	public function setMetadataValue(Metadata $metadata, $value): self
 	{
 		
@@ -467,10 +448,10 @@ class Document
 		}
 		
 		switch ($metadata->getType()) {
-			case Metadata::BOOLEAN:
+			case MetadataTypeEnum::BOOLEAN:
 				$value = ($value)?true:false;
 				break;
-			case Metadata::DATE:
+			case MetadataTypeEnum::DATE:
 				if (is_string($value)) {
 					$date = Date::fromFormat($value);
 					if ($date->isValid() === false) {
@@ -497,10 +478,10 @@ class Document
 		
 		switch ($metadata->getType()) {
 			
-			case Metadata::BOOLEAN:
-			case Metadata::TEXT:
-			case Metadata::DATE:
-			case Metadata::LINK:
+			case MetadataTypeEnum::BOOLEAN:
+			case MetadataTypeEnum::TEXT:
+			case MetadataTypeEnum::DATE:
+			case MetadataTypeEnum::LINK:
 				foreach ($this->getMetadataValues()->getValues() as $metadataValue) {
 					if ($metadataValue->getMetadata() == $metadata) {
 						if ($metadataValue->getValue() == $value) {
@@ -525,7 +506,7 @@ class Document
 					return $this;
 				}
 				
-			case Metadata::LIST:
+			case MetadataTypeEnum::LIST:
 				foreach ($this->getMetadataItems()->getValues() as $metadataItem) {
 					if ($metadataItem->getMetadata() == $metadata) {
 						if ($metadataItem->getValue() == $value) {
@@ -549,7 +530,7 @@ class Document
 		
 		throw new \Error(sprintf('Erreur en écrivant la valeur "%s" dans le champ "%s"', $value, $metadata->getCodename()));
 	}
-	
+
 	public function getPropertyValue(string $codename)
 	{
 		
@@ -588,7 +569,7 @@ class Document
 		
 		return null;
 	}
-	
+
 	public function setPropertyValue(string $codename, $value): self
 	{
 		
@@ -627,7 +608,7 @@ class Document
 		
 		throw new \Error(sprintf('Erreur en écrivant la valeur "%s" dans le champ "%s"', $value, $codename));
 	}
-	
+
 	public function getLastVersion(): ?Version
 	{
 		
@@ -651,5 +632,4 @@ class Document
 	{
 		return (string)$this->getReference();
 	}
-	
 }

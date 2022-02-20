@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Enum\MetadataParentEnum;
 use App\Entity\Metadata;
 use App\Entity\Project;
 use App\Service\RepositoryService;
@@ -43,7 +44,7 @@ class MetadataRepository extends RepositoryService
 		$qb = $this->newQb('m');
 		return $qb
 			->andWhere($qb->eq('m.project', $project))
-			->andWhere($qb->eq('m.parent', Metadata::SERIE))
+			->andWhere($qb->eq('m.parent', MetadataParentEnum::SERIE))
 			->getQuery()
 			->getResult()
 		;
@@ -58,7 +59,7 @@ class MetadataRepository extends RepositoryService
 		$qb = $this->newQb('m');
 		return $qb
 			->andWhere($qb->eq('m.project', $project))
-			->andWhere($qb->eq('m.parent', Metadata::DOCUMENT))
+			->andWhere($qb->eq('m.parent', MetadataParentEnum::DOCUMENT))
 			->getQuery()
 			->getResult()
 		;
@@ -73,7 +74,7 @@ class MetadataRepository extends RepositoryService
 		$qb = $this->newQb('m');
 		return $qb
 			->andWhere($qb->eq('m.project', $project))
-			->andWhere($qb->eq('m.parent', Metadata::VERSION))
+			->andWhere($qb->eq('m.parent', MetadataParentEnum::VERSION))
 			->getQuery()
 			->getResult()
 		;

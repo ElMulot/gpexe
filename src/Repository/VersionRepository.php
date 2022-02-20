@@ -13,6 +13,10 @@ use App\Entity\Metadata;
 use App\Entity\Project;
 use App\Entity\Company;
 use App\Entity\Document;
+use App\Entity\Enum\CodificationTypeEnum;
+use App\Entity\Enum\CompanyTypeEnum;
+use App\Entity\Enum\MetadataTypeEnum;
+use App\Entity\Enum\StatusTypeEnum;
 use App\Entity\Status;
 use App\Entity\User;
 use App\Entity\Version;
@@ -29,15 +33,9 @@ use Spatie\Regex\Regex;
 class VersionRepository extends RepositoryService
 {
 	
-	private $router;
-	
-	private $visaRepository;
-	
-	public function __construct(ManagerRegistry $registry, UrlGeneratorInterface $router, VisaRepository $visaRepository)
+	public function __construct(ManagerRegistry $registry, private readonly UrlGeneratorInterface $router, private readonly VisaRepository $visaRepository)
 	{
 		parent::__construct($registry, Version::class);
-		$this->router = $router;
-		$this->visaRepository = $visaRepository;
 	}
 	
 	public function getVersionsCount($codifications, $fields, $series, $project, $request=null): int
@@ -50,7 +48,7 @@ class VersionRepository extends RepositoryService
 		$qb = $this->getCoreQB($codifications, $fields, $series, $project, $request);
 		
 		//count cannot work if version_date alias is defined
-		return count($qb->getQuery()->getResult());
+		return is_countable($qb->getQuery()->getResult()) ? count($qb->getQuery()->getResult()) : 0;
 	}
 	
 	/**
@@ -158,9 +156,9 @@ class VersionRepository extends RepositoryService
 							
 							switch ($field['type']) {
 								
-								case Metadata::BOOLEAN:
-								case Metadata::TEXT:
-								case Metadata::LINK:
+								case MetadataTypeEnum::BOOLEAN:
+								case MetadataTypeEnum::TEXT:
+								case MetadataTypeEnum::LINK:
 									if ($qb->hasAlias($field['id'] . '_') === false) {
 										$qb
 											->leftJoin($field['parent'] . '.metadataValues', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
@@ -170,7 +168,7 @@ class VersionRepository extends RepositoryService
 									$qb->addOrderBy($field['id'] . '_.value', $order);
 									break;
 									
-								case Metadata::DATE:
+								case MetadataTypeEnum::DATE:
 									if ($qb->hasAlias($field['id'] . '_') === false) {
 										$qb
 											->leftJoin($field['parent'] . '.metadataValues', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
@@ -181,7 +179,7 @@ class VersionRepository extends RepositoryService
 									$qb->addOrderBy($field['id'] . '_value', $order);
 									break;
 									
-								case Metadata::LIST:
+								case MetadataTypeEnum::LIST:
 									if ($qb->hasAlias($field['id'] . '_') === false) {
 										$qb
 											->leftJoin($field['parent'] . '.metadataItems', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
@@ -253,14 +251,14 @@ class VersionRepository extends RepositoryService
 					
 					switch ($field['type']) {
 						
-						case Codification::LIST:
+						case CodificationTypeEnum::LIST:
 							if ($qb->hasAlias($field['id'] . '_') === false) {
 								$qb->innerJoin('document.codificationItems', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.codification', $id));
 							}
 							$qb->addSelect(sprintf('%1$s_.value AS %1$s', $field['id']));
 							break;
 							
-						case Codification::REGEX:
+						case CodificationTypeEnum::REGEX:
 							if ($qb->hasAlias($field['id']. '_') === false) {
 								$qb->innerJoin('document.codificationValues', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.codification', $id));
 							}
@@ -361,9 +359,9 @@ class VersionRepository extends RepositoryService
 								
 								switch ($field['type']) {
 									
-									case Metadata::BOOLEAN:
-									case Metadata::TEXT:
-									case Metadata::LINK:
+									case MetadataTypeEnum::BOOLEAN:
+									case MetadataTypeEnum::TEXT:
+									case MetadataTypeEnum::LINK:
 										if ($qb->hasAlias($field['id'] . '_') === false) {
 											$qb
 												->leftJoin($field['parent'] . '.metadataValues', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
@@ -373,7 +371,7 @@ class VersionRepository extends RepositoryService
 										$qb->addSelect(sprintf('MAX(%1$s_.value) AS %1$s', $field['id']));
 										break;
 										
-									case Metadata::DATE:
+									case MetadataTypeEnum::DATE:
 										if ($qb->hasAlias($field['id'] . '_') === false) {
 											$qb
 												->leftJoin($field['parent'] . '.metadataValues', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
@@ -383,7 +381,7 @@ class VersionRepository extends RepositoryService
 										$qb->addSelect(sprintf('MAX(%1$s_.value) AS %1$s', $field['id']));
 										break;
 										
-									case Metadata::LIST:
+									case MetadataTypeEnum::LIST:
 										
 										if ($qb->hasAlias($field['id'] . '_') === false) {
 											$qb
@@ -579,7 +577,7 @@ class VersionRepository extends RepositoryService
 			->where($subQb->isNull('v2.scheduledDate'))
 			->andWhere($subQb->eq('v1.isRequired', true))
 			->andWhere($subQb->eq('v1.writer', $user))
-			->andWhere($subQb->neq('s.type', Status::CANCEL))
+			->andWhere($subQb->neq('s.type', StatusTypeEnum::CANCEL))
 			->addGroupBy('v1.document')
 		;
 		
@@ -589,7 +587,7 @@ class VersionRepository extends RepositoryService
 			->innerJoin('d.serie', 's')
 			->innerJoin('s.company', 'c')
 			->andWhere($qb->eq('s.project', $project))
-			->andWhere($qb->in('c.type', [Company::MAIN_CONTRACTOR, Company::SUB_CONTRACTOR, Company::SUPPLIER]))
+			->andWhere($qb->in('c.type', [CompanyTypeEnum::MAIN_CONTRACTOR, CompanyTypeEnum::SUB_CONTRACTOR, CompanyTypeEnum::SUPPLIER]))
 			->andWhere($qb->in('v.id', $subQb->getQuery()->getArrayResult()))
 			->groupBy('s.id')
 			->getQuery()
@@ -611,7 +609,7 @@ class VersionRepository extends RepositoryService
 			->where($subQb->isNull('v2.deliveryDate'))
 			->andWhere($subQb->eq('v1.isRequired', false))
 			->andWhere($subQb->eq('v1.checker', $user))
-			->andWhere($subQb->neq('s.type', Status::CANCEL))
+			->andWhere($subQb->neq('s.type', StatusTypeEnum::CANCEL))
 			->addGroupBy('v1.document')
 		;
 		
@@ -622,7 +620,7 @@ class VersionRepository extends RepositoryService
 			->innerJoin('s.company', 'c')
 			->leftJoin('v.reviews', 'r', Join::WITH, $qb->in('r.visa', $this->visaRepository->getVisasByCompany($project, $user->getCompany())))
 			->andWhere($qb->eq('s.project', $project))
-			->andWhere($qb->in('c.type', [Company::MAIN_CONTRACTOR, Company::SUB_CONTRACTOR, Company::SUPPLIER]))
+			->andWhere($qb->in('c.type', [CompanyTypeEnum::MAIN_CONTRACTOR, CompanyTypeEnum::SUB_CONTRACTOR, CompanyTypeEnum::SUPPLIER]))
 			->andWhere($qb->isNull('r.user'))
 			->andWhere($qb->in('v.id', $subQb->getQuery()->getArrayResult()))
 			->groupBy('s.id')
@@ -775,22 +773,22 @@ class VersionRepository extends RepositoryService
 							
 							switch ($field['type']) {
 
-								case Codification::LIST:
+								case CodificationTypeEnum::LIST:
 									$qb->innerJoin('document.codificationItems', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.codification', $id));
 									break;
 									
-								case Codification::REGEX:
+								case CodificationTypeEnum::REGEX:
 									$qb->innerJoin('document.codificationValues', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.codification', $id));
 									break;
 							}
 							
 							switch ($field['type']) {
 								
-								case Codification::LIST:
+								case CodificationTypeEnum::LIST:
 									$qb->andWhere($qb->in($field['id'] . '_.id', $value));
 									break;
 									
-								case Codification::REGEX:
+								case CodificationTypeEnum::REGEX:
 									$qb->andWhere($qb->like($field['id'] . '_.value', $this->likeStatement($value)));
 									break;
 									
@@ -803,16 +801,16 @@ class VersionRepository extends RepositoryService
 							
 							switch ($field['type']) {
 								
-								case Metadata::BOOLEAN:
-								case Metadata::TEXT:
-								case Metadata::LINK:
+								case MetadataTypeEnum::BOOLEAN:
+								case MetadataTypeEnum::TEXT:
+								case MetadataTypeEnum::LINK:
 									$qb
 										->leftJoin($field['parent'] . '.metadataValues', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
 										->groupBy('version.id')
 										->addSelect(sprintf('MAX(%1$s_.value) AS HIDDEN %1$s_value', $field['id']))
 									;
 									break;
-								case Metadata::DATE:
+								case MetadataTypeEnum::DATE:
 									$qb
 										->leftJoin($field['parent'] . '.metadataValues', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
 										->groupBy('version.id')
@@ -820,7 +818,7 @@ class VersionRepository extends RepositoryService
 									;
 									break;
 									
-								case Metadata::LIST:
+								case MetadataTypeEnum::LIST:
 									$qb
 										->leftJoin($field['parent'] . '.metadataItems', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
 										->groupBy('version.id')
@@ -832,7 +830,7 @@ class VersionRepository extends RepositoryService
 							
 							switch ($field['type']) {
 								
-								case Metadata::BOOLEAN:
+								case MetadataTypeEnum::BOOLEAN:
 									if ($value == '1') {
 										$qb->andHaving($qb->eq($field['id'] . '_value', 1));
 									} else {
@@ -840,11 +838,11 @@ class VersionRepository extends RepositoryService
 									}
 									break;
 									
-								case Metadata::TEXT:
+								case MetadataTypeEnum::TEXT:
 									$qb->andHaving($qb->like($field['id'] . '_value', $this->likeStatement($value)));
 									break;
 									
-								case Metadata::DATE:
+								case MetadataTypeEnum::DATE:
 									$value = implode(',', $value);
 									if (($r = Regex::match('/>(\d{2}-\d{2}-\d{4})/', $value))->hasMatch()) {
 										if (Regex::match('/(?<=,)0/', $value)->hasMatch()) {
@@ -877,7 +875,7 @@ class VersionRepository extends RepositoryService
 									}
 									break;
 									
-								case Metadata::LIST:
+								case MetadataTypeEnum::LIST:
 									if (in_array(0, $value)) {
 										$qb->andHaving($qb->orX($qb->in($field['id'] . '_id', $value), $qb->isNull($field['id'] . '_id')));
 									} else {

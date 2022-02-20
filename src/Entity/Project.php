@@ -9,98 +9,63 @@ use App\Entity\User;
 use App\Entity\Codification;
 use App\Entity\Metadata;
 use App\Entity\Visa;
+use App\Repository\ProjectRepository;
 
-/**
- * @ORM\Entity(repositoryClass="App\Repository\ProjectRepository")
- */
-class Project
+#[ORM\Entity(repositoryClass: ProjectRepository::class)]
+class Project implements \Stringable
 {
-	/**
-	 * @ORM\Id()
-	 * @ORM\GeneratedValue()
-	 * @ORM\Column(type="integer")
-	 */
+	#[ORM\Id]
+	#[ORM\GeneratedValue]
+	#[ORM\Column(type: 'integer')]
 	private $id;
 
-	/**
-	 * @ORM\Column(type="string", length=100)
-	 */
+	#[ORM\Column(type: 'string', length: 100)]
 	private $name;
 
-	/**
-	 * @ORM\Column(type="string", length=255, nullable=true)
-	 */
+	#[ORM\Column(type: 'string', length: 255, nullable: true)]
 	private $image;
 
-	/**
-	 * @ORM\Column(type="string", length=4, nullable=true)
-	 */
+	#[ORM\Column(type: 'string', length: 4, nullable: true)]
 	private $splitter;
 
-	/**
-	 * @ORM\Column(type="integer")
-	 */
+	#[ORM\Column(type: 'integer')]
 	private $newVersionTime;
 
-	/**
-	 * @ORM\Column(type="integer")
-	 */
+	#[ORM\Column(type: 'integer')]
 	private $prodWarningLimit;
 
-	/**
-	 * @ORM\Column(type="integer")
-	 */
+	#[ORM\Column(type: 'integer')]
 	private $prodDangerLimit;
 
-	/**
-	 * @ORM\Column(type="integer")
-	 */
+	#[ORM\Column(type: 'integer')]
 	private $checkWarningLimit;
 
-	/**
-	 * @ORM\Column(type="integer")
-	 */
+	#[ORM\Column(type: 'integer')]
 	private $checkDangerLimit;
 
-	/**
-	 * @ORM\ManyToMany(targetEntity=User::class, inversedBy="projects")
-	 */
+	#[ORM\ManyToMany(targetEntity: User::class, inversedBy: 'projects')]
 	private $users;
 
-	/**
-	 * @ORM\OneToMany(targetEntity=Codification::class, mappedBy="project", orphanRemoval=true, fetch="EAGER")
-	 */
+	#[ORM\OneToMany(targetEntity: Codification::class, mappedBy: 'project', orphanRemoval: true, fetch: 'EAGER')]
 	private $codifications;
 
-	/**
-	 * @ORM\OneToMany(targetEntity=Metadata::class, mappedBy="project", orphanRemoval=true, fetch="EAGER")
-	 */
+	#[ORM\OneToMany(targetEntity: Metadata::class, mappedBy: 'project', orphanRemoval: true, fetch: 'EAGER')]
 	private $metadatas;
 
-	/**
-	 * @ORM\OneToMany(targetEntity=Status::class, mappedBy="project", orphanRemoval=true)
-	 */
+	#[ORM\OneToMany(targetEntity: Status::class, mappedBy: 'project', orphanRemoval: true)]
 	private $statuses;
 
-	/**
-	 * @ORM\OneToMany(targetEntity=Visa::class, mappedBy="project", orphanRemoval=true)
-	 */
+	#[ORM\OneToMany(targetEntity: Visa::class, mappedBy: 'project', orphanRemoval: true)]
 	private $visas;
 
-	/**
-	 * @ORM\OneToMany(targetEntity=Serie::class, mappedBy="project", orphanRemoval=true)
-	 * @ORM\OrderBy({"name" = "ASC"})
-	 */
+	#[ORM\OneToMany(targetEntity: Serie::class, mappedBy: 'project', orphanRemoval: true)]
+	#[ORM\OrderBy(value: ['name' => 'ASC'])]
 	private $series;
 
-	/**
-	 * @ORM\OneToMany(targetEntity=View::class, mappedBy="project", orphanRemoval=true)
-	 */
+	#[ORM\OneToMany(targetEntity: View::class, mappedBy: 'project', orphanRemoval: true)]
 	private $views;
 
-	/**
-	 * @ORM\OneToMany(targetEntity=Program::class, mappedBy="project", orphanRemoval=true)
-	 */
+	#[ORM\OneToMany(targetEntity: Program::class, mappedBy: 'project', orphanRemoval: true)]
 	private $programs;
 
 	public function __construct()
@@ -118,7 +83,6 @@ class Project
 		$this->series = new ArrayCollection();
 		$this->views = new ArrayCollection();
 		$this->programs = new ArrayCollection();
-		$this->name = "Test9";
 	}
 
 	public function getId(): ?int
@@ -452,7 +416,6 @@ class Project
 		return $this;
 	}
 
-
 	/**
 	 * @return Collection|Program[]
 	 */
@@ -483,7 +446,7 @@ class Project
 
 		return $this;
 	}
-
+	
 	public function __toString(): string
 	{
 		return (string)$this->getName();

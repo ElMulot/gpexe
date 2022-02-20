@@ -1,6 +1,7 @@
 <?php
 namespace App\Form;
 
+use App\Entity\Enum\MetadataTypeEnum;
 use App\Entity\Metadata;
 use App\Entity\MetadataItem;
 use App\Entity\MetadataValue;
@@ -27,21 +28,9 @@ class VersionType extends AbstractType
 {
 	
 	private $builder;
-	
-	private $companyRepository;
-	
-	private $metadataRepository;
-	
-	private $userRepository;
-	
-	private $propertyService;
 		
-	public function __construct(CompanyRepository $companyRepository, MetadataRepository $metadataRepository, UserRepository $userRepository, PropertyService $propertyService)
+	public function __construct(private readonly CompanyRepository $companyRepository, private readonly MetadataRepository $metadataRepository, private readonly UserRepository $userRepository, private readonly PropertyService $propertyService)
 	{
-		$this->companyRepository = $companyRepository;
-		$this->metadataRepository = $metadataRepository;
-		$this->userRepository = $userRepository;
-		$this->propertyService = $propertyService;
 	}
 	
 	public function buildForm(FormBuilderInterface $builder, array $options)
@@ -58,19 +47,19 @@ class VersionType extends AbstractType
 			]);
 		}
 		
-		$this->buildField('Required', 'isRequired', 'version.isRequired', Metadata::BOOLEAN, $versions);
+		$this->buildField('Required', 'isRequired', 'version.isRequired', MetadataTypeEnum::BOOLEAN, $versions);
 		
-		$this->buildField('Date', 'date', 'version.date', Metadata::DATE, $versions);
+		$this->buildField('Date', 'date', 'version.date', MetadataTypeEnum::DATE, $versions);
 		
 		$options = [
 			'class' 		=> Status::class,
 			'choices' 		=> $project->getStatuses(),
 		];
-		$this->buildField('Status', 'status', 'status.value', Metadata::LIST, $versions, $options);
+		$this->buildField('Status', 'status', 'status.value', MetadataTypeEnum::LIST, $versions, $options);
 		
 		foreach ($this->metadataRepository->getMetadatasForVersion($project) as $metadata) {
 			switch ($metadata->getType()) {
-				case Metadata::LIST:
+				case MetadataTypeEnum::LIST:
 					$options = [
 						'required'		=> $metadata->getIsMandatory(),
 						'class' 		=> MetadataItem::class,
@@ -92,15 +81,15 @@ class VersionType extends AbstractType
 			'class' 	=> User::class,
 			'choices' 	=> $serie->getCompany()->getUsers(),
 		];
-		$this->buildField('Writer', 'writer', 'version.writer', Metadata::LIST, $versions, $options);
+		$this->buildField('Writer', 'writer', 'version.writer', MetadataTypeEnum::LIST, $versions, $options);
 		
 		$options = [
 			'required' 	=> false,
 			'class' 	=> User::class,
 			'choices' 	=> $this->userRepository->getCheckers($project),
 		];
-		$this->buildField('Checker', 'checker', 'version.checker', Metadata::LIST, $versions, $options);
-		$this->buildField('Approver', 'approver', 'version.approver', Metadata::LIST, $versions, $options);
+		$this->buildField('Checker', 'checker', 'version.checker', MetadataTypeEnum::LIST, $versions, $options);
+		$this->buildField('Approver', 'approver', 'version.approver', MetadataTypeEnum::LIST, $versions, $options);
 	}
 	
 	private function checkMultiple(array $versions, string $codename): bool
@@ -126,13 +115,13 @@ class VersionType extends AbstractType
 	private function buildField(string $label, string $id, string $codename, int $type, array $versions=null, $options=[])
 	{
 	   	
-		if (($options['required'] ?? true) === true && $type != Metadata::BOOLEAN) {
+		if (($options['required'] ?? true) === true && $type != MetadataTypeEnum::BOOLEAN) {
 			$options['constraints'] = [new NotBlank()];
 		}
 		
 		$multiple = false;
 		
-		if (count($versions) > 1) {
+		if (count((array) $versions) > 1) {
 			$multiple = $this->checkMultiple($versions, $codename);
 		}
 		
@@ -144,7 +133,7 @@ class VersionType extends AbstractType
 		
 		switch ($type) {
 			
-			case Metadata::BOOLEAN:
+			case MetadataTypeEnum::BOOLEAN:
 				
 				$data = false;
 				if ($version && $multiple === false) {
@@ -167,7 +156,7 @@ class VersionType extends AbstractType
 				]);
 				break;
 				
-			case Metadata::TEXT:
+			case MetadataTypeEnum::TEXT:
 				
 				$data = null;
 				if ($version && $multiple === false) {
@@ -184,7 +173,7 @@ class VersionType extends AbstractType
 				]);
 				break;
 				
-			case Metadata::DATE:
+			case MetadataTypeEnum::DATE:
 				
 				$data = null;
 				
@@ -212,7 +201,7 @@ class VersionType extends AbstractType
 				
 				break;
 				
-			case Metadata::LINK:
+			case MetadataTypeEnum::LINK:
 				
 				$data = null;
 				if ($version && $multiple === false) {
@@ -234,7 +223,7 @@ class VersionType extends AbstractType
 				]);
 				break;
 				
-			case Metadata::LIST:
+			case MetadataTypeEnum::LIST:
 				$data = null;
 				if ($version && $multiple === false) {
 					$data = $version->getPropertyValue($codename);

@@ -11,13 +11,8 @@ use App\Repository\MetadataRepository;
 class SerieService extends Serie
 {
 	
-	private MetadataRepository $metadataRepository;
-	
-	public function __construct(MetadataRepository $metadataRepository)
+	public function __construct(private readonly MetadataRepository $metadataRepository)
 	{
-		
-		$this->metadataRepository = $metadataRepository;
-		
 	}
 	
 	

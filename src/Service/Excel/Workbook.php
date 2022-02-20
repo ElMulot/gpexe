@@ -16,8 +16,8 @@ use Spatie\Regex\MatchResult;
 
 class Workbook
 {
-	const PHPSPREADSHEET	= 1;
-	const SPOUT				= 2;
+	final const PHPSPREADSHEET	= 1;
+	final const SPOUT				= 2;
 	
 	private $fileSystem;
 	
@@ -72,13 +72,10 @@ class Workbook
 		
 		switch ($this->getLibrary()) {
 			case self::SPOUT:
-				switch ($this->extensionName) {
-					case '.xlsx':
-						$this->writer = WriterEntityFactory::createXLSXWriter();
-						break;
-					default:
-						throw new Exception('Erreur : extension non supportée');
-				}
+				$this->writer = match ($this->extensionName) {
+					'.xlsx' => WriterEntityFactory::createXLSXWriter(),
+					default => throw new Exception('Erreur : extension non supportée'),
+				};
 				$this->writer->openToFile($this->getPath());
 				$this->writer->close();
 				
@@ -93,13 +90,10 @@ class Workbook
 				;
 				$this->setDefaultStyle();
 					
-				switch ($this->extensionName) {
-					case '.xlsx':
-						$this->writer = IOFactory::createWriter($this->_workbook, "Xlsx");
-						break;
-					default:
-						throw new Exception('Erreur : extension non supportée');
-				}
+				$this->writer = match ($this->extensionName) {
+					'.xlsx' => IOFactory::createWriter($this->_workbook, "Xlsx"),
+					default => throw new Exception('Erreur : extension non supportée'),
+				};
 				
 				break;
 				
@@ -133,7 +127,6 @@ class Workbook
 				$this->reader->open($file);
 				
 				if ($readOnly === false) {
-					$this->writer = WriterEntityFactory::createXLSXWriter();
 					$this->setDefaultStyle();
 					$this->writer->openToFile($file . '.tmp');
 					foreach ($this->reader->getSheetIterator() as $sheetIndex => $sheet) {
@@ -154,16 +147,11 @@ class Workbook
 				$this->setDefaultStyle();
 				
 				if ($readOnly == false) {
-					switch ($this->extensionName) {
-						case '.xlsx':
-							$this->writer = IOFactory::createWriter($this->_workbook, "Xlsx");
-							break;
-						case '.csv':
-							$this->writer = IOFactory::createWriter($this->_workbook, "Csv");
-							break;
-						default:
-							throw new Exception('Erreur : extension non supportée');
-					}
+					$this->writer = match ($this->extensionName) {
+						'.xlsx' => IOFactory::createWriter($this->_workbook, "Xlsx"),
+						'.csv' => IOFactory::createWriter($this->_workbook, "Csv"),
+						default => throw new Exception('Erreur : extension non supportée'),
+					};
 					
 				}
 				break;
@@ -202,7 +190,7 @@ class Workbook
 				if ($this->writer) {
 					try {
 						$this->writer->save($this->getPath());
-					} catch (Exception $e) {
+					} catch (Exception) {
 						throw new Exception('Erreur : impossible d\'écrire sur le serveur');
 					}
 				}
@@ -325,18 +313,11 @@ class Workbook
 	
 	private function setLibrary($library)
 	{
-		switch ($library) {
-			case 'spout':
-				$this->library = self::SPOUT;
-				break;
-				
-			case 'phpspreadsheet':
-				$this->library = self::PHPSPREADSHEET;
-				break;
-			
-			default:
-				throw new Exception(sprintf('La librarie "%s" n\'est pas supportée.', $library));
-		}
+		$this->library = match ($library) {
+			'spout' => self::SPOUT,
+			'phpspreadsheet' => self::PHPSPREADSHEET,
+			default => throw new Exception(sprintf('La librarie "%s" n\'est pas supportée.', $library)),
+		};
 	}
 					
 	private function setDateFormatInput(string $format)

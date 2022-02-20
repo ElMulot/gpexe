@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Entity\Document;
+use App\Entity\Enum\ProgramTypeEnum;
 use App\Entity\Program;
 use App\Entity\Version;
 use App\Repository\DocumentRepository;
@@ -20,41 +21,16 @@ use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Stopwatch\Stopwatch;
 use Symfony\Contracts\Translation\TranslatorInterface;
-use Symfony\Component\HttpFoundation\RequestStack;
-
+use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
 
 class ProgramService
 {
 	
-	const IGNORE_COLOR 			= 'C8C8C8';
-	const WARNING_COLOR 		= 'FFE591';
-	const ERROR_COLOR 			= 'FF9191';
-	const VALID_COLOR 			= 'CCFF91';
-	const BORDER_COLOR			= 'FF0000';
-	
-	private $flashBag;
-	
-	private $entityManager;
-	
-	private $serieRepository;
-	
-	private $documentRepository;
-			
-	private $versionRepository;
-	
-	private $statusRespository;
-		
-	private $documentService;
-	
-	private $fieldService;
-	
-	private $propertyService;
-	
-	private $security;
-	
-	private $filesystem;
-	
-	private $targetDirectory;
+	final const IGNORE_COLOR 			= 'C8C8C8';
+	final const WARNING_COLOR 			= 'FFE591';
+	final const ERROR_COLOR 			= 'FF9191';
+	final const VALID_COLOR 			= 'CCFF91';
+	final const BORDER_COLOR			= 'FF0000';
 	
 	private $comments;
 	
@@ -62,26 +38,12 @@ class ProgramService
 	
 	private $workbook;
 	
-	private $dateFormat;
-	
 	private $dateRegex;
 	
 	private $stopWatch;
 	
-	public function __construct(RequestStack $requestStack, TranslatorInterface $translator, EntityManagerInterface $entityManager, SerieRepository $serieRepository, DocumentRepository $documentRepository, VersionRepository $versionRepository, StatusRepository $statusRespository, DocumentService $documentService, FieldService $fieldService, PropertyService $propertyService, Security $security, string $targetDirectory)
+	public function __construct(private readonly TranslatorInterface $translator, private readonly EntityManagerInterface $entityManager, private readonly FlashBagInterface $flashBag, private readonly SerieRepository $serieRepository, private readonly DocumentRepository $documentRepository, private readonly VersionRepository $versionRepository, private readonly StatusRepository $statusRespository, private readonly DocumentService $documentService, private readonly FieldService $fieldService, private readonly PropertyService $propertyService, private readonly Security $security, private readonly string $targetDirectory)
 	{
-		$this->flashBag = $requestStack->getSession()->getFlashBag();
-		$this->translator = $translator;
-		$this->entityManager = $entityManager;
-		$this->serieRepository = $serieRepository;
-		$this->documentRepository = $documentRepository;
-		$this->versionRepository = $versionRepository;
-		$this->statusRespository = $statusRespository;
-		$this->documentService = $documentService;
-		$this->fieldService = $fieldService;
-		$this->propertyService = $propertyService;
-		$this->security = $security;
-		$this->targetDirectory = $targetDirectory;
 		$this->comments = [];
 		$this->stopWatch = new Stopwatch();
 		$this->programCache = new ProgramCache($this->fieldService);
@@ -92,13 +54,13 @@ class ProgramService
 		return $this->programCache;
 	}
 	
-	public function preload(Program $program, Request $request = null, File $file = null)
+	public function preload(Program $program, ?Request $request = null, File $file = null)
 	{
 		
 		switch ($program->getType()) {
-			case Program::IMPORT:
-			case Program::EXPORT:
-			case Program::TASK:
+			case ProgramTypeEnum::IMPORT:
+			case ProgramTypeEnum::EXPORT:
+			case ProgramTypeEnum::TASK:
 				$this->flashBag->add('info', 'Démarrage de l\'opération');
 				break;
 		}
@@ -122,21 +84,22 @@ class ProgramService
 		
 		switch ($program->getType()) {
 			
-			case Program::IMPORT:
+			case ProgramTypeEnum::IMPORT:
 				if ($file === null) {
 					throw new \Exception('Erreur : aucun fichier sélectionné');
 				}
 				//upload file
 				try {
-					$file = $file->move($this->targetDirectory, 'GPEXE Import.' . $file->getClientOriginalExtension());
-				} catch (FileException $e) {
+					//$file = $file->move($this->targetDirectory, 'GPEXE Import.' . $file->getClientOriginalExtension());
+					$file = $file->move($this->targetDirectory, 'GPEXE Import.' . $file->guessExtension());
+				} catch (FileException) {
 					throw new \Exception('Erreur : impossible d\'écrire sur le serveur');
 				}
 				$this->programCache->setParameter('file_path', $file->getPathname());
 				
-			case Program::EXPORT:
-			case Program::TASK:
-			case Program::PROGRESS:
+			case ProgramTypeEnum::EXPORT:
+			case ProgramTypeEnum::TASK:
+			case ProgramTypeEnum::PROGRESS:
 				$this->programCache->setStatus(ProgramCache::LOAD);
 				break;
 				
@@ -153,7 +116,7 @@ class ProgramService
 		
 		switch ($program->getType()) {
 			
-			case Program::EXPORT:
+			case ProgramTypeEnum::EXPORT:
 				$firstRow = $this->programCache->getParameter('first_row');
 				$cache = $this->programCache->getCache();
 				
@@ -196,7 +159,7 @@ class ProgramService
 				$this->programCache->setStatus(ProgramCache::NEW_BATCH);
 				break;
 				
-			case Program::IMPORT:
+			case ProgramTypeEnum::IMPORT:
 				
 				//open workbook
 				$this->workbook = new Workbook($this->programCache);
@@ -214,11 +177,11 @@ class ProgramService
 				$this->programCache->setStatus(ProgramCache::NEW_BATCH);
 				break;
 		
-			case Program::TASK:
+			case ProgramTypeEnum::TASK:
 				$this->programCache->setStatus(ProgramCache::NEW_BATCH);
 				break;	
 				
-			case Program::PROGRESS:
+			case ProgramTypeEnum::PROGRESS:
 				$this->programCache->setStatus(ProgramCache::NEW_BATCH);
 				break;
 				
@@ -231,16 +194,16 @@ class ProgramService
 	public function execute(Program $program)
 	{
 		switch ($program->getType()) {
-			case Program::EXPORT:
+			case ProgramTypeEnum::EXPORT:
 				$this->export($program);
 				break;
-			case Program::IMPORT:
+			case ProgramTypeEnum::IMPORT:
 				$this->import($program);
 				break;
-			case Program::TASK:
+			case ProgramTypeEnum::TASK:
 				$this->task($program);
 				break;
-			case Program::PROGRESS:
+			case ProgramTypeEnum::PROGRESS:
 				$this->progress($program);
 				break;
 			default:
@@ -321,10 +284,10 @@ class ProgramService
 		//update cache
 		if ($newBatch === false) {
 			$this->programCache->setStatus(ProgramCache::COMPLETED);
-			$this->flashBag->add('success', sprintf('Export réussi. %d/%d lignes exportées (%d s; %d Mo)', $currentRow - $firstRow - 1, $countProcessed, $event->getDuration()/1000, $event->getMemory()/1048576));
+			$this->flashBag->add('success', sprintf('Export réussi. %d/%d lignes exportées (%d s; %d Mo)', $currentRow - $firstRow - 1, $countProcessed, $event->getDuration()/1000, $event->getMemory()/1_048_576));
 		} else {
 			$this->programCache->setStatus(ProgramCache::NEW_BATCH);
-			$this->flashBag->add('success', sprintf('%d/%d lignes exportées (%d s; %d Mo)',$currentRow - $firstRow - 1, $countProcessed, $event->getDuration()/1000, $event->getMemory()/1048576));
+			$this->flashBag->add('success', sprintf('%d/%d lignes exportées (%d s; %d Mo)',$currentRow - $firstRow - 1, $countProcessed, $event->getDuration()/1000, $event->getMemory()/1_048_576));
 			$this->programCache->setParameter('count_processed', $countProcessed);
 			$this->programCache->setParameter('first_row', $currentRow + 1);
 		}
@@ -578,7 +541,7 @@ class ProgramService
 		}
 		
 		$event = $this->stopWatch->stop('import');
-		$this->flashBag->add('info', sprintf('%d lignes analysées (%d s; %d Mo)', $currentRow - $firstRow, $event->getDuration()/1000, $event->getMemory()/1048576));
+		$this->flashBag->add('info', sprintf('%d lignes analysées (%d s; %d Mo)', $currentRow - $firstRow, $event->getDuration()/1000, $event->getMemory()/1_048_576));
 		
 		if ($newBatch === false) {
 			
@@ -685,9 +648,9 @@ class ProgramService
 			
 			if ($this->programCache->getOption('ready_to_persist') == true) {
 				$this->entityManager->flush();
-				$this->flashBag->add('success', sprintf('Tâche réussie. %d/%d entrées modifiées (%d s; %d Mo)', $countUpdated, $countProcessed, $event->getDuration()/1000, $event->getMemory()/1048576));
+				$this->flashBag->add('success', sprintf('Tâche réussie. %d/%d entrées modifiées (%d s; %d Mo)', $countUpdated, $countProcessed, $event->getDuration()/1000, $event->getMemory()/1_048_576));
 			} else {
-				$this->flashBag->add('success', sprintf('Tâche réussie. %d/%d entrées seront modifiées (%d s; %d Mo)', $countUpdated, $countProcessed, $event->getDuration()/1000, $event->getMemory()/1048576));
+				$this->flashBag->add('success', sprintf('Tâche réussie. %d/%d entrées seront modifiées (%d s; %d Mo)', $countUpdated, $countProcessed, $event->getDuration()/1000, $event->getMemory()/1_048_576));
 			}
 			
 		} else {

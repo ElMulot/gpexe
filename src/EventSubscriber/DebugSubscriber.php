@@ -9,7 +9,7 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 
-class DebugSuscriber implements EventSubscriberInterface
+class DebugSubscriber implements EventSubscriberInterface
 {
 	
 	public function onKernelResponse(ResponseEvent $event)
@@ -23,7 +23,7 @@ class DebugSuscriber implements EventSubscriberInterface
 		$response->headers->set('Symfony-Debug-Toolbar-Replace', 1);
 	}
 
-	public static function getSubscribedEvents()
+	public static function getSubscribedEvents(): array
 	{
 		return [
 			KernelEvents::RESPONSE => [['onKernelResponse', 20]],

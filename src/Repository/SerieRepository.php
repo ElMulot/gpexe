@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Company;
+use App\Entity\Enum\CompanyTypeEnum;
 use App\Entity\Project;
 use App\Entity\Serie;
 use App\Service\RepositoryService;
@@ -18,12 +19,9 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 class SerieRepository extends RepositoryService
 {
 	
-	private $router;
-	
-	public function __construct(ManagerRegistry $registry, UrlGeneratorInterface $router)
+	public function __construct(ManagerRegistry $registry, private readonly UrlGeneratorInterface $router)
 	{
 		parent::__construct($registry, Serie::class);
-		$this->router = $router;
 	}
 	
 	/**
@@ -102,7 +100,7 @@ class SerieRepository extends RepositoryService
 		return $qb
 			->innerJoin('s.company', 'c')
 			->andWhere($qb->eq('s.project', $project))
-			->andWhere($qb->eq('c.type', Company::MAIN_CONTRACTOR))
+			->andWhere($qb->eq('c.type', CompanyTypeEnum::MAIN_CONTRACTOR))
 			->getQuery()
 			->getSingleResult()
 		;
@@ -137,7 +135,7 @@ class SerieRepository extends RepositoryService
 					->select('s.id, s.name')
 					->innerJoin('s.company', 'c')
 					->andWhere($qb->eq('s.project', $project))
-					->andWhere($qb->in('c.type', [Company::SUB_CONTRACTOR, Company::SUPPLIER]))
+					->andWhere($qb->in('c.type', [CompanyTypeEnum::SUB_CONTRACTOR, CompanyTypeEnum::SUPPLIER]))
 					->addOrderBy('s.name')
 					->getQuery()
 					->getArrayResult()
@@ -149,7 +147,7 @@ class SerieRepository extends RepositoryService
 					->select('s.id, s.name')
 					->innerJoin('s.company', 'c')
 					->andWhere($qb->eq('s.project', $project))
-					->andWhere($qb->eq('c.type', Company::MAIN_CONTRACTOR))
+					->andWhere($qb->eq('c.type', CompanyTypeEnum::MAIN_CONTRACTOR))
 					->addOrderBy('s.name')
 					->getQuery()
 					->getArrayResult()
@@ -199,15 +197,10 @@ class SerieRepository extends RepositoryService
 		;
 		
 		array_walk($results, function(&$item) use ($project) {
-			switch ($item['company_type']) {
-				case Company::SUB_CONTRACTOR:
-				case Company::SUPPLIER:
-					$item['type'] = 'sdr';
-					break;
-				case Company::MAIN_CONTRACTOR:
-					$item['type'] = 'mdr';
-					break;
-			}
+			$item['type'] = match ($item['company_type']) {
+				CompanyTypeEnum::SUB_CONTRACTOR, CompanyTypeEnum::SUPPLIER	=> 'sdr',
+				CompanyTypeEnum::MAIN_CONTRACTOR							=> 'mdr',
+			};
 			unset($item['company_type']);
 			
 			$item['url'] = $this->router->generate('document', [

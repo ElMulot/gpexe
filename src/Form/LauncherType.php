@@ -2,6 +2,7 @@
 
 namespace App\Form;
 
+use App\Entity\Enum\ProgramTypeEnum;
 use App\Entity\Program;
 use App\Service\ParseService;
 use Symfony\Component\Form\AbstractType;
@@ -16,11 +17,8 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 class LauncherType extends AbstractType
 {
 	
-	private $parseService;
-	
-	public function __construct(ParseService $parseService)
+	public function __construct(private readonly ParseService $parseService)
 	{
-		$this->parseService = $parseService;
 	}
 	
 	public function buildForm(FormBuilderInterface $builder, array $options)
@@ -32,11 +30,11 @@ class LauncherType extends AbstractType
 		}
 		
 		switch ($program->getType()) {
-			case Program::EXPORT:
+			case ProgramTypeEnum::EXPORT:
 				$scheme = $this->parseService->getExportScheme();
 				break;
 				
-			case Program::IMPORT:
+			case ProgramTypeEnum::IMPORT:
 				$scheme = $this->parseService->getImportScheme();
 				$builder->add('file', FileType::class, [
 					'mapped' => false,
@@ -54,7 +52,7 @@ class LauncherType extends AbstractType
 				]);
 				break;
 			
-			case Program::TASK:
+			case ProgramTypeEnum::TASK:
 				$scheme = $this->parseService->getTaskScheme();
 				break;
 				
@@ -76,10 +74,8 @@ class LauncherType extends AbstractType
 					case 'list':
 						$builder->add($key, ChoiceType::class, [
 							'mapped' => false,
-							'choices' => explode('|', $scheme['option'][$key]['regex'] ?? ''),
-							'choice_label' => function ($choice, $key, $value) {
-								return $value;
-							},
+							'choices' => explode('|', (string) ($scheme['option'][$key]['regex'] ?? '')),
+							'choice_label' => fn($choice, $key, $value) => $value,
 							'data' => $value,
 						]);
 						break;

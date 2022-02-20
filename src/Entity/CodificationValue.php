@@ -3,30 +3,21 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Validator\Constraints as Assert;
-use Symfony\Component\Validator\Mapping\ClassMetadata;
+use App\Repository\CodificationValueRepository;
 
-/**
- * @ORM\Entity(repositoryClass="App\Repository\CodificationValueRepository")
- */
-class CodificationValue
+#[ORM\Entity(repositoryClass: CodificationValueRepository::class)]
+class CodificationValue implements \Stringable
 {
-	/**
-	 * @ORM\Id()
-	 * @ORM\GeneratedValue()
-	 * @ORM\Column(type="integer")
-	 */
+	#[ORM\Id]
+	#[ORM\GeneratedValue]
+	#[ORM\Column(type: 'integer')]
 	private $id;
 
-	/**
-	 * @ORM\Column(type="string", length=10)
-	 */
+	#[ORM\Column(type: 'string', length: 10)]
 	private $value;
 
-	/**
-	 * @ORM\ManyToOne(targetEntity=Codification::class, inversedBy="codificationValues")
-	 * @ORM\JoinColumn(nullable=false)
-	 */
+	#[ORM\ManyToOne(targetEntity: Codification::class, inversedBy: 'codificationValues')]
+	#[ORM\JoinColumn(nullable: false)]
 	private $codification;
 
 	public function getId(): ?int
@@ -57,7 +48,7 @@ class CodificationValue
 
 		return $this;
 	}
-	
+
 	public function __toString(): string
 	{
 		return (string)$this->getValue();

@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\User;
 use App\Entity\Company;
 use App\Entity\Version;
 use App\Entity\Document;
@@ -15,59 +16,33 @@ use App\Repository\CompanyRepository;
 use App\Repository\VersionRepository;
 use App\Repository\DocumentRepository;
 use App\Repository\MetadataRepository;
+use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
+
 class VersionController extends AbstractController
 {
-	private $translator;
-	
-	private $companyRepository;
-	
-	private $documentRepository;
-	
-	private $versionRepository;
-	
-	private $metadataRepository;
-	
-	private $statusRepository;
-	
-	private $ajaxRedirectService;
-	
-	private $documentService;
-	
-	public function __construct(TranslatorInterface $translator, CompanyRepository $companyRepository, DocumentRepository $documentRepository, VersionRepository $versionRepository, MetadataRepository $metadataRepository, StatusRepository $statusRepository, AjaxRedirectService $ajaxRedirectService, DocumentService $documentService, FieldService $fieldService)
+	public function __construct(private readonly TranslatorInterface $translator, private readonly ManagerRegistry $doctrine, private readonly CompanyRepository $companyRepository, private readonly DocumentRepository $documentRepository, private readonly VersionRepository $versionRepository, private readonly MetadataRepository $metadataRepository, private readonly StatusRepository $statusRepository, private readonly AjaxRedirectService $ajaxRedirectService, private readonly DocumentService $documentService, FieldService $fieldService)
 	{
-		$this->translator = $translator;
-		$this->companyRepository = $companyRepository;
-		$this->documentRepository = $documentRepository;
-		$this->versionRepository = $versionRepository;
-		$this->metadataRepository = $metadataRepository;
-		$this->statusRepository = $statusRepository;
-		$this->ajaxRedirectService = $ajaxRedirectService;
-		$this->documentService = $documentService;
 		$this->fieldService = $fieldService;
 	}
 	
-	/**
-	 * @Route("/project/serie/document/version/{version}/detail", name="version_detail", requirements={"version"="\d+"})
-	 */
-	public function detail(Version $version): Response
+	#[Route(path: '/project/serie/document/version/{version}/detail', name: 'version_detail', requirements: ['version' => '\d+'])]
+	public function detail(Version $version) : Response
 	{
 		$document = $version->getDocument();
 		$serie = $document->getSerie();
 		$project = $serie->getProject();
-		
 		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
 			$this->createAccessDeniedException();
 		}
 		if ($this->getUser()->getCompany()->isMainContractor() === false && $this->getUser()->getCompany() !== $serie->getCompany()) {
 			$this->createAccessDeniedException();
 		}
-		
 		return $this->renderForm('version/detail.html.twig', [
 			'version' => $version,
 			'document' => $document,
@@ -76,33 +51,27 @@ class VersionController extends AbstractController
 		]);
 	}
 	
-	/**
-	 * @Route("/project/serie/document/{document}/version/new", name="version_new", requirements={"document"="\d+"}, defaults={"document"=0})
-	 */
-	public function new(Request $request, Document $document = null): Response
+	#[Route(path: '/project/serie/document/{document}/version/new', name: 'version_new', requirements: ['document' => '\d+'], defaults: ['document' => 0])]
+	public function new(Request $request, Document $document = null) : Response
 	{
-		
 		if ($document === null) {
 			$documents = $this->documentRepository->getDocumentsByRequest($request);
 			if ($documents == false) {
-				$this->addFlash('danger', $this->translator->trans('None documents selected'));
+				$this->addFlash('danger', 'None documents selected');
 				return $this->renderForm('ajax/error.html.twig');
 			}
 			
 			if (count($documents) > 1) {
-				$this->addFlash('danger', $this->translator->trans('Only one reference must be selected'));
+				$this->addFlash('danger', 'Only one reference must be selected');
 				return $this->renderForm('ajax/error.html.twig');
 			}
 			$document = reset($documents);
 		}
-		
 		$serie = $document->getSerie();
 		$project = $serie->getProject();
-		
 		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
 			throw $this->createAccessDeniedException();
 		}
-		
 		$version = new Version();
 		$version->setDocument($document);
 		if ($lastVersion = $document->getLastVersion()) {
@@ -122,13 +91,10 @@ class VersionController extends AbstractController
 		} else {
 			$version->setStatus($this->statusRepository->getDefaultStatus($project));
 		}
-		
 		$form = $this->createForm(VersionType::class, $version, [
 			'serie' => $serie,
 		]);
-		
 		$form->handleRequest($request);
-		
 		if ($form->isSubmitted() && $form->isValid()) {
 			
 			$version->setIsRequired($form->get('isRequired')->getData());
@@ -165,14 +131,14 @@ class VersionController extends AbstractController
 				}
 			}
 			
-			$entityManager = $this->getDoctrine()->getManager();
+			$entityManager = $this->doctrine->getManager();
 			$entityManager->persist($version);
 			$entityManager->flush();
 			
 			if ($request->query->has('modal')) {
 				return $this->ajaxRedirectService->get($this->generateUrl('document_detail', ['version' => $version->getId()]), '#modal_detail');
 			} else {
-				$this->addFlash('success', $this->translator->trans('New version created'));
+				$this->addFlash('success', 'New version created');
 				return new Response();
 			}
 			
@@ -183,43 +149,34 @@ class VersionController extends AbstractController
 		}
 	}
 	
-	/**
-	 * @Route("/project/serie/document/version/edit", name="version_edit")
-	 */
-	public function edit(Request $request): Response
+	#[Route(path: '/project/serie/document/version/edit', name: 'version_edit')]
+	public function edit(Request $request) : Response
 	{
 		$documents = $this->documentRepository->getDocumentsByRequest($request);
 		if ($documents == false) {
-			$this->addFlash('danger', $this->translator->trans('None documents selected'));
+			$this->addFlash('danger', 'None documents selected');
 			return $this->renderForm('ajax/error.html.twig');
 		}
-		
 		$document = reset($documents);
 		$serie = $document->getSerie();
 		$project = $serie->getProject();
-		
 		$versions = $this->versionRepository->getVersions($request);
-		
 		if ($request->query->has('save')) {
 			foreach ($versions as $version) {
 				$version->setIsRequired(false);
 			}
 		}
-		
 		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
 			throw $this->createAccessDeniedException();
 		}
-		
 		$form = $this->createForm(VersionType::class, $versions, [
 			'serie' => $serie,
 			'allow_extra_fields' => true,
 		]);
-		
 		$form->handleRequest($request);
-		
 		if ($form->isSubmitted() && $form->isValid()) {
 			
-			$entityManager = $this->getDoctrine()->getManager();
+			$entityManager = $this->doctrine->getManager();
 			
 			foreach ($versions as $version) {
 				
@@ -299,28 +256,21 @@ class VersionController extends AbstractController
 		}
 	}
 	
-	/**
-	 * @Route("/project/serie/document/version/delete", name="version_delete")
-	 */
-	public function delete(Request $request): Response
+	#[Route(path: '/project/serie/document/version/delete', name: 'version_delete')]
+	public function delete(Request $request) : Response
 	{
-		
 		$documents = $this->documentRepository->getDocumentsByRequest($request);
-		
 		if ($documents == false) {
 			return $this->redirectToRoute('project');
 		}
-		
 		$document = reset($documents);
 		$project = $document->getSerie()->getProject();
 		$versions = $this->versionRepository->getVersions($request);
-		
 		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
 			throw $this->createAccessDeniedException();
 		}
-		
 		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
-			$entityManager = $this->getDoctrine()->getManager();
+			$entityManager = $this->doctrine->getManager();
 			
 			foreach ($versions as $version) {
 				$entityManager->remove($version);
@@ -342,31 +292,23 @@ class VersionController extends AbstractController
 				'entities' => $versions,
 			]);
 		}
-		
 	}
 	
-	/**
-	 * @Route("/project/serie/document/{document}/version/{version}/{company}/quick_new", name="version_quick_new", requirements={"document"="\d+", "version"="\d+", "company"="\d+"})
-	 */
-	public function quickNew(Request $request, Document $document, Version $version, Company $company): Response
+	#[Route(path: '/project/serie/document/{document}/version/{version}/{company}/quick_new', name: 'version_quick_new', requirements: ['document' => '\d+', 'version' => '\d+', 'company' => '\d+'])]
+	public function quickNew(Request $request, Document $document, Version $version, Company $company) : Response
 	{
-		
 		$serie = $document->getSerie();
 		$project = $serie->getProject();
-		
 		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
 			return $this->redirectToRoute('review', [
 				'version' => $version,
 				'company' => $company,
 			]);
 		}
-		
 		$newVersion = new Version();
 		$newVersion->setDocument($document);
-		
 		$form = $this->createForm(QuickVersionType::class, $newVersion);
 		$form->handleRequest($request);
-		
 		if ($form->isSubmitted() && $form->isValid()) {
 			
 			$newVersion->setScheduledDate(new \DateTime('now + ' . $project->getNewVersionTime() . ' days'));
@@ -386,7 +328,7 @@ class VersionController extends AbstractController
 				}
 			}
 			
-			$entityManager = $this->getDoctrine()->getManager();
+			$entityManager = $this->doctrine->getManager();
 			$entityManager->persist($newVersion);
 			$entityManager->flush();
 			
@@ -400,21 +342,16 @@ class VersionController extends AbstractController
 		}
 	}
 	
-	/**
-	 * @Route("/project/serie/document/version/{version}/quick_edit/{fieldId}", name="version_quick_edit", requirements={"version"="\d+", "fieldId"="\w+"})
-	 */
-	public function quickEdit(Request $request, Version $version, string $fieldId): Response
+	#[Route(path: '/project/serie/document/version/{version}/quick_edit/{fieldId}', name: 'version_quick_edit', requirements: ['version' => '\d+', 'fieldId' => '\w+'])]
+	public function quickEdit(Request $request, Version $version, string $fieldId) : Response
 	{
 		$document = $version->getDocument();
 		$serie = $document->getSerie();
 		$project = $serie->getProject();
-				
 		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
 			throw $this->createAccessDeniedException();
 		}
-		
 		$fields = $this->fieldService->getFields($project);
-		
 		foreach ($fields as $field) {
 			
 			if ($field['id'] == $fieldId) {
@@ -435,7 +372,7 @@ class VersionController extends AbstractController
 							$this->addFlash('danger', $e->getMessage());
 						}
 						
-						$entityManager = $this->getDoctrine()->getManager();
+						$entityManager = $this->doctrine->getManager();
 						$entityManager->persist($version);
 						$entityManager->flush();
 						
@@ -455,9 +392,12 @@ class VersionController extends AbstractController
 				}
 			}
 		}
-		
 		return new Response('');
-		
+	}
+
+	public function getUser(): User
+	{
+		return parent::getUser();
 	}
 	
 	private function isMultiple($form, string $id): bool

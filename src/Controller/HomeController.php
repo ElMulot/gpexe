@@ -3,6 +3,8 @@
 namespace App\Controller;
 
 use App\Entity\Project;
+use App\Entity\User;
+use App\Helpers\Date;
 use App\Service\FieldService;
 use Symfony\Component\Yaml\Yaml;
 use App\Repository\StatusRepository;
@@ -10,55 +12,29 @@ use App\Repository\ProjectRepository;
 use App\Repository\VersionRepository;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Contracts\Translation\TranslatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\UX\Turbo\Stream\TurboStreamResponse;
-use Symfony\Component\HttpFoundation\Request;
+
 
 class HomeController extends AbstractController
 {
 	
-	private $translator;
-	
-	private $projectRepository;
-	
-	private $versionRepository;
-	
-	private $statusRepository;
-	
-	private $fieldService;
-	
-	public function __construct(TranslatorInterface $translator, FieldService $fieldService, ProjectRepository $projectRepository, VersionRepository $versionRepository, StatusRepository $statusRepository)
+	public function __construct(private readonly FieldService $fieldService, private readonly ProjectRepository $projectRepository, private readonly VersionRepository $versionRepository, private readonly StatusRepository $statusRepository)
 	{
-		$this->translator = $translator;
-		$this->fieldService = $fieldService;
-		$this->projectRepository = $projectRepository;
-		$this->versionRepository = $versionRepository;
-		$this->statusRepository = $statusRepository;
 	}
 	
-	/**
-	 * @Route("/", name="home")
-	 */
-	public function index(): Response
+	#[Route(path: '/', name: 'home')]
+	public function index() : Response
 	{
-		$projects = $this->projectRepository->getProjects($this->getUser());
-		
 		return $this->renderForm('main/home.html.twig', [
 			'projects' => $this->projectRepository->getProjects($this->getUser()),
 		]);
-
 	}
 
-	/**
-	 * @Route("/project/{project}/alert", name="alert", requirements={"project"="\d+"})
-	 */
-	public function alert(Project $project): Response
+	#[Route(path: '/project/{project}/alert', name: 'alert', requirements: ['project' => '\d+'])]
+	public function alert(Project $project) : Response
 	{
-		sleep(1);
 		$fields = $this->fieldService->getFields($project);
 		$company = $this->getUser()->getCompany();
-		
 		$prodSettings = [
 			'display' => [
 				'document_reference' => $fields['document.reference']['default_width'],
@@ -80,7 +56,6 @@ class HomeController extends AbstractController
 			'results_per_page' => 50,
 			'page' => 1,
 		];
-		
 		if ($project->getVisasByCompany($company)->isEmpty() === false) {
 			$checkSettings = [
 				'display' => [
@@ -106,7 +81,6 @@ class HomeController extends AbstractController
 		} else {
 			$checkSettings = [];
 		}
-		
 		return $this->renderForm('main/home/_alert.html.twig', [
 			'project' => $project,
 			'prod_alerts' => $this->versionRepository->getProdAlerts($project, $this->getUser()),
@@ -114,17 +88,19 @@ class HomeController extends AbstractController
 			'prod_settings' => $prodSettings,
 			'check_settings' => $checkSettings,
 		]);
-		
 	}
 	
-	/**
-	 * @Route("/about", name="about")
-	 */
-	public function about(): Response
+	#[Route(path: '/about', name: 'about')]
+	public function about() : Response
 	{
 		return $this->renderForm('main/about.html.twig', [
 			'items' => Yaml::parseFile($this->getParameter('kernel.project_dir') . '/config/ressources/about.yaml'),
 		]);
+	}
+
+	public function getUser(): User
+	{
+		return parent::getUser();
 	}
 	
 }

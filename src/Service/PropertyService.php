@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Entity\Enum\MetadataTypeEnum;
 use App\Entity\Metadata;
 use App\Entity\MetadataValue;
 use App\Entity\MetadataItem;
@@ -11,10 +12,8 @@ use App\Helpers\Date;
 
 class PropertyService
 {
-	private $translator;
-	
-	public function __construct(TranslatorInterface $translator) {
-		$this->translator = $translator;
+	public function __construct(private readonly TranslatorInterface $translator)
+	{
 	}
 	
 	public function toString($value, $dateFormat = 'd-m-Y')
@@ -32,16 +31,12 @@ class PropertyService
 					return $value->getValue();
 				} else if ($value instanceof MetadataValue) {
 					
-					switch ($value->getMetadata()->getType()) {
-						case Metadata::BOOLEAN:
-							return $this->translator->trans(($value->getValue())?'Yes':'No');
-						case Metadata::TEXT:
-							return $value->getValue();
-						case Metadata::DATE:
-							return Date::fromFormat($value->getValue())->format($dateFormat);
-						case Metadata::LINK:
-							return $value->getValue();
-					}
+					return match($value->getMetadata()->getType()) {
+						MetadataTypeEnum::BOOLEAN	=> $this->translator->trans(($value->getValue())?'Yes':'No'),
+						MetadataTypeEnum::TEXT		=> $value->getValue(),
+						MetadataTypeEnum::DATE		=> Date::fromFormat($value->getValue())->format($dateFormat),
+						MetadataTypeEnum::LINK		=> $value->getValue(),
+					};
 					
 				} else {
 					return (string)$value;

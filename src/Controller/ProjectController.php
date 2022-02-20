@@ -1,42 +1,31 @@
 <?php
 namespace App\Controller;
 
+use App\Entity\User;
 use App\Entity\Company;
 use App\Entity\Project;
 use App\Form\ProjectType;
+use App\Entity\Enum\CompanyTypeEnum;
 use App\Service\FileUploaderService;
 use App\Repository\CompanyRepository;
 use App\Repository\ProgramRepository;
 use App\Repository\ProjectRepository;
+use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\UX\Turbo\Stream\TurboStreamResponse;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+
 
 class ProjectController extends AbstractController
 {
-	private $companyRepository;
-	
-	private $projectRepository;
-	
-	private $programRepository;
-
-	private $fileUploadService;
-	
-	public function __construct(CompanyRepository $companyRepository, ProjectRepository $projectRepository, ProgramRepository $programRepository, FileUploaderService $fileUploadService)
+	public function __construct(private readonly ManagerRegistry $doctrine, private readonly CompanyRepository $companyRepository, private readonly ProjectRepository $projectRepository, private readonly ProgramRepository $programRepository, private readonly FileUploaderService $fileUploadService)
 	{
-		$this->companyRepository = $companyRepository;
-		$this->projectRepository = $projectRepository;
-		$this->programRepository = $programRepository;
-		$this->fileUploadService = $fileUploadService;
 	}
 
-	/**
-	 * @Route("/project/all", name="projects_list")
-	 * redirigé vers project_view si un seul projet (sauf ROLE_ADMIN)
-	 */
-	public function projects(): Response
+	#[Route(path: '/project/all', name: 'projects_list')]
+	public function projects() : Response
 	{
 		if ($this->isGranted('ROLE_ADMIN')) {
 			
@@ -53,21 +42,17 @@ class ProjectController extends AbstractController
 			}
 			
 		}
-
 		return $this->renderForm('main/projects.html.twig', [
 			'projects' => $projects
 		]);
 	}
 
-	/**
-	 * @Route("/project/{project}", name="project", requirements={"project"="\d+"})
-	 */
-	public function index(Request $request, Project $project, CompanyRepository $companyRepository): Response
+	#[Route(path: '/project/{project}', name: 'project', requirements: ['project' => '\d+'])]
+	public function index(Request $request, Project $project, CompanyRepository $companyRepository) : Response
 	{
 		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
 			return $this->redirectToRoute('project');
 		}
-		
 		$programs = [];
 		if ($this->isGranted('ROLE_ADMIN') ||
 			$this->isGranted('ROLE_CONTROLLER') && $this->getUser()->getCompany()->isMainContractor()) {
@@ -75,7 +60,6 @@ class ProjectController extends AbstractController
 		} else if ($this->isGranted('ROLE_USER') && $this->getUser()->getCompany()->isMainContractor()) {
 			$programs = $this->programRepository->getEnabledProgressPrograms($project);
 		}
-			
 		return $this->renderForm('project/index.html.twig', [
 			'project' => $project,
 			'programs' => $programs,
@@ -83,15 +67,12 @@ class ProjectController extends AbstractController
 		]);
 	}
 
-/**
-	 * @Route("/project/{project}/{type}", name="project_pannel", requirements={"project"="\d+", "type"="sdr|mdr|misc"})
-	 */
-	public function pannel(Request $request, Project $project, string $type, CompanyRepository $companyRepository): Response
+	#[Route(path: '/project/{project}/{type}', name: 'project_pannel', requirements: ['project' => '\d+', 'type' => 'sdr|mdr|misc'])]
+	public function pannel(Request $request, Project $project, string $type, CompanyRepository $companyRepository) : Response
 	{
 		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
 			return $this->redirectToRoute('project');
 		}
-		
 		if ($this->isGranted('ROLE_ADMIN') ||
 			$this->isGranted('ROLE_CONTROLLER') && $this->getUser()->getCompany()->isMainContractor() ||
 			$this->isGranted('ROLE_EDIT_DOCUMENTS') && $project->hasUser($this->getUser())) {
@@ -99,16 +80,15 @@ class ProjectController extends AbstractController
 		} else {
 			$user = $this->getUser();
 		}
-
 		switch ($type) {
 			case 'sdr':
-				$companies = $companyRepository->getCompaniesByProject($project, [Company::MAIN_CONTRACTOR], $user);
+				$companies = $companyRepository->getCompaniesByProject($project, [CompanyTypeEnum::MAIN_CONTRACTOR], $user);
 				return $this->renderForm('project/index/_pannel.html.twig', [
 					'project' => $project,
 					'companies' => $companies,
 				]);
 			case 'mdr':
-				$companies = $companyRepository->getCompaniesByProject($project, [Company::SUB_CONTRACTOR, Company::SUPPLIER], $user);
+				$companies = $companyRepository->getCompaniesByProject($project, [CompanyTypeEnum::SUB_CONTRACTOR, CompanyTypeEnum::SUPPLIER], $user);
 				return $this->renderForm('project/index/_pannel.html.twig', [
 					'project' => $project,
 					'companies' => $companies,
@@ -120,58 +100,50 @@ class ProjectController extends AbstractController
 		}
 	}
 
-	/**
-	 * @Route("/project/new", name="project_new")
-	 */
-	public function new(Request $request): Response
+	#[Route(path: '/project/new', name: 'project_new')]
+	public function new(Request $request) : Response
 	{
 		if ($this->isGranted('ROLE_ADMIN') === false) {
 			return $this->redirectToRoute('project');
 		}
-		
 		$project = new Project();
 		$form = $this->createForm(ProjectType::class, $project);
 		$form->handleRequest($request);
-
 		if ($form->isSubmitted() && $form->isValid()) {
 			$imageFile = $form->get('image')->getData();
 			$imageFileName = $this->fileUploadService->upload($imageFile);
 			$project->setImage($imageFileName);
-			$entityManager = $this->getDoctrine()->getManager();
+			$entityManager = $this->doctrine->getManager();
 			$entityManager->persist($project);
 			$entityManager->flush();
 
 			$this->addFlash('success', 'New entry created');
 			
 			return $this->renderForm('generic/success.stream.html.twig', [
+				'target' => 'projects',
 				'redirect' => $this->generateUrl('projects_list'),
 			], new TurboStreamResponse());
 		} else {
-			return $this->renderForm('project/form.html.twig', [
-				'title' => 'New project',
+			return $this->renderForm('project/new.html.twig', [
 				'form' => $form
 			]);
 		}
 	}
 
-	/**
-	 * @Route("/project/{project}/edit", name="project_edit", requirements={"project"="\d+"})
-	 */
-	public function edit(Request $request, Project $project): Response
+	#[Route(path: '/project/{project}/edit', name: 'project_edit', requirements: ['project' => '\d+'])]
+	public function edit(Request $request, Project $project) : Response
 	{
 		if ($this->isGranted('ROLE_ADMIN') === false &&
 			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
 			return $this->redirectToRoute('project');
 		}
-		
 		$form = $this->createForm(ProjectType::class, $project);
 		$form->handleRequest($request);
-		
 		if ($form->isSubmitted() && $form->isValid()) {
 			$imageFile = $form->get('image')->getData();
 			$imageFileName = $this->fileUploadService->upload($imageFile);
 			$project->setImage($imageFileName);
-			$entityManager = $this->getDoctrine()->getManager();
+			$entityManager = $this->doctrine->getManager();
 			$entityManager->flush();
 
 			$this->addFlash('success', 'Datas updated');
@@ -181,24 +153,20 @@ class ProjectController extends AbstractController
 				'redirect' => $this->generateUrl('projects_list'),
 			], new TurboStreamResponse());
 		} else {
-			return $this->renderForm('project/form.html.twig', [
-				'title' => 'Edit project',
+			return $this->renderForm('project/edit.html.twig', [
 				'form' => $form
 			]);
 		}
 	}
 
-	/**
-	 * @Route("/project/{project}/delete", name="project_delete", methods={"GET", "DELETE"}, requirements={"project"="\d+"})
-	 */
-	public function delete(Request $request, Project $project): Response
+	#[Route(path: '/project/{project}/delete', name: 'project_delete', methods: ['GET', 'DELETE'], requirements: ['project' => '\d+'])]
+	public function delete(Request $request, Project $project) : Response
 	{
 		if ($this->isGranted('ROLE_ADMIN') === false) {
 			return $this->redirectToRoute('project');
 		}
-		
 		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
-			$entityManager = $this->getDoctrine()->getManager();
+			$entityManager = $this->doctrine->getManager();
 			$entityManager->remove($project);
 			$entityManager->flush();
 
@@ -213,7 +181,12 @@ class ProjectController extends AbstractController
 				'title' => 'Delete project',
 				'entities' => [$project],
 			]);
-		}  
+		}
+	}
+
+	public function getUser(): User
+	{
+		return parent::getUser();
 	}
 	
 }

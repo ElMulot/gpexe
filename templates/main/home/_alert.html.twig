@@ -7,12 +7,13 @@
 {% set check_warning = check_alerts|filter(v => v.max <= project.checkDangerLimit and v.max > project.checkWarningLimit) %}
 {% set check_info	= check_alerts|filter(v => v.max <= project.checkWarningLimit) %}
 
-<turbo-frame id="project_detail">
+<turbo-frame id="alert_tab">
+
 	{% if prod_delayed %}
 		<div class="row alert alert-danger mx-0">
 			<div class="col-12 mb-2">{% trans %}alert.prod.delayed{% endtrans %} :</div>
 			{% for alert in prod_delayed %}
-				{% set type = (alert.companyType is constant('App\\Entity\\Company::MAIN_CONTRACTOR'))?'mdr':'sdr' %}
+				{% set type = (alert.companyType is constant('App\\Entity\\Enum\\CompanyTypeEnum::MAIN_CONTRACTOR'))?'mdr':'sdr' %}
 				<div class="col-6 p-1">
 					<a class="btn btn-sm btn-primary d-flex text-decoration-none w-75" href="{{ path('document', prod_settings|merge({'project': project.id, 'type': type, 'serie': alert.serieId})) }}">
 						<div class="text-start">{{ alert.serieName }}</div>
@@ -28,7 +29,7 @@
 	<div class="row alert alert-danger mx-0">
 			<div class="col-12 mb-2">{% trans with {'%count%': project.prodDangerLimit} %}alert.prod.danger{% endtrans %} :</div>
 			{% for alert in prod_danger %}
-				{% set type = (alert.companyType is constant('App\\Entity\\Company::MAIN_CONTRACTOR'))?'mdr':'sdr' %}
+				{% set type = (alert.companyType is constant('App\\Entity\\Enum\\CompanyTypeEnum::MAIN_CONTRACTOR'))?'mdr':'sdr' %}
 				<div class="col-6 p-1">
 					<a class="btn btn-sm btn-primary d-flex text-decoration-none w-75" href="{{ path('document', prod_settings|merge({'project': project.id, 'type': type, 'serie': alert.serieId})) }}">
 						<div class="text-start">{{ alert.serieName }}</div>
@@ -44,7 +45,7 @@
 		<div class="row alert alert-danger mx-0">
 			<div class="col-12 mb-2">{% trans with {'%count%': project.prodWarningLimit} %}alert.prod.warning{% endtrans %} :</div>
 			{% for alert in prod_warning %}
-				{% set type = (alert.companyType is constant('App\\Entity\\Company::MAIN_CONTRACTOR'))?'mdr':'sdr' %}
+				{% set type = (alert.companyType is constant('App\\Entity\\Enum\\CompanyTypeEnum::MAIN_CONTRACTOR'))?'mdr':'sdr' %}
 				<div class="col-6 p-1">
 					<a class="btn btn-sm btn-primary d-flex text-decoration-none w-75" href="{{ path('document', prod_settings|merge({'project': project.id, 'type': type, 'serie': alert.serieId})) }}">
 						<div class="text-start">{{ alert.serieName }}</div>
@@ -60,7 +61,7 @@
 		<div class="row alert alert-info mx-0">
 			<div class="col-12 mb-2">{% trans with {'%count%': project.prodWarningLimit} %}alert.prod.info{% endtrans %} :</div>
 			{% for alert in prod_info %}
-				{% set type = (alert.companyType is constant('App\\Entity\\Company::MAIN_CONTRACTOR'))?'mdr':'sdr' %}
+				{% set type = (alert.companyType is constant('App\\Entity\\Enum\\CompanyTypeEnum::MAIN_CONTRACTOR'))?'mdr':'sdr' %}
 				<div class="col-6 p-1">
 					<a class="btn btn-sm btn-primary d-flex text-decoration-none w-75" href="{{ path('document', prod_settings|merge({'project': project.id, 'type': type, 'serie': alert.serieId})) }}">
 						<div class="text-start">{{ alert.serieName }}</div>
@@ -76,7 +77,7 @@
 		<div class="row alert alert-danger mx-0">
 			<div class="col-12 mb-2">{% trans %}alert.check.danger{% endtrans %} :</div>
 			{% for alert in check_danger %}
-				{% set type = (alert.companyType is constant('App\\Entity\\Company::MAIN_CONTRACTOR'))?'mdr':'sdr' %}
+				{% set type = (alert.companyType is constant('App\\Entity\\Enum\\CompanyTypeEnum::MAIN_CONTRACTOR'))?'mdr':'sdr' %}
 				<div class="col-6 p-1">
 					<a class="btn btn-sm btn-primary d-flex text-decoration-none w-75" href="{{ path('document', check_settings|merge({'project': project.id, 'type': type, 'serie': alert.serieId})) }}">
 						<div class="text-start">{{ alert.serieName }}</div>
@@ -93,7 +94,7 @@
 		<div class="row alert alert-warning mx-0">
 			<div class="col-12 mb-2">{% trans %}alert.check.warning{% endtrans %} :</div>
 			{% for alert in check_warning %}
-				{% set type = (alert.companyType is constant('App\\Entity\\Company::MAIN_CONTRACTOR'))?'mdr':'sdr' %}
+				{% set type = (alert.companyType is constant('App\\Entity\\Enum\\CompanyTypeEnum::MAIN_CONTRACTOR'))?'mdr':'sdr' %}
 				<div class="col-6 p-1">
 					<a class="btn btn-sm btn-primary d-flex text-decoration-none w-75" href="{{ path('document', check_settings|merge({'project': project.id, 'type': type, 'serie': alert.serieId})) }}">
 						<div class="text-start">{{ alert.serieName }}</div>
@@ -109,7 +110,7 @@
 		<div class="row alert alert-info mx-0">
 			<div class="col-12 mb-2">{% trans with {'%count%': project.checkWarningLimit} %}alert.check.info{% endtrans %} :</div>
 			{% for alert in check_info %}
-				{% set type = (alert.companyType is constant('App\\Entity\\Company::MAIN_CONTRACTOR'))?'mdr':'sdr' %}
+				{% set type = (alert.companyType is constant('App\\Entity\\Enum\\CompanyTypeEnum::MAIN_CONTRACTOR'))?'mdr':'sdr' %}
 				<div class="col-6 p-1">
 					<a class="btn btn-sm btn-primary d-flex text-decoration-none w-75" href="{{ path('document', check_settings|merge({'project': project.id, 'type': type, 'serie': alert.serieId})) }}">
 						<div class="text-start">{{ alert.serieName }}</div>
@@ -127,9 +128,10 @@
 			{% trans %}Nothing to do on that project{% endtrans %}.
 		</p>
 		<div class="d-flex justify-content-center w-100 pt-4">
-			<a type="button" class="btn btn-primary" href="{{ path('project_view', {'project': project.id}) }}">
+			<a type="button" class="btn btn-primary" href="{{ path('project', {'project': project.id}) }}">
 				{% trans %}Access to the project{% endtrans %}
 			</a>
 		</div>
 	{% endif %}
+	
 </turbo-frame>

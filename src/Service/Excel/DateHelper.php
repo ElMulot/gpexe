@@ -13,7 +13,7 @@ use App\Helpers\Date;
 
 class DateHelper
 {
-	private static $dateFormatReplacements = [
+	private static array $dateFormatReplacements = [
 		//	4-digit year
 		'Y' => 'yyyy',
 		//	2-digit year

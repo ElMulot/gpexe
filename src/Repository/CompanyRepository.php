@@ -5,8 +5,10 @@ namespace App\Repository;
 use Doctrine\Persistence\ManagerRegistry;
 use App\Service\RepositoryService;
 use App\Entity\Company;
+use App\Entity\Enum\CompanyTypeEnum;
 use App\Entity\Project;
 use App\Entity\User;
+use App\Form\CompanyType;
 
 /**
  * @method Company|null find($id, $lockMode = null, $lockVersion = null)
@@ -66,7 +68,7 @@ class CompanyRepository extends RepositoryService
 		return $qb->innerJoin('c.users', 'u')
 			->innerJoin('u.projects', 'p')
 			->andWhere($qb->eq('p.id',  $project->getId()))
-			->andWhere($qb->in('c.type', [Company::MAIN_CONTRACTOR, Company::CHECKER]))
+			->andWhere($qb->in('c.type', [CompanyTypeEnum::MAIN_CONTRACTOR, CompanyTypeEnum::CHECKER]))
 			->addOrderBy('c.priority', 'ASC')
 			->addOrderBy('c.name')
 			->getQuery()

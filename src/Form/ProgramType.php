@@ -11,15 +11,13 @@ use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use App\Entity\Program;
 use App\Form\DataTransformer\ProgramTransformer;
+use App\Entity\Enum\ProgramTypeEnum;
 
 class ProgramType extends AbstractType
 {
 	
-	private $transformer;
-	
-	public function __construct(ProgramTransformer $transformer)
+	public function __construct(private readonly ProgramTransformer $transformer)
 	{
-		$this->transformer = $transformer;
 	}
 	
 	public function buildForm(FormBuilderInterface $builder, array $options)
@@ -27,12 +25,7 @@ class ProgramType extends AbstractType
 		if ($builder->getData() === null) {
 			$builder
 				->add('type', ChoiceType::class, [
-					'choices' => [
-						'Export' => Program::EXPORT,
-						'Import' => Program::IMPORT,
-						'Task' => Program::TASK,
-						'Progress' => Program::PROGRESS,
-					],
+					'choices' => ProgramTypeEnum::getChoices(),
 					'expanded' => true,
 					'mapped' => false,
 				])

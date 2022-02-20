@@ -1,22 +1,101 @@
-delay: >-
-      {count, plural,
-         one   {# jour de retard}
-         other {# jours de retard}
-      }
-      
-updated:
-    version: >-
+list:
+    program: Programmes
+    codification: Codes
+    codificationItem: Entrées
+    codificationValue: Entrées
+    company: Entreprises
+    document: Documents
+    metadata: Métadonnées
+    metadataItem: Entrées
+    metadataValue: Entrées
+    profil: Profils
+    project: Projets
+    serie: Séries
+    status: Statuts
+    user: Utilisateurs
+    version: Révisions
+    visa: Visas
+    view: Vues
+
+new:
+    program: Nouveau programme
+    codification: Nouveau code
+    codificationItem: Nouvelle entrée
+    codificationValue: Nouvelle entrée
+    company: Nouvelle entreprise
+    document: Nouveau document
+    metadata: Nouvelle métadonnée
+    metadataItem: Nouvelle entrée
+    metadataValue: Nouvelle entrée
+    profil: Nouveau profil
+    project: Nouveau projet
+    serie: Nouvelle série
+    status: Nouveau statut
+    user: Nouvel utilisateur
+    version: Nouvelle révision
+    visa: Nouveau visa
+    view: Nouvelle vue
+
+edit:
+    program: Editer le programme
+    codification: Editer le code
+    codificationItem: Editer l'entrée
+    codificationValue: Editer l'entrée
+    company: Editer l'entreprise
+    document: Editer
         {count, plural,
-            one   {Révision mise à jour}
-            other {Révisions mises à jour}
+            one   {le document}
+            other {les documents}
         }
+    metadata: Editer la métadonnée
+    metadataItem: Editer l'entrée
+    metadataValue: Editer l'entrée
+    profil: Editer le profil
+    project: Editer le projet
+    serie: Editer la série
+    status: Editer le statut
+    user: Editer l'utilisateur
+    version: Editer
+        {count, plural,
+            one   {la révision}
+            other {les révisions}
+        }
+    visa: Editer le visa
+    view: Editer la vue
+
+delete:
+    program: Supprimer le programme
+    codification: Supprimer le code
+    codificationItem: Supprimer l'entrée
+    codificationValue: Supprimer l'entrée
+    company: Supprimer l'entreprise
+    document: Supprimer
+        {count, plural,
+            one   {le document}
+            other {les documents}
+        }
+    metadata: Supprimer la métadonnée
+    metadataItem: Supprimer l'entrée
+    metadataValue: Supprimer l'entrée
+    profil: Supprimer le profil
+    project: Supprimer le projet
+    serie: Supprimer la série
+    status: Supprimer le statut
+    user: Supprimer l'utilisateur
+    version: Supprimer
+        {count, plural,
+            one   {la révision}
+            other {les révisions}
+        }
+    visa: Supprimer le visa
+    view: Supprimer la vue
 
 confirm:
     program: Confirmer la suppression du programme
     codification: Confirmer la suppression du code
     codificationItem: Confirmer la suppression de l'entrée
     codificationValue: Confirmer la suppression de l'entrée
-    company: Confirmer la suppression de la société
+    company: Confirmer la suppression de l'entreprise
     document: Confirmer la suppression
         {count, plural,
             one   {du document}
@@ -37,7 +116,20 @@ confirm:
         }
     visa: Confirmer la suppression du visa
     view: Confirmer la suppression de la vue
-      
+
+delay: >-
+      {count, plural,
+         one   {# jour de retard}
+         other {# jours de retard}
+      }
+
+updated:
+    version: >-
+        {count, plural,
+            one   {Révision mise à jour}
+            other {Révisions mises à jour}
+        }
+
 deleted:
     document: >-
         {count, plural,

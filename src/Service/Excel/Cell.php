@@ -14,14 +14,8 @@ use App\Helpers\Date;
 class Cell
 {
 	
-	private $_cell;
-	
-	private $row;
-	
-	public function __construct($_cell, string $colAddress, Row $row)
+	public function __construct(private $_cell, string $colAddress, private readonly Row $row)
 	{
-		$this->_cell = $_cell;
-		$this->row = $row;
 		$this->colAddress = $colAddress;
 	}
 	

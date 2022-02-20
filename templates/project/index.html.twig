@@ -12,7 +12,7 @@
 
 {% block content %}
 <div class="container-lg">
-	{{ nav.turbo('project_pannel', [
+	{% set items = [
 		{
 			'name': "Companies"|trans,
 			'href': path('project_pannel', {'project': project.id, 'type': 'sdr'}),
@@ -22,6 +22,7 @@
 			'name': "Main contractors"|trans,
 			'href': path('project_pannel', {'project': project.id, 'type': 'mdr'}),
 		}
-	]) }}
+	] %}
+	{{ nav.turbo('project_tab', items) }}
 </div>
 {% endblock %}

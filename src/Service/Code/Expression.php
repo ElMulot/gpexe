@@ -2,6 +2,7 @@
 
 namespace App\Service\Code;
 
+use App\Entity\Enum\MetadataTypeEnum;
 use App\Entity\Metadata;
 use App\Helpers\Date;
 use Spatie\Regex\Regex;
@@ -18,7 +19,7 @@ class Expression
 	
 	private $col;
 	
-	private $nodes = [];
+	private array $nodes = [];
 	
 	public function __construct($expression, ProgramCache $programCache)
 	{
@@ -58,7 +59,7 @@ class Expression
 			$this->createVariable($result->group(1));
 			$expression = $result->group(2);
 // 			//if $variable is a date, stringify all expression that are not part of a test
-// 			if ($programCache->getFieldType($this->variable->getValue()) === Metadata::DATE) {
+// 			if ($programCache->getFieldType($this->variable->getValue()) === MetadataTypeEnum::DATE) {
 // 				$expression = Regex::replace('/^\[.+?\]|(?<=[?:])\s*\[.+?\]/', function(MatchResult $result) {
 // 					return $result->result() . '->format(\'' . $programCache->getOption('date_format_output') . '\')';
 // 				}, $expression)->result();
@@ -87,7 +88,7 @@ class Expression
 		
 		//rewrite date for fields (eg [version.date])
 		$expression = Regex::replace('/\[(\w+(?:\.\w+)+)\]/', function(MatchResult $result) use ($programCache) {
-			if ($programCache->getFieldType($result->group(1)) === Metadata::DATE) {
+			if ($programCache->getFieldType($result->group(1)) === MetadataTypeEnum::DATE) {
 				return 'Date::fromFormat(' .  $result->result() . ')';
 			} else {
 				return $result->result();
@@ -131,9 +132,7 @@ class Expression
 		$regex = $this->regexes[$id] ?? '';
 		
 		//check if regex doesn't contain fields
-		return Regex::replace('/\[([\w\.]+)\]/', function(MatchResult $result) {
-			return "' . preg_quote(" . $result->result() . ") . '";
-		}, $regex)->result();
+		return Regex::replace('/\[([\w\.]+)\]/', fn(MatchResult $result) => "' . preg_quote(" . $result->result() . ") . '", $regex)->result();
 	}
 	
 	private function createVariable(string $codePart)
@@ -156,9 +155,7 @@ class Expression
 				$this->nodes[] = new Node(Node::EXCEL, $result);
 			} else {
 				//rewrite string statements
-				$codePart = Regex::replace('/\[s(\d+)\]/', function(MatchResult $result) {
-					return $this->getString($result->group(1));
-				}, $codePart)->result();
+				$codePart = Regex::replace('/\[s(\d+)\]/', fn(MatchResult $result) => $this->getString($result->group(1)), $codePart)->result();
 				
 				$this->nodes[] = new Node(Node::CODE, $codePart);
 			}
@@ -167,13 +164,11 @@ class Expression
 	
 	public function eval($entity = null, $row = null)
 	{
-		$nodes = array_map(function ($item) use ($entity, $row) {
-			return $item->getValue($entity, $row);
-		}, $this->nodes);
+		$nodes = array_map(fn($item) => $item->getValue($entity, $row), $this->nodes);
 		try {
 // 			dump(join('', $nodes));
 			return eval('use App\Helpers\Date; return ' . join('', $nodes) . ';');
-		} catch (\ParseError $e) {
+		} catch (\ParseError) {
 // 			$this->programCache->addToFlashBag($e->getMessage() . " :\n" . join('', $nodes));
 			return false;
 		}
@@ -182,9 +177,7 @@ class Expression
 	public function getValue($entity = null, $row = null)
 	{
 		
-		$nodes = array_map(function ($item) use ($entity, $row) {
-			return $item->getValue($entity, $row);
-		}, $this->nodes);
+		$nodes = array_map(fn($item) => $item->getValue($entity, $row), $this->nodes);
 		
 		return join('', $nodes);
 	}

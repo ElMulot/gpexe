@@ -17,9 +17,7 @@ class SerieChangeType extends AbstractType
 		
 		$builder->add('serie', ChoiceType::class, [
 			'choices' => $options['series'],
-			'choice_label' => function(Serie $serie) {
-				return $serie->getCompany()->getName() . ' - ' . $serie->getName();
-			},
+			'choice_label' => fn(Serie $serie) => $serie->getCompany()->getName() . ' - ' . $serie->getName(),
 			'mapped' => false,
 		]);
 	}

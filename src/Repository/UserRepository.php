@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Company;
+use App\Entity\Enum\CompanyTypeEnum;
 use App\Entity\Project;
 use App\Entity\User;
 use App\Service\RepositoryService;
@@ -30,7 +31,7 @@ class UserRepository extends RepositoryService implements PasswordUpgraderInterf
 	public function upgradePassword(UserInterface $user, string $newEncodedPassword): void
 	{
 		if (!$user instanceof User) {
-			throw new UnsupportedUserException(sprintf('Instances of "%s" are not supported.', \get_class($user)));
+			throw new UnsupportedUserException(sprintf('Instances of "%s" are not supported.', $user::class));
 		}
 
 		$user->setPassword($newEncodedPassword);
@@ -60,7 +61,7 @@ class UserRepository extends RepositoryService implements PasswordUpgraderInterf
 			->innerJoin('u.company', 'c')
 			->innerJoin('u.projects', 'p')
 			->andWhere($qb->eq('p.id', $project))
-			->andWhere($qb->in('c.type', [Company::MAIN_CONTRACTOR, Company::CHECKER]))
+			->andWhere($qb->in('c.type', [CompanyTypeEnum::MAIN_CONTRACTOR, CompanyTypeEnum::CHECKER]))
 			->addOrderBy('u.name')
 			->getQuery()
 			->getResult()
@@ -112,7 +113,7 @@ class UserRepository extends RepositoryService implements PasswordUpgraderInterf
 			->innerJoin('u.company', 'c')
 			->innerJoin('u.projects', 'p')
 			->andWhere($qb->eq('p.id', $project))
-			->andWhere($qb->in('c.type', [Company::MAIN_CONTRACTOR, Company::CHECKER]))
+			->andWhere($qb->in('c.type', [CompanyTypeEnum::MAIN_CONTRACTOR, CompanyTypeEnum::CHECKER]))
 			->addOrderBy('u.name')
 			->getQuery()
 			->getResult()

@@ -15,35 +15,31 @@ use Symfony\Component\Validator\Constraints\Count;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Doctrine\Persistence\ManagerRegistry;
+
 
 class TestController extends AbstractController
 {
 	
-	private $translator;
-	
-	public function __construct(TranslatorInterface $translator)
+	public function __construct(private readonly TranslatorInterface $translator, private readonly ManagerRegistry $doctrine)
 	{
-		$this->translator = $translator;
 	}
 	
-	/**
-	 * @Route("/test", name="test")
-	 */
-	public function index(): Response
+	#[Route(path: '/test', name: 'test')]
+	public function index() : Response
 	{
 		phpinfo();
-				
 		return new Response();
 	}
 
 	private function clearDuplicateDocuments()
 	{
-		$entityManager = $this->getDoctrine()->getManager();
+		$entityManager = $this->doctrine->getManager();
 		$nb = 0;
 		
-		foreach ($this->getDoctrine()->getRepository(Project::class)->getAllProjects() as $project) {
+		foreach ($this->doctrine->getRepository(Project::class)->getAllProjects() as $project) {
 			
-			$series = $this->getDoctrine()->getRepository(Serie::class)->getHydratedSeries($project);
+			$series = $this->doctrine->getRepository(Serie::class)->getHydratedSeries($project);
 			
 			do {
 				
@@ -78,12 +74,12 @@ class TestController extends AbstractController
 	
 	private function clearDuplicateVersions()
 	{
-		$entityManager = $this->getDoctrine()->getManager();
+		$entityManager = $this->doctrine->getManager();
 		$nb = 0;
 		
-		foreach ($this->getDoctrine()->getRepository(Project::class)->getAllProjects() as $project) {
+		foreach ($this->doctrine->getRepository(Project::class)->getAllProjects() as $project) {
 			
-			$series = $this->getDoctrine()->getRepository(Serie::class)->getHydratedSeries($project);
+			$series = $this->doctrine->getRepository(Serie::class)->getHydratedSeries($project);
 			
 			do {
 				

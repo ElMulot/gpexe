@@ -3,42 +3,31 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use App\Repository\ReviewRepository;
 
-/**
- * @ORM\Entity(repositoryClass="App\Repository\ReviewRepository")
- */
+#[ORM\Entity(repositoryClass: ReviewRepository::class)]
 class Review
 {
-	/**
-	 * @ORM\Id()
-	 * @ORM\GeneratedValue()
-	 * @ORM\Column(type="integer")
-	 */
+	#[ORM\Id]
+	#[ORM\GeneratedValue]
+	#[ORM\Column(type: 'integer')]
 	private $id;
 
-	/**
-	 * @ORM\ManyToOne(targetEntity=User::class)
-	 * @ORM\JoinColumn(nullable=false)
-	 */
+	#[ORM\ManyToOne(targetEntity: User::class)]
+	#[ORM\JoinColumn(nullable: false)]
 	private $user;
 
-	/**
-	 * @ORM\Column(type="date")
-	 */
+	#[ORM\Column(type: 'date')]
 	private $date;
 
-	/**
-	 * @ORM\ManyToOne(targetEntity=Visa::class)
-	 * @ORM\JoinColumn(nullable=false)
-	 */
+	#[ORM\ManyToOne(targetEntity: Visa::class)]
+	#[ORM\JoinColumn(nullable: false)]
 	private $visa;
 
-	/**
-	 * @ORM\ManyToOne(targetEntity=Version::class, inversedBy="reviews")
-	 * @ORM\JoinColumn(nullable=false)
-	 */
+	#[ORM\ManyToOne(targetEntity: Version::class, inversedBy: 'reviews')]
+	#[ORM\JoinColumn(nullable: false)]
 	private $version;
-	
+
 	public function __construct()
 	{
 		$this->date = new \DateTime();
@@ -89,7 +78,7 @@ class Review
 	{
 		return $this->version;
 	}
-
+	
 	public function setVersion(?Version $version): self
 	{
 		$this->version = $version;
