@@ -29,8 +29,8 @@
 							</div>
 							{% if (is_granted('ROLE_CONTROLLER') and app.user in project.users) or is_granted('ROLE_ADMIN') %}
 								<div class="card-body text-end">
-									<a class="btn btn-sm btn-success" href="{{ path('project_edit', {'project': project.id}) }}" data-turbo-frame="std_modal" data-turbo-stream-replace="projects">{% trans %}Edit{% endtrans %}</a>
-									<a class="btn btn-sm btn-danger" href="{{ path('project_delete', {'project': project.id}) }}" data-turbo-frame="std_modal">{% trans %}Delete{% endtrans %}</a>
+									<a class="btn btn-sm btn-success" href="{{ path('project_edit', {'project': project.id}) }}" data-turbo-frame="xl_modal" data-turbo-stream-replace="projects">{% trans %}Edit{% endtrans %}</a>
+									<a class="btn btn-sm btn-danger" href="{{ path('project_delete', {'project': project.id}) }}" data-turbo-frame="xl_modal">{% trans %}Delete{% endtrans %}</a>
 								</div>
 							{% endif %}
 						</div>

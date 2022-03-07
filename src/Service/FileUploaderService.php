@@ -8,7 +8,7 @@ use Symfony\Component\String\Slugger\SluggerInterface;
 
 class FileUploaderService
 {
-    public function __construct(private $targetDirectory, private readonly SluggerInterface $slugger)
+    public function __construct(private $targetPath, private readonly SluggerInterface $slugger)
     {
     }
 
@@ -23,16 +23,11 @@ class FileUploaderService
         $fileName = uniqid().'.'.$file->guessExtension();
 
         try {
-            $file->move($this->getTargetDirectory(), $fileName);
+            $file->move($this->targetPath, $fileName);
         } catch (FileException) {
             throw new \Exception('Erreur : impossible d\'écrire sur le serveur');
         }
 
         return $fileName;
-    }
-
-    public function getTargetDirectory()
-    {
-        return $this->targetDirectory;
     }
 }

@@ -1,6 +1,6 @@
 {% set title = ('delete.' ~ entities|first|short_name)|trans({'count':entities|length}) %}
 
-{% extends 'modal/std_modal.html.twig' %}
+{% extends 'modal/xl_modal.html.twig' %}
 
 {% block modal_body %}
 	<form id="form" method="POST" action="{{ app.request.uri }}"{% if app.request.headers.has('Turbo-Stream-Replace') is same as (true) %} data-turbo-stream-replace="{{ app.request.headers.get('Turbo-Stream-Replace') }}"{% endif %}>

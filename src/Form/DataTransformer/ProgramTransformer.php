@@ -15,7 +15,7 @@ class ProgramTransformer implements DataTransformerInterface
 	{
 	}
 	
-	public function transform($value)
+	public function transform($value): string
 	{
 		if ($value === null) {
 			return '';
@@ -23,7 +23,7 @@ class ProgramTransformer implements DataTransformerInterface
 		return $value;
 	}
 	
-	public function reverseTransform($value): string
+	public function reverseTransform($value): string|TransformationFailedException
 	{
 		try {
 			$validatedCode = $this->parseService->getValidatedCode($value);

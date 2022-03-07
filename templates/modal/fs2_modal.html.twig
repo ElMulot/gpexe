@@ -1,10 +1,10 @@
-<turbo-frame id="fs_modal">
-	<div class="modal" tabindex="-1" aria-labelledby="fs_modal_label" aria-hidden="true" {{ stimulus_controller('modal') }}>
+<turbo-frame id="fs2_modal">
+	<div class="modal" tabindex="-1" aria-labelledby="fs2_modal_label" aria-hidden="true" {{ stimulus_controller('modal') }}>
 		<div class="modal-dialog modal-fs">
 			<div class="modal-content">
 				{% if title is defined %}
 					<div class="modal-header">
-						<h5 class="modal-title" id="fs_modal_label">{{ title|trans }}</h5>
+						<h5 class="modal-title" id="fs2_modal_label">{{ title|trans }}</h5>
 						<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="{% trans %}Close{% endtrans %}"></button>
 					</div>
 				{% endif %}	

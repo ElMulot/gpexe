@@ -25,4 +25,3 @@ import 'helpers/bootstrap_helper';
 import 'helpers/turbo_helper';
 // import 'helpers/turbo_debug';
 
-

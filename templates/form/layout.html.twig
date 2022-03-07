@@ -436,9 +436,7 @@
 {% endblock form_label_class %}
 
 {% block form_label %}
-	{% if label is same as(false) %}
-		<div class="{{ label_attr }}"></div>
-	{% else %}
+	{% if label is not same as(false) %}
 		{% if expanded is not defined or not expanded %}
 			{% set label_attr = label_attr|merge({class: (label_attr.class|default(''))|trim}) %}
 		{% endif %}

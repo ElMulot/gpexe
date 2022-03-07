@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Entity\Document;
 use App\Entity\Enum\ProgramTypeEnum;
 use App\Entity\Program;
+use App\Entity\User;
 use App\Entity\Version;
 use App\Repository\DocumentRepository;
 use App\Repository\SerieRepository;
@@ -42,7 +43,7 @@ class ProgramService
 	
 	private $stopWatch;
 	
-	public function __construct(private readonly TranslatorInterface $translator, private readonly EntityManagerInterface $entityManager, private readonly FlashBagInterface $flashBag, private readonly SerieRepository $serieRepository, private readonly DocumentRepository $documentRepository, private readonly VersionRepository $versionRepository, private readonly StatusRepository $statusRespository, private readonly DocumentService $documentService, private readonly FieldService $fieldService, private readonly PropertyService $propertyService, private readonly Security $security, private readonly string $targetDirectory)
+	public function __construct(private readonly TranslatorInterface $translator, private readonly EntityManagerInterface $entityManager, private readonly FlashBagInterface $flashBag, private readonly SerieRepository $serieRepository, private readonly DocumentRepository $documentRepository, private readonly VersionRepository $versionRepository, private readonly StatusRepository $statusRespository, private readonly DocumentService $documentService, private readonly FieldService $fieldService, private readonly PropertyService $propertyService, private readonly Security $security, private readonly string $targetPath)
 	{
 		$this->comments = [];
 		$this->stopWatch = new Stopwatch();
@@ -66,10 +67,10 @@ class ProgramService
 		}
 			
 		//setting up cache
-		if ($this->security->getUser() === null) {
+		if ($this->getUser() === null) {
 			$userName = $program->getLastModifiedBy()->getName();
 		} else {
-			$userName = $this->security->getUser()->getName();
+			$userName = $this->getUser()->getName();
 		}
 		$this->programCache->setParameter('current_user', $userName);
 		$this->programCache->setProgram($program);
@@ -90,8 +91,8 @@ class ProgramService
 				}
 				//upload file
 				try {
-					//$file = $file->move($this->targetDirectory, 'GPEXE Import.' . $file->getClientOriginalExtension());
-					$file = $file->move($this->targetDirectory, 'GPEXE Import.' . $file->guessExtension());
+					//$file = $file->move($this->targetPath, 'GPEXE Import.' . $file->getClientOriginalExtension());
+					$file = $file->move($this->targetPath, 'GPEXE Import.' . $file->guessExtension());
 				} catch (FileException) {
 					throw new \Exception('Erreur : impossible d\'écrire sur le serveur');
 				}
@@ -122,7 +123,7 @@ class ProgramService
 				
 				//create workbook
 				$this->workbook = new Workbook($this->programCache);
-				$this->workbook->new('GPEXE Export', $this->targetDirectory);
+				$this->workbook->new('GPEXE Export', $this->targetPath);
 				$sheet = $this->workbook->getSheet();
 				
 				//headers
@@ -749,7 +750,7 @@ class ProgramService
 		$this->programCache->setOption('library', 'phpspreadsheet');
 		
 		$this->workbook = new Workbook($this->programCache);
-		$this->workbook->new('GPEXE Export', $this->targetDirectory);
+		$this->workbook->new('GPEXE Export', $this->targetPath);
 		$sheet = $this->workbook->getSheet();
 		
 		//headers
@@ -877,6 +878,11 @@ class ProgramService
 		$this->dateRegex = str_replace(['D', 'M'], '\S{3}', $this->dateRegex);
 		$this->dateRegex = str_replace(['l', 'F'], '\S+', $this->dateRegex);
 		$this->dateRegex = '/"(' . $this->dateRegex . ')"/';
+	}
+
+	public function getUser(): User
+	{
+		return $this->security->getUser();
 	}
 	
 }

@@ -20,10 +20,13 @@
 	"edit": "Editer",
 	"delete": "Supprimer",
 	"close": "Fermer",
+	"cancel": "Annuler",
 	"all": "Tout",
 	"fromDate": "De",
 	"toDate": "A",
 	"highlight": "Surligner",
 	"empty": "Vide",
-	"date": "Date"
+	"date": "Date",
+	"cropImage": "Redimensionner l'image",
+	"crop": "Redimensionner"
 }

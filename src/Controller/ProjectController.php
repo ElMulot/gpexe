@@ -140,11 +140,9 @@ class ProjectController extends AbstractController
 		$form = $this->createForm(ProjectType::class, $project);
 		$form->handleRequest($request);
 		if ($form->isSubmitted() && $form->isValid()) {
-			$imageFile = $form->get('image')->getData();
-			$imageFileName = $this->fileUploadService->upload($imageFile);
-			$project->setImage($imageFileName);
 			$entityManager = $this->doctrine->getManager();
-			$entityManager->flush();
+			$entityManager->persist($project);
+			// $entityManager->flush();
 
 			$this->addFlash('success', 'Datas updated');
 
@@ -182,6 +180,33 @@ class ProjectController extends AbstractController
 				'entities' => [$project],
 			]);
 		}
+	}
+
+	#[Route(path: '/image/crop', name: 'image_crop')]
+	public function crop(Request $request, Project $project) : Response
+	{
+		// if ($this->isGranted('ROLE_ADMIN') === false &&
+		// 	($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
+		// 	return $this->redirectToRoute('project');
+		// }
+		// $form = $this->createForm(ProjectType::class, $project);
+		// $form->handleRequest($request);
+		// if ($form->isSubmitted() && $form->isValid()) {
+		// 	$entityManager = $this->doctrine->getManager();
+		// 	$entityManager->persist($project);
+		// 	// $entityManager->flush();
+
+		// 	$this->addFlash('success', 'Datas updated');
+
+		// 	return $this->renderForm('generic/success.stream.html.twig', [
+		// 		'target' => 'projects',
+		// 		'redirect' => $this->generateUrl('projects_list'),
+		// 	], new TurboStreamResponse());
+		// } else {
+		// 	return $this->renderForm('project/edit.html.twig', [
+		// 		'form' => $form
+		// 	]);
+		// }
 	}
 
 	public function getUser(): User

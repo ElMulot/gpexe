@@ -4,39 +4,36 @@ namespace App\Form;
 
 use App\Entity\User;
 use App\Entity\Project;
-
+use App\Form\DataTransformer\ImageTransformer;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
-use Symfony\Component\Validator\Constraints\File;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
-use Symfony\Component\Form\Extension\Core\Type\FileType;
+use Symfony\UX\Cropperjs\Form\CropperType;
+use Symfony\UX\Dropzone\Form\DropzoneType;
+use Symfony\Component\Asset\Packages;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class ProjectType extends AbstractType
 {
+	public function __construct(private $targetDirectory, private readonly ImageTransformer $transformer, private readonly Packages $assetPackage, private readonly UrlGeneratorInterface $router)
+	{
+	}
+	
 	public function buildForm(FormBuilderInterface $builder, array $options)
 	{
 		$builder
 			->add('name')
-			->add('image', FileType::class, [
+			->add('image', DropzoneType::class, [
 				'label' => 'Project Image',
-				'mapped' => false,
 				'required' => false,
-				'constraints' => [
-                    new File([
-                        'maxSize' => '1024k',
-                        'mimeTypes' => [
-                            'image/bmp',
-							'image/gif',
-                            'image/jpeg',
-							'image/png',
-							'image/tiff'
-                        ],
-                        'mimeTypesMessage' => 'Please upload a valid image',
-                    ])
-				]
+				'attr' => [
+					'placeholder' => 'Drop image here or click to browse',
+					'data-controller' => 'dropzone',
+					'data-src' => $builder->getData()->getImage()?$this->assetPackage->getUrl($this->targetDirectory . $builder->getData()->getImage()):'',
+				],
 			])
 			->add('splitter', TextType::class, [
 				'help' => 'Character used as separation between each item of the document codification.'
@@ -63,6 +60,7 @@ class ProjectType extends AbstractType
 				'expanded' => false,
 			])
 		;
+		$builder->get('image')->addModelTransformer($this->transformer);
 	}
 
 	public function configureOptions(OptionsResolver $resolver)

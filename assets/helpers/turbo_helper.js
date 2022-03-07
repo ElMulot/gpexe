@@ -26,7 +26,7 @@ const TurboHelper = class {
 			this.clearLoadingComponents();
 			this.emptyFrames();
 		});
-		
+
 		document.addEventListener('turbo:before-fetch-request', event => {
 			
 			//add in response specific headers
@@ -40,13 +40,13 @@ const TurboHelper = class {
 			// ------------------------------------------------------------------------------------------------------------------
 			
 			// event.detail.fetchOptions.headers['X-Requested-With'] = 'XMLHttpRequest';
-			(target => {
-				Object.entries(target.dataset).forEach(([k, d]) => {
-					if (k.match('^turbo') !== null) {
-						event.detail.fetchOptions.headers['Turbo-' + k.match(/([A-Z][a-z]+)/g).join('-')] = d;
-					}
-				});
-			})((event.target instanceof HTMLFormElement)?event.target:event.explicitOriginalTarget);
+			
+			const target = (event.target instanceof HTMLFormElement)?event.target:event.explicitOriginalTarget
+			Object.entries(target.dataset).forEach(([k, d]) => {
+				if (k.match('^turbo') !== null) {
+					event.detail.fetchOptions.headers['Turbo-' + k.match(/([A-Z][a-z]+)/g).join('-')] = d;
+				}
+			});
 			
 			const frameId = event.detail.fetchOptions.headers['Turbo-Frame'];
 			if (frameId !== undefined) {
@@ -58,7 +58,7 @@ const TurboHelper = class {
 		});
 
 		document.addEventListener('turbo:before-fetch-response', event => {
-			
+
 			//display error message from Symfony, except if form error (status code 422)
 			if (event.detail.fetchResponse.failed && event.detail.fetchResponse.response.status != 422) {
 				if (event.detail.fetchResponse.response.headers.get('Turbo-Frame')) {
@@ -78,8 +78,6 @@ const TurboHelper = class {
 				console.log('redirect');
 				return;
 			}
-
-
 		});
 
 		document.addEventListener('turbo:submit-end', event => {
@@ -117,7 +115,6 @@ const TurboHelper = class {
 
 	clearLoadingComponents() {
 		document.querySelectorAll('loading-component').forEach(e => e.remove());
-		document.querySelectorAll('modal-backdrop-component').forEach(e => e.remove());
 		document.querySelectorAll('#navbarContent').forEach(e => e.classList.remove('invisible'));
 	}
 
@@ -135,9 +132,6 @@ const TurboHelper = class {
 		if (e instanceof HTMLBodyElement || [...e.querySelectorAll('*')].some(e => e.classList.contains('modal'))) {
 			if (document.getElementsByTagName('loading-component').length === 0) {
 				document.body.appendChild(document.createElement('loading-component'));
-			}
-			if (document.getElementsByTagName('modal-backdrop-component').length === 0) {
-				document.body.appendChild(document.createElement('modal-backdrop-component'));
 			}
 		} else {
 			e.appendChild(document.createElement('frame-loading-component'));

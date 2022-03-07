@@ -592,6 +592,9 @@
     "symfony/uid": {
         "version": "v5.3.10"
     },
+    "symfony/ux-dropzone": {
+        "version": "v2.0.1"
+    },
     "symfony/ux-turbo": {
         "version": "v1.3.0"
     },

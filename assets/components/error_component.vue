@@ -19,11 +19,15 @@
 	import i18n from 'i18n';
 	
 	export default {
-		name: 'Loading',
+		name: 'Error',
 		
 		props: {
 			html: String,
 			modal: Boolean,
+		},
+
+		methods: {
+			t: i18n.t
 		},
 
 		data() {
@@ -31,7 +35,6 @@
 			const responseHTML = new DOMParser().parseFromString(this.html, 'text/html');
 
 			return {
-				t: i18n.t,
 				header: responseHTML.querySelector('[href="#trace-box-1"]').innerHTML + responseHTML.querySelector('.exception-http').innerHTML,
 				title: responseHTML.querySelector('.exception-message-wrapper > div > h1').innerHTML,
 				subtitle: responseHTML.querySelector('#trace-html-1 span.block.trace-file-path').innerHTML,

@@ -65,12 +65,12 @@
 						{% endif %}
 					{% endif %}
 					<td>
-						<a class="btn-success btn w-100 text-nowrap" href="{{ path(entity_name ~ '_edit', {(entity_name): entity.id}) }}" data-turbo-frame="std_modal" data-turbo-stream-replace="fs_modal">
+						<a class="btn-success btn w-100 text-nowrap" href="{{ path(entity_name ~ '_edit', {(entity_name): entity.id}) }}" data-turbo-frame="xl_modal" data-turbo-stream-replace="fs_modal">
 							{% trans %}Edit{% endtrans %}
 						</a>
 					</td>
 					<td>
-						<a class="btn-danger btn w-100 text-nowrap" href="{{ path(entity_name ~ '_delete', {(entity_name): entity.id}) }}" data-turbo-frame="std_modal" data-turbo-stream-replace="fs_modal">
+						<a class="btn-danger btn w-100 text-nowrap" href="{{ path(entity_name ~ '_delete', {(entity_name): entity.id}) }}" data-turbo-frame="xl_modal" data-turbo-stream-replace="fs_modal">
 							{% trans %}Delete{% endtrans %}
 						</a>
 					</td>
@@ -88,6 +88,6 @@
 {% block modal_footer %}
 	
 	<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans %}Close{% endtrans %}</button>
-	<a class="btn btn-primary" href="{{ path(entity_name ~ '_new', app.request.attributes.get('_route_params')) }}" data-turbo-frame="std_modal" data-turbo-stream-replace="fs_modal">{% trans %}New{% endtrans %}</a>
+	<a class="btn btn-primary" href="{{ path(entity_name ~ '_new', app.request.attributes.get('_route_params')) }}" data-turbo-frame="xl_modal" data-turbo-stream-replace="fs_modal">{% trans %}New{% endtrans %}</a>
 	
 {% endblock %}

@@ -19,15 +19,19 @@
 			</div>
 		</nav>
 	</header>
-
-	{% include "modal/fs_modal.html.twig" %}
-
-	{% include "modal/std_modal.html.twig" %}
-
+	
 	<main class="container-fluid d-flex justify-content-center">
 		{{ block('content') }}
 	</main>
 	
+	{% include "modal/fs_modal.html.twig" %}
+
+	{% include "modal/fs2_modal.html.twig" %}
+
+	{% include "modal/xl_modal.html.twig" %}
+
+	{% include "modal/md_modal.html.twig" %}
+
 	<footer id="footer" class="toast-container position-absolute bottom-0 start-50 translate-middle-x pb-3">
 		{% include "generic/_footer.html.twig" %}
 	</footer>

@@ -1,6 +1,4 @@
 import { Tooltip, Collapse } from 'bootstrap';
-import { renderComponent } from 'helpers/vue_helper';
-import Loading from 'components/loading_component.vue';
 
 const BsPopper = class {
 

@@ -20,10 +20,13 @@
 	"edit": "Edit",
 	"delete": "Delete",
 	"close": "Close",
+	"cancel": "Annuler",
 	"all": "All",
 	"fromDate": "From date",
 	"toDate": "To date",
 	"highlight": "Highlight",
 	"empty": "Empty",
-	"date": "Date"
+	"date": "Date",
+	"cropImage": "Crop image",
+	"crop": "Crop"
 }

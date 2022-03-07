@@ -12,6 +12,25 @@
 
 	export default {
 		name: 'Loading',
+		$modalBackdrop: null,
+		
+		mounted() {
+			if (this.$modalBackdrop = document.querySelector('.modal-backdrop')) {
+				this.$modalBackdrop.classList.remove('d-none');
+			} else {
+				this.$modalBackdrop = document.createElement('div');
+				this.$modalBackdrop.classList.add('modal-backdrop');
+				document.body.appendChild(this.$modalBackdrop);
+			}
+			this.$modalBackdrop.classList.add('show');
+		},
+
+		// unmounted() {
+		// 	if (this.$modalBackdrop = document.querySelector('.modal-backdrop')) {
+		// 		this.$modalBackdrop.classList.add('d-none');
+		// 	}
+		// },
+		
 		methods: {
 			t: i18n.t
 		},

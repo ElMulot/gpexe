@@ -10,6 +10,7 @@
 
 	export default {
 		name: 'frame-loading-component',
+		
 		methods: {
 			t: i18n.t
 		},

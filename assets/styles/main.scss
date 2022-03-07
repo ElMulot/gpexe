@@ -4,8 +4,8 @@
 
 .btn-project > {
 	img, div {
-		height: calc(60px + $btn-padding-x);
-		width: calc(120px + $btn-padding-y);
+		height: 90px;
+		width: 180px;
 		@include border-radius($border-radius);
 	}
 	img {
