@@ -33,13 +33,15 @@ export default class extends Controller {
         });
 
         this.element.addEventListener('shown.bs.modal', event => {
+            event.stopPropagation();
             document.querySelectorAll('loading-component').forEach(e => e.remove());
             this.setModalBackdropZIndex();
-        }, { once: true });
+        });
 
         this.element.addEventListener('hidden.bs.modal', event => {
+            event.stopPropagation();
             this.setModalBackdropZIndex();
-        }, { once: true });
+        });
 
         this.element.dispatchEvent(new Event('controller:connected'));
     }
@@ -83,15 +85,13 @@ export default class extends Controller {
     onModalDelete() {
         console.log('modal:delete', this.modal, this.element);
         this.element.remove();
-        // this.onModalDispose();
+        //this.onModalDispose();
     }
 
     setModalBackdropZIndex() {
 
         if (this.$modalBackdrop) {
-            let zIndex = 0;
-            zIndex = [...document.body.querySelectorAll('.modal.show')].map(e => this.getZIndex(e)).reduce((a,b) => (a>b && a!=0)?a:b, 0);
-
+            let zIndex = [...document.body.querySelectorAll('.modal.show')].map(e => this.getZIndex(e)).reduce((a,b) => (a>b && a!=0)?a:b, 0);
             if (zIndex > 0) {
                 this.$modalBackdrop.classList.remove('d-none');
                 this.$modalBackdrop.style.zIndex = zIndex - 1;

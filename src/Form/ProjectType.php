@@ -11,14 +11,12 @@ use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
-use Symfony\UX\Cropperjs\Form\CropperType;
-use Symfony\UX\Dropzone\Form\DropzoneType;
-use Symfony\Component\Asset\Packages;
+use App\Form\Type\DropzoneType;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class ProjectType extends AbstractType
 {
-	public function __construct(private $targetDirectory, private readonly ImageTransformer $transformer, private readonly Packages $assetPackage, private readonly UrlGeneratorInterface $router)
+	public function __construct(private readonly ImageTransformer $transformer, private readonly UrlGeneratorInterface $router)
 	{
 	}
 	
@@ -29,11 +27,6 @@ class ProjectType extends AbstractType
 			->add('image', DropzoneType::class, [
 				'label' => 'Project Image',
 				'required' => false,
-				'attr' => [
-					'placeholder' => 'Drop image here or click to browse',
-					'data-controller' => 'dropzone',
-					'data-src' => $builder->getData()->getImage()?$this->assetPackage->getUrl($this->targetDirectory . $builder->getData()->getImage()):'',
-				],
 			])
 			->add('splitter', TextType::class, [
 				'help' => 'Character used as separation between each item of the document codification.'

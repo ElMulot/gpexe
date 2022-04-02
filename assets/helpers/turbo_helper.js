@@ -92,7 +92,7 @@ const TurboHelper = class {
 		document.addEventListener('turbo:frame-render', (event) => {
 
 			//open the modal in the turbo-frame
-			event.target.querySelectorAll('*').forEach(e => {
+			[...event.target.children].forEach(e => {
 				if (e.classList.contains('modal')) {
 					e.dispatchEvent(new Event('modal:open'));
 				}
@@ -129,7 +129,7 @@ const TurboHelper = class {
 			document.querySelectorAll('#navbarContent').forEach(e => e.classList.add('invisible'));
 		}
 
-		if (e instanceof HTMLBodyElement || [...e.querySelectorAll('*')].some(e => e.classList.contains('modal'))) {
+		if (e instanceof HTMLBodyElement || [...e.children].some(e => e.classList.contains('modal'))) {
 			if (document.getElementsByTagName('loading-component').length === 0) {
 				document.body.appendChild(document.createElement('loading-component'));
 			}

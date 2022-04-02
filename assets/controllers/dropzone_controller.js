@@ -1,4 +1,5 @@
 import i18n from 'i18n';
+import { Modal } from 'bootstrap';
 import { Controller } from 'stimulus';
 import Cropper from 'cropperjs';
 
@@ -18,140 +19,136 @@ import Cropper from 'cropperjs';
 export default class extends Controller {
 
 	mimeType = 'image/jpeg';
-
 	cropper = null;
-	$input = null;
-	$placeholder = null;
-	$preview = null;
-	$previewImage = null;
-	$button = null;
+
+	static targets = ['input', 'placeholder', 'preview', 'previewClearButton', 'previewFilename', 'previewImage', 'modal', 'image', 'cropButton'];
+	
+    static values = {
+        uploadsDirectory: String,
+		name: String,
+		mimeType: String,
+		iconPath: String,
+    }
 
 	connect() {
-		this.$input = this.element.querySelector('input');
-		this.$placeholder = this.element.querySelector('.dropzone-placeholder');
-		this.$preview = this.element.querySelector('.dropzone-preview');
-		this.$previewImage = this.element.querySelector('.dropzone-preview-image');
-		this.$button = this.element.querySelector('.dropzone-preview-button');
-		this.element.addEventListener('dropzone:connect', this.onConnect.bind(this));
-		this.element.addEventListener('dropzone:change', this.onChange.bind(this));
-		// this.element.addEventListener('dropzone:clear', this.onClear.bind(this));
-	}
-
-	disconnect() {
-		this.element.removeEventListener('dropzone:connect', this.onConnect);
-		this.element.removeEventListener('dropzone:change', this.onChange);
-		// this.element.removeEventListener('dropzone:clear', this.onClear);
-	}
-
-	onConnect(event) {
 		
-		const filePath = this.$input.dataset.src;
-		const fileName = filePath.match(/[^\/]+$/g);
-
-		if (fileName !== null) {
-			
-			let file = new File([], fileName, {type:this.mimeType, lastModified:new Date().getTime()}, 'utf-8');
-			let container = new DataTransfer();
-			container.items.add(file);
-			this.$input.files = container.files;
-			this.$input.style.display = 'none';
-			this.$placeholder.style.display = 'none';
-			this.$preview.style.display = 'flex';
-			this.$previewImage.style.display = 'block';
-            this.$previewImage.style.backgroundImage = `url("${filePath}")`;
-			// fetch(filePath).then(response => response.blob()).then(blob => {
-			// 	let file = new File([blob], fileName, {type:this.mimeType, lastModified:new Date().getTime()}, 'utf-8');
-			// 	let container = new DataTransfer();
-			// 	container.items.add(file);
-			// 	this.$input.files = container.files;
-			// 	this.$input.dispatchEvent(new Event('change'));
-			// });
-		}
-
-		event.target.addEventListener('dropzone:clear', (event) => {
-			console.log(this.$input);
-			delete this.$input.dataset.src;
-		});
-
-	}
-
-	onChange(event) {
-
-		if (this.$input.dataset.src !== undefined && this.$input.dataset.src !== '') {
-			return;
-		}
+		this.previewClearButtonTarget.addEventListener('click', () => this.clear());
 		
-		const file = event.detail;
-		if (typeof file === 'undefined') {
-			return;
-		}
-		const src = URL.createObjectURL(file);
+		this.inputTarget.addEventListener('change', () => this.onInputChange());
 
-		let cropperModal = `<div id ="cropper_modal" class="modal fade" tabindex="-1" aria-labelledby="crop_modal_label" aria-hidden="true" data-controller="modal">
-								<div class="modal-dialog modal-md">
-									<div class="modal-content">
-										<div class="modal-header">
-											<h5 class="modal-title" id="crop_modal_label">${i18n.t('cropImage')}</h5>
-											<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="${i18n.t('close')}"></button>
-										</div>
-										<div class="modal-body">
-											<div class="img-container">
-												<img src="${src}" class="mw-100">
-											</div>
-										</div>
-										<div class="modal-footer justify-content-center">
-											<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">${i18n.t('cancel')}</button>
-											<button id="cropper_button" type="button" class="btn btn-primary">${i18n.t('crop')}</button>
-										</div>
-									</div>
-								</div>
-							</div>`;
-		document.body.insertAdjacentHTML('beforeend', cropperModal);
+		this.modalTarget.addEventListener('show.bs.modal', () => this.onModalShow());
 
-		let $cropperModal = document.getElementById('cropper_modal');
-		let $cropperButton = document.getElementById('cropper_modal').querySelector('button:not([data-bs-dismiss])');
+		this.modalTarget.addEventListener('hidden.bs.modal', () => this.onModalHidden());
 
-		$cropperModal.addEventListener('show.bs.modal', event => {
-			this.cropper = new Cropper(event.target.querySelector('img'), {
-				aspectRatio: 2,
-				viewMode: 2,
-				autoCropArea: 1,
-			});
-		});
+		this.cropButtonTarget.addEventListener('click', () => this.onCropperButtonClick());
 
-		$cropperModal.addEventListener('hidden.bs.modal', event => {
-			if (this.cropper) {
-				this.cropper.destroy();
-				this.cropper = null;
-			}
-			console.log('hidden.bs.modal');
-			event.target.dispatchEvent(new Event('modal:delete'));
-		});
-
-		$cropperButton.addEventListener('click', event => {
-			
-			event.target.dispatchEvent(new Event('dropzone:clear'));
-
-			let canvas = this.cropper.getCroppedCanvas({
-				width: 180,
-				height: 90,
-			})
-			
-			canvas.toBlob(blob => {
-				let file = new File([blob], 'croppedImage.jpg', {type:this.mimeType, lastModified:new Date().getTime()}, 'utf-8');
+		if (this.nameValue !== '') {
+			fetch(this.uploadsDirectoryValue + this.nameValue).then(response => response.blob()).then(blob => {
+				let file = new File([blob], this.nameValue, {type:this.mimeType, lastModified:new Date().getTime()}, 'utf-8');
 				let container = new DataTransfer();
 				container.items.add(file);
-				this.$input.files = container.files;
-				this.$input.dataset.src = true;
-				this.$input.dispatchEvent(new Event('change'));
-			}, this.mimeType);
-			
-			$cropperModal.dispatchEvent(new Event('modal:close'));
+				this.inputTarget.files = container.files;
+				this.onInputChange();
+			});
+		}
+
+	}
+
+	onInputChange() {
+
+        const file = this.inputTarget.files[0];
+        if (typeof file === 'undefined') {
+            return;
+        }
+
+		//check if uploaded file match the requested mime type
+		if (file.type && this.mimeTypeValue.match(/^\w+\/[-+.\w*]+$/g) !== null) {
+			if (file.type.includes(this.mimeTypeValue.replace('*', '')) === false) {
+				return;
+			}
+		}
+
+        // Hide the input and placeholder
+        this.inputTarget.style.display = 'none';
+        this.placeholderTarget.style.display = 'none';
+		this.previewClearButtonTarget.style.display = 'block';
+		this.previewImageTarget.style.display = 'block';
+		this.previewTarget.style.display = 'flex';
+
+        // Show the filename in preview if not image + icon or image
+		if (file.type.includes('image') === true) {
+			this.previewFilenameTarget.textContent = '';
+			this.previewImageTarget.style.width = '180px';
+			this.previewImageTarget.style.height = '90px';
+			const src = URL.createObjectURL(file);
+			this.previewImageTarget.src = src;
+
+			if (this.nameValue === '') { //new upload
+				this.imageTarget.innerHTML = `<img class="mw-100" src="${src}" />`;
+				this.nameValue = '';
+				this.modalTarget.dispatchEvent(new Event('modal:open'));
+			}
+
+		} else {
+			this.previewFilenameTarget.textContent = file.name;
+			this.previewImageTarget.style.width = '50px';
+			this.previewImageTarget.style.height = '50px';
+			const src = this.iconPathValue;
+			this.previewImageTarget.src = src;
+		}
+    }
+
+	onModalShow() {
+		
+		this.cropper = new Cropper(this.imageTarget.firstChild, {
+			aspectRatio: 2,
+			viewMode: 2,
+			autoCropArea: 1,
 		});
 
-		$cropperModal.addEventListener('controller:connected', event => {
-			event.target.dispatchEvent(new Event('modal:open'));
-		}, { once: true });
+	}
 
+	onModalHidden() {
+		
+		if (this.cropper !== null) {
+			this.cropper.destroy();
+			this.cropper = null;
+		}
+
+	}
+
+	onCropperButtonClick() {
+		
+		this.clear();
+		let canvas = this.cropper.getCroppedCanvas({
+			width: 180,
+			height: 90,
+		});
+		
+		canvas.toBlob(blob => {
+			let file = new File([blob], 'croppedImage.jpg', {type:this.mimeType, lastModified:new Date().getTime()}, 'utf-8');
+			let container = new DataTransfer();
+			container.items.add(file);
+			this.inputTarget.files = container.files;
+			this.nameValue = file.name;
+			this.inputTarget.dispatchEvent(new Event('change'));
+		}, this.mimeType);
+
+		this.modalTarget.dispatchEvent(new Event('modal:close'));
+
+	}
+
+	clear() {
+
+        this.nameValue = '';
+		
+		this.inputTarget.value = '';
+        this.inputTarget.style.display = 'block';
+        this.placeholderTarget.style.display = 'block';
+        this.previewTarget.style.display = 'none';
+		this.previewClearButtonTarget.style.display = 'none';
+        this.previewImageTarget.style.display = 'none';
+        // this.previewImageTarget.style.backgroundImage = 'none';
+        this.previewFilenameTarget.textContent = '';
 	}
 }
