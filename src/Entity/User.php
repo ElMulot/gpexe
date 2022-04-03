@@ -267,7 +267,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, Equatab
 	 *
 	 * @see UserInterface
 	 */
-	public function getSalt()
+	public function getSalt(): ?string
 	{
 		// not needed when using the "bcrypt" algorithm in security.yaml
 		return null;
@@ -294,7 +294,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, Equatab
 		return array_unique($this->roles);
 	}
 
-	public function isEqualTo(UserInterface $user) {
+	public function isEqualTo(UserInterface $user): bool
+	{
 		return $this->activated;
 	}
 

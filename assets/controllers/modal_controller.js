@@ -9,7 +9,7 @@ export default class extends Controller {
     connect() {
         
         this.element.style.zIndex = this.getZIndex(this.element) + [...document.body.querySelectorAll('.modal.show')].length;
-
+        
         this.modal = new Modal(this.element, {
 			backdrop: false,
 		});
@@ -61,9 +61,8 @@ export default class extends Controller {
         }
         if (this.element && this.modal._isShown === true) {
             this.modal.hide();
-        } else {
-            document.querySelectorAll('loading-component').forEach(e => e.remove());
         }
+        document.querySelectorAll('loading-component').forEach(e => e.remove());
     }
 
     onModalDispose() {
@@ -103,9 +102,9 @@ export default class extends Controller {
 
     getZIndex(e) {
         if (window.getComputedStyle) {
-            return document.defaultView.getComputedStyle(e,null).getPropertyValue('z-index'); 
+            return parseInt(document.defaultView.getComputedStyle(e,null).getPropertyValue('z-index')); 
         } else if (e.currentStyle) {
-            return e.currentStyle['z-index'];
+            return parseInt(e.currentStyle['z-index']);
         } else {
             return 0;
         }

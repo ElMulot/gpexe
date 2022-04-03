@@ -21,7 +21,11 @@ services:
     _defaults:
         autowire: true      # Automatically injects dependencies in your services.
         autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
-
+        bind:
+            # pass this value to any $publicDirectory argument for any service
+            # that's created in this file (including controller arguments)
+            $publicDirectory: '%kernel.project_dir%/public/'
+    
     # makes classes in src/ available to be used as services
     # this creates a service per class whose id is the fully-qualified class name
     App\:
@@ -40,7 +44,6 @@ services:
 
     App\Form\Type\DropzoneType:
         arguments:
-            $publicDirectory: '%kernel.project_dir%/public/'
             $iconsDirectory: '%icons_directory%/'
 
     App\EventListener\LogListener:
@@ -67,6 +70,21 @@ services:
                 name: 'doctrine.orm.entity_listener'
                 event: 'preRemove'
                 entity: 'App\Entity\Program'
+                lazy: true
+
+    App\EventListener\ProjectListener:
+        arguments:
+            $uploadsDirectory: '%uploads_directory%/'
+        tags:
+            -
+                name: 'doctrine.orm.entity_listener'
+                event: 'preUpdate'
+                entity: 'App\Entity\Project'
+                lazy: true
+            -
+                name: 'doctrine.orm.entity_listener'
+                event: 'postRemove'
+                entity: 'App\Entity\Project'
                 lazy: true
 
     App\EventListener\StatusListener:

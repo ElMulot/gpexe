@@ -41,7 +41,7 @@
 		position: fixed;
 		top: 0;
 		left: 0;
-		z-index: 1055;
+		z-index: 1070;
 		display: none;
 		width: 100%;
 		height: 100%;

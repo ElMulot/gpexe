@@ -2,19 +2,16 @@
 @import "~bootstrap/scss/bootstrap";
 @import "~bootswatch/dist/slate/bootswatch";
 
-.btn-project > {
-	img, div {
-		height: 90px;
-		width: 180px;
-		@include border-radius($border-radius);
-	}
-	img {
-		object-fit: cover;
-	}
+.btn-project > img {
+	object-fit: cover;
 }
 
 .btn-project {
 	padding: 0 !important;
+	height: 90px;
+	width: 180px;
+	@include border-radius($border-radius);
+	
 	&:not([disabled]):not(.disabled):hover > img,
 	&:not([disabled]):not(.disabled):focus > img,
 	&:not([disabled]):not(.disabled):active > img,

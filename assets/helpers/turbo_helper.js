@@ -75,7 +75,6 @@ const TurboHelper = class {
 				event.preventDefault();
 				Turbo.clearCache();
 				Turbo.visit(redirectLocation);
-				console.log('redirect');
 				return;
 			}
 		});
@@ -123,7 +122,7 @@ const TurboHelper = class {
 	}
 
 	renderLoading(e = document.body) {
-		
+
 		//hide navbar in case of a full page navigation
 		if (e instanceof HTMLBodyElement) {
 			document.querySelectorAll('#navbarContent').forEach(e => e.classList.add('invisible'));

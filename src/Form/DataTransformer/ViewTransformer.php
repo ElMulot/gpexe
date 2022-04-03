@@ -4,16 +4,13 @@ namespace App\Form\DataTransformer;
 
 use Symfony\Component\Form\DataTransformerInterface;
 use Symfony\Component\Form\Exception\TransformationFailedException;
-use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Exception\NotEncodableValueException;
-use Symfony\Component\Serializer\Serializer;
-use PhpParser\JsonDecoder;
 
 class ViewTransformer implements DataTransformerInterface
 {
 	
-	public function transform($value)
+	public function transform($value): string
 	{
 		try {
 			$encoder = new JsonEncoder();
@@ -25,7 +22,7 @@ class ViewTransformer implements DataTransformerInterface
 		}
 	}
 	
-	public function reverseTransform($value)
+	public function reverseTransform($value): mixed
 	{
 		try {
 			$encoder = new JsonEncoder();

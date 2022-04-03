@@ -8,6 +8,7 @@ use Symfony\Component\Form\Exception\TransformationFailedException;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\Validator\Constraints\Image;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Symfony\Component\HttpFoundation\File\Exception\FileNotFoundException;
 
 class ImageTransformer implements DataTransformerInterface
 {
@@ -21,7 +22,11 @@ class ImageTransformer implements DataTransformerInterface
 		if ($value == false) {
 			return null;
 		}
-		return new File($this->uploadsDirectory . $value);
+		try {
+			return new File($this->uploadsDirectory . $value);
+		} catch (FileNotFoundException $e) {
+			return null;
+		}
 	}
 	
 	public function reverseTransform($value): string
@@ -37,7 +42,7 @@ class ImageTransformer implements DataTransformerInterface
 			return $value->getClientOriginalName();
 		}
 
-		$constraint = new Image(maxSize: '10k');
+		$constraint = new Image(maxSize: '20k');
 		$errors = $this->validator->validate($value, $constraint);
 		if ($errors->count() > 0) {
 			$failure = new TransformationFailedException($errors[0]->getMessage());

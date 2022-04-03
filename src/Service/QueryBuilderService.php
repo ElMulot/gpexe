@@ -133,7 +133,7 @@ class QueryBuilderService extends QueryBuilder
 		return in_array($alias, $this->getAllAliases());
 	}
 	
-	public function getAllAliases()
+	public function getAllAliases(): array
 	{
 		return array_merge(parent::getAllAliases(), $this->aliases);
 	}

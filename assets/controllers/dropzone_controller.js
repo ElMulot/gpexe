@@ -18,6 +18,8 @@ import Cropper from 'cropperjs';
 
 export default class extends Controller {
 
+	imageWidth = 180;
+	imageHeight = 90;
 	mimeType = 'image/jpeg';
 	cropper = null;
 
@@ -78,8 +80,8 @@ export default class extends Controller {
         // Show the filename in preview if not image + icon or image
 		if (file.type.includes('image') === true) {
 			this.previewFilenameTarget.textContent = '';
-			this.previewImageTarget.style.width = '180px';
-			this.previewImageTarget.style.height = '90px';
+			this.previewImageTarget.style.width = this.imageWidth + 'px';
+			this.previewImageTarget.style.height = this.imageHeight + 'px';
 			const src = URL.createObjectURL(file);
 			this.previewImageTarget.src = src;
 
@@ -121,8 +123,8 @@ export default class extends Controller {
 		
 		this.clear();
 		let canvas = this.cropper.getCroppedCanvas({
-			width: 180,
-			height: 90,
+			width: this.imageWidth,
+			height: this.imageHeight,
 		});
 		
 		canvas.toBlob(blob => {

@@ -45,17 +45,17 @@ class DropzoneType extends AbstractType
         $resolver->setAllowedTypes('multiple', 'bool');   
     }
 
-    public function getParent()
+    public function getParent(): ?string
     {
         return FileType::class;
     }
 
-    public function getBlockPrefix()
+    public function getBlockPrefix(): ?string
     {
         return 'dropzone';
     }
 
-    private function getIconPath(string $mimeType): ?string
+    public function getIconPath(string $mimeType): ?string
     {
         if (str_contains($mimeType, 'image/') === true) {
             return $this->iconsDirectory . 'file-earmark-image.svg';

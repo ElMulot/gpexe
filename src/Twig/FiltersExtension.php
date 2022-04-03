@@ -15,7 +15,7 @@ class FiltersExtension extends AbstractExtension
 	{
 	}
 	
-	public function getFilters()
+	public function getFilters(): array
 	{
 		return [
 			new TwigFilter('short_name', [$this, 'getShortName']),

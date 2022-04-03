@@ -110,9 +110,6 @@ class ProjectController extends AbstractController
 		$form = $this->createForm(ProjectType::class, $project);
 		$form->handleRequest($request);
 		if ($form->isSubmitted() && $form->isValid()) {
-			$imageFile = $form->get('image')->getData();
-			$imageFileName = $this->fileUploadService->upload($imageFile);
-			$project->setImage($imageFileName);
 			$entityManager = $this->doctrine->getManager();
 			$entityManager->persist($project);
 			$entityManager->flush();
