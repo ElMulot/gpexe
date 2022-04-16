@@ -7,5 +7,15 @@ export const app = startStimulusApp(require.context(
     /\.[jt]sx?$/
 ));
 
+// Register vue custom elements
+(components => {
+	components.keys().forEach(filePath => {
+		components(filePath).then(module => {
+			const customElement = defineCustomElement(module.default);
+			customElements.define(filePath.replace(/\W+(\w+)\.vue/, '$1').replace(/_/g, '-'), customElement);
+		})
+	});
+})(require.context('./components', true, /\.vue$/, 'lazy'));
+
 // register any custom, 3rd party controllers here
 // app.register('some_controller_name', SomeImportedController);
