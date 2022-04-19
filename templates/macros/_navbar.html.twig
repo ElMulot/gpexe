@@ -17,9 +17,9 @@
 		<div class="dropdown-menu" aria-labelledby="{{ uuid }}">
 			{% for item in items %}
 				{% if item.href is defined %}
-					{% set item = item|merge({'class': item.class|default('') ~ ' dropdown-item'}) %}
+					{% set item = item|merge({'class': (item.class|default('') ~ ' dropdown-item')|trim}) %}
 				{% else %}
-					{% set item = item|merge({'class': item.class|default('') ~ ' dropdown-item disabled pl-2 bg-dark font-weight-bold text-light', 'href': '#'}) %}	
+					{% set item = item|merge({'class': (item.class|default('') ~ ' dropdown-item disabled pl-2 bg-dark font-weight-bold text-light')|trim, 'href': '#'}) %}	
 				{% endif %}
 				<a{{ block('attributes') }}>
 					{{ item.name|trans }}
@@ -46,9 +46,7 @@
 {% block attributes %}
 	{% for attrname, attrvalue in item|filter((v, k) => k != 'name') %}
 		{{ " " }}
-		{% if attrname in ['placeholder', 'title'] %}
-			
-		{% elseif attrvalue is same as(true) %}
+		{% if attrvalue is same as(true) %}
 			{{ attrname }}="{{ attrname }}"
 		{% elseif attrvalue is not same as(false) %}
 			{{ attrname }}="{{ attrvalue }}"

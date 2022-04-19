@@ -37,12 +37,9 @@ class VersionController extends AbstractController
 		$document = $version->getDocument();
 		$serie = $document->getSerie();
 		$project = $serie->getProject();
-		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
-			$this->createAccessDeniedException();
-		}
-		if ($this->getUser()->getCompany()->isMainContractor() === false && $this->getUser()->getCompany() !== $serie->getCompany()) {
-			$this->createAccessDeniedException();
-		}
+
+		$this->denyAccessUnlessGranted('SHOW_DOCUMENT_DETAIL', $document);
+
 		return $this->renderForm('version/detail.html.twig', [
 			'version' => $version,
 			'document' => $document,
@@ -69,9 +66,9 @@ class VersionController extends AbstractController
 		}
 		$serie = $document->getSerie();
 		$project = $serie->getProject();
-		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
-			throw $this->createAccessDeniedException();
-		}
+
+		$this->denyAccessUnlessGranted('NEW_DOCUMENT', $serie);
+
 		$version = new Version();
 		$version->setDocument($document);
 		if ($lastVersion = $document->getLastVersion()) {
@@ -166,9 +163,9 @@ class VersionController extends AbstractController
 				$version->setIsRequired(false);
 			}
 		}
-		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
-			throw $this->createAccessDeniedException();
-		}
+		
+		$this->denyAccessUnlessGranted('EDIT_DOCUMENT', $document);
+
 		$form = $this->createForm(VersionType::class, $versions, [
 			'serie' => $serie,
 			'allow_extra_fields' => true,
@@ -264,11 +261,10 @@ class VersionController extends AbstractController
 			return $this->redirectToRoute('project');
 		}
 		$document = reset($documents);
-		$project = $document->getSerie()->getProject();
 		$versions = $this->versionRepository->getVersions($request);
-		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
-			throw $this->createAccessDeniedException();
-		}
+
+		$this->denyAccessUnlessGranted('DELETE_DOCUMENT', $document);
+
 		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
 			$entityManager = $this->doctrine->getManager();
 			
@@ -299,12 +295,14 @@ class VersionController extends AbstractController
 	{
 		$serie = $document->getSerie();
 		$project = $serie->getProject();
-		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
+		
+		if ($this->isGranted('NEW_DOCUMENT', $serie) === false) {
 			return $this->redirectToRoute('review', [
 				'version' => $version,
 				'company' => $company,
 			]);
 		}
+
 		$newVersion = new Version();
 		$newVersion->setDocument($document);
 		$form = $this->createForm(QuickVersionType::class, $newVersion);
@@ -348,9 +346,9 @@ class VersionController extends AbstractController
 		$document = $version->getDocument();
 		$serie = $document->getSerie();
 		$project = $serie->getProject();
-		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
-			throw $this->createAccessDeniedException();
-		}
+		
+		$this->denyAccessUnlessGranted('EDIT_DOCUMENT', $document);
+
 		$fields = $this->fieldService->getFields($project);
 		foreach ($fields as $field) {
 			

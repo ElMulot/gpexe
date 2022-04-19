@@ -5,13 +5,13 @@ namespace App\Controller;
 use App\Entity\User;
 use App\Form\AccountType;
 use App\Form\ChangePasswordType;
+use Symfony\UX\Turbo\TurboBundle;
+use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
-use Doctrine\Persistence\ManagerRegistry;
-use Symfony\UX\Turbo\Stream\TurboStreamResponse;
 
 class AccountController extends AbstractController
 {
@@ -49,9 +49,10 @@ class AccountController extends AbstractController
 			
 			$this->addFlash('success', 'Datas updated');
 
+			$request->setRequestFormat(TurboBundle::STREAM_FORMAT);
 			return $this->renderForm('generic/success.stream.html.twig', [
 				'redirect' => $this->generateUrl('personal'),
-			], new TurboStreamResponse());
+			]);
 
 		} else {
 

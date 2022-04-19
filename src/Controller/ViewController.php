@@ -26,10 +26,11 @@ class ViewController extends AbstractController
 	#[Route(path: '/project/{project}/view', name: 'view', requirements: ['project' => '\d+'])]
 	public function index(Project $project) : Response
 	{
+		$this->denyAccessUnlessGranted('SHOW_VIEW', $project);
+		
 		$views = $this->viewRepository->getViewsByProjectAndByUserAsArray($project, $this->getUser());
 		foreach ($views as &$view) {
-			if ($view['user_id'] == $this->getUser()->getId() || 
-				($this->isGranted('ROLE_CONTROLLER') && $project->hasUser($this->getUser()) === false)) {
+			if ($view['user_id'] == $this->getUser()->getId() || $this->isGranted('USER', $project)) {
 				$view['edit_url'] = $this->generateUrl('view_edit', [
 					'view' => $view['id'],
 				]);
@@ -44,6 +45,8 @@ class ViewController extends AbstractController
 	#[Route(path: '/project/{project}/view/new', name: 'view_new', requirements: ['project' => '\d+'])]
 	public function new(Request $request, Project $project) : Response
 	{
+		$this->denyAccessUnlessGranted('NEW_VIEW', $project);
+		
 		$view = new View();
 		$request->query->remove('page');
 		$request->query->remove('view');
@@ -69,10 +72,8 @@ class ViewController extends AbstractController
 	#[Route(path: '/project/view/{view}/edit', name: 'view_edit', requirements: ['view' => '\d+'])]
 	public function edit(Request $request, View $view) : Response
 	{
-		if ($view->getUser() != $this->getUser() &&
-			($this->isGranted('ROLE_CONTROLLER') === false || $view->getProject()->hasUser($this->getUser()))) {
-			throw $this->createAccessDeniedException();
-		}
+		$this->denyAccessUnlessGranted('EDIT_VIEW', $view);
+
 		$form = $this->createForm(ViewType::class, $view);
 		$form->handleRequest($request);
 		if ($form->isSubmitted() && $form->isValid()) {
@@ -92,10 +93,8 @@ class ViewController extends AbstractController
 	#[Route(path: '/project/view/{view}/delete', name: 'view_delete', methods: ['GET', 'DELETE'], requirements: ['view' => '\d+'])]
 	public function delete(Request $request, View $view) : Response
 	{
-		if ($view->getUser() != $this->getUser() &&
-			($this->isGranted('ROLE_CONTROLLER') === false || $view->getProject()->hasUser($this->getUser()))) {
-			throw $this->createAccessDeniedException();
-		}
+		$this->denyAccessUnlessGranted('DELETE_VIEW', $view);
+
 		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
 			$entityManager = $this->doctrine->getManager();
 			$entityManager->remove($view);

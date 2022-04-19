@@ -24,6 +24,8 @@ class ReviewController extends AbstractController
 	#[Route(path: '/project/serie/document/version/{version}/{company}/review', name: 'review', requirements: ['version' => '\d+', 'company' => '\d+'])]
 	public function index(Request $request, Version $version, Company $company) : Response
 	{
+		$this->denyAccessUnlessGranted('SHOW_REVIEW', $version);
+		
 		$review = $version->getReviewByCompany($company);
 		return $this->renderForm('review/index.html.twig', [
 			'review' => $review,
@@ -35,6 +37,8 @@ class ReviewController extends AbstractController
 	#[Route(path: '/project/serie/document/version/{version}/{company}/review/new', name: 'review_new', requirements: ['version' => '\d+', 'company' => '\d+'])]
 	public function new(Request $request, Version $version, Company $company) : Response
 	{
+		$this->denyAccessUnlessGranted('NEW_REVIEW', $version);
+		
 		if ($this->getUser()->getCompany() == $company || $this->isGranted('ROLE_ADMIN')) {
 			$document = $version->getDocument();
 			
@@ -94,7 +98,7 @@ class ReviewController extends AbstractController
 	{
 		$company = $review->getVisa()->getCompany();
 		$version = $review->getVersion();
-		if ($this->getUser()->getCompany() == $company || $this->isGranted('ROLE_ADMIN')) {
+		if ($this->isGranted('EDIT_REVIEW', $version)) {
 			$form = $this->createForm(ReviewType::class, $review, [
 				'project' => $version->getDocument()->getSerie()->getProject(),
 				'company' => $company,
@@ -136,7 +140,7 @@ class ReviewController extends AbstractController
 	{
 		$company = $review->getUser()->getCompany();
 		$version = $review->getVersion();
-		if ($this->getUser()->getCompany() == $company || $this->isGranted('ROLE_ADMIN')) {
+		if ($this->isGranted('DELETE_REVIEW', $version)) {
 		
 			if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
 				$entityManager = $this->doctrine->getManager();

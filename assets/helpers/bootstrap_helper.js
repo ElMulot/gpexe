@@ -14,11 +14,15 @@ const BsPopper = class {
 	}
 }
 
-export const Popper = new BsPopper();
+const Popper = new BsPopper();
 
 const BsCollapse = class {
 
 	static show(e) {
+
+		if (e === null) {
+			return false;
+		}
 
 		if (e.classList.contains('collapsing')) {
 			return false;
@@ -39,6 +43,10 @@ const BsCollapse = class {
 	}
 
 	static hide(e) {
+
+		if (e === null) {
+			return false;
+		}
 
 		if (e.classList.contains('collapsing')) {
 			return false;

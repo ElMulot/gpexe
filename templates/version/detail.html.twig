@@ -66,7 +66,7 @@
 			</div>
 		</div>
 	</div>
-	{% if version.isRequired and (is_granted('ROLE_ADMIN') or (is_granted('ROLE_EDIT_DOCUMENTS') and app.user.company.isMainContractor)) %}
+	{% if version.isRequired and (is_granted('ROLE_ADMIN') or (is_granted('ROLE_EDITOR') and app.user.company.isMainContractor)) %}
 		<div class="card col w-50 border rounded border-dark p-0 ml-2">
 			<div class="card-header font-weight-bold text-white">{% trans %}Document recieved{% endtrans %}</div>
 			<div class="card-body">

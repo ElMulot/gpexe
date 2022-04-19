@@ -25,9 +25,10 @@ class SerieController extends AbstractController
 	#[Route(path: '/project/{project}/{company}/serie', name: 'serie', requirements: ['project' => '\d+', 'company' => '\d+'])]
 	public function index(Project $project, Company $company) : Response
 	{
-		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
+		if ($this->isGranted('SHOW_SERIE', $project) === false) {
 			return $this->redirectToRoute('project');
 		}
+
 		$series = $this->serieRepository->getSeriesByCompany($project, $company);
 		if (empty($series)) {
 			return $this->redirectToRoute('project', [
@@ -49,30 +50,34 @@ class SerieController extends AbstractController
 	#[Route(path: '/project/{project}/{company}', name: 'serie_route', requirements: ['project' => '\d+', 'company' => '\d+'])]
 	public function route(Project $project, Company $company) : Response
 	{
-		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
+		if ($this->isGranted('ROUTE_SERIE', $project) === false) {
 			return $this->redirectToRoute('project');
 		}
+
 		$series = $this->serieRepository->getSeriesByCompanyAsArray($project, $company);
 		if (empty($series)) {
 			return $this->redirectToRoute('serie_new', [
 				'project' => $project->getId(),
 				'company' => $company->getId(),
 			]);
-		} else {
+		} elseif (count($series) === 1) {
 			return $this->redirectToRoute('document', [
 				'project' => $project->getId(),
 				'type' => reset($series)['type'],
 				'serie' => reset($series)['id'],
 			]);
+		} else {
+
 		}
 	}
 	
 	#[Route(path: '/project/{project}/{type}', name: 'serie_route_by_type', requirements: ['project' => '\d+', 'type' => 'sdr|mdr|all'])]
 	public function routeByType(Project $project, string $type) : Response
 	{
-		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
+		if ($this->isGranted('ROUTE_SERIE', $project) === false) {
 			return $this->redirectToRoute('project');
 		}
+
 		return $this->redirectToRoute('document', [
 			'project' => $project->getId(),
 			'type' => $type,
@@ -82,9 +87,10 @@ class SerieController extends AbstractController
 	#[Route(path: '/project/{project}/{company}/serie/new', name: 'serie_new', requirements: ['project' => '\d+', 'company' => '\d+'])]
 	public function new(Request $request, Project $project, Company $company) : Response
 	{
-		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
+		if ($this->isGranted('NEW_SERIE', $project) === false) {
 			return $this->redirectToRoute('project');
 		}
+
 		$serie = new Serie();
 		$serie->setProject($project);
 		$serie->setCompany($company);
@@ -124,11 +130,8 @@ class SerieController extends AbstractController
 				'company' => $company->getId(),
 			]);
 		} else {
-			return $this->renderForm('generic/form.html.twig', [
-				'route_back' =>  $this->generateUrl('serie', [
-					'project' => $project->getId(),
-					'company' => $company->getId(),
-				]),
+			$request->headers['Turbo-Frame'] = 'modal_xl';
+			return $this->renderForm('generic/edit.html.twig', [
 				'form' => $form,
 			]);
 		}
@@ -138,9 +141,11 @@ class SerieController extends AbstractController
 	public function edit(Request $request, Serie $serie) : Response
 	{
 		$project = $serie->getProject();
-		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
+
+		if ($this->isGranted('EDIT_SERIE', $serie) === false) {
 			return $this->redirectToRoute('project');
 		}
+
 		$form = $this->createForm(SerieType::class, $serie);
 		$form->handleRequest($request);
 		if ($form->isSubmitted() && $form->isValid()) {
@@ -193,9 +198,11 @@ class SerieController extends AbstractController
 	public function delete(Request $request, Serie $serie) : Response
 	{
 		$project = $serie->getProject();
-		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
+
+		if ($this->isGranted('DELETE_SERIE', $serie) === false) {
 			return $this->redirectToRoute('project');
 		}
+
 		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
 			$entityManager = $this->doctrine->getManager();
 			$entityManager->remove($serie);

@@ -4,15 +4,13 @@ namespace App\Controller;
 
 use App\Entity\Company;
 use App\Form\CompanyType;
-use App\Entity\Enum\CompanyTypeEnum;
+use Symfony\UX\Turbo\TurboBundle;
 use App\Repository\CompanyRepository;
+use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\UX\Turbo\Stream\TurboStreamResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Doctrine\Persistence\ManagerRegistry;
-
 
 class CompanyController extends AbstractController
 {
@@ -44,9 +42,10 @@ class CompanyController extends AbstractController
 			
 			$this->addFlash('success', 'New entry created');
 
+			$request->setRequestFormat(TurboBundle::STREAM_FORMAT);
 			return $this->renderForm('generic/success.stream.html.twig', [
 				'redirect' => $this->generateUrl('company'),
-			], new TurboStreamResponse());
+			]);
 
 		} else {
 
@@ -69,9 +68,10 @@ class CompanyController extends AbstractController
 			
 			$this->addFlash('success', 'Datas updated');
 
+			$request->setRequestFormat(TurboBundle::STREAM_FORMAT);
 			return $this->renderForm('generic/success.stream.html.twig', [
 				'redirect' => $this->generateUrl('company'),
-			], new TurboStreamResponse());
+			]);
 
 		} else {
 
@@ -92,9 +92,10 @@ class CompanyController extends AbstractController
 			
 			$this->addFlash('success', 'Entry deleted');
 
+			$request->setRequestFormat(TurboBundle::STREAM_FORMAT);
 			return $this->renderForm('generic/success.stream.html.twig', [
 				'redirect' => $this->generateUrl('company'),
-			], new TurboStreamResponse());
+			]);
 
 		} else {
 

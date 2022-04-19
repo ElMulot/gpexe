@@ -3,7 +3,7 @@
 <ul class="navbar-nav me-auto">
 	{{ navbar.item('Back', path('project_view', {'project': project.id})) }}
 
-	{% if is_granted('ROLE_ADMIN') or (is_granted('ROLE_EDIT_DOCUMENTS') and app.user in project.users) %}
+	{% if is_granted('ROLE_ADMIN') or (is_granted('ROLE_EDITOR') and app.user in project.users) %}
 		{{ navbar.dropdown('Documents', [
 			{
 				'name': 'New',

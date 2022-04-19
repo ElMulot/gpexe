@@ -1,10 +1,12 @@
 {% import "macros/_navbar.html.twig" as navbar %}
 
 <ul class="navbar-nav me-auto">
-	{{ navbar.item('Back', path('projects_list')) }}
+	{{ navbar.item('Back', route_back) }}
 
-	{% if (is_granted('ROLE_CONTROLLER') and app.user in project.users) or is_granted('ROLE_ADMIN') %}
-		{{ navbar.dropdown('Project admin', [
+	{% set admin_items = [] %}
+
+	{% if is_granted('EDIT_PROJECT', project) %}
+		{% set admin_items = admin_items|merge([
 			{
 				'name': 'edit.project',
 				'href': path('project_edit', {'project': project.id}),
@@ -19,17 +21,32 @@
 				'name': 'Metadatas',
 				'href': path('metadata', {'project': project.id}),
 				'data-turbo-frame': 'fs_modal',
-			},
+			}])
+		%}
+	{% endif %}
+
+	{% if is_granted('SHOW_STATUS', project) %}
+		{% set admin_items = admin_items|merge([
 			{
 				'name': 'Statuses',
 				'href': path('status', {'project': project.id}),
 				'data-turbo-frame': 'fs_modal',
-			},
+			}])
+		%}
+	{% endif %}
+
+	{% if is_granted('SHOW_VISA', project) %}
+		{% set admin_items = admin_items|merge([
 			{
 				'name': 'Visas',
 				'href': path('visa', {'project': project.id}),
 				'data-turbo-frame': 'fs_modal',
-			},
+			}])
+		%}
+	{% endif %}
+
+	{% if is_granted('SHOW_PROGRAM', project) %}
+		{% set admin_items = admin_items|merge([
 			{
 				'name': 'Programs',
 				'href': path('program', {'project': project.id}),
@@ -39,8 +56,13 @@
 				'name': 'Automations',
 				'href': path('automation', {'project': project.id}),
 				'data-turbo-frame': 'fs_modal',
-			},
-		]) }}
+			}])
+		%}
+	{% endif %}
+	
+
+	{% if admin_items is not empty %}
+		{{ navbar.dropdown('Project admin', admin_items) }}
 	{% endif %}
 </ul>
 
@@ -48,102 +70,67 @@
 
 <ul class="navbar-nav ms-auto">
 
-	{{ navbar.dropdown('Documents', [
-		{
-			'name': 'All documents',
-			'href': path('serie_route_by_type', {'project': project.id, 'type': 'all'}),
-		},
-		{
-			'name': 'MDR Only',
-			'href': path('serie_route_by_type', {'project': project.id, 'type': 'mdr'}),
-		},
-		{
-			'name': 'SDR Only',
-			'href': path('serie_route_by_type', {'project': project.id, 'type': 'sdr'}),
-		},
-	]) }}
+	{% set document_items = [] %}
 
-	{% if programs is not empty %}
-
-		{% set export_programs = programs|filter(v => v.type == constant('App\\Entity\\Enum\\ProgramTypeEnum::EXPORT')) %}
-		{% set import_programs = programs|filter(v => v.type == constant('App\\Entity\\Enum\\ProgramTypeEnum::IMPORT')) %}
-		{% set task_programs = programs|filter(v => v.type == constant('App\\Entity\\Enum\\ProgramTypeEnum::TASK')) %}
-		{% set progress_programs = programs|filter(v => v.type == constant('App\\Entity\\Enum\\ProgramTypeEnum::PROGRESS')) %}
+	{% if is_granted('SHOW_MDR', project) %}
+		{% set document_items = document_items|merge([
+			{
+				'name': 'All documents',
+				'href': path('serie_route_by_type', {'project': project.id, 'type': 'all'}),
+			},
+			{
+				'name': 'MDR Only',
+				'href': path('serie_route_by_type', {'project': project.id, 'type': 'mdr'}),
+			}])
+		%}
+	{% endif %}
 
 
-		{% if export_programs is not empty  %}
-			{% set export_menu = [
-				{
-					'name': 'Export'
-				}
-			] %}
-			{% for program in export_programs %}
-				{% set export_menu = export_menu|merge([
+	{% if is_granted('SHOW_SDR', project) %}
+		{% set document_items = document_items|merge([
+			{
+				'name': 'SDR Only',
+				'href': path('serie_route_by_type', {'project': project.id, 'type': 'sdr'}),
+			}])
+		%}
+	{% endif %}
+
+	{% if document_items is not empty %}
+		{{ navbar.dropdown('Documents', document_items) }}
+	{% endif %}
+	
+	{% if is_granted('SHOW_PROGRESS_PROGRAM', project) %}
+
+		{% set current_type = 0 %}
+		{% set menu = [] %}
+
+		{% for program in programs|sort((a, b) => a.type > b.type) %}
+
+			{% if current_type != program.type %}
+				{% set menu = menu|merge([
 					{
-						'name': program.name,
-						'href': path('program_dashboard', {'program': program.id}),
+						'name': program.type|readable_enum
 					}
 				]) %}
-			{% endfor %}
-		{% endif %}
+				{% set current_type = program.type %}
+			{% endif %}
 
-		{% if import_programs is not empty  %}
-			{% set import_menu = [
+			{% set menu = menu|merge([
 				{
-					'name': 'Import'
+					'name': program.name,
+					'href': path('program_dashboard', {'program': program.id}),
 				}
-			] %}
-			{% for program in import_programs %}
-				{% set import_menu = import_menu|merge([
-					{
-						'name': program.name,
-						'href': path('program_dashboard', {'program': program.id}),
-					}
-				]) %}
-			{% endfor %}
-		{% endif %}
-
-		{% if task_programs is not empty  %}
-			{% set task_menu = [
-				{
-					'name': 'Task'
-				}
-			] %}
-			{% for program in task_programs %}
-				{% set task_menu = task_menu|merge([
-					{
-						'name': program.name,
-						'href': path('program_dashboard', {'program': program.id}),
-					}
-				]) %}
-			{% endfor %}
-		{% endif %}
-
-		{% if progress_programs is not empty  %}
-			{% set progress_menu = [
-				{
-					'name': 'Progress'
-				}
-			] %}
-			{% for program in progress_programs %}
-				{% set progress_menu = progress_menu|merge([
-					{
-						'name': program.name,
-						'href': path('program_dashboard', {'program': program.id}),
-					}
-				]) %}
-			{% endfor %}
-		{% endif %}
-
-		{% if export_programs is empty and import_programs is empty and task_programs is empty and progress_programs is empty %}
-			{{ navbar.dropdown('Programs', [
+			]) %}
+		{% else %}
+			{% set menu = [
 				{
 					'name': 'No program avialable',
 				}
-			]) }}
-		{% else %}
-			{{ navbar.dropdown('Programs', export_menu|merge(import_menu)|merge(task_menu)|merge(progress_menu)) }}
-		{% endif %}
+			] %}
+		{% endfor %}
+
+		{{ navbar.dropdown('Programs', menu) }}
+
 	{% endif %}
 
 	{{ navbar.itemLogout() }}

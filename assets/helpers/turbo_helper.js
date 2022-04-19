@@ -148,10 +148,6 @@ const TurboHelper = class {
 
 		event.detail.fetchResponse.responseHTML.then(html => {
 			
-			if ($frame.classList.contains('modal')) {
-				$frame.dispatchEvent(new Event('modal:open'));
-			}
-
 			const responseHTML = new DOMParser().parseFromString(html, 'text/html');
 			const fullRender = ($frame.clientWidth > 720);
 			const header = responseHTML.querySelector('[href="#trace-box-1"]').innerHTML + (fullRender)?responseHTML.querySelector('.exception-http').innerHTML:'';
@@ -165,32 +161,39 @@ const TurboHelper = class {
 							'<small>' +
 								responseHTML.querySelector('#trace-html-1 span.block.trace-file-path').innerHTML +
 							'</small>');
-
-			if ($frame.classList.contains('modal')) {
+			
+			if ([...$frame.children].some(e => e.classList.contains('modal'))) {
 				
 				$frame.innerHTML =
-					'<div class="modal-dialog">' +
-						'<div class="modal-content border-danger">' +
-							'<div class="modal-header">' +
-								'<h5 class="modal-title">' +
-									header +
-								'</h5>' +
-								'<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="' + i18n.t('close') + '"></button>' +
-							'</div>' +
-							'<div class="modal-body">' +
-								'<h5 class="modal-title">' +
-									title +
-								'</h5>' +
-								'<div class="card-text trace-code">' +
-									content +
+					'<div id="test" class="modal fade" tabindex="-1" aria-labelledby="error_modal_label" aria-hidden="true" data-controller="modal">' +
+						'<div class="modal-dialog">' +
+							'<div class="modal-content border-danger">' +
+								'<div class="modal-header">' +
+									'<h5 class="modal-title" id ="error_modal_label">' +
+										header +
+									'</h5>' +
+									'<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="' + i18n.t('close') + '"></button>' +
 								'</div>' +
+								'<div class="modal-body">' +
+									'<h5 class="modal-title">' +
+										title +
+									'</h5>' +
+									'<div class="card-text trace-code">' +
+										content +
+									'</div>' +
+								'</div>' +
+								'<div class="modal-footer justify-content-center">' +
+									'<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">' + i18n.t('close') + '</button>' +
+								'</div>'+
 							'</div>' +
-							'<div class="modal-footer justify-content-center">' +
-								'<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">' + i18n.t('close') + '</button>' +
-							'</div>'+
 						'</div>' +
 					'</div>';
 				
+				const $modal = [...$frame.children].find(e => e.classList.contains('modal'));
+				$modal.addEventListener('controller:connected', event => {
+					event.target.dispatchEvent(new Event('modal:open'));
+				});
+
 			} else {
 
 				$frame.innerHTML =
@@ -208,7 +211,7 @@ const TurboHelper = class {
 						'</div>' +
 					'</div>';
 			}
-		})
+		});
 
 	}
 

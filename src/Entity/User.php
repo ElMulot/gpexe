@@ -285,7 +285,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, Equatab
 	public function getRoles(): array
 	{
 		if (empty($this->roles)) {
-			if ($this->getProfil()->getEditDocuments())		$this->roles[] = 'ROLE_EDIT_DOCUMENTS';
+			if ($this->getProfil()->getEditDocuments())		$this->roles[] = 'ROLE_EDITOR';
 			if ($this->getProfil()->getIsController())		$this->roles[] = 'ROLE_CONTROLLER';
 			if ($this->getProfil()->getIsAdmin())			$this->roles[] = 'ROLE_ADMIN';
 			if ($this->getProfil()->getIsSuperAdmin())		$this->roles[] = 'ROLE_SUPER_ADMIN';

@@ -33,7 +33,6 @@ export default class extends Controller {
         });
 
         this.element.addEventListener('shown.bs.modal', event => {
-            event.stopPropagation();
             document.querySelectorAll('loading-component').forEach(e => e.remove());
             this.setModalBackdropZIndex();
         });
@@ -88,7 +87,7 @@ export default class extends Controller {
     }
 
     setModalBackdropZIndex() {
-
+        
         if (this.$modalBackdrop) {
             let zIndex = [...document.body.querySelectorAll('.modal.show')].map(e => this.getZIndex(e)).reduce((a,b) => (a>b && a!=0)?a:b, 0);
             if (zIndex > 0) {

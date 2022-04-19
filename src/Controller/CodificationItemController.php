@@ -23,10 +23,9 @@ class CodificationItemController extends AbstractController
 	public function index(CodificationItemRepository $codificationItemRepository, Codification $codification) : Response
 	{
 		$project = $codification->getProject();
-		if ($this->isGranted('ROLE_ADMIN') === false &&
-			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
-			return $this->redirectToRoute('project');
-		}
+
+		$this->denyAccessUnlessGranted('EDIT_PROJECT', $project);
+
 		return $this->renderForm('generic/list.html.twig', [
 			'header' => $this->translator->trans('List for the code') . ' : ' . $codification->getName(),
 			'route_back' =>  $this->generateUrl('codification', [
@@ -42,10 +41,9 @@ class CodificationItemController extends AbstractController
 	public function new(Request $request, Codification $codification) : Response
 	{
 		$project = $codification->getProject();
-		if ($this->isGranted('ROLE_ADMIN') === false &&
-			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
-			return $this->redirectToRoute('project');
-		}
+
+		$this->denyAccessUnlessGranted('EDIT_PROJECT', $project);
+
 		$codificationItem = new CodificationItem();
 		$codificationItem->setCodification($codification);
 		$form = $this->createForm(CodificationItemType::class, $codificationItem);
@@ -73,10 +71,9 @@ class CodificationItemController extends AbstractController
 	public function edit(Request $request, CodificationItem $codificationItem) : Response
 	{
 		$project = $codificationItem->getCodification()->getProject();
-		if ($this->isGranted('ROLE_ADMIN') === false &&
-			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
-			return $this->redirectToRoute('project');
-		}
+
+		$this->denyAccessUnlessGranted('EDIT_PROJECT', $project);
+
 		$form = $this->createForm(CodificationItemType::class, $codificationItem);
 		$form->handleRequest($request);
 		if ($form->isSubmitted() && $form->isValid()) {
@@ -101,10 +98,9 @@ class CodificationItemController extends AbstractController
 	public function delete(Request $request, CodificationItem $codificationItem) : Response
 	{
 		$project = $codificationItem->getCodification()->getProject();
-		if ($this->isGranted('ROLE_ADMIN') === false &&
-			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
-			return $this->redirectToRoute('project');
-		}
+		
+		$this->denyAccessUnlessGranted('EDIT_PROJECT', $project);
+
 		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
 			$entityManager = $this->doctrine->getManager();
 			$entityManager->remove($codificationItem);

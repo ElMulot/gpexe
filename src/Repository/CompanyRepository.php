@@ -85,12 +85,12 @@ class CompanyRepository extends RepositoryService
 		$qb = $this->newQb('c');
 		
 		return $qb->select('c.id', 'c.name')
-		->innerJoin('c.users', 'u')
-		->innerJoin('u.projects', 'p')
-		->andWhere($qb->eq('p.id', $project->getId()))
-		->addOrderBy('c.name')
-		->getQuery()
-		->getArrayResult()
+			->innerJoin('c.users', 'u')
+			->innerJoin('u.projects', 'p')
+			->andWhere($qb->eq('p.id', $project->getId()))
+			->addOrderBy('c.name')
+			->getQuery()
+			->getArrayResult()
 		;
 	}
 }

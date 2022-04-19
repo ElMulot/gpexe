@@ -33,7 +33,7 @@ class Expression
 		//extract strings inside " and replace it by a reference
 		$expression = Regex::replace('/(?<!\\\\)"(.*?)(?<!\\\\)"/', function(MatchResult $result) {
 			$this->strings[] = $result->group(1);
-			return '[s' . (sizeof($this->strings) - 1) . ']';
+			return '[s' . (count($this->strings) - 1) . ']';
 		}, $expression)->result();
 		
 		//extract regex inside / and replace it by a reference
@@ -41,11 +41,11 @@ class Expression
 			switch ($result->group(1)) {
 				case 'get':
 					$this->regexes[] = $result->group(2);
-					return '[rg' . (sizeof($this->regexes) - 1) . ']';
+					return '[rg' . (count($this->regexes) - 1) . ']';
 					
 				case 'matches':
 					$this->regexes[] = $result->group(2);
-					return '[rm' . (sizeof($this->regexes) - 1) . ']';
+					return '[rm' . (count($this->regexes) - 1) . ']';
 			}
 		}, $expression)->result();
 		
@@ -80,7 +80,7 @@ class Expression
 		$expression = Regex::replace('/(\[[\w\.]+\])\[(rg|rm)(\d+)\]/', function(MatchResult $result) {
 			switch ($result->group(2)) {
 				case 'rg':
-					return '(function($e) { if (preg_match(\'/' . $this->getRegex($result->group(3)) . '/\', $e, $m) === 1 && sizeof($m) > 1) { return $m[1]; }})(' . $result->group(1) . ')';
+					return '(function($e) { if (preg_match(\'/' . $this->getRegex($result->group(3)) . '/\', $e, $m) === 1 && count($m) > 1) { return $m[1]; }})(' . $result->group(1) . ')';
 				case 'rm':
 					return 'preg_match(\'/' . $this->getRegex($result->group(3)) . '/\', ' . $result->group(1) . ') === 1';
 			}

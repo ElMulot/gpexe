@@ -1,6 +1,3 @@
-import { startStimulusApp } from '@symfony/stimulus-bridge';
-import { defineCustomElement } from 'vue';
-
 // CSS import
 import './styles/app.scss';
 

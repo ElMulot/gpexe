@@ -5,16 +5,14 @@ namespace App\Controller;
 use App\Entity\User;
 use App\Form\NewUserType;
 use App\Form\EditUserType;
+use Symfony\UX\Turbo\TurboBundle;
 use App\Repository\UserRepository;
+use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Contracts\Translation\TranslatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
-use Doctrine\Persistence\ManagerRegistry;
-use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
-use Symfony\UX\Turbo\Stream\TurboStreamResponse;
 
 class UserController extends AbstractController
 {
@@ -47,10 +45,10 @@ class UserController extends AbstractController
 			
 			$this->addFlash('success', 'New entry created');
 
-
+			$request->setRequestFormat(TurboBundle::STREAM_FORMAT);
 			return $this->renderForm('generic/success.stream.html.twig', [
 				'redirect' => $this->generateUrl('user'),
-			], new TurboStreamResponse());
+			]);
 
 		} else {
 
@@ -76,9 +74,10 @@ class UserController extends AbstractController
 			
 			$this->addFlash('success', 'Datas updated');
 
+			$request->setRequestFormat(TurboBundle::STREAM_FORMAT);
 			return $this->renderForm('generic/success.stream.html.twig', [
 				'redirect' => $this->generateUrl('user'),
-			], new TurboStreamResponse());
+			]);
 
 		} else {
 
@@ -99,9 +98,10 @@ class UserController extends AbstractController
 			
 			$this->addFlash('success', 'Entry deleted');
 
+			$request->setRequestFormat(TurboBundle::STREAM_FORMAT);
 			return $this->renderForm('generic/success.stream.html.twig', [
 				'redirect' => $this->generateUrl('company'),
-			], new TurboStreamResponse());
+			]);
 
 		} else {
 

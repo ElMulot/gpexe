@@ -4,15 +4,15 @@ namespace App\Controller;
 use App\Entity\Visa;
 use App\Form\VisaType;
 use App\Entity\Project;
+use Symfony\UX\Turbo\TurboBundle;
 use App\Repository\VisaRepository;
 use App\Repository\CompanyRepository;
+use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Doctrine\Persistence\ManagerRegistry;
-use Symfony\UX\Turbo\Stream\TurboStreamResponse;
 
 class VisaController extends AbstractController
 {
@@ -24,10 +24,8 @@ class VisaController extends AbstractController
 	#[Route(path: '/project/{project}/visa', name: 'visa', requirements: ['project' => '\d+'])]
 	public function index(Project $project) : Response
 	{
-		if ($this->isGranted('ROLE_ADMIN') === false &&
-			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
-			return $this->redirectToRoute('project');
-		}
+		$this->denyAccessUnlessGranted('SHOW_VISA', $project);
+
 		return $this->renderForm('generic/list.html.twig', [
 			'title' => $this->translator->trans('Visas for') . ' : ' . $project->getName(),
 			'class' => Visa::class,
@@ -38,10 +36,8 @@ class VisaController extends AbstractController
 	#[Route(path: '/project/{project}/visa/new', name: 'visa_new', requirements: ['project' => '\d+'])]
 	public function new(Request $request, Project $project) : Response
 	{
-		if ($this->isGranted('ROLE_ADMIN') === false &&
-			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
-			return $this->redirectToRoute('project');
-		}
+		$this->denyAccessUnlessGranted('NEW_VISA', $project);
+		
 		$visa = new Visa();
 		$visa->setProject($project);
 		$checkerCompanies = $this->companyRepository->getCheckerCompanies($project);
@@ -57,9 +53,10 @@ class VisaController extends AbstractController
 
 			$this->addFlash('success', 'New entry created');
 
+			$request->setRequestFormat(TurboBundle::STREAM_FORMAT);
 			return $this->renderForm('generic/success.stream.html.twig', [
 				'redirect' => $this->generateUrl('visa', ['project' => $project->getId()]),
-			], new TurboStreamResponse());
+			]);
 
 		} else {
 
@@ -74,10 +71,9 @@ class VisaController extends AbstractController
 	public function edit(Request $request, Visa $visa) : Response
 	{
 		$project = $visa->getProject();
-		if ($this->isGranted('ROLE_ADMIN') === false &&
-			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
-			return $this->redirectToRoute('project');
-		}
+		
+		$this->denyAccessUnlessGranted('EDIT_VISA', $project);
+		
 		$checkerCompanies = $this->companyRepository->getCheckerCompanies($visa->getProject());
 		$form = $this->createForm(VisaType::class, $visa, [
 			'choices' => $checkerCompanies,
@@ -89,9 +85,10 @@ class VisaController extends AbstractController
 			$entityManager->flush();
 			$this->addFlash('success', 'Datas updated');
 
+			$request->setRequestFormat(TurboBundle::STREAM_FORMAT);
 			return $this->renderForm('generic/success.stream.html.twig', [
 				'redirect' => $this->generateUrl('visa', ['project' => $project->getId()]),
-			], new TurboStreamResponse());
+			]);
 
 		} else {
 
@@ -106,10 +103,8 @@ class VisaController extends AbstractController
 	public function delete(Request $request, Visa $visa) : Response
 	{
 		$project = $visa->getProject();
-		if ($this->isGranted('ROLE_ADMIN') === false &&
-			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
-			return $this->redirectToRoute('project');
-		}
+
+		$this->denyAccessUnlessGranted('DELETE_VISA', $project);
 		
 		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
 			$entityManager = $this->doctrine->getManager();
@@ -118,9 +113,10 @@ class VisaController extends AbstractController
 
 			$this->addFlash('success', 'Entry deleted');
 
+			$request->setRequestFormat(TurboBundle::STREAM_FORMAT);
 			return $this->renderForm('generic/success.stream.html.twig', [
 				'redirect' => $this->generateUrl('visa', ['project' => $project->getId()]),
-			], new TurboStreamResponse());
+			]);
 
 		} else {
 

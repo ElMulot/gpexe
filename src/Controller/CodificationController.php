@@ -4,15 +4,14 @@ namespace App\Controller;
 use App\Entity\Project;
 use App\Entity\Codification;
 use App\Form\CodificationType;
+use Symfony\UX\Turbo\TurboBundle;
+use Doctrine\Persistence\ManagerRegistry;
 use App\Repository\CodificationRepository;
-use Attribute;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Doctrine\Persistence\ManagerRegistry;
-use Symfony\UX\Turbo\Stream\TurboStreamResponse;
 
 class CodificationController extends AbstractController
 {
@@ -24,10 +23,7 @@ class CodificationController extends AbstractController
 	#[Route(path: '/project/{project}/codification', name: 'codification', requirements: ['project' => '\d+'])]
 	public function index(CodificationRepository $codificationRepository, Project $project) : Response
 	{
-		if ($this->isGranted('ROLE_ADMIN') === false &&
-			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
-			return $this->redirectToRoute('project');
-		}
+		$this->denyAccessUnlessGranted('EDIT_PROJECT', $project);
 
 		return $this->renderForm('generic/list.html.twig', [
 			'title' => $this->translator->trans('Codifications for') . ' : ' . $project->getName(),
@@ -39,10 +35,8 @@ class CodificationController extends AbstractController
 	#[Route(path: '/project/{project}/codification/new', name: 'codification_new', requirements: ['project' => '\d+'])]
 	public function new(Request $request, Project $project) : Response
 	{
-		if ($this->isGranted('ROLE_ADMIN') === false &&
-			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
-			return $this->redirectToRoute('project');
-		}
+		$this->denyAccessUnlessGranted('EDIT_PROJECT', $project);
+
 		$codification = new Codification();
 		$codification->setProject($project);
 		$form = $this->createForm(CodificationType::class, $codification);
@@ -55,9 +49,10 @@ class CodificationController extends AbstractController
 
 			$this->addFlash('success', 'New entry created');
 
+			$request->setRequestFormat(TurboBundle::STREAM_FORMAT);
 			return $this->renderForm('generic/success.stream.html.twig', [
 				'redirect' => $this->generateUrl('codification', ['project' => $project->getId()]),
-			], new TurboStreamResponse());
+			]);
 
 		} else {
 
@@ -72,10 +67,9 @@ class CodificationController extends AbstractController
 	public function edit(Request $request, Codification $codification) : Response
 	{
 		$project = $codification->getProject();
-		if ($this->isGranted('ROLE_ADMIN') === false &&
-			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
-			return $this->redirectToRoute('project');
-		}
+
+		$this->denyAccessUnlessGranted('EDIT_PROJECT', $project);
+
 		$form = $this->createForm(CodificationType::class, $codification);
 		$form->handleRequest($request);
 
@@ -85,9 +79,10 @@ class CodificationController extends AbstractController
 
 			$this->addFlash('success', 'Datas updated');
 
+			$request->setRequestFormat(TurboBundle::STREAM_FORMAT);
 			return $this->renderForm('generic/success.stream.html.twig', [
 				'redirect' => $this->generateUrl('codification', ['project' => $project->getId()]),
-			], new TurboStreamResponse());
+			]);
 
 		} else {
 
@@ -102,11 +97,9 @@ class CodificationController extends AbstractController
 	public function delete(Request $request, Codification $codification) : Response
 	{
 		$project = $codification->getProject();
-		if ($this->isGranted('ROLE_ADMIN') === false &&
-			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
-			return $this->redirectToRoute('project');
-		}
-
+		
+		$this->denyAccessUnlessGranted('EDIT_PROJECT', $project);
+		
 		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
 			$entityManager = $this->doctrine->getManager();
 			$entityManager->remove($codification);
@@ -114,9 +107,10 @@ class CodificationController extends AbstractController
 
 			$this->addFlash('success', 'Entry deleted');
 
+			$request->setRequestFormat(TurboBundle::STREAM_FORMAT);
 			return $this->renderForm('generic/success.stream.html.twig', [
 				'redirect' => $this->generateUrl('codification', ['project' => $project->getId()]),
-			], new TurboStreamResponse());
+			]);
 
 		} else {
 

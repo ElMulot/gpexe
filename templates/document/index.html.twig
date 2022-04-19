@@ -32,7 +32,7 @@
 					<a class="nav-link" href="{{ route_back }}">{% trans %}Back{% endtrans %}</a>
 				</li>
 			{% endif %}
-			{% if is_granted('ROLE_ADMIN') or (is_granted('ROLE_EDIT_DOCUMENTS') and app.user in project.users) %}
+			{% if is_granted('ROLE_ADMIN') or (is_granted('ROLE_EDITOR') and app.user in project.users) %}
 				<li id="document_menu" class="nav-item dropdown" style="{{ block('nav_item') }}">
 					<a class="nav-link dropdown-toggle" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{% trans %}Documents{% endtrans %}</a>
 					<div class="dropdown-menu" style="{{ block('nav_item') }}">

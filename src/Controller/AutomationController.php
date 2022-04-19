@@ -6,7 +6,9 @@ use App\Entity\Project;
 use App\Entity\Automation;
 use App\Form\AutomationType;
 use App\Service\ProgramService;
+use Symfony\UX\Turbo\TurboBundle;
 use App\Repository\AutomationRepository;
+use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -15,8 +17,6 @@ use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Doctrine\Persistence\ManagerRegistry;
-use Symfony\UX\Turbo\Stream\TurboStreamResponse;
 
 class AutomationController extends AbstractController
 {
@@ -28,6 +28,8 @@ class AutomationController extends AbstractController
 	#[Route(path: '/project/{project}/automation', name: 'automation', requirements: ['project' => '\d+'])]
 	public function index(Project $project) : Response
 	{
+		$this->denyAccessUnlessGranted('SHOW_PROGRAM', $project);
+		
 		return $this->renderForm('automation/index.html.twig', [
 			'project' => $project,
 			'automations' => $this->automationRepository->getAutomations($project),
@@ -37,6 +39,8 @@ class AutomationController extends AbstractController
 	#[Route(path: '/project/automation/{automation}/edit', name: 'automation_edit', requirements: ['automation' => '\d+'])]
 	public function edit(Request $request, Automation $automation) : Response
 	{
+		$this->denyAccessUnlessGranted('EDIT_PROGRAM', $automation->getProject());
+		
 		$form = $this->createForm(AutomationType::class, $automation);
 		$form->handleRequest($request);
 
@@ -48,9 +52,10 @@ class AutomationController extends AbstractController
 			
 			$this->addFlash('success', 'Datas updated');
 
+			$request->setRequestFormat(TurboBundle::STREAM_FORMAT);
 			return $this->renderForm('generic/success.stream.html.twig', [
 				'redirect' => $this->generateUrl('automation', ['project' => $automation->getProject()->getId()]),
-			], new TurboStreamResponse());
+			]);
 
 		} else {
 

@@ -4,14 +4,14 @@ namespace App\Controller;
 use App\Entity\Project;
 use App\Entity\Metadata;
 use App\Form\MetadataType;
+use Symfony\UX\Turbo\TurboBundle;
 use App\Repository\MetadataRepository;
+use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Doctrine\Persistence\ManagerRegistry;
-use Symfony\UX\Turbo\Stream\TurboStreamResponse;
 
 class MetadataController extends AbstractController
 {
@@ -23,10 +23,7 @@ class MetadataController extends AbstractController
 	#[Route(path: '/project/{project}/metadata', name: 'metadata', requirements: ['project' => '\d+'])]
 	public function index(MetadataRepository $metadataRepository, Project $project) : Response
 	{
-		if ($this->isGranted('ROLE_ADMIN') === false &&
-			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
-			return $this->redirectToRoute('project');
-		}
+		$this->denyAccessUnlessGranted('EDIT_PROJECT', $project);
 
 		return $this->renderForm('generic/list.html.twig', [
 			'title' => $this->translator->trans('Metadatas for') . ' : ' . $project->getName(),
@@ -38,10 +35,8 @@ class MetadataController extends AbstractController
 	#[Route(path: '/project/{project}/metadata/new', name: 'metadata_new', requirements: ['project' => '\d+'])]
 	public function new(Request $request, Project $project) : Response
 	{
-		if ($this->isGranted('ROLE_ADMIN') === false &&
-			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
-			return $this->redirectToRoute('project');
-		}
+		$this->denyAccessUnlessGranted('EDIT_PROJECT', $project);
+
 		$metadata = new Metadata();
 		$metadata->setProject($project);
 		$form = $this->createForm(MetadataType::class, $metadata);
@@ -54,9 +49,10 @@ class MetadataController extends AbstractController
 
 			$this->addFlash('success', 'New entry created');
 
+			$request->setRequestFormat(TurboBundle::STREAM_FORMAT);
 			return $this->renderForm('generic/success.stream.html.twig', [
 				'redirect' => $this->generateUrl('metadata', ['project' => $project->getId()]),
-			], new TurboStreamResponse());
+			]);
 
 		} else {
 
@@ -71,10 +67,9 @@ class MetadataController extends AbstractController
 	public function edit(Request $request, Metadata $metadata) : Response
 	{
 		$project = $metadata->getProject();
-		if ($this->isGranted('ROLE_ADMIN') === false &&
-			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
-			return $this->redirectToRoute('project');
-		}
+
+		$this->denyAccessUnlessGranted('EDIT_PROJECT', $project);
+
 		$form = $this->createForm(MetadataType::class, $metadata);
 		$form->handleRequest($request);
 
@@ -84,9 +79,10 @@ class MetadataController extends AbstractController
 
 			$this->addFlash('success', 'Datas updated');
 
+			$request->setRequestFormat(TurboBundle::STREAM_FORMAT);
 			return $this->renderForm('generic/success.stream.html.twig', [
 				'redirect' => $this->generateUrl('metadata', ['project' => $project->getId()]),
-			], new TurboStreamResponse());
+			]);
 
 		} else {
 
@@ -101,10 +97,9 @@ class MetadataController extends AbstractController
 	public function delete(Request $request, Metadata $metadata) : Response
 	{
 		$project = $metadata->getProject();
-		if ($this->isGranted('ROLE_ADMIN') === false &&
-			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
-			return $this->redirectToRoute('project');
-		}
+
+		$this->denyAccessUnlessGranted('EDIT_PROJECT', $project);
+		
 		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
 			$entityManager = $this->doctrine->getManager();
 			$entityManager->remove($metadata);
@@ -112,9 +107,10 @@ class MetadataController extends AbstractController
 
 			$this->addFlash('success', 'Entry deleted');
 
+			$request->setRequestFormat(TurboBundle::STREAM_FORMAT);
 			return $this->renderForm('generic/success.stream.html.twig', [
 				'redirect' => $this->generateUrl('metadata', ['project' => $project->getId()]),
-			], new TurboStreamResponse());
+			]);
 
 		} else {
 

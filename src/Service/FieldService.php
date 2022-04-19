@@ -44,7 +44,7 @@ class FieldService
 	public function getFields($project): array
 	{
 		
-		$permissionWrite = ($this->security->getUser() !== null && ($this->security->isGranted('ROLE_EDIT_DOCUMENTS') && $project->hasUser($this->security->getUser())) || $this->security->isGranted('ROLE_ADMIN'));
+		$permissionWrite = ($this->security->getUser() !== null && ($this->security->isGranted('ROLE_EDITOR') && $project->hasUser($this->security->getUser())) || $this->security->isGranted('ROLE_ADMIN'));
 		
 		$fields = [
 			'document.reference' => [

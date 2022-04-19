@@ -2,21 +2,21 @@
     {% set attr = attr|merge({class: (attr.class|default('') ~ ' dropzone-input')|trim}) %}
 	{% set fileName = data.filename|default('') %}
     <div class="dropzone-container" {{ stimulus_controller('dropzone', {uploads_directory: asset(uploads_directory ~ '/'), name: ('.tmp' in fileName)?'':fileName, mime_type: mime_type, icon_path: asset(icon_path)})}}>
-        <input type="file" {{ block('widget_attributes') }} data-dropzone-target="input" />
+        <input type="file" {{ block('widget_attributes') }} {{ stimulus_target('dropzone', 'input') }} />
 
-        <div class="align-self-center" data-dropzone-target="placeholder">
+        <div class="align-self-center" {{ stimulus_target('dropzone', 'placeholder') }}>
             {% if attr.placeholder is defined and attr.placeholder is not none %}
                 {{ translation_domain is same as(false) ? attr.placeholder : attr.placeholder|trans({}, translation_domain) }}
             {% endif %}
         </div>
 
-        <div class="dropzone-preview" data-dropzone-target="preview" style="display: none">
-            <button type="button" data-dropzone-target="previewClearButton"></button>
-            <img src="{{ asset(icons_directory ~ '/' ~ 'file-earmark.svg') }}" style="display: none" data-dropzone-target="previewImage" />
-            <div data-dropzone-target="previewFilename"></div>
+        <div class="dropzone-preview" {{ stimulus_target('dropzone', 'preview') }} style="display: none">
+            <button type="button" {{ stimulus_target('dropzone', 'previewClearButton') }}></button>
+            <img src="{{ asset(icons_directory ~ '/' ~ 'file-earmark.svg') }}" style="display: none" {{ stimulus_target('dropzone', 'previewImage') }} />
+            <div {{ stimulus_target('dropzone', 'previewFilename') }}></div>
         </div>
 
-		<div class="modal fade pt-5" tabindex="-1" aria-labelledby="crop_modal_label" aria-hidden="true" {{ stimulus_controller('modal') }} data-dropzone-target="modal">
+		<div class="modal fade pt-5" tabindex="-1" aria-labelledby="crop_modal_label" aria-hidden="true" {{ stimulus_controller('modal') }} {{ stimulus_target('dropzone', 'modal') }}>
 			<div class="modal-dialog modal-md">
 				<div class="modal-content">
 					<div class="modal-header">
@@ -24,13 +24,13 @@
 						<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="{% trans %}Close{% endtrans %}"></button>
 					</div>
 					<div class="modal-body">
-						<div class="img-container" data-dropzone-target="image">
+						<div class="img-container" {{ stimulus_target('dropzone', 'image') }}>
 
 						</div>
 					</div>
 					<div class="modal-footer justify-content-center">
 						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans %}Cancel{% endtrans %}</button>
-						<button type="button" class="btn btn-primary" data-dropzone-target="cropButton">{% trans %}Crop{% endtrans %}</button>
+						<button type="button" class="btn btn-primary" {{ stimulus_target('dropzone', 'cropButton') }}>{% trans %}Crop{% endtrans %}</button>
 					</div>
 				</div>
 			</div>

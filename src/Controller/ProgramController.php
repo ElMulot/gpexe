@@ -39,10 +39,7 @@ class ProgramController extends AbstractController
 	#[Route(path: '/project/{project}/program', name: 'program', requirements: ['project' => '\d+'])]
 	public function index(Project $project) : Response
 	{
-		if ($this->isGranted('ROLE_ADMIN') === false &&
-			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
-			return $this->redirectToRoute('project');
-		}
+		$this->denyAccessUnlessGranted('SHOW_PROGRAM', $project);
 
 		return $this->renderForm('generic/list.html.twig', [
 			'title' => $this->translator->trans('Programs for') . ' : ' . $project->getName(),
@@ -55,11 +52,12 @@ class ProgramController extends AbstractController
 	public function dashboard(Request $request, FlashBagInterface $flashBag, Program $program) : Response
 	{
 		$project = $program->getProject();
-		if ($this->isGranted('ROLE_ADMIN') === false &&
-			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false) &&
-			($this->isGranted('ROLE_USER') === false || $project->hasUser($this->getUser()) === false || $this->getUser()->getCompany()->isMainContractor() === false || $program->isTypeProgress() === false)) {
-				return $this->redirectToRoute('project');
-			}
+		
+		if ($this->isGranted('SHOW_PROGRAM', $project) === false && 
+			($this->isGranted('SHOW_PROGRESS_PROGRAM', $project) === false || $program->isTypeProgress() === false)) {
+			return $this->redirectToRoute('project');
+		}
+
 		$flashBag->clear();
 		$this->programService->unload();
 		switch ($program->getType()) {
@@ -95,11 +93,13 @@ class ProgramController extends AbstractController
 	{
 		$form = null;
 		$project = $program->getProject();
-		if ($this->isGranted('ROLE_ADMIN') === false &&
-			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false) &&
-			($this->isGranted('ROLE_USER') === false || $project->hasUser($this->getUser()) === false || $program->isTypeProgress() === false)) {
-				return $this->redirectToRoute('project');
-			}
+
+		if ($this->isGranted('EDIT_PROGRAM', $project) === false && 
+			($this->isGranted('SHOW_PROGRESS_PROGRAM') === false || $program->isTypeProgress() === false) &&
+			($this->isGranted('SHOW_PROJECT', $project) === false || $program->isTypeProgress() === false || $this->isUserAttachedToSeries($request->query->get('series')) === false)) {
+			return $this->redirectToRoute('project');
+		}
+
 		switch ($program->getType()) {
 				
 				case ProgramTypeEnum::EXPORT:														//launch export
@@ -197,22 +197,23 @@ class ProgramController extends AbstractController
 			]);
 	}
 	
+	// if ($this->isGranted('ROLE_ADMIN') === false &&
+	// 	($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false) &&
+	// 	($this->isGranted('ROLE_USER') === false || $project->hasUser($this->getUser()) === false ||
+	//  ($this->getUser()->getCompany()->isMainContractor() === false &&  $this->isUserAttachedToSeries() === false) || 
+	//  $program->isTypeProgress() === false)) {
+
 	#[Route(path: '/project/program/{program}/load', name: 'program_load', requirements: ['program' => '\d+'])]
 	public function load(Request $request, Program $program) : Response
 	{
 		$project = $program->getProject();
-		if ($this->isGranted('ROLE_ADMIN') === false &&
-			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false) &&
-			($this->isGranted('ROLE_USER') === false || $project->hasUser($this->getUser()) === false || (
-				$this->getUser()->getCompany()->isMainContractor() === false && array_intersect(
-					array_column(
-						$this->serieRepository->getSeriesByIdAsArray(
-							$this->getUser()->getCompany()->getSeries()->getValues()
-						), 'id'
-					), $request->query->get('series')) == false
-				) || $program->isTypeProgress() === false)) {
-				return $this->redirectToRoute('project');
-			}
+		
+		if ($this->isGranted('EDIT_PROGRAM', $project) === false && 
+			($this->isGranted('SHOW_PROGRESS_PROGRAM') === false || $program->isTypeProgress() === false) &&
+			($this->isGranted('SHOW_PROJECT', $project) === false || $program->isTypeProgress() === false || $this->isUserAttachedToSeries($request->query->get('series')) === false)) {
+			return $this->redirectToRoute('project');
+		}
+
 		switch ($program->getType()) {
 				
 				case ProgramTypeEnum::EXPORT:																	//launch export
@@ -316,10 +317,12 @@ class ProgramController extends AbstractController
 	public function completed(Request $request, Program $program) : Response
 	{
 		$project = $program->getProject();
-		if ($this->isGranted('ROLE_ADMIN') === false &&
-			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
-				return $this->redirectToRoute('project');
-			}
+
+		if ($this->isGranted('SHOW_PROGRAM', $project) === false && 
+			($this->isGranted('SHOW_PROGRESS_PROGRAM', $project) === false || $program->isTypeProgress() === false)) {
+			return $this->redirectToRoute('project');
+		}
+
 		switch ($program->getType()) {
 				
 				case ProgramTypeEnum::EXPORT:
@@ -388,10 +391,12 @@ class ProgramController extends AbstractController
 	public function console(Request $request, Program $program) : Response
 	{
 		$project = $program->getProject();
-		if ($this->isGranted('ROLE_ADMIN') === false &&
-			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
-				return $this->redirectToRoute('project');
+
+		if ($this->isGranted('SHOW_PROGRAM', $project) === false && 
+			($this->isGranted('SHOW_PROGRESS_PROGRAM', $project) === false || $program->isTypeProgress() === false)) {
+			return $this->redirectToRoute('project');
 		}
+
 		switch ($this->programService->getCache()->getStatus()) {
 			case ProgramCache::LOAD:
 				$redirect = ProgramCache::LOAD;
@@ -423,13 +428,11 @@ class ProgramController extends AbstractController
 	#[Route(path: '/project/{project}/program/new', name: 'program_new', requirements: ['project' => '\d+'])]
 	public function new(Request $request, Project $project) : Response
 	{
+		$this->denyAccessUnlessGranted('EDIT_PROGRAM', $project);
+
 		$form = null;
 		$program = null;
-		if ($this->isGranted('ROLE_ADMIN') === false &&
-			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
-			return $this->redirectToRoute('project');
-		}
-		
+
 		if ($request->request->has('program')) {														//validation du type de programme et affichage du formulaire principal
 				
 				if ($type = $request->request->get('program')['type'] ?? null) {
@@ -516,10 +519,9 @@ class ProgramController extends AbstractController
 	public function edit(Request $request, Program $program) : Response
 	{
 		$project = $program->getProject();
-		if ($this->isGranted('ROLE_ADMIN') === false &&
-			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
-				return $this->redirectToRoute('project');
-			}
+
+		$this->denyAccessUnlessGranted('EDIT_PROGRAM', $project);
+
 		$fields = $this->fieldService->getFields($project);
 		$form = $this->createForm(ProgramType::class, $program);
 		$form->handleRequest($request);
@@ -559,10 +561,9 @@ class ProgramController extends AbstractController
 	public function delete(Request $request, Program $program) : Response
 	{
 		$project = $program->getProject();
-		if ($this->isGranted('ROLE_ADMIN') === false &&
-			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
-				return $this->redirectToRoute('project');
-		}
+		
+		$this->denyAccessUnlessGranted('DELETE_PROGRAM', $project);
+
 		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
 			$entityManager = $this->doctrine->getManager();
 			$entityManager->remove($program);
@@ -585,5 +586,15 @@ class ProgramController extends AbstractController
 	public function getUser(): User
 	{
 		return parent::getUser();
+	}
+
+	private function isUserAttachedToSeries($series): bool
+	{
+		return array_intersect(
+			array_column(
+				$this->serieRepository->getSeriesByIdAsArray(
+					$this->getUser()->getCompany()->getSeries()->getValues()
+				), 'id'
+			), $series) == true;
 	}
 }

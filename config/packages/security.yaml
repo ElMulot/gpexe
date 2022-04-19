@@ -62,7 +62,8 @@ security:
         - { path: '^/automation/cron$',                                            roles: PUBLIC_ACCESS }
         
         - { path: '^/project/\d+/alert$',                                          roles: ROLE_USER }
-        - { path: '^/project/\d+$',                                                roles: ROLE_USER } #project_view
+        - { path: '^/project/all$',                                                roles: ROLE_USER } #projects_list
+        - { path: '^/project/\d+$',                                                roles: ROLE_USER } #project
         - { path: '^/project/\d+/\d+$',                                            roles: ROLE_USER } #serie_route
         - { path: '^/project/\d+/(sdr|mdr|all)$',                                  roles: ROLE_USER } #serie_route_by_type
         - { path: '^/project/\d+/serie/(sdr|mdr|all)/?\d*',                        roles: ROLE_USER } #document, document_table
@@ -78,14 +79,14 @@ security:
         
         - { path: '^/project/program/\d+/(dashboard|preload|load)',                roles: ROLE_USER } #program_dashboard, program_preload, program_load
 
-        - { path: '^/project/serie/\d+/document/new$',                             roles: ROLE_EDIT_DOCUMENTS } #document_new
-        - { path: '^/project/serie/document/(edit|move|delete)',                   roles: ROLE_EDIT_DOCUMENTS } #document_edit, document_move, document_delete
-        - { path: '^/project/serie/document/\d+/version/new$',                     roles: ROLE_EDIT_DOCUMENTS } #version_new
-        - { path: '^/project/serie/document/version/(edit|delete)',                roles: ROLE_EDIT_DOCUMENTS } #version_edit, version_delete
-        - { path: '^/project/serie/document/\d+/version/\d+/\d+/quick_new',        roles: ROLE_EDIT_DOCUMENTS } #version_quick_new
-        - { path: '^/project/serie/document/version/\d+/quick_edit/',              roles: ROLE_EDIT_DOCUMENTS } #version_quick_edit
+        - { path: '^/project/serie/\d+/document/new$',                             roles: ROLE_EDITOR } #document_new
+        - { path: '^/project/serie/document/(edit|move|delete)',                   roles: ROLE_EDITOR } #document_edit, document_move, document_delete
+        - { path: '^/project/serie/document/\d+/version/new$',                     roles: ROLE_EDITOR } #version_new
+        - { path: '^/project/serie/document/version/(edit|delete)',                roles: ROLE_EDITOR } #version_edit, version_delete
+        - { path: '^/project/serie/document/\d+/version/\d+/\d+/quick_new',        roles: ROLE_EDITOR } #version_quick_new
+        - { path: '^/project/serie/document/version/\d+/quick_edit/',              roles: ROLE_EDITOR } #version_quick_edit
         
-        - { path: '^/project/',                                                    roles: ROLE_CONTROLLER }
+        - { path: '^/project/',                                                    roles: ROLE_CONTROLLER } #projects_new, #projects_edit, #projects_delete
         
         - { path: '^/company',                                                     roles: ROLE_ADMIN }
         - { path: '^/user',                                                        roles: ROLE_ADMIN }
@@ -97,8 +98,8 @@ security:
     role_hierarchy:
         ROLE_SUPER_ADMIN: [ROLE_ADMIN, ROLE_ALLOWED_TO_SWITCH]
         ROLE_ADMIN: [ROLE_CONTROLLER]
-        ROLE_CONTROLLER: [ROLE_EDIT_DOCUMENTS]
-        ROLE_EDIT_DOCUMENTS: [ROLE_USER]
+        ROLE_CONTROLLER: [ROLE_EDITOR]
+        ROLE_EDITOR: [ROLE_USER]
 
 when@test:
     security:

@@ -24,10 +24,9 @@ class MetadataItemController extends AbstractController
 	public function index(MetadataItemRepository $metadataItemRepository, Metadata $metadata) : Response
 	{
 		$project = $metadata->getProject();
-		if ($this->isGranted('ROLE_ADMIN') === false &&
-			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
-			return $this->redirectToRoute('project');
-		}
+
+		$this->denyAccessUnlessGranted('EDIT_PROJECT', $project);
+		
 		return $this->renderForm('generic/list.html.twig', [
 			'header' => $this->translator->trans('List for the metadata') . ' : ' . $metadata->getName(),
 			'route_back' =>  $this->generateUrl('metadata', [
@@ -42,10 +41,9 @@ class MetadataItemController extends AbstractController
 	public function new(Request $request, Metadata $metadata) : Response
 	{
 		$project = $metadata->getProject();
-		if ($this->isGranted('ROLE_ADMIN') === false &&
-			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
-			return $this->redirectToRoute('project');
-		}
+
+		$this->denyAccessUnlessGranted('EDIT_PROJECT', $project);
+
 		$metadataItem = new MetadataItem();
 		$metadataItem->setMetadata($metadata);
 		$form = $this->createForm(MetadataItemType::class, $metadataItem);
@@ -73,10 +71,9 @@ class MetadataItemController extends AbstractController
 	public function edit(Request $request, MetadataItem $metadataItem) : Response
 	{
 		$project = $metadataItem->getMetadata()->getProject();
-		if ($this->isGranted('ROLE_ADMIN') === false &&
-			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
-			return $this->redirectToRoute('project');
-		}
+
+		$this->denyAccessUnlessGranted('EDIT_PROJECT', $project);
+
 		$form = $this->createForm(MetadataItemType::class, $metadataItem);
 		$form->handleRequest($request);
 		if ($form->isSubmitted() && $form->isValid()) {
@@ -101,10 +98,9 @@ class MetadataItemController extends AbstractController
 	public function delete(Request $request, MetadataItem $metadataItem) : Response
 	{
 		$project = $metadataItem->getMetadata()->getProject();
-		if ($this->isGranted('ROLE_ADMIN') === false &&
-			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false)) {
-			return $this->redirectToRoute('project');
-		}
+
+		$this->denyAccessUnlessGranted('EDIT_PROJECT', $project);
+
 		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
 			$entityManager = $this->doctrine->getManager();
 			$entityManager->remove($metadataItem);
