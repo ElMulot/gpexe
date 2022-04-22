@@ -461,7 +461,8 @@ class Document
 	
 	public function setMetadataValue(Metadata $metadata, $value): self
 	{
-	    
+		//false: empty field
+		//null: error field
 		if ($value instanceof MetadataItem || $value instanceof MetadataValue) {
 			$value = $value->__toString();
 		}
@@ -479,22 +480,22 @@ class Document
 				} elseif ($value instanceof \DateTimeInterface) {
 				    $value = $value->format('d-m-Y');
 				} else {
-				    $value = null;
+				    $value = false;
 				}
 				break;
 			default:
 			    if ($value === '') {
-			        $value = null;
+			        $value = false;
 			    }
 		}
 
-		if ($value === null) {
+		if ($metadata->isBoolean() === false && $value == false) {
 		    if ($metadata->getIsMandatory() === true) {
 		        throw new \Error(sprintf('Erreur: la valeur "%s" ne peut être vide', $metadata->getCodename()));
 		        return $this;
 		    }
 		}
-		
+	
 		switch ($metadata->getType()) {
 			
 			case Metadata::BOOLEAN:
@@ -511,7 +512,9 @@ class Document
 					}
 				}
 				
-				if ($value != '') {
+				if ($value === false) {
+					return $this;
+				} elseif ($value !== null) {
 					foreach ($metadata->getMetadataValues()->getValues() as $metadataValue) {
 						if ($metadataValue->getValue() == $value) {
 							$this->addMetadataValue($metadataValue);
@@ -524,6 +527,7 @@ class Document
 					$this->addMetadataValue($metadataValue);
 					return $this;
 				}
+				break;
 				
 			case Metadata::LIST:
 				foreach ($this->getMetadataItems()->getValues() as $metadataItem) {
@@ -536,7 +540,9 @@ class Document
 					}
 				}
 				
-				if ($value != '') {
+				if ($value === false) {
+					return $this;
+				} elseif ($value !== null) {
 					foreach ($metadata->getMetadataItems()->getValues() as $metadataItem) {
 						if ($metadataItem->getValue() == $value) {
 							$this->addMetadataItem($metadataItem);

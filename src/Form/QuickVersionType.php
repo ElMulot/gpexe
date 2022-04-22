@@ -153,7 +153,7 @@ class QuickVersionType extends AbstractType
 							'No' => false,
 						],
 						'mapped' => false,
-						'data' => $version->getPropertyValue($field['codename']),
+						'data' => $version->getPropertyValue($field['codename'])?true:false,
 					]);
 					break;
 					

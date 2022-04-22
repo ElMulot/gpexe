@@ -1,6 +1,7 @@
 <?php
 namespace App\Twig;
 
+use App\Entity\Metadata;
 use Twig\Environment;
 use Twig\TwigFilter;
 use Twig\Extension\AbstractExtension;
@@ -53,9 +54,9 @@ class FiltersExtension extends AbstractExtension
 		return $value;
 	}
 	
-	public function toString($property)
+	public function toString($property, Metadata $metadata = null)
 	{
-		return $this->propertyService->toString($property);
+		return $this->propertyService->toString($property, $metadata);
 	}
 }
 

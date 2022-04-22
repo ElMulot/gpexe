@@ -365,7 +365,8 @@ class Version
 	
 	public function setMetadataValue(Metadata $metadata, $value): self
 	{
-		
+		//false: empty field
+		//null: error field
 		switch ($metadata->getType()) {
 			case Metadata::BOOLEAN:
 				$value = ($value)?true:false;
@@ -379,16 +380,16 @@ class Version
 				} elseif ($value instanceof \DateTimeInterface) {
 					$value = $value->format('d-m-Y');
 				} else {
-					$value = null;
+					$value = false;
 				}
 				break;
 			default:
 			    if ($value === '') {
-			        $value = null;
+			        $value = false;
 			    }
 		}
 		
-		if ($value === null) {
+		if ($metadata->isBoolean() === false && $value == false) {
 		    if ($metadata->getIsMandatory() === true) {
 		        throw new \Error(sprintf('Erreur: la valeur "%s" ne peut être vide', $metadata->getCodename()));
 		        return $this;
@@ -411,7 +412,9 @@ class Version
 					}
 				}
 				
-				if ($value != '') {
+				if ($value === false) {
+					return $this;
+				} elseif ($value !== null) {
 					foreach ($metadata->getMetadataValues()->getValues() as $metadataValue) {
 						if ($metadataValue->getValue() == $value) {
 							$this->addMetadataValue($metadataValue);
@@ -437,7 +440,9 @@ class Version
 					}
 				}
 				
-				if ($value != '') {
+				if ($value === false) {
+					return $this;
+				} elseif ($value !== null) {
 					foreach ($metadata->getMetadataItems()->getValues() as $metadataItem) {
 						if ($metadataItem->getValue() == $value) {
 							$this->addMetadataItem($metadataItem);

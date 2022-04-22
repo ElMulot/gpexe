@@ -34,6 +34,7 @@ class PropertyService
 					
 					switch ($value->getMetadata()->getType()) {
 						case Metadata::BOOLEAN:
+							
 							return $this->translator->trans(($value->getValue())?'Yes':'No');
 						case Metadata::TEXT:
 							return $value->getValue();

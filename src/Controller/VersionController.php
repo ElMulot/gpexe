@@ -428,6 +428,7 @@ class VersionController extends AbstractController
 						$entityManager->flush();
 						
 						return $this->render('version/quick_edit.html.twig', [
+							'type' => $field['type'],
 							'property' => $version->getPropertyValue($field['codename']),
 						]);
 					} else {

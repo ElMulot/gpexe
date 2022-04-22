@@ -123,6 +123,12 @@
 						{% else %}
 							<a class="btn btn-sm btn-primary text-nowrap" href="{{ version.getPropertyValue(metadata.fullCodename)|to_string }}" target="_blank" rel="noopener noreferrer">{% trans %}Click here{% endtrans %}</a>
 						{% endif %}
+					{% elseif metadata.isBoolean %}
+						{% if version.getPropertyValue(metadata.fullCodename) is empty  %}
+							{% trans %}No{% endtrans %}
+						{% else %}
+							{% trans %}Yes{% endtrans %}
+						{% endif %}
 					{% else %}
 						{{ version.getPropertyValue(metadata.fullCodename)|to_string }}
 					{% endif %}
