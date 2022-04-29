@@ -102,7 +102,7 @@ class QuickVersionType extends AbstractType
 						if ($visa->getCompany()->getId() == $result->group(1)) {
 							/** @var User $user */
 							$user = $this->security->getUser();
-							if ($this->security->isGranted('EDIT_VISA', $visa)) {
+							if ($this->security->isGranted('VISA_EDIT', $visa)) {
 								$options = [
 									'required'	=> false,
 									'class'		=> Visa::class,

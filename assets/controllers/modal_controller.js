@@ -3,8 +3,9 @@ import { Modal } from 'bootstrap';
 
 export default class extends Controller {
 	
+    static targets = ['close'];
+
 	modal = null;
-    $modalBackdrop = null;
 
     connect() {
         
@@ -13,8 +14,6 @@ export default class extends Controller {
         this.modal = new Modal(this.element, {
 			backdrop: false,
 		});
-        
-        this.$modalBackdrop = document.querySelector('.modal-backdrop');
 
         this.element.addEventListener('modal:open', event => {
             this.onModalOpen();
@@ -32,17 +31,27 @@ export default class extends Controller {
             this.onModalDelete();
         });
 
+        this.element.addEventListener('show.bs.modal', event => {
+            this.setModalBackdropZIndexOnOpen();
+        });
+
         this.element.addEventListener('shown.bs.modal', event => {
             document.querySelectorAll('loading-component').forEach(e => e.remove());
-            this.setModalBackdropZIndex();
         });
 
         this.element.addEventListener('hidden.bs.modal', event => {
             event.stopPropagation();
-            this.setModalBackdropZIndex();
+            this.setModalBackdropZIndexOnClose();
         });
 
-        this.element.dispatchEvent(new Event('controller:connected'));
+        //add data-modal-target="close" to close the modal when clicked
+        this.closeTargets.forEach(e => {
+            e.addEventListener('click', (event) => {
+                this.dispatch('close');
+            });
+        })
+
+        this.dispatch('connected');
     }
 
     onModalOpen() {
@@ -86,16 +95,30 @@ export default class extends Controller {
         //this.onModalDispose();
     }
 
-    setModalBackdropZIndex() {
+    setModalBackdropZIndexOnOpen() {
+        let zIndex = [...document.body.querySelectorAll('.modal.show'), this.element].map(e => this.getZIndex(e)).reduce((a,b) => (a>b && a!=0)?a:b, 0);
+        this.setModalBackdropZIndex(zIndex);
+    }
+
+    setModalBackdropZIndexOnClose() {
+        let zIndex = [...document.body.querySelectorAll('.modal.show')].map(e => this.getZIndex(e)).reduce((a,b) => (a>b && a!=0)?a:b, 0);
+        this.setModalBackdropZIndex(zIndex);
+    }
+
+    setModalBackdropZIndex(zIndex) {
         
-        if (this.$modalBackdrop) {
-            let zIndex = [...document.body.querySelectorAll('.modal.show')].map(e => this.getZIndex(e)).reduce((a,b) => (a>b && a!=0)?a:b, 0);
-            if (zIndex > 0) {
-                this.$modalBackdrop.classList.remove('d-none');
-                this.$modalBackdrop.style.zIndex = zIndex - 1;
-            } else {
-                this.$modalBackdrop.classList.add('d-none');
-            }
+        var $modalBackdrop = document.querySelector('.modal-backdrop');
+        if ($modalBackdrop === null) {
+            $modalBackdrop = document.createElement('div');
+            $modalBackdrop.classList.add('modal-backdrop', 'show');
+            document.body.appendChild($modalBackdrop);
+        }
+
+        if (zIndex > 0) {
+            $modalBackdrop.classList.remove('d-none');
+            $modalBackdrop.style.zIndex = zIndex - 1;
+        } else {
+            $modalBackdrop.remove();
         }
     }
 

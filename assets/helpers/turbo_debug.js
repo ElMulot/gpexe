@@ -58,6 +58,7 @@ const TurboDebug = class {
 
 	executeWithEvent(event) {
 		console.log(this.getRelative(Date.now()).toLocaleString('fr')  + ' : ' + event.type);
+        console.log(event);
 	}
 
 	getRelative(number) {

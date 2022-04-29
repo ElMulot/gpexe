@@ -5,4 +5,5 @@ import './styles/app.scss';
 import './bootstrap';
 import 'helpers/bootstrap_helper';
 import 'helpers/turbo_helper';
+
 // import 'helpers/turbo_debug';

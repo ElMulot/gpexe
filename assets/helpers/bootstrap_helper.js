@@ -17,7 +17,7 @@ const BsPopper = class {
 const Popper = new BsPopper();
 
 const BsCollapse = class {
-
+	
 	static show(e) {
 
 		if (e === null) {
@@ -38,7 +38,7 @@ const BsCollapse = class {
 
 		let bsCollapse = new Collapse(e, { toggle: false });
 		bsCollapse.show();
-		e.innerHTML = "";
+		
 		return true;
 	}
 
@@ -66,7 +66,9 @@ const BsCollapse = class {
 		let bsCollapse = new Collapse(e, { toggle: false });
 		bsCollapse.hide();
 
-		e.addEventListener('hidden.bs.collapse', e => { e.target.innerHTML = '' }, { once: true });
+		//only needed for nav managed by bootstrap
+		e.addEventListener('hidden.bs.collapse', event => { event.target.classList.remove('active'); });
+
 		return true;
 	}
 

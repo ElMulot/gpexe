@@ -1,7 +1,7 @@
 {% block dropzone_widget %}
     {% set attr = attr|merge({class: (attr.class|default('') ~ ' dropzone-input')|trim}) %}
 	{% set fileName = data.filename|default('') %}
-    <div class="dropzone-container" {{ stimulus_controller('dropzone', {uploads_directory: asset(uploads_directory ~ '/'), name: ('.tmp' in fileName)?'':fileName, mime_type: mime_type, icon_path: asset(icon_path)})}}>
+    <div class="dropzone-container" {{ stimulus_controller('dropzone', {'uploads_directory': asset(uploads_directory ~ '/'), 'name': ('.tmp' in fileName)?'':fileName, 'mime_type': mime_type })}}>
         <input type="file" {{ block('widget_attributes') }} {{ stimulus_target('dropzone', 'input') }} />
 
         <div class="align-self-center" {{ stimulus_target('dropzone', 'placeholder') }}>
@@ -12,7 +12,7 @@
 
         <div class="dropzone-preview" {{ stimulus_target('dropzone', 'preview') }} style="display: none">
             <button type="button" {{ stimulus_target('dropzone', 'previewClearButton') }}></button>
-            <img src="{{ asset(icons_directory ~ '/' ~ 'file-earmark.svg') }}" style="display: none" {{ stimulus_target('dropzone', 'previewImage') }} />
+            <i {{ stimulus_target('dropzone', 'previewImage') }}></i>
             <div {{ stimulus_target('dropzone', 'previewFilename') }}></div>
         </div>
 

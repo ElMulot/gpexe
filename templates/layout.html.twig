@@ -24,16 +24,32 @@
 		{{ block('content') }}
 	</main>
 	
-	{% include "modal/fs_modal.html.twig" %}
+	{{ block('fs_modal') }}
 
-	{% include "modal/fs2_modal.html.twig" %}
+	{{ block('fs2_modal') }}
 
-	{% include "modal/xl_modal.html.twig" %}
+	{{ block('xl_modal') }}
 
-	{% include "modal/md_modal.html.twig" %}
+	{{ block('md_modal') }}
 
 	<footer id="footer" class="toast-container position-absolute bottom-0 start-50 translate-middle-x pb-3">
 		{% include "generic/_footer.html.twig" %}
 	</footer>
 
+{% endblock %}
+
+{% block fs_modal %}
+	{% include "modal/fs_modal.html.twig" %}
+{% endblock %}
+
+{% block fs2_modal %}
+	{% include "modal/fs2_modal.html.twig" %}
+{% endblock %}
+
+{% block xl_modal %}
+	{% include "modal/xl_modal.html.twig" %}
+{% endblock %}
+
+{% block md_modal %}
+	{% include "modal/md_modal.html.twig" %}
 {% endblock %}

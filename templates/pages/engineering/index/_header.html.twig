@@ -1,0 +1,37 @@
+<turbo-stream action="update" target="header">
+	<template>
+		<tr {{ stimulus_controller('header') }}>
+			<th id="selector">
+				<div class="btn-group">
+					<div class="btn btn-sm btn-primary rounded-0 py-2">
+						<input class="form-check-input" type="checkbox" id="check_all">
+					</div>
+				</div>
+			</th>
+			{% for field in fields %}
+
+				{% if field.id in query.display|keys and field.display.header is same as(true) %}
+
+					{% if field.id == 'document_reference' %}
+						{{ include('pages/engineering/index/header/_document_reference.html.twig') }}
+					{% elseif field.type == 'BOOLEAN'|enum_constant('metadata_type_enum') %}
+						{{ include('pages/engineering/index/header/_boolean.html.twig') }}
+					{% elseif field.type == 'TEXT'|enum_constant('metadata_type_enum') %}
+						{{ include('pages/engineering/index/header/_text.html.twig') }}
+					{% elseif field.type == 'DATE'|enum_constant('metadata_type_enum') %}
+						{{ include('pages/engineering/index/header/_date.html.twig') }}
+					{% elseif field.type == 'LINK'|enum_constant('metadata_type_enum') %}
+						{{ include('pages/engineering/index/header/_link.html.twig') }}
+					{% elseif field.type == 'LIST'|enum_constant('metadata_type_enum') %}
+						{{ include('pages/engineering/index/header/_list.html.twig') }}
+					{% endif %}
+					
+				{% endif %}
+
+			{% endfor %}
+
+		</tr>
+	</template>
+</turbo-stream>
+
+

@@ -1,0 +1,23 @@
+<turbo-frame id="serie_pannel">
+	<div class="row p-2" {{ stimulus_controller('serie', {'ids': selected_series|map(v => v.id)}) }}>
+		<div class="col px-2">
+			{% for serie in series %}
+				<button type="button" class="btn btn-width" 
+					{{ stimulus_target('serie', 'button') }} 
+					{{ stimulus_action('serie', 'update') }} 
+					{{ stimulus_param('serie', {'id': serie.id}) }}>
+						{{ serie.name }}
+				</button>
+			{% endfor %}
+		</div>
+		{% if series is not empty %}
+			{% if is_granted('ENGINEERING_SHOW', series|first) %}
+				<div class="col-auto">
+					<a class="btn btn-primary" href="{{ path('serie', {'project': project.id, 'company': series|first.company.id }) }}" data-turbo-frame="fs_modal" data-turbo-stream-replace="serie_pannel">
+						{% trans %}Manage series{% endtrans %}
+					</a>
+				</div>
+			{% endif %}
+		{% endif %}
+	</div>
+</turbo-frame>

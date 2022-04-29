@@ -37,7 +37,7 @@ class ProjectController extends AbstractController
 			}
 		}
 		
-		return $this->renderForm('main/projects.html.twig', [
+		return $this->renderForm('pages/main/projects.html.twig', [
 			'projects' => $projects
 		]);
 	}
@@ -45,14 +45,14 @@ class ProjectController extends AbstractController
 	#[Route(path: '/project/{project}', name: 'project', requirements: ['project' => '\d+'])]
 	public function index(Request $request, Project $project, CompanyRepository $companyRepository) : Response
 	{
-		if ($this->isGranted('SHOW_PROJECT', $project) === false) {
+		if ($this->isGranted('PROJECT_SHOW', $project) === false) {
 			return $this->redirectToRoute('projects_list');
 		}
 
 		$programs = [];
-		if ($this->isGranted('SHOW_PROGRAM', $project)) {
+		if ($this->isGranted('PROGRAM_SHOW', $project)) {
 			$programs = $this->programRepository->getEnabledPrograms($project);
-		} else if ($this->isGranted('SHOW_PROGRESS_PROGRAM', $project)) {
+		} else if ($this->isGranted('PROGRAM_PROGRESS_SHOW', $project)) {
 			$programs = $this->programRepository->getEnabledProgressPrograms($project);
 		}
 
@@ -67,17 +67,17 @@ class ProjectController extends AbstractController
 			}
 		}
 		
-		return $this->renderForm('project/index.html.twig', [
+		return $this->renderForm('pages/project/index.html.twig', [
 			'project' => $project,
 			'programs' => $programs,
 			'route_back' => $routeBack,
 		]);
 	}
 
-	#[Route(path: '/project/{project}/{type}', name: 'project_pannel', requirements: ['project' => '\d+', 'type' => 'sdr|mdr|misc'])]
-	public function pannel(Request $request, Project $project, string $type, CompanyRepository $companyRepository) : Response
+	#[Route(path: '/project/{project}/{belong}/pannel', name: 'project_pannel', requirements: ['project' => '\d+', 'belong' => 'sdr|mdr'])]
+	public function pannel(Request $request, Project $project, string $belong, CompanyRepository $companyRepository) : Response
 	{
-		if ($this->isGranted('SHOW_PROJECT', $project) === false) {
+		if ($this->isGranted('PROJECT_SHOW', $project) === false) {
 			return $this->redirectToRoute('projects_list');
 		}
 
@@ -87,21 +87,21 @@ class ProjectController extends AbstractController
 			$user = $this->getUser();
 		}
 
-		switch ($type) {
+		switch ($belong) {
 			case 'mdr':
 				$companies = $companyRepository->getCompaniesByProject($project, [CompanyTypeEnum::MAIN_CONTRACTOR], $user);
-				return $this->renderForm('project/index/_pannel.html.twig', [
+				return $this->renderForm('pages/project/index/_pannel.html.twig', [
 					'project' => $project,
 					'companies' => $companies,
 				]);
 			case 'sdr':
 				$companies = $companyRepository->getCompaniesByProject($project, [CompanyTypeEnum::SUB_CONTRACTOR, CompanyTypeEnum::SUPPLIER], $user);
-				return $this->renderForm('project/index/_pannel.html.twig', [
+				return $this->renderForm('pages/project/index/_pannel.html.twig', [
 					'project' => $project,
 					'companies' => $companies,
 				]);
 			// default:
-			// 	return $this->renderForm('project/index/_pannel_misc.html.twig', [
+			// 	return $this->renderForm('pages/project/index/_pannel_misc.html.twig', [
 			// 		'project' => $project,
 			// 	]);
 		}
@@ -127,7 +127,7 @@ class ProjectController extends AbstractController
 				'redirect' => $this->generateUrl('projects_list'),
 			]);
 		} else {
-			return $this->renderForm('project/new.html.twig', [
+			return $this->renderForm('pages/project/new.html.twig', [
 				'form' => $form
 			]);
 		}
@@ -136,7 +136,7 @@ class ProjectController extends AbstractController
 	#[Route(path: '/project/{project}/edit', name: 'project_edit', requirements: ['project' => '\d+'])]
 	public function edit(Request $request, Project $project) : Response
 	{
-		if ($this->isGranted('EDIT_PROJECT', $project) === false) {
+		if ($this->isGranted('PROJECT_EDIT', $project) === false) {
 			return $this->redirectToRoute('project');
 		}
 
@@ -155,7 +155,7 @@ class ProjectController extends AbstractController
 				'redirect' => $this->generateUrl('projects_list'),
 			]);
 		} else {
-			return $this->renderForm('project/edit.html.twig', [
+			return $this->renderForm('pages/project/edit.html.twig', [
 				'form' => $form
 			]);
 		}
@@ -164,7 +164,7 @@ class ProjectController extends AbstractController
 	#[Route(path: '/project/{project}/delete', name: 'project_delete', methods: ['GET', 'DELETE'], requirements: ['project' => '\d+'])]
 	public function delete(Request $request, Project $project) : Response
 	{
-		if ($this->isGranted('DELETE_PROJECT', $project) === false) {
+		if ($this->isGranted('PROJECT_DELETE', $project) === false) {
 			return $this->redirectToRoute('project');
 		}
 		

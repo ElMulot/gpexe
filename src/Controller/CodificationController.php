@@ -23,7 +23,7 @@ class CodificationController extends AbstractController
 	#[Route(path: '/project/{project}/codification', name: 'codification', requirements: ['project' => '\d+'])]
 	public function index(CodificationRepository $codificationRepository, Project $project) : Response
 	{
-		$this->denyAccessUnlessGranted('EDIT_PROJECT', $project);
+		$this->denyAccessUnlessGranted('PROJECT_EDIT', $project);
 
 		return $this->renderForm('generic/list.html.twig', [
 			'title' => $this->translator->trans('Codifications for') . ' : ' . $project->getName(),
@@ -35,7 +35,7 @@ class CodificationController extends AbstractController
 	#[Route(path: '/project/{project}/codification/new', name: 'codification_new', requirements: ['project' => '\d+'])]
 	public function new(Request $request, Project $project) : Response
 	{
-		$this->denyAccessUnlessGranted('EDIT_PROJECT', $project);
+		$this->denyAccessUnlessGranted('PROJECT_EDIT', $project);
 
 		$codification = new Codification();
 		$codification->setProject($project);
@@ -68,7 +68,7 @@ class CodificationController extends AbstractController
 	{
 		$project = $codification->getProject();
 
-		$this->denyAccessUnlessGranted('EDIT_PROJECT', $project);
+		$this->denyAccessUnlessGranted('PROJECT_EDIT', $project);
 
 		$form = $this->createForm(CodificationType::class, $codification);
 		$form->handleRequest($request);
@@ -98,7 +98,7 @@ class CodificationController extends AbstractController
 	{
 		$project = $codification->getProject();
 		
-		$this->denyAccessUnlessGranted('EDIT_PROJECT', $project);
+		$this->denyAccessUnlessGranted('PROJECT_EDIT', $project);
 		
 		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
 			$entityManager = $this->doctrine->getManager();

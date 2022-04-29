@@ -39,7 +39,7 @@ class ProgramController extends AbstractController
 	#[Route(path: '/project/{project}/program', name: 'program', requirements: ['project' => '\d+'])]
 	public function index(Project $project) : Response
 	{
-		$this->denyAccessUnlessGranted('SHOW_PROGRAM', $project);
+		$this->denyAccessUnlessGranted('PROGRAM_SHOW', $project);
 
 		return $this->renderForm('generic/list.html.twig', [
 			'title' => $this->translator->trans('Programs for') . ' : ' . $project->getName(),
@@ -53,8 +53,8 @@ class ProgramController extends AbstractController
 	{
 		$project = $program->getProject();
 		
-		if ($this->isGranted('SHOW_PROGRAM', $project) === false && 
-			($this->isGranted('SHOW_PROGRESS_PROGRAM', $project) === false || $program->isTypeProgress() === false)) {
+		if ($this->isGranted('PROGRAM_SHOW', $project) === false && 
+			($this->isGranted('PROGRAM_PROGRESS_SHOW', $project) === false || $program->isTypeProgress() === false)) {
 			return $this->redirectToRoute('project');
 		}
 
@@ -94,9 +94,9 @@ class ProgramController extends AbstractController
 		$form = null;
 		$project = $program->getProject();
 
-		if ($this->isGranted('EDIT_PROGRAM', $project) === false && 
-			($this->isGranted('SHOW_PROGRESS_PROGRAM') === false || $program->isTypeProgress() === false) &&
-			($this->isGranted('SHOW_PROJECT', $project) === false || $program->isTypeProgress() === false || $this->isUserAttachedToSeries($request->query->get('series')) === false)) {
+		if ($this->isGranted('PROGRAM_EDIT', $project) === false && 
+			($this->isGranted('PROGRAM_PROGRESS_SHOW') === false || $program->isTypeProgress() === false) &&
+			($this->isGranted('PROJECT_SHOW', $project) === false || $program->isTypeProgress() === false || $this->isUserAttachedToSeries($request->query->get('series')) === false)) {
 			return $this->redirectToRoute('project');
 		}
 
@@ -208,9 +208,9 @@ class ProgramController extends AbstractController
 	{
 		$project = $program->getProject();
 		
-		if ($this->isGranted('EDIT_PROGRAM', $project) === false && 
-			($this->isGranted('SHOW_PROGRESS_PROGRAM') === false || $program->isTypeProgress() === false) &&
-			($this->isGranted('SHOW_PROJECT', $project) === false || $program->isTypeProgress() === false || $this->isUserAttachedToSeries($request->query->get('series')) === false)) {
+		if ($this->isGranted('PROGRAM_EDIT', $project) === false && 
+			($this->isGranted('PROGRAM_PROGRESS_SHOW') === false || $program->isTypeProgress() === false) &&
+			($this->isGranted('PROJECT_SHOW', $project) === false || $program->isTypeProgress() === false || $this->isUserAttachedToSeries($request->query->get('series')) === false)) {
 			return $this->redirectToRoute('project');
 		}
 
@@ -286,7 +286,7 @@ class ProgramController extends AbstractController
 						/** @var array $series */
 						if ($series = $request->query->get('series')) {
 							return new JsonResponse([
-								'series' => $this->serieRepository->getSeriesByIdAsArray($series),
+								'series' => $this->serieRepository->getSeriesByIdsAsArray($series),
 								'current_progress' => $this->programService->progress($program, $series),
 								'current_progress' => [],
 								'progress' => $serializer->normalize($this->progressRepository->getProgressAsArray($program, $series)),
@@ -318,8 +318,8 @@ class ProgramController extends AbstractController
 	{
 		$project = $program->getProject();
 
-		if ($this->isGranted('SHOW_PROGRAM', $project) === false && 
-			($this->isGranted('SHOW_PROGRESS_PROGRAM', $project) === false || $program->isTypeProgress() === false)) {
+		if ($this->isGranted('PROGRAM_SHOW', $project) === false && 
+			($this->isGranted('PROGRAM_PROGRESS_SHOW', $project) === false || $program->isTypeProgress() === false)) {
 			return $this->redirectToRoute('project');
 		}
 
@@ -392,8 +392,8 @@ class ProgramController extends AbstractController
 	{
 		$project = $program->getProject();
 
-		if ($this->isGranted('SHOW_PROGRAM', $project) === false && 
-			($this->isGranted('SHOW_PROGRESS_PROGRAM', $project) === false || $program->isTypeProgress() === false)) {
+		if ($this->isGranted('PROGRAM_SHOW', $project) === false && 
+			($this->isGranted('PROGRAM_PROGRESS_SHOW', $project) === false || $program->isTypeProgress() === false)) {
 			return $this->redirectToRoute('project');
 		}
 
@@ -428,7 +428,7 @@ class ProgramController extends AbstractController
 	#[Route(path: '/project/{project}/program/new', name: 'program_new', requirements: ['project' => '\d+'])]
 	public function new(Request $request, Project $project) : Response
 	{
-		$this->denyAccessUnlessGranted('EDIT_PROGRAM', $project);
+		$this->denyAccessUnlessGranted('PROGRAM_EDIT', $project);
 
 		$form = null;
 		$program = null;
@@ -520,7 +520,7 @@ class ProgramController extends AbstractController
 	{
 		$project = $program->getProject();
 
-		$this->denyAccessUnlessGranted('EDIT_PROGRAM', $project);
+		$this->denyAccessUnlessGranted('PROGRAM_EDIT', $project);
 
 		$fields = $this->fieldService->getFields($project);
 		$form = $this->createForm(ProgramType::class, $program);
@@ -562,7 +562,7 @@ class ProgramController extends AbstractController
 	{
 		$project = $program->getProject();
 		
-		$this->denyAccessUnlessGranted('DELETE_PROGRAM', $project);
+		$this->denyAccessUnlessGranted('PROGRAM_DELETE', $project);
 
 		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
 			$entityManager = $this->doctrine->getManager();
@@ -592,7 +592,7 @@ class ProgramController extends AbstractController
 	{
 		return array_intersect(
 			array_column(
-				$this->serieRepository->getSeriesByIdAsArray(
+				$this->serieRepository->getSeriesByIdsAsArray(
 					$this->getUser()->getCompany()->getSeries()->getValues()
 				), 'id'
 			), $series) == true;

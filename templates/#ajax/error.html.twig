@@ -1,0 +1,23 @@
+<div class="modal-content">
+	<div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+			<span aria-hidden="true">&times;</span>
+		</button>
+	</div>
+	<div class="modal-body overflow-auto">
+		<div class="px-5">
+			{% for label, messages in app.flashes %}
+				{% for message in messages %}
+					<div class="row justify-content-center">
+						<div class="alert alert-{{ label }} w-100">
+							{{ message|trans }}.
+						</div>
+					</div>
+				{% endfor %}
+			{% endfor %}
+		</div>
+	</div>
+	<div class="modal-footer justify-content-center">
+		<button type="button" class="btn-secondary btn w-75" data-dismiss="modal">{% trans %}Close{% endtrans %}</button>
+	</div>
+</div>

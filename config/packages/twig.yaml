@@ -9,7 +9,6 @@ twig:
         version: '%version%'
         date: '%date%'
         uploads_directory: '%uploads_directory%'
-        icons_directory: '%icons_directory%'
 
 when@test:
     twig:

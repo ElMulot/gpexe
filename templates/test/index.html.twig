@@ -3,23 +3,21 @@
 {% block title %}Hello TestController!{% endblock %}
 
 {% block body %}
-<style>
-	.example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
-	.example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
-</style>
 
-<div class="example-wrapper">
+<div>
 	<h1>Test page</h1>
-	<br/>
-	{% if test is defined %}
-		<p>Results :</p>
-		{{ test }}
-	{% endif %}
-	<br/>
-	<br/>
+	
+	<div class="d-flex justify-content-center">
+		<a type="button" class="btn btn-primary" href="{{ path('test') }}">Reset</a>
+		<a type="button" class="btn btn-primary" href="{{ path('f2') }}" data-turbo-frame="f2">Lien 2</a>
+	</div>
+
+	<turbo-frame id="f1">Frame 1</turbo-frame><br/><br/>
+	<turbo-frame id="f2">Frame 2
+		
+	</turbo-frame><br/><br/>
+	<turbo-frame id="f3">Frame 3</turbo-frame>
+
 </div>
 
-<div class="d-flex justify-content-center">
-	<a type="button" class="btn btn-primary" href="{{ app.request.uri }}">Relancer</a>
-</div>
 {% endblock %}

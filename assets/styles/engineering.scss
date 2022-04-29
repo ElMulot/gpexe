@@ -1,0 +1,56 @@
+@import "~bootswatch/dist/slate/variables";
+@import "~bootstrap/scss/bootstrap";
+@import "~bootstrap-icons";
+@import "~bootswatch/dist/slate/bootswatch";
+
+
+form[name="engineering"] {
+	width: 100%;
+}
+
+.table {
+	margin-left: 1rem;
+	margin-right: 1rem;
+	font-size: 80%;
+	font-weight: 400;
+	width: auto !important;
+	// table-layout: fixed;
+
+	> :not(:first-child) {
+		border-top: 0 !important;
+	}
+}
+
+th {
+	position: sticky;
+	z-index: $zindex-sticky;
+	height: 2.5rem;
+	padding: 0 !important;
+
+	.dropdown-toggle {
+		min-width: 2rem;
+		&::after {
+			display: none;
+		}
+	}
+
+	.dropdown-menu {
+		@include border-top-radius(0);
+	}
+	
+	.dropdown-list {
+		max-height: 20rem;
+	}
+
+	label {
+		width: 100%;
+		@extend .text-truncate;
+	}
+	
+}
+
+td {
+	border: none;
+	line-height: 2rem;
+	@extend .text-truncate;
+}

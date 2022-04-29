@@ -5,8 +5,8 @@
 @import "~bootstrap/scss/utilities";
 @import "~bootstrap/scss/close";
 @import "~bootstrap/scss/utilities/api";
-@import "~bootswatch/dist/slate/bootswatch";
 @import "~cropperjs/dist/cropper";
+@import "~bootstrap-icons";
 
 // html, body {
 // 	height:calc(100% - 36px);
@@ -77,12 +77,13 @@
     @extend #{'.d-flex', '.flex-column', '.justify-content-center', '.mw-100'};
 }
 
-.dropzone-preview > img {
+.dropzone-preview > i {
 	@extend .align-self-center;
     background-size: cover;
     background-position: 50% 50%;
     background-repeat: no-repeat;
 	@include border-radius($border-radius);
+    font-size: 2em;
 }
 
 .dropzone-preview > div {

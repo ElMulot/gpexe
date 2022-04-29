@@ -24,7 +24,7 @@ class VisaController extends AbstractController
 	#[Route(path: '/project/{project}/visa', name: 'visa', requirements: ['project' => '\d+'])]
 	public function index(Project $project) : Response
 	{
-		$this->denyAccessUnlessGranted('SHOW_VISA', $project);
+		$this->denyAccessUnlessGranted('VISA_SHOW', $project);
 
 		return $this->renderForm('generic/list.html.twig', [
 			'title' => $this->translator->trans('Visas for') . ' : ' . $project->getName(),
@@ -36,7 +36,7 @@ class VisaController extends AbstractController
 	#[Route(path: '/project/{project}/visa/new', name: 'visa_new', requirements: ['project' => '\d+'])]
 	public function new(Request $request, Project $project) : Response
 	{
-		$this->denyAccessUnlessGranted('NEW_VISA', $project);
+		$this->denyAccessUnlessGranted('VISA_NEW', $project);
 		
 		$visa = new Visa();
 		$visa->setProject($project);
@@ -72,7 +72,7 @@ class VisaController extends AbstractController
 	{
 		$project = $visa->getProject();
 		
-		$this->denyAccessUnlessGranted('EDIT_VISA', $project);
+		$this->denyAccessUnlessGranted('VISA_EDIT', $project);
 		
 		$checkerCompanies = $this->companyRepository->getCheckerCompanies($visa->getProject());
 		$form = $this->createForm(VisaType::class, $visa, [
@@ -104,7 +104,7 @@ class VisaController extends AbstractController
 	{
 		$project = $visa->getProject();
 
-		$this->denyAccessUnlessGranted('DELETE_VISA', $project);
+		$this->denyAccessUnlessGranted('VISA_DELETE', $project);
 		
 		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
 			$entityManager = $this->doctrine->getManager();

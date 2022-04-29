@@ -1,0 +1,25 @@
+{% extends 'layout.html.twig' %}
+{% import "macros/_nav.html.twig" as nav %}
+
+{% block stylesheets %}
+	{{ encore_entry_link_tags('main') }}
+	{{ parent() }}
+{% endblock %}
+
+{% block navbar %}
+	{{ include('navbar/_main.html.twig') }}
+{% endblock %}
+
+{% block content %}
+	<div class="container-lg">
+		{% set items = [] %}
+		{% for project in projects %}
+			{% set items = items|merge([{
+				'name': project.name,
+				'href': path('alert', {'project': project.id}),
+				'class': (project == projects|first)?"active",
+			}]) %}
+		{% endfor %}
+		{{ nav.turbo('alert_pannel', items) }}
+	</div>
+{% endblock %}

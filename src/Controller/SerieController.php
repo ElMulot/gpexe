@@ -2,19 +2,22 @@
 
 namespace App\Controller;
 
+use App\Entity\View;
 use App\Entity\Serie;
 use App\Entity\Company;
 use App\Entity\Project;
 use App\Form\SerieType;
+use Symfony\UX\Turbo\TurboBundle;
 use App\Repository\SerieRepository;
 use App\Repository\MetadataRepository;
+use App\Entity\Enum\SerieBelongingEnum;
+use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Doctrine\Persistence\ManagerRegistry;
-
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 
 class SerieController extends AbstractController
 {
@@ -25,7 +28,7 @@ class SerieController extends AbstractController
 	#[Route(path: '/project/{project}/{company}/serie', name: 'serie', requirements: ['project' => '\d+', 'company' => '\d+'])]
 	public function index(Project $project, Company $company) : Response
 	{
-		if ($this->isGranted('SHOW_SERIE', $project) === false) {
+		if ($this->isGranted('PROJECT_SHOW', $project) === false) {
 			return $this->redirectToRoute('project');
 		}
 
@@ -47,47 +50,96 @@ class SerieController extends AbstractController
 		}
 	}
 
-	#[Route(path: '/project/{project}/{company}', name: 'serie_route', requirements: ['project' => '\d+', 'company' => '\d+'])]
-	public function route(Project $project, Company $company) : Response
+	#[Route(path: '/project/{project}/series/{company}', name: 'series_list_by_company', requirements: ['project' => '\d+', 'company' => '\d+'])]
+	public function seriesByCompany(Project $project, Company $company) : Response
 	{
-		if ($this->isGranted('ROUTE_SERIE', $project) === false) {
-			return $this->redirectToRoute('project');
-		}
 
-		$series = $this->serieRepository->getSeriesByCompanyAsArray($project, $company);
-		if (empty($series)) {
-			return $this->redirectToRoute('serie_new', [
-				'project' => $project->getId(),
-				'company' => $company->getId(),
-			]);
-		} elseif (count($series) === 1) {
-			return $this->redirectToRoute('document', [
-				'project' => $project->getId(),
-				'type' => reset($series)['type'],
-				'serie' => reset($series)['id'],
-			]);
+		$series = $this->serieRepository->getSeriesByCompany($project, $company);
+
+		if (empty($series) === true) {
+			if ($this->isGranted('SERIE_NEW', $project) === false) {
+				return $this->redirectToRoute('project');
+			}
 		} else {
-
-		}
-	}
-	
-	#[Route(path: '/project/{project}/{type}', name: 'serie_route_by_type', requirements: ['project' => '\d+', 'type' => 'sdr|mdr|all'])]
-	public function routeByType(Project $project, string $type) : Response
-	{
-		if ($this->isGranted('ROUTE_SERIE', $project) === false) {
-			return $this->redirectToRoute('project');
+			$this->denyAccessUnlessGranted('ENGINEERING_SHOW', reset($series));
 		}
 
-		return $this->redirectToRoute('document', [
-			'project' => $project->getId(),
-			'type' => $type,
+		return $this->renderForm('pages/engineering/index.html.twig', [
+			'series' => $series,
+			'project' => $project,
+			'company' => $company,
 		]);
 	}
+	
+	#[Route(path: '/project/{project}/series/{belong}', name: 'series_list_by_belonging', requirements: ['project' => '\d+', 'belong' => 'all|mdr|sdr'])]
+	public function seriesByBelonging(Project $project, string $belong) : Response
+	{	
+		$series = match($belong) {
+			SerieBelongingEnum::MDR => $this->serieRepository->getMdrSeriesByProject($project),
+			SerieBelongingEnum::SDR => $this->serieRepository->getSdrSeriesByProject($project),
+			default => $this->serieRepository->getSeriesByProject($project),
+		};
+		
+		if (empty($series) === true) {
+			return $this->redirectToRoute('projects_list');
+		} else {
+			$this->denyAccessUnlessGranted('ENGINEERING_SHOW', reset($series));
+		}
+
+		return $this->renderForm('pages/engineering/index.html.twig', [
+			'series' => $series,
+			'project' => $project,
+		]);
+	}
+
+	#[Route(path: '/project/{project}/series/{company}/select', name: 'serie_select', requirements: ['project' => '\d+', 'company' => '\d+'])]
+	public function select(Project $project, Company $company) : Response
+	{
+		$series = $this->serieRepository->getSeriesByCompany($project, $company);
+		
+		$this->denyAccessUnlessGranted('ENGINEERING_SHOW', reset($series));
+
+		return $this->renderForm('pages/engineering/index/_select.html.twig', [
+			'series' => $series,
+			'project' => $project,
+			'company' => $company,
+		]);
+
+	}
+
+
+	#[Route(path: '/project/{project}/serie/pannel', name: 'serie_pannel', requirements: ['project' => '\d+'])]
+	public function pannel(Request $request, Project $project) : Response
+	{
+		$this->denyAccessUnlessGranted('VIEW_SHOW', $project);
+		
+		$seriesIds = $request->get('id');
+		$selectedSerieId = $request->get('selected');
+		
+		$series = $this->serieRepository->getSeriesByIds($seriesIds) ?? [];
+
+		if ($selectedSerieId === null) {
+			$selectedSeries = $series;
+		} else {
+			$selectedSeries = match(count($series)) {
+				0		=>  $series,
+				1		=> [current($series)],
+				default	=> array_filter($series, fn($item) => $item->getId() == $selectedSerieId),
+			};
+		}
+
+		return $this->renderForm('pages/engineering/index/_serie.html.twig', [
+			'series' => $series,
+			'selected_series' => $selectedSeries,
+			'project' => $project,
+		]);
+	}
+
 	
 	#[Route(path: '/project/{project}/{company}/serie/new', name: 'serie_new', requirements: ['project' => '\d+', 'company' => '\d+'])]
 	public function new(Request $request, Project $project, Company $company) : Response
 	{
-		if ($this->isGranted('NEW_SERIE', $project) === false) {
+		if ($this->isGranted('SERIE_NEW', $project) === false) {
 			return $this->redirectToRoute('project');
 		}
 
@@ -130,8 +182,7 @@ class SerieController extends AbstractController
 				'company' => $company->getId(),
 			]);
 		} else {
-			$request->headers['Turbo-Frame'] = 'modal_xl';
-			return $this->renderForm('generic/edit.html.twig', [
+			return $this->renderForm('generic/new.html.twig', [
 				'form' => $form,
 			]);
 		}
@@ -142,7 +193,7 @@ class SerieController extends AbstractController
 	{
 		$project = $serie->getProject();
 
-		if ($this->isGranted('EDIT_SERIE', $serie) === false) {
+		if ($this->isGranted('SERIE_EDIT', $serie) === false) {
 			return $this->redirectToRoute('project');
 		}
 
@@ -199,7 +250,7 @@ class SerieController extends AbstractController
 	{
 		$project = $serie->getProject();
 
-		if ($this->isGranted('DELETE_SERIE', $serie) === false) {
+		if ($this->isGranted('SERIE_DELETE', $serie) === false) {
 			return $this->redirectToRoute('project');
 		}
 

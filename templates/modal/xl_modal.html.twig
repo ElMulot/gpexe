@@ -1,4 +1,4 @@
-<turbo-frame id="xl_modal">
+<turbo-frame id="xl_modal"{% if src is defined %} src="{{ src }}"{% endif %}>
 	<div class="modal fade" tabindex="-1" aria-labelledby="xl_modal_label" aria-hidden="true" {{ stimulus_controller('modal') }}>
 		<div class="modal-dialog modal-xl">
 			<div class="modal-content">

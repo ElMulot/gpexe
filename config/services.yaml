@@ -11,7 +11,6 @@ parameters:
     maintenance_mode: false
     disable_log: true
     uploads_directory: 'uploads'
-    icons_directory: 'icons'
     container.dumper.inline_factories: true
     router.request_context.scheme: '%env(SCHEME)%'
     asset.request_context.secure: true
@@ -41,10 +40,6 @@ services:
     App\Form\DataTransformer\ImageTransformer:
         arguments:
             $uploadsDirectory: '%uploads_directory%/'
-
-    App\Form\Type\DropzoneType:
-        arguments:
-            $iconsDirectory: '%icons_directory%/'
 
     App\EventListener\LogListener:
         arguments:

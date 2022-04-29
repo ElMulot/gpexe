@@ -17,7 +17,13 @@ class SerieVoter extends Voter
 
     protected function supports(string $attribute, $subject): bool
     {
-        if (!in_array($attribute, ['ROUTE_SERIE', 'EDIT_SERIE', 'DELETE_SERIE', 'NEW_DOCUMENT'])) {
+        if (!in_array($attribute, [
+                'ENGINEERING_SHOW',
+                'REVIEW_SHOW',
+                'SERIE_EDIT',
+                'SERIE_DELETE',
+                'DOCUMENT_NEW'
+            ])) {
             return false;
         }
 
@@ -46,12 +52,12 @@ class SerieVoter extends Voter
 
         /** @var Project $project */
         $project = $serie->getProject();
-
+        
         return match($attribute) {
-            'ROUTE_SERIE' => $this->security->isGranted('ROUTE_SERIE', $project) && ($user->getCompany()->isMainContractor() || $user->getCompany()->isChecker() || $serie->getCompany() === $user->getCompany()),
-            'EDIT_SERIE', 'DELETE_SERIE' => $project->hasUser($user) && $this->security->isGranted('ROLE_CONTROLLER') && $user->getCompany()->isMainContractor(),
-            'NEW_DOCUMENT' => $project->hasUser($user) && $this->security->isGranted('ROLE_EDITOR') && $user->getCompany()->isMainContractor(),
-            default => false,
+            'ENGINEERING_SHOW', 'REVIEW_SHOW' => $this->security->isGranted('ROLE_USER') && ($user->getCompany()->isMainContractor() || $user->getCompany()->isChecker() || $serie->getCompany() === $user->getCompany()),
+            'SERIE_EDIT', 'SERIE_DELETE' => $project->hasUser($user) && $this->security->isGranted('ROLE_CONTROLLER') && $user->getCompany()->isMainContractor(),
+            'DOCUMENT_NEW' => $project->hasUser($user) && $this->security->isGranted('ROLE_EDITOR') && $user->getCompany()->isMainContractor(),
+            default => throw new \LogicException('This code should not be reached!')
         };
     }
 }

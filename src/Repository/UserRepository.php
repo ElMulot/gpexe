@@ -85,7 +85,7 @@ class UserRepository extends RepositoryService implements PasswordUpgraderInterf
 	/**
 	 * @return User[]
 	 */
-	public function getUsersArrayBySeries(array $series)
+	public function getUsersArrayBySerieIds(array $series)
 	{
 		if ($series == false) {
 			return [];
@@ -105,7 +105,7 @@ class UserRepository extends RepositoryService implements PasswordUpgraderInterf
 	/**
 	 * @return User[]
 	 */
-	public function getCheckersArrayBySeries(Project $project)
+	public function getCheckersArray(Project $project)
 	{
 		$qb = $this->newQB('u');
 		return $qb

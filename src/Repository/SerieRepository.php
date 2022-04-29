@@ -9,6 +9,7 @@ use App\Entity\Serie;
 use App\Service\RepositoryService;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Doctrine\Common\Collections\Collection;
 
 /**
  * @method Serie|null find($id, $lockMode = null, $lockVersion = null)
@@ -25,9 +26,24 @@ class SerieRepository extends RepositoryService
 	}
 	
 	/**
+	 * @return Collection|Serie[]
+	 */
+	public function getSeriesByIds(array $ids)
+	{
+		$qb = $this->newQb('s');
+		return $qb
+			->innerJoin('s.company', 'c')
+			->andWhere($qb->in('s.id', $ids))
+			->addOrderBy('c.type, s.name')
+			->getQuery()
+			->getResult()
+		;
+	}
+
+	/**
 	 * @return Serie[]
 	 */
-	public function getSeriesByIdAsArray(array $ids)
+	public function getSeriesByIdsAsArray(array $ids)
 	{
 		$qb = $this->newQb('s');
 		return $qb
@@ -120,97 +136,128 @@ class SerieRepository extends RepositoryService
 			->getQuery()
 			->getResult()
 		;
-	}	
-	
-	
-	/**
-	 * @return Serie[]
-	 */
-	public function getSeriesByTypeAsArray(Project $project, string $type)
-	{
-		switch ($type) {
-			case 'sdr':
-				$qb = $this->newQb('s');
-				$results = $qb
-					->select('s.id, s.name')
-					->innerJoin('s.company', 'c')
-					->andWhere($qb->eq('s.project', $project))
-					->andWhere($qb->in('c.type', [CompanyTypeEnum::SUB_CONTRACTOR, CompanyTypeEnum::SUPPLIER]))
-					->addOrderBy('s.name')
-					->getQuery()
-					->getArrayResult()
-				;
-				break;
-			case 'mdr':
-				$qb = $this->newQb('s');
-				$results = $qb
-					->select('s.id, s.name')
-					->innerJoin('s.company', 'c')
-					->andWhere($qb->eq('s.project', $project))
-					->andWhere($qb->eq('c.type', CompanyTypeEnum::MAIN_CONTRACTOR))
-					->addOrderBy('s.name')
-					->getQuery()
-					->getArrayResult()
-				;
-				break;
-			case 'all':
-				$qb = $this->newQb('s');
-				$results = $qb
-					->select('s.id, s.name')
-					->innerJoin('s.company', 'c')
-					->andWhere($qb->eq('s.project', $project))
-					->addOrderBy('s.name')
-					->getQuery()
-					->getArrayResult()
-				;
-				break;
-			default:
-				$results = [];
-		}
-		
-		array_walk($results, function(&$item) use ($project, $type) {
-			$item['type'] = $type;
-			$item['url'] = $this->router->generate('document', [
-				'project' => $project->getId(),
-				'type' => $type,
-				'serie' => $item['id'],
-			]);
-		});
-		
-		return $results;
 	}
-	
+
 	/**
 	 * @return Serie[]
 	 */
-	public function getSeriesByCompanyAsArray(Project $project, Company $company)
+	public function getMdrSeriesByProject(Project $project)
 	{
 		$qb = $this->newQb('s');
-		$results = $qb
-			->select('s.id, s.name, c.type AS company_type')
+		return $qb
 			->innerJoin('s.company', 'c')
 			->andWhere($qb->eq('s.project', $project))
-			->andWhere($qb->eq('s.company', $company))
+			->andWhere($qb->eq('c.type', CompanyTypeEnum::MAIN_CONTRACTOR))
 			->addOrderBy('s.name')
 			->getQuery()
-			->getArrayResult()
+			->getResult()
 		;
-		
-		array_walk($results, function(&$item) use ($project) {
-			$item['type'] = match ($item['company_type']) {
-				CompanyTypeEnum::SUB_CONTRACTOR, CompanyTypeEnum::SUPPLIER	=> 'sdr',
-				CompanyTypeEnum::MAIN_CONTRACTOR							=> 'mdr',
-			};
-			unset($item['company_type']);
-			
-			$item['url'] = $this->router->generate('document', [
-				'project' => $project->getId(),
-				'type' => $item['type'],
-				'serie' => $item['id'],
-			]);
-		});
-		
-		return $results;
 	}
+
+	/**
+	 * @return Serie[]
+	 */
+	public function getSdrSeriesByProject(Project $project)
+	{
+		$qb = $this->newQb('s');
+		return $qb
+			->innerJoin('s.company', 'c')
+			->andWhere($qb->eq('s.project', $project))
+			->andWhere($qb->in('c.type', [CompanyTypeEnum::SUB_CONTRACTOR, CompanyTypeEnum::SUPPLIER]))
+			->addOrderBy('s.name')
+			->getQuery()
+			->getResult()
+		;
+	}
+	
+	// /**
+	//  * @return Serie[]
+	//  */
+	// public function getSeriesByTypeAsArray(Project $project, string $type)
+	// {
+	// 	switch ($type) {
+	// 		case 'sdr':
+	// 			$qb = $this->newQb('s');
+	// 			$results = $qb
+	// 				->select('s.id, s.name')
+	// 				->innerJoin('s.company', 'c')
+	// 				->andWhere($qb->eq('s.project', $project))
+	// 				->andWhere($qb->in('c.type', [CompanyTypeEnum::SUB_CONTRACTOR, CompanyTypeEnum::SUPPLIER]))
+	// 				->addOrderBy('s.name')
+	// 				->getQuery()
+	// 				->getArrayResult()
+	// 			;
+	// 			break;
+	// 		case 'mdr':
+	// 			$qb = $this->newQb('s');
+	// 			$results = $qb
+	// 				->select('s.id, s.name')
+	// 				->innerJoin('s.company', 'c')
+	// 				->andWhere($qb->eq('s.project', $project))
+	// 				->andWhere($qb->eq('c.type', CompanyTypeEnum::MAIN_CONTRACTOR))
+	// 				->addOrderBy('s.name')
+	// 				->getQuery()
+	// 				->getArrayResult()
+	// 			;
+	// 			break;
+	// 		case 'all':
+	// 			$qb = $this->newQb('s');
+	// 			$results = $qb
+	// 				->select('s.id, s.name')
+	// 				->innerJoin('s.company', 'c')
+	// 				->andWhere($qb->eq('s.project', $project))
+	// 				->addOrderBy('s.name')
+	// 				->getQuery()
+	// 				->getArrayResult()
+	// 			;
+	// 			break;
+	// 		default:
+	// 			$results = [];
+	// 	}
+		
+	// 	array_walk($results, function(&$item) use ($project, $type) {
+	// 		$item['type'] = $type;
+	// 		$item['url'] = $this->router->generate('document', [
+	// 			'project' => $project->getId(),
+	// 			'type' => $type,
+	// 			'serie' => $item['id'],
+	// 		]);
+	// 	});
+		
+	// 	return $results;
+	// }
+	
+	// /**
+	//  * @return Serie[]
+	//  */
+	// public function getSeriesByCompanyAsArray(Project $project, Company $company)
+	// {
+	// 	$qb = $this->newQb('s');
+	// 	$results = $qb
+	// 		->select('s.id, s.name, c.type AS company_type')
+	// 		->innerJoin('s.company', 'c')
+	// 		->andWhere($qb->eq('s.project', $project))
+	// 		->andWhere($qb->eq('s.company', $company))
+	// 		->addOrderBy('s.name')
+	// 		->getQuery()
+	// 		->getArrayResult()
+	// 	;
+		
+	// 	array_walk($results, function(&$item) use ($project) {
+	// 		$item['type'] = match ($item['company_type']) {
+	// 			CompanyTypeEnum::SUB_CONTRACTOR, CompanyTypeEnum::SUPPLIER	=> 'sdr',
+	// 			CompanyTypeEnum::MAIN_CONTRACTOR							=> 'mdr',
+	// 		};
+	// 		unset($item['company_type']);
+			
+	// 		$item['url'] = $this->router->generate('document', [
+	// 			'project' => $project->getId(),
+	// 			'type' => $item['type'],
+	// 			'serie' => $item['id'],
+	// 		]);
+	// 	});
+		
+	// 	return $results;
+	// }
 	
 }

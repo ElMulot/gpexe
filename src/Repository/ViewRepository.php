@@ -26,26 +26,29 @@ class ViewRepository extends RepositoryService
 	 * @return View[]
 	 *
 	 */
-	public function getViewsByProjectAndByUserAsArray(Project $project, User $user)
+	public function getViewsByProjectAndByUser(Project $project, User $user)
 	{
 		$qb = $this->newQB('v');
 		
-		return $qb->select('v.id, v.name, u.id AS user_id, p.isSuperAdmin, p.isAdmin')
+		return $qb
 			->innerJoin('v.user', 'u')
 			->innerJoin('u.profil', 'p')
-			->orWhere(
-				$qb->andX(
-					$qb->orX(
-						$qb->eq('p.isSuperAdmin', true),
-						$qb->eq('p.isAdmin', true)
+			->andWhere($qb->eq('v.project', $project))
+			->andWhere(
+				$qb->orX(
+					$qb->andX(
+						$qb->orX(
+							$qb->eq('p.isSuperAdmin', true),
+							$qb->eq('p.isAdmin', true)
+						),
+						$qb->eq('v.isShared', true),
 					),
-					$qb->eq('v.isShared', true),
+					$qb->eq('v.user', $user)
 				)
 			)
-			->orWhere($qb->eq('v.user', $user))
 			->orderBy('p.isSuperAdmin, p.isAdmin, v.name')
 			->getQuery()
-			->getArrayResult()
+			->getResult()
 		;
 	}
 	
@@ -73,16 +76,19 @@ class ViewRepository extends RepositoryService
 		$qb = $this->newQB('v');
 		return $qb->innerJoin('v.user', 'u')
 			->innerJoin('u.profil', 'p')
-			->orWhere(
-				$qb->andX(
-					$qb->orX(
-						$qb->eq('p.isSuperAdmin', true),
-						$qb->eq('p.isAdmin', true)
+			->andWhere($qb->eq('v.project', $project))
+			->andWhere(
+				$qb->orX(
+					$qb->andX(
+						$qb->orX(
+							$qb->eq('p.isSuperAdmin', true),
+							$qb->eq('p.isAdmin', true)
 						),
-					$qb->eq('v.isShared', true),
-					)
+						$qb->eq('v.isShared', true),
+					),
+					$qb->eq('v.user', $user)
 				)
-			->orWhere($qb->eq('v.user', $user))
+			)
 			->andWhere($qb->eq('v.isDefault', true))
 			->orderBy('p.isSuperAdmin, p.isAdmin')
 			->setMaxResults(1)

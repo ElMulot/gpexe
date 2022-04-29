@@ -1,0 +1,62 @@
+{% extends 'layout.html.twig' %}
+
+{% block stylesheets %}
+	{{ encore_entry_link_tags('engineering') }}
+	{{ parent() }}
+{% endblock %}
+
+{% block navbar %}
+	{{ include('navbar/_engineering.html.twig') }}
+{% endblock %}
+
+{% block content %}
+	<form name="engineering" {{ stimulus_controller('engineering', {'urlHeader': path('engineering_header', {'project': project.id}), 'urlBody': path('engineering_body', {'project': project.id})}) }}>
+		<ul class="nav nav-tabs" role="tablist" {{ stimulus_controller('nav') }}>
+			<li class="nav-item" role="presentation">
+				<button type="button" class="nav-link active" id="view_label" data-bs-toggle="tab" data-bs-target="#view_pannel" role="tab" aria-controls="view_pannel" aria-selected="true">
+					View
+				</button>
+			</li>
+			<li class="nav-item" role="presentation">
+				<button type="button" class="nav-link disabled" id="serie_label" data-bs-toggle="tab" data-bs-target="#serie_pannel" role="tab" aria-controls="serie_pannel" aria-selected="none">
+					Series
+				</button>
+			</li>
+			<li class="nav-item" role="presentation">
+				<button type="button" class="nav-link" id="progress_label" data-bs-toggle="tab" data-bs-target="#progress_pannel" role="tab" aria-controls="progress_pannel" aria-selected="none">
+					Progress
+				</button>
+			</li>
+		</ul>
+
+		<div class="tab-content">
+			<turbo-frame class="tab-pane fade show active" id="view_pannel" role="tabpanel" aria-labelledby="view_label" src="{{ path('view_pannel', {'project': project.id}) }}">
+				
+			</turbo-frame>
+			<turbo-frame class="tab-pane fade" id="serie_pannel" role="tabpanel" aria-labelledby="serie_label"{% if series|length == 1 %} src="{{ path('serie_pannel', {'project': project.id, 'id': [series|first.id] }) }}"{% endif %}>
+
+			</turbo-frame>
+			<turbo-frame class="tab-pane fade" id="progress_pannel" role="tabpanel" aria-labelledby="progress_label">
+
+			</turbo-frame>
+		</div>
+		<turbo-frame id="table" {{ stimulus_target('engineering', 'table') }}>
+			<table class="table table-sm table-hover table-active">
+				<thead id="header">
+				</thead>
+				<tbody id="body">
+					
+				</tbody>
+			</table>
+		</turbo-frame>
+	</form>
+{% endblock %}
+
+{% block xl_modal %}
+	{% if series is empty and project is defined and company is defined %}
+		{% include "modal/xl_modal.html.twig" with {'src': path('serie_new', {'project': project.id, 'company': company.id})} %}
+	{% endif %}
+	{% if series|length > 1 and project is defined and company is defined %}
+		{% include "modal/xl_modal.html.twig" with {'src': path('serie_select', {'project': project.id, 'company': company.id})} %}
+	{% endif %}
+{% endblock %}

@@ -35,7 +35,21 @@ use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
 class DocumentController extends AbstractController
 {
 	
-	public function __construct(private readonly TranslatorInterface $translator, private readonly ManagerRegistry $doctrine, private readonly DocumentService $documentService, private readonly FieldService $fieldService, private readonly ProgramService $programService, private readonly CodificationRepository $codificationRepository, private readonly CompanyRepository $companyRepository, private readonly DocumentRepository $documentRepository, private readonly MetadataRepository $metadataRepository, private readonly ProgramRepository $programRepository, private readonly SerieRepository $serieRepository, private readonly StatusRepository $statusRepository, private readonly VersionRepository $versionRepository, private readonly UserRepository $userRepository, private readonly ViewRepository $viewRepository)
+	public function __construct(private readonly TranslatorInterface $translator,
+								private readonly ManagerRegistry $doctrine,
+								private readonly DocumentService $documentService,
+								private readonly FieldService $fieldService,
+								private readonly ProgramService $programService,
+								private readonly CodificationRepository $codificationRepository,
+								private readonly CompanyRepository $companyRepository,
+								private readonly DocumentRepository $documentRepository,
+								private readonly MetadataRepository $metadataRepository,
+								private readonly ProgramRepository $programRepository,
+								private readonly SerieRepository $serieRepository,
+								private readonly StatusRepository $statusRepository,
+								private readonly VersionRepository $versionRepository,
+								private readonly UserRepository $userRepository,
+								private readonly ViewRepository $viewRepository)
 	{
 	}
 	
@@ -205,7 +219,7 @@ class DocumentController extends AbstractController
 	public function detail(Version $version) : Response
 	{
 		$document = $version->getDocument();
-		$this->denyAccessUnlessGranted('SHOW_DOCUMENT_DETAIL', $document);
+		$this->denyAccessUnlessGranted('DOCUMENT_SHOW_DETAIL', $document);
 
 		return $this->renderForm('document/detail.html.twig', [
 			'current_version' => $version,
@@ -214,87 +228,87 @@ class DocumentController extends AbstractController
 		]);
 	}
 
-	#[Route(path: '/project/serie/{serie}/document/new', name: 'document_new', requirements: ['serie' => '\d+'])]
-	public function new(Request $request, Serie $serie) : Response
+	#[Route(path: '/project/serie/document/new', name: 'document_new')]
+	public function new(Request $request) : Response
 	{
-		$project = $serie->getProject();
+		// $project = $serie->getProject();
 
-		$this->denyAccessUnlessGranted('NEW_DOCUMENT', $serie);
+		// $this->denyAccessUnlessGranted('DOCUMENT_NEW', $serie);
 
-		$document = new Document();
-		$document->setSerie($serie);
-		$form = $this->createForm(DocumentType::class, $document, [
-			'serie' => $serie
-		]);
-		$form->handleRequest($request);
-		if ($form->isSubmitted() && $form->isValid()) {
+		// $document = new Document();
+		// $document->setSerie($serie);
+		// $form = $this->createForm(DocumentType::class, $document, [
+		// 	'serie' => $serie
+		// ]);
+		// $form->handleRequest($request);
+		// if ($form->isSubmitted() && $form->isValid()) {
 			
-			$entityManager = $this->doctrine->getManager();
-			$this->documentService->removeOrphans();
-			$entityManager->flush();
+		// 	$entityManager = $this->doctrine->getManager();
+		// 	$this->documentService->removeOrphans();
+		// 	$entityManager->flush();
 			
-			foreach ($this->codificationRepository->getCodifications($project) as $codification) {
+		// 	foreach ($this->codificationRepository->getCodifications($project) as $codification) {
 				
-				if ($codification->isFixed()) {
-					continue;
-				}
+		// 		if ($codification->isFixed()) {
+		// 			continue;
+		// 		}
 				
-				$value = $form->get($codification->getFullId())->getData();
+		// 		$value = $form->get($codification->getFullId())->getData();
 				
-				if ($value === null && $codification->getIsMandatory()) {
-					$this->addFlash('danger', $this->translator->trans('notEmpty.field', ['field' => $codification->getName()]));
-					return $this->renderForm('ajax/form.html.twig', [
-						'form' => $form,
-					]);
-				}
+		// 		if ($value === null && $codification->getIsMandatory()) {
+		// 			$this->addFlash('danger', $this->translator->trans('notEmpty.field', ['field' => $codification->getName()]));
+		// 			return $this->renderForm('ajax/form.html.twig', [
+		// 				'form' => $form,
+		// 			]);
+		// 		}
 				
-				try {
-					$document->setCodificationValue($codification, $value);
-				} catch (\Error $e) {
-					$this->addFlash('danger', $e->getMessage());
-				}
-			}
+		// 		try {
+		// 			$document->setCodificationValue($codification, $value);
+		// 		} catch (\Error $e) {
+		// 			$this->addFlash('danger', $e->getMessage());
+		// 		}
+		// 	}
 			
-			if ($this->documentService->validateReference($document) === false) {
-				$this->addFlash('danger', $this->translator->trans('alreadyExist.reference', ['reference' => $document->getReference()]));
-				return $this->renderForm('ajax/form.html.twig', [
-					'form' => $form,
-				]);
-			}
+		// 	if ($this->documentService->validateReference($document) === false) {
+		// 		$this->addFlash('danger', $this->translator->trans('alreadyExist.reference', ['reference' => $document->getReference()]));
+		// 		return $this->renderForm('ajax/form.html.twig', [
+		// 			'form' => $form,
+		// 		]);
+		// 	}
 			
-			foreach ($this->metadataRepository->getMetadatasForDocument($project) as $metadata) {
-				$value = $form->get($metadata->getFullId())->getData();
+		// 	foreach ($this->metadataRepository->getMetadatasForDocument($project) as $metadata) {
+		// 		$value = $form->get($metadata->getFullId())->getData();
 				
-				if ($value === null && $metadata->getIsMandatory()) {
-					$this->addFlash('danger', $this->translator->trans('notEmpty.field', ['field' => $metadata->getName()]));
-					return $this->renderForm('ajax/form.html.twig', [
-						'form' => $form,
-					]);
-				}
+		// 		if ($value === null && $metadata->getIsMandatory()) {
+		// 			$this->addFlash('danger', $this->translator->trans('notEmpty.field', ['field' => $metadata->getName()]));
+		// 			return $this->renderForm('ajax/form.html.twig', [
+		// 				'form' => $form,
+		// 			]);
+		// 		}
 				
-				try {
-					$document->setMetadataValue($metadata, $value);
-				} catch (\Error $e) {
-					if ($metadata->getIsMandatory() === true) {
-						$this->addFlash('danger', $e->getMessage());
-						return $this->renderForm('ajax/form.html.twig', [
-							'form' => $form,
-						]);
-					}
-				}
-			}
+		// 		try {
+		// 			$document->setMetadataValue($metadata, $value);
+		// 		} catch (\Error $e) {
+		// 			if ($metadata->getIsMandatory() === true) {
+		// 				$this->addFlash('danger', $e->getMessage());
+		// 				return $this->renderForm('ajax/form.html.twig', [
+		// 					'form' => $form,
+		// 				]);
+		// 			}
+		// 		}
+		// 	}
 			
-			$entityManager->persist($document);
-			$entityManager->flush();
+		// 	$entityManager->persist($document);
+		// 	$entityManager->flush();
 			
-			return $this->redirectToRoute('version_new', [
-				'document' => $document->getId()
-			]);
-		} else {
-			return $this->renderForm('ajax/form.html.twig', [
-				'form' => $form,
-			]);
-		}
+		// 	return $this->redirectToRoute('version_new', [
+		// 		'document' => $document->getId()
+		// 	]);
+		// } else {
+			// return $this->renderForm('ajax/form.html.twig', [
+			// 	'form' => $form,
+			// ]);
+		// }
 	}
 	
 	#[Route(path: '/project/serie/document/edit', name: 'document_edit')]
@@ -310,7 +324,7 @@ class DocumentController extends AbstractController
 		$serie = $document->getSerie();
 		$project = $serie->getProject();
 
-		$this->denyAccessUnlessGranted('EDIT_DOCUMENT', $serie);
+		$this->denyAccessUnlessGranted('DOCUMENT_EDIT', $serie);
 
 		$form = $this->createForm(DocumentType::class, $documents, [
 			'serie' => $serie,
@@ -426,7 +440,7 @@ class DocumentController extends AbstractController
 		$currentSerie = $document->getSerie();
 		$series = $this->serieRepository->getSeriesExcept($currentSerie);
 
-		$this->denyAccessUnlessGranted('MOVE_DOCUMENT', $document);
+		$this->denyAccessUnlessGranted('DOCUMENT_MOVE', $document);
 
 		$form = $this->createForm(SerieChangeType::class, null, [
 			'current_serie' => $currentSerie,
@@ -464,7 +478,7 @@ class DocumentController extends AbstractController
 		}
 		$document = reset($documents);
 
-		$this->denyAccessUnlessGranted('DELETE_DOCUMENT', $document);
+		$this->denyAccessUnlessGranted('DOCUMENT_DELETE', $document);
 
 		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
 			$entityManager = $this->doctrine->getManager();

@@ -39,6 +39,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, Equatab
 	private $activated;
 
 	#[ORM\Column(type: 'datetime')]
+	private $createdOn;
+
+	#[ORM\Column(type: 'datetime')]
 	private $lastConnected;
 
 	#[ORM\ManyToOne(targetEntity: Profil::class)]
@@ -56,9 +59,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, Equatab
 
 	#[ORM\OneToMany(targetEntity: View::class, mappedBy: 'user', orphanRemoval: true)]
 	private $views;
-
-	#[ORM\Column(type: 'datetime')]
-	private $createdOn;
 
 	public function __construct()
 	{

@@ -10,6 +10,7 @@ use App\Entity\Enum\StatusTypeEnum;
 use App\Entity\Metadata;
 use App\Entity\Project;
 use App\Entity\Status;
+use App\Entity\User;
 use App\Repository\CodificationItemRepository;
 use App\Repository\CompanyRepository;
 use App\Repository\CodificationRepository;
@@ -44,7 +45,7 @@ class FieldService
 	public function getFields($project): array
 	{
 		
-		$permissionWrite = ($this->security->getUser() !== null && ($this->security->isGranted('ROLE_EDITOR') && $project->hasUser($this->security->getUser())) || $this->security->isGranted('ROLE_ADMIN'));
+		$permissionWrite = ($this->security->isGranted('DOCUMENT_EDIT', $project));
 		
 		$fields = [
 			'document.reference' => [
@@ -347,7 +348,7 @@ class FieldService
 				'default_width' => 10,
 				'mandatory' => $codification->getIsMandatory(),
 				'display' => [
-					'header' => true,
+					'header' => $codification->isFixed() === false,
 					'selector' => false,
 					'program' => true,
 				],
@@ -396,7 +397,7 @@ class FieldService
 					],
 					'permissions' => [
 						'read' => true,
-						'write' => ($this->security->getUser() !== null && $this->security->getUser()->getCompany() == $company || ($this->security->isGranted('ROLE_CONTROLLER') && $project->hasUser($this->security->getUser())) || $this->security->isGranted('ROLE_ADMIN')),
+						'write' => ($this->getUser() !== null && $this->getUser()->getCompany() == $company || ($this->security->isGranted('ROLE_CONTROLLER') && $project->hasUser($this->getUser())) || $this->security->isGranted('ROLE_ADMIN')),
 					],
 				];
 				
@@ -415,7 +416,7 @@ class FieldService
 					],
 					'permissions' => [
 						'read' => true,
-						'write' => ($this->security->getUser() !== null && ($this->security->isGranted('ROLE_CONTROLLER') && $project->hasUser($this->security->getUser())) || $this->security->isGranted('ROLE_ADMIN')),
+						'write' => ($this->getUser() !== null && ($this->security->isGranted('ROLE_CONTROLLER') && $project->hasUser($this->getUser())) || $this->security->isGranted('ROLE_ADMIN')),
 					],
 				];
 				
@@ -434,7 +435,7 @@ class FieldService
 					],
 					'permissions' => [
 						'read' => true,
-						'write' => ($this->security->getUser() !== null && ($this->security->isGranted('ROLE_CONTROLLER') && $project->hasUser($this->security->getUser())) || $this->security->isGranted('ROLE_ADMIN')),
+						'write' => ($this->getUser() !== null && ($this->security->isGranted('ROLE_CONTROLLER') && $project->hasUser($this->getUser())) || $this->security->isGranted('ROLE_ADMIN')),
 					],
 				];
 			}
@@ -539,8 +540,8 @@ class FieldService
 	public function getFieldsForJs(Project $project, array $series): array
 	{
 		$fields = $this->getFields($project);
-		$writers = $this->userRepository->getUsersArrayBySeries($series);
-		$checkers = $this->userRepository->getCheckersArrayBySeries($project);
+		$writers = $this->userRepository->getUsersArrayBySerieIds($series);
+		$checkers = $this->userRepository->getCheckersArray($project);
 		
 		$element = [];
 		foreach ($this->codificationRepository->getCodifications($project) as $codification) {
@@ -571,7 +572,7 @@ class FieldService
 					break;
 					
 			}
-			$fields['document.reference']['elements'][] = $element;
+			$fields[$codification->getFullCodename()]['elements'] = $element;
 		}
 		
 		$fields['version.name']['elements'][] = [
@@ -705,25 +706,35 @@ class FieldService
 		
 		foreach ($this->metadataRepository->getMetadatas($project) as $metadata) {
 			
-			$fields[$metadata->getFullCodename()]['elements'][] = match ($metadata->getType()) {
-				MetadataTypeEnum::BOOLEAN, MetadataTypeEnum::TEXT, MetadataTypeEnum::DATE => [
+			switch ($metadata->getType()) {
+
+				case MetadataTypeEnum::BOOLEAN:
+				case MetadataTypeEnum::TEXT:
+				case MetadataTypeEnum::DATE:
+					$element = [
 						'id' 		=> $metadata->getFullId(),
 						'title' 	=> $metadata->getName(),
 						'sort'		=> true,
 						'filter'	=> [
 							'type'		=> $metadata->getType(),
 						]
-					],
-				MetadataTypeEnum::LIST => [
+					];
+				case MetadataTypeEnum::LIST:
+					$choices = [];
+					foreach ($this->metadataItemRepository->getMetadataItem($metadata) as $metadataItem) {
+						$choices[$metadataItem->getId()] = $metadataItem->getValue();
+					}
+					$element = [
 						'id' 		=> $metadata->getFullId(),
 						'title' 	=> $metadata->getName(),
 						'sort'		=> true,
 						'filter'	=> [
 							'type'		=> MetadataTypeEnum::LIST,
-							'choices' 	=> $this->metadataItemRepository->getMetadataItemAsArray($metadata),
+							'choices' 	=> $choices,
 						]
-					],
+					];
 			};
+			$fields[$metadata->getFullCodename()]['elements'] = $element;
 		}
 		
 		foreach ($this->companyRepository->getCheckerCompanies($project) as $checkerCompany) {
@@ -742,6 +753,11 @@ class FieldService
 		
 		return $fields;
 		
+	}
+
+	private function getUser(): User
+	{
+		return $this->security->getUser();
 	}
 }
 

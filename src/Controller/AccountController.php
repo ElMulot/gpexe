@@ -23,13 +23,13 @@ class AccountController extends AbstractController
 	#[Route(path: '/account', name: 'account')]
 	public function index(Request $request) : Response
 	{
-		return $this->renderForm('main/account.html.twig');
+		return $this->renderForm('pages/main/account.html.twig');
 	}
 
 	#[Route(path: '/account/personal', name: 'personal')]
 	public function personal(Request $request) : Response
 	{
-		return $this->renderForm('main/account/_personal_infos.html.twig', [
+		return $this->renderForm('pages/main/account/_personal_infos.html.twig', [
 			'user' => $this->getUser()
 		]);
 	}
@@ -81,7 +81,7 @@ class AccountController extends AbstractController
 
 			return $this->redirectToRoute('personal');
 		} else {
-			return $this->renderForm('main/account/_change_password.html.twig', [
+			return $this->renderForm('pages/main/account/_change_password.html.twig', [
 				'form' => $form,
 			]);
 		}

@@ -7,6 +7,8 @@ use App\Helpers\Date;
 use App\Entity\Project;
 use Spatie\Regex\Regex;
 use App\Service\Code\Node;
+use Symfony\UX\Turbo\TurboBundle;
+use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Stopwatch\Stopwatch;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -15,7 +17,6 @@ use Symfony\Component\Validator\Constraints\Count;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Doctrine\Persistence\ManagerRegistry;
 
 
 class TestController extends AbstractController
@@ -28,8 +29,27 @@ class TestController extends AbstractController
 	#[Route(path: '/test', name: 'test')]
 	public function index() : Response
 	{
-		phpinfo();
-		return new Response();
+		return $this->renderForm('test/index.html.twig', [
+			
+		]);
+	}
+
+	#[Route(path: '/f2', name: 'f2')]
+	public function f2(Request $request) : Response
+	{
+		// sleep(2);
+		$request->setRequestFormat(TurboBundle::STREAM_FORMAT);
+		return $this->renderForm('test/f2.html.twig', [
+		]);
+	}
+
+	#[Route(path: '/f3', name: 'f3')]
+	public function f3() : Response
+	{
+		sleep(2);
+		return $this->renderForm('test/f3.html.twig', [
+			
+		]);
 	}
 
 	private function clearDuplicateDocuments()

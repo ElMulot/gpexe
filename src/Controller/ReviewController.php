@@ -24,7 +24,8 @@ class ReviewController extends AbstractController
 	#[Route(path: '/project/serie/document/version/{version}/{company}/review', name: 'review', requirements: ['version' => '\d+', 'company' => '\d+'])]
 	public function index(Request $request, Version $version, Company $company) : Response
 	{
-		$this->denyAccessUnlessGranted('SHOW_REVIEW', $version);
+		$serie = $version->getDocument()->getSerie();
+		$this->denyAccessUnlessGranted('REVIEW_SHOW', $serie);
 		
 		$review = $version->getReviewByCompany($company);
 		return $this->renderForm('review/index.html.twig', [
@@ -37,11 +38,11 @@ class ReviewController extends AbstractController
 	#[Route(path: '/project/serie/document/version/{version}/{company}/review/new', name: 'review_new', requirements: ['version' => '\d+', 'company' => '\d+'])]
 	public function new(Request $request, Version $version, Company $company) : Response
 	{
-		$this->denyAccessUnlessGranted('NEW_REVIEW', $version);
-		
-		if ($this->getUser()->getCompany() == $company || $this->isGranted('ROLE_ADMIN')) {
-			$document = $version->getDocument();
-			
+
+		$document = $version->getDocument();
+		$project = $document()->getSerie()->getProject();
+
+		if ($this->denyAccessUnlessGranted('REVIEW_NEW', $project)) {
 			if ($version->getReviewByCompany($company) !== null) {
 				return $this->redirectToRoute('review' ,[
 					'version' => $version,
@@ -98,9 +99,11 @@ class ReviewController extends AbstractController
 	{
 		$company = $review->getVisa()->getCompany();
 		$version = $review->getVersion();
-		if ($this->isGranted('EDIT_REVIEW', $version)) {
+		$project = $version->getDocument()->getSerie()->getProject();
+
+		if ($this->isGranted('REVIEW_EDIT', $project) === true) {
 			$form = $this->createForm(ReviewType::class, $review, [
-				'project' => $version->getDocument()->getSerie()->getProject(),
+				'project' => $project,
 				'company' => $company,
 			]);
 			
@@ -128,7 +131,7 @@ class ReviewController extends AbstractController
 				]);
 			}
 		} else {
-			return $this->redirectToRoute('review' ,[
+			return $this->redirectToRoute('review', [
 				'version' => $version,
 				'company' => $company,
 			]);
@@ -140,7 +143,9 @@ class ReviewController extends AbstractController
 	{
 		$company = $review->getUser()->getCompany();
 		$version = $review->getVersion();
-		if ($this->isGranted('DELETE_REVIEW', $version)) {
+		$project = $version->getDocument()->getSerie()->getProject();
+
+		if ($this->isGranted('REVIEW_DELETE', $project)) {
 		
 			if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
 				$entityManager = $this->doctrine->getManager();

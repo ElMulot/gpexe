@@ -1,0 +1,33 @@
+<turbo-stream action="update" target="body">
+	<template>
+		{% for item in items %}
+			<tr>
+				<td>
+				</td>
+				{% for field in fields %}
+					{% if field.id in query.display|keys and field.display.header is same as(true) %}
+						{% if field.id == 'version_name' %}
+							<td style="text-align: center;">
+								{{ (item[field.id] ?? '') }}
+							</td>
+						{% elseif field.type == 'BOOLEAN'|enum_constant('metadata_type_enum') %}
+							<td style="text-align: center;">
+								{{ ((item[field.id] ?? false) == 1?'Yes':'No')|trans }}
+							</td>
+						{% elseif field.type == 'DATE'|enum_constant('metadata_type_enum') or field.type == 'LIST'|enum_constant('metadata_type_enum') %}
+							<td style="text-align: center;">
+								{{ (item[field.id] ?? '') }}
+							</td>
+						{% else %}
+							<td>
+								{{ (item[field.id] ?? '') }}
+							</td>
+						{% endif %}
+					{% endif %}
+				{% endfor %}
+			</tr>
+		{% endfor %}
+	</template>
+</turbo-stream>
+
+

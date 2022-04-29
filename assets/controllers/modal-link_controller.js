@@ -18,5 +18,7 @@ export default class extends Controller {
 			}
 		});
 
+		this.dispatch('connected');
+
     }
 }

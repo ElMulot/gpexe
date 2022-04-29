@@ -1,0 +1,23 @@
+{% set title = 'Select a serie' %}
+
+{% extends 'modal/xl_modal.html.twig' %}
+
+{% block modal_body %}
+	{% set series_id = series|map(s => s.id) %}
+	<div class="row justify-content-center">
+		<a class="col-md-6 btn btn-primary btn-lg py-3 mt-3" href="{{ path('serie_pannel', {'project': project.id, 'id': series_id }) }}" data-turbo-frame="serie_pannel" {{ stimulus_target('modal', 'close') }}>
+			{% trans %}All{% endtrans %}
+		</a>
+	</div>
+	{% for serie in series %}
+		<div class="row justify-content-center">
+			<a class="col-md-6 btn btn-primary btn-lg py-3 mt-3" href="{{ path('serie_pannel', {'project': project.id, 'id': series_id, 'selected': serie.id }) }}" data-turbo-frame="serie_pannel" {{ stimulus_target('modal', 'close') }}>
+				{{ serie.name }}
+			</a>
+		</div>
+	{% endfor %}
+{% endblock %}
+
+{% block modal_footer %}
+
+{% endblock %}

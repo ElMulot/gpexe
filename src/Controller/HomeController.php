@@ -25,7 +25,7 @@ class HomeController extends AbstractController
 	#[Route(path: '/', name: 'home')]
 	public function index() : Response
 	{
-		return $this->renderForm('main/home.html.twig', [
+		return $this->renderForm('pages/main/home.html.twig', [
 			'projects' => $this->projectRepository->getProjects($this->getUser()),
 		]);
 	}
@@ -81,7 +81,7 @@ class HomeController extends AbstractController
 		} else {
 			$checkSettings = [];
 		}
-		return $this->renderForm('main/home/_alert.html.twig', [
+		return $this->renderForm('pages/main/home/_alert.html.twig', [
 			'project' => $project,
 			'prod_alerts' => $this->versionRepository->getProdAlerts($project, $this->getUser()),
 			'check_alerts' => $this->versionRepository->getCheckAlerts($project, $this->getUser()),
@@ -93,7 +93,7 @@ class HomeController extends AbstractController
 	#[Route(path: '/about', name: 'about')]
 	public function about() : Response
 	{
-		return $this->renderForm('main/about.html.twig', [
+		return $this->renderForm('pages/main/about.html.twig', [
 			'items' => Yaml::parseFile($this->getParameter('kernel.project_dir') . '/config/ressources/about.yaml'),
 		]);
 	}

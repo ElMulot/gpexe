@@ -38,7 +38,7 @@ class VersionController extends AbstractController
 		$serie = $document->getSerie();
 		$project = $serie->getProject();
 
-		$this->denyAccessUnlessGranted('SHOW_DOCUMENT_DETAIL', $document);
+		$this->denyAccessUnlessGranted('DOCUMENT_SHOW_DETAIL', $document);
 
 		return $this->renderForm('version/detail.html.twig', [
 			'version' => $version,
@@ -67,7 +67,7 @@ class VersionController extends AbstractController
 		$serie = $document->getSerie();
 		$project = $serie->getProject();
 
-		$this->denyAccessUnlessGranted('NEW_DOCUMENT', $serie);
+		$this->denyAccessUnlessGranted('DOCUMENT_NEW', $serie);
 
 		$version = new Version();
 		$version->setDocument($document);
@@ -164,7 +164,7 @@ class VersionController extends AbstractController
 			}
 		}
 		
-		$this->denyAccessUnlessGranted('EDIT_DOCUMENT', $document);
+		$this->denyAccessUnlessGranted('DOCUMENT_EDIT', $document);
 
 		$form = $this->createForm(VersionType::class, $versions, [
 			'serie' => $serie,
@@ -263,7 +263,7 @@ class VersionController extends AbstractController
 		$document = reset($documents);
 		$versions = $this->versionRepository->getVersions($request);
 
-		$this->denyAccessUnlessGranted('DELETE_DOCUMENT', $document);
+		$this->denyAccessUnlessGranted('DOCUMENT_DELETE', $document);
 
 		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
 			$entityManager = $this->doctrine->getManager();
@@ -296,7 +296,7 @@ class VersionController extends AbstractController
 		$serie = $document->getSerie();
 		$project = $serie->getProject();
 		
-		if ($this->isGranted('NEW_DOCUMENT', $serie) === false) {
+		if ($this->isGranted('DOCUMENT_NEW', $serie) === false) {
 			return $this->redirectToRoute('review', [
 				'version' => $version,
 				'company' => $company,
@@ -347,7 +347,7 @@ class VersionController extends AbstractController
 		$serie = $document->getSerie();
 		$project = $serie->getProject();
 		
-		$this->denyAccessUnlessGranted('EDIT_DOCUMENT', $document);
+		$this->denyAccessUnlessGranted('DOCUMENT_EDIT', $document);
 
 		$fields = $this->fieldService->getFields($project);
 		foreach ($fields as $field) {

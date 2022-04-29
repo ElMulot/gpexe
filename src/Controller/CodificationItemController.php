@@ -24,7 +24,7 @@ class CodificationItemController extends AbstractController
 	{
 		$project = $codification->getProject();
 
-		$this->denyAccessUnlessGranted('EDIT_PROJECT', $project);
+		$this->denyAccessUnlessGranted('PROJECT_EDIT', $project);
 
 		return $this->renderForm('generic/list.html.twig', [
 			'header' => $this->translator->trans('List for the code') . ' : ' . $codification->getName(),
@@ -42,7 +42,7 @@ class CodificationItemController extends AbstractController
 	{
 		$project = $codification->getProject();
 
-		$this->denyAccessUnlessGranted('EDIT_PROJECT', $project);
+		$this->denyAccessUnlessGranted('PROJECT_EDIT', $project);
 
 		$codificationItem = new CodificationItem();
 		$codificationItem->setCodification($codification);
@@ -72,7 +72,7 @@ class CodificationItemController extends AbstractController
 	{
 		$project = $codificationItem->getCodification()->getProject();
 
-		$this->denyAccessUnlessGranted('EDIT_PROJECT', $project);
+		$this->denyAccessUnlessGranted('PROJECT_EDIT', $project);
 
 		$form = $this->createForm(CodificationItemType::class, $codificationItem);
 		$form->handleRequest($request);
@@ -99,7 +99,7 @@ class CodificationItemController extends AbstractController
 	{
 		$project = $codificationItem->getCodification()->getProject();
 		
-		$this->denyAccessUnlessGranted('EDIT_PROJECT', $project);
+		$this->denyAccessUnlessGranted('PROJECT_EDIT', $project);
 
 		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
 			$entityManager = $this->doctrine->getManager();

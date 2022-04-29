@@ -5,57 +5,65 @@
 	{{ navbar.item('Projects', path('projects_list')) }}
 
 	{% if is_granted('ROLE_ADMIN') %}
-		{{ navbar.dropdown('Admin', [
+		{{ navbar.dropdown(
 			{
-				'name': 'new.project',
-				'href': path('project_new'),
-				'data-turbo-frame': 'xl_modal',
-				'data-turbo-stream-replace': 'projects',
-			},
-			{
-				'name': 'Company',
-				'href': path('company'),
-				'data-turbo-frame': 'fs_modal',
-			},
-			{
-				'name': 'User',
-				'href': path('user'),
-				'data-turbo-frame': 'fs_modal',
-			},
-			{
-				'name': 'Profil',
-				'href': path('profil'),
-				'data-turbo-frame': 'fs_modal',
-			},		
-		]) }}
+			'name': 'Admin'
+			}, [
+				{
+					'name': 'new.project',
+					'href': path('project_new'),
+					'data-turbo-frame': 'xl_modal',
+					'data-turbo-stream-replace': 'projects',
+				},
+				{
+					'name': 'Company',
+					'href': path('company'),
+					'data-turbo-frame': 'fs_modal',
+				},
+				{
+					'name': 'User',
+					'href': path('user'),
+					'data-turbo-frame': 'fs_modal',
+				},
+				{
+					'name': 'Profil',
+					'href': path('profil'),
+					'data-turbo-frame': 'fs_modal',
+				},		
+			]
+		) }}
 	{% endif %}
 </ul>
 
 <ul class="navbar-nav ms-auto">
 	{{ navbar.item('Account', path('account')) }}
-	{{ navbar.dropdown('GPExe', [
+	{{ navbar.dropdown(
 		{
-			'name': 'Wiki',
-			'href': 'https://github.com/ElMulot/gpexe/wiki',
-		},
-		{
-			'name': 'Report bug',
-			'href': 'https://github.com/ElMulot/gpexe/issues',
-		},
-		{
-			'name': 'About',
-			'href': path('about'),
-			'target': 'main_modal',
-		},
-		{
-			'name': 'Log',
-			'href': path('log'),
-			'target': 'main_modal',
-		},
-		{
-			'name': 'Test',
-			'href': is_granted('ROLE_SUPER_ADMIN')?path('test'),
-		},
-	]) }}
+			'name': 'GPExe'
+		}, [
+			{
+				'name': 'Wiki',
+				'href': 'https://github.com/ElMulot/gpexe/wiki',
+			},
+			{
+				'name': 'Report bug',
+				'href': 'https://github.com/ElMulot/gpexe/issues',
+			},
+			{
+				'name': 'About',
+				'href': path('about'),
+				'target': 'main_modal',
+			},
+			{
+				'name': 'Log',
+				'href': path('log'),
+				'target': 'main_modal',
+			},
+			{
+				'name': 'Test',
+				'href': is_granted('ROLE_SUPER_ADMIN')?path('test'),
+			},
+		]
+	) }}
 	{{ navbar.itemLogout() }}
 </ul>

@@ -28,7 +28,7 @@ class AutomationController extends AbstractController
 	#[Route(path: '/project/{project}/automation', name: 'automation', requirements: ['project' => '\d+'])]
 	public function index(Project $project) : Response
 	{
-		$this->denyAccessUnlessGranted('SHOW_PROGRAM', $project);
+		$this->denyAccessUnlessGranted('PROGRAM_SHOW', $project);
 		
 		return $this->renderForm('automation/index.html.twig', [
 			'project' => $project,
@@ -39,7 +39,7 @@ class AutomationController extends AbstractController
 	#[Route(path: '/project/automation/{automation}/edit', name: 'automation_edit', requirements: ['automation' => '\d+'])]
 	public function edit(Request $request, Automation $automation) : Response
 	{
-		$this->denyAccessUnlessGranted('EDIT_PROGRAM', $automation->getProject());
+		$this->denyAccessUnlessGranted('PROGRAM_EDIT', $automation->getProject());
 		
 		$form = $this->createForm(AutomationType::class, $automation);
 		$form->handleRequest($request);

@@ -5,7 +5,7 @@
 
 	{% set admin_items = [] %}
 
-	{% if is_granted('EDIT_PROJECT', project) %}
+	{% if is_granted('PROJECT_EDIT', project) %}
 		{% set admin_items = admin_items|merge([
 			{
 				'name': 'edit.project',
@@ -25,7 +25,7 @@
 		%}
 	{% endif %}
 
-	{% if is_granted('SHOW_STATUS', project) %}
+	{% if is_granted('STATUS_SHOW', project) %}
 		{% set admin_items = admin_items|merge([
 			{
 				'name': 'Statuses',
@@ -35,7 +35,7 @@
 		%}
 	{% endif %}
 
-	{% if is_granted('SHOW_VISA', project) %}
+	{% if is_granted('VISA_SHOW', project) %}
 		{% set admin_items = admin_items|merge([
 			{
 				'name': 'Visas',
@@ -45,7 +45,7 @@
 		%}
 	{% endif %}
 
-	{% if is_granted('SHOW_PROGRAM', project) %}
+	{% if is_granted('PROGRAM_SHOW', project) %}
 		{% set admin_items = admin_items|merge([
 			{
 				'name': 'Programs',
@@ -62,7 +62,7 @@
 	
 
 	{% if admin_items is not empty %}
-		{{ navbar.dropdown('Project admin', admin_items) }}
+		{{ navbar.dropdown({'name': 'Project admin'}, admin_items) }}
 	{% endif %}
 </ul>
 
@@ -72,15 +72,20 @@
 
 	{% set document_items = [] %}
 
-	{% if is_granted('SHOW_MDR', project) %}
+	{% if is_granted('SHOW_ALL', project) %}
 		{% set document_items = document_items|merge([
 			{
 				'name': 'All documents',
-				'href': path('serie_route_by_type', {'project': project.id, 'type': 'all'}),
-			},
+				'href': path('series_list_by_belonging', {'project': project.id, 'belong': constant('App\\Entity\\Enum\\SerieBelongingEnum::ALL')}),
+			}])
+		%}
+	{% endif %}
+
+	{% if is_granted('SHOW_MDR', project) %}
+		{% set document_items = document_items|merge([
 			{
-				'name': 'MDR Only',
-				'href': path('serie_route_by_type', {'project': project.id, 'type': 'mdr'}),
+				'name': 'MDR only',
+				'href': path('series_list_by_belonging', {'project': project.id, 'belong': constant('App\\Entity\\Enum\\SerieBelongingEnum::MDR')}),
 			}])
 		%}
 	{% endif %}
@@ -89,17 +94,17 @@
 	{% if is_granted('SHOW_SDR', project) %}
 		{% set document_items = document_items|merge([
 			{
-				'name': 'SDR Only',
-				'href': path('serie_route_by_type', {'project': project.id, 'type': 'sdr'}),
+				'name': 'SDR only',
+				'href': path('series_list_by_belonging', {'project': project.id, 'belong': constant('App\\Entity\\Enum\\SerieBelongingEnum::SDR')}),
 			}])
 		%}
 	{% endif %}
 
 	{% if document_items is not empty %}
-		{{ navbar.dropdown('Documents', document_items) }}
+		{{ navbar.dropdown({'name': 'Documents'}, document_items) }}
 	{% endif %}
 	
-	{% if is_granted('SHOW_PROGRESS_PROGRAM', project) %}
+	{% if is_granted('PROGRAM_PROGRESS_SHOW', project) %}
 
 		{% set current_type = 0 %}
 		{% set menu = [] %}
@@ -129,7 +134,7 @@
 			] %}
 		{% endfor %}
 
-		{{ navbar.dropdown('Programs', menu) }}
+		{{ navbar.dropdown({'name': 'Programs'}, menu) }}
 
 	{% endif %}
 

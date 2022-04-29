@@ -1,0 +1,119 @@
+{% extends 'base.html.twig' %}
+
+{% block stylesheets %}
+	{{ parent() }}
+	{{ encore_entry_link_tags('program') }}
+{% endblock %}
+
+{% block body %}
+	<div class="row justify-content-end w-100">
+		<div class="col-8 p-5">
+			<div class="jumbotron">
+				{% for label, messages in app.flashes %}
+					{% for message in messages %}
+						<div class="row justify-content-center">
+							<div class="alert alert-{{ label }} w-100">{{ message|trans }}.</div>
+						</div>
+					{% endfor %}
+				{% endfor %}
+				{{ form_start(form) }}
+					<div class="form-group row">
+						{{ form_label(form.name) }}
+						{{ form_widget(form.name) }}
+						{{ form_label(form.enabled) }}
+						{{ form_widget(form.enabled) }}
+					</div>
+					<div class="form-error">
+						{{ form_errors(form.code) }}
+					</div>
+					<div class="row">
+						{{ form_widget(form.code) }}
+					</div>
+				{{ form_end(form) }}
+				<div class="row mt-5">
+						{% if route_back is defined %}
+							<div class="col-4 text-right">
+								<a class="btn-secondary btn w-75" href="{{ route_back }}">{% trans %}Cancel{% endtrans %}</a>
+							</div>
+						{% endif %}
+					<div class="col-4 text-center">
+						<button type="submit" name="submit" value="save" form="form" class="btn-primary btn w-75">{% trans %}Save{% endtrans %}</button>
+					</div>
+					<div class="col-4 text-left">
+						<button type="submit" name="submit" value="save_close" form="form" class="btn-primary btn w-75">{% trans %}Save & Close{% endtrans %}</button>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-4 pt-5">
+			<div id="tabs" class="jumbotron">
+				<ul class="nav nav-tabs" role="tablist">
+					<li class="nav-item">
+						<a class="nav-link active" id="read-tab" data-toggle="tab" href="#read_panel" role="tab" aria-controls="read_panel" aria-selected="true">{% trans %}Read{% endtrans %}</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" id="write-tab" data-toggle="tab" href="#write_panel" role="tab" aria-controls="write_panel" aria-selected="false">{% trans %}Write{% endtrans %}</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" id="excel-tab" data-toggle="tab" href="#excel_panel" role="tab" aria-controls="excel_panel" aria-selected="false">Excel</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" id="misc-tab" data-toggle="tab" href="#misc_panel" role="tab" aria-controls="misc_panel" aria-selected="false">Divers</a>
+					</li>
+				</ul>
+				<div class="tab-content pt-1 collapse show">
+					<div class="tab-pane fade show active" id="read_panel" role="tabpanel" aria-labelledby="read-tab">
+						{% for field in fields %}
+							{% if field.display.program and field.permissions.read %}
+								<div class="ml-5">
+									<button type="button" class="btn btn-sm btn-primary w-100">{{ field.codename }}</button>
+								</div>
+							{% endif %}
+						{% endfor %}
+					</div>
+					<div class="tab-pane fade" id="write_panel" role="tabpanel" aria-labelledby="write-tab">
+						{% for field in fields %}
+							{% if field.display.program and field.permissions.write %}
+								<div class="ml-5">
+									<button type="button" class="btn btn-sm btn-primary w-100">{{ field.codename  }}</button>
+								</div>
+							{% endif %}
+						{% endfor %}
+					</div>
+					<div class="tab-pane fade" id="excel_panel" role="tabpanel" aria-labelledby="excel-tab">
+						<div class="row">
+							<div class="col">
+								{% for field in range('A', 'M') %}
+									<div class="ml-5">
+										<button type="button" class="btn btn-sm btn-primary w-100">{{ field }}</button>
+									</div>
+								{% endfor %}
+					   		</div>
+							<div class="col">
+								{% for field in range('N', 'Z') %}
+									<div class="ml-5">
+										<button type="button" class="btn btn-sm btn-primary w-100">{{ field }}</button>
+									</div>
+								{% endfor %}
+					   		</div>
+						</div>
+
+					</div>
+					<div class="tab-pane fade" id="misc_panel" role="tabpanel" aria-labelledby="misc-tab">
+						{% for field in ['user.name', 'date.now'] %}
+							<div class="ml-5">
+								<button type="button" class="btn btn-sm btn-primary w-100">{{ field }}</button>
+							</div>
+						{% endfor %}
+					</div>
+				</div>
+			</div>
+			
+		</div>
+	</div>
+{% endblock %}
+
+{% block javascripts %}
+	{{ parent() }}
+	{{ encore_entry_script_tags('program') }}
+{% endblock %}

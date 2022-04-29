@@ -19,5 +19,7 @@ export default class extends Controller {
 			this.toast.dispose();
 			this.element.remove();
 		});
+
+		this.dispatch('connected');
 	}
 }

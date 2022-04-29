@@ -11,8 +11,9 @@
 {% macro dropdown(label, items) %}
 	{% set uuid = uuid() %}
 	<li class="nav-item dropdown">
-		<a class="nav-link dropdown-toggle" href="#" id="{{ uuid }}" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-turbo="false">
-			{{ label|trans }}
+		{% set item = label %}
+		<a class="nav-link dropdown-toggle" href="#" id="{{ uuid }}" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-turbo="false"{{ block('attributes') }}>
+			{{ item.name|trans }}
 		</a>
 		<div class="dropdown-menu" aria-labelledby="{{ uuid }}">
 			{% for item in items %}

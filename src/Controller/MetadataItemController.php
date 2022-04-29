@@ -25,7 +25,7 @@ class MetadataItemController extends AbstractController
 	{
 		$project = $metadata->getProject();
 
-		$this->denyAccessUnlessGranted('EDIT_PROJECT', $project);
+		$this->denyAccessUnlessGranted('PROJECT_EDIT', $project);
 		
 		return $this->renderForm('generic/list.html.twig', [
 			'header' => $this->translator->trans('List for the metadata') . ' : ' . $metadata->getName(),
@@ -42,7 +42,7 @@ class MetadataItemController extends AbstractController
 	{
 		$project = $metadata->getProject();
 
-		$this->denyAccessUnlessGranted('EDIT_PROJECT', $project);
+		$this->denyAccessUnlessGranted('PROJECT_EDIT', $project);
 
 		$metadataItem = new MetadataItem();
 		$metadataItem->setMetadata($metadata);
@@ -72,7 +72,7 @@ class MetadataItemController extends AbstractController
 	{
 		$project = $metadataItem->getMetadata()->getProject();
 
-		$this->denyAccessUnlessGranted('EDIT_PROJECT', $project);
+		$this->denyAccessUnlessGranted('PROJECT_EDIT', $project);
 
 		$form = $this->createForm(MetadataItemType::class, $metadataItem);
 		$form->handleRequest($request);
@@ -99,7 +99,7 @@ class MetadataItemController extends AbstractController
 	{
 		$project = $metadataItem->getMetadata()->getProject();
 
-		$this->denyAccessUnlessGranted('EDIT_PROJECT', $project);
+		$this->denyAccessUnlessGranted('PROJECT_EDIT', $project);
 
 		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
 			$entityManager = $this->doctrine->getManager();

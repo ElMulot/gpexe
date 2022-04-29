@@ -1,0 +1,46 @@
+{% extends 'layout.html.twig' %}
+{% import "macros/_nav.html.twig" as nav %}
+
+{% block stylesheets %}
+	{{ encore_entry_link_tags('main') }}
+	{{ parent() }}
+{% endblock %}
+
+{% block navbar %}
+	{{ include('navbar/_main.html.twig') }}
+{% endblock %}
+
+{% block content %}
+	<div class="container-lg">
+		<turbo-frame id="projects">
+			<div class="row row-cols-auto">
+				{% for project in projects %}
+					<div class="col pt-5">
+						<div class="card card-width">
+							<div class="card-header">{{ project.name }}</div>
+							<div class="card-body align-self-center">
+								<a class="btn btn-project" href="{{ path('project', {'project': project.id}) }}" target="_top" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-original-title="{{ project.name }}">
+									{% if project.image is not empty %}
+										<img src="{{ asset(uploads_directory ~ '/' ~ project.image) }}" alt="{{ project.name }}">
+									{% else %}
+										<div></div>
+									{% endif %}
+								</a>
+							</div>
+							<div class="card-body text-end">
+								{% if is_granted('PROJECT_EDIT', project) %}
+									<a class="btn btn-sm btn-success" href="{{ path('project_edit', {'project': project.id}) }}" data-turbo-frame="xl_modal" data-turbo-stream-replace="projects">{% trans %}Edit{% endtrans %}</a>
+								{% endif %}
+								{% if is_granted('PROJECT_DELETE', project) %}
+									<a class="btn btn-sm btn-danger" href="{{ path('project_delete', {'project': project.id}) }}" data-turbo-frame="xl_modal" data-turbo-stream-replace="projects">{% trans %}Delete{% endtrans %}</a>
+								{% endif %}
+							</div>
+						</div>
+					</div>
+				{% else %}
+					<div class="col">{% trans %}Empty list{% endtrans %}</div>
+				{% endfor %}
+			</div>
+		</turbo-frame>
+	</div>
+{% endblock %}

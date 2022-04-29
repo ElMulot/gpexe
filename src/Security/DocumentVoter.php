@@ -18,7 +18,7 @@ class DocumentVoter extends Voter
 
     protected function supports(string $attribute, $subject): bool
     {
-        if (!in_array($attribute, ['SHOW_DOCUMENT_DETAIL', 'EDIT_DOCUMENT', 'MOVE_DOCUMENT', 'DELETE_DOCUMENT'])) {
+        if (!in_array($attribute, ['DOCUMENT_SHOW_DETAIL', 'DOCUMENT_EDIT', 'DOCUMENT_MOVE', 'DOCUMENT_DELETE'])) {
             return false;
         }
 
@@ -54,10 +54,11 @@ class DocumentVoter extends Voter
         }
 
         return $this->security->isGranted('ROLE_USER') && $project->hasUser($user) && match($attribute) {
-            'SHOW_DOCUMENT_DETAIL' => $user->getCompany() === $serie->getCompany(),
-            'EDIT_DOCUMENT' => $this->security->isGranted('EDITOR'),
-            'MOVE_DOCUMENT' => $this->security->isGranted('EDITOR'),
-            'DELETE_DOCUMENT' => $this->security->isGranted('EDITOR'),
+            'DOCUMENT_SHOW_DETAIL' => $user->getCompany() === $serie->getCompany(),
+            'DOCUMENT_EDIT' => $this->security->isGranted('EDITOR'),
+            'DOCUMENT_MOVE' => $this->security->isGranted('EDITOR'),
+            'DOCUMENT_DELETE' => $this->security->isGranted('EDITOR'),
+            default => throw new \LogicException('This code should not be reached!')
         };
     }
 }

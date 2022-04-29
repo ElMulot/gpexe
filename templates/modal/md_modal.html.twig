@@ -1,4 +1,4 @@
-<turbo-frame id="md_modal">
+<turbo-frame id="md_modal"{% if src is defined %} src="{{ src }}"{% endif %}>
 	<div class="modal fade" tabindex="-1" aria-labelledby="md_modal_label" aria-hidden="true" {{ stimulus_controller('modal') }}>
 		<div class="modal-dialog modal-md">
 			<div class="modal-content">

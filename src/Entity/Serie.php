@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Entity\Enum\CompanyTypeEnum;
 use App\Entity\Enum\MetadataTypeEnum;
+use App\Entity\Enum\SerieBelongingEnum;
 use App\Helpers\Date;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -205,6 +206,14 @@ class Serie implements \Stringable
 		return $this;
 	}
 
+	public function getBelonging(): ?string
+	{
+		return match ($this->getCompany()->getType()) {
+			CompanyTypeEnum::MAIN_CONTRACTOR							=> SerieBelongingEnum::MDR,
+			CompanyTypeEnum::SUB_CONTRACTOR, CompanyTypeEnum::SUPPLIER	=> SerieBelongingEnum::SDR,
+		};
+	}
+
 	public function belongToMDR(): bool
 	{
 		return ($this->getCompany()->getType() == CompanyTypeEnum::MAIN_CONTRACTOR);
@@ -213,14 +222,6 @@ class Serie implements \Stringable
 	public function belongToSDR(): bool
 	{
 		return ($this->getCompany()->getType() == CompanyTypeEnum::SUB_CONTRACTOR || $this->getCompany()->getType() == CompanyTypeEnum::SUPPLIER);
-	}
-
-	public function getType(): ?string
-	{
-		return match ($this->getCompany()->getType()) {
-			CompanyTypeEnum::MAIN_CONTRACTOR							=> 'mdr',
-			CompanyTypeEnum::SUB_CONTRACTOR, CompanyTypeEnum::SUPPLIER	=> 'sdr',
-		};
 	}
 
 	public function getMetadataValue(Metadata $metadata)
@@ -259,6 +260,7 @@ class Serie implements \Stringable
 				break;
 			case MetadataTypeEnum::DATE:
 				if (is_string($value)) {
+					/** @var Date $date */
 					$date = Date::fromFormat($value);
 					if ($date->isValid() === false) {
 						$value = null;

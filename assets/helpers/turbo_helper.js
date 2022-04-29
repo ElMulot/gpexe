@@ -20,6 +20,12 @@ const TurboHelper = class {
 
 	constructor() {
 
+		//loading animation for instant loading turbo-frame
+		document.querySelectorAll('turbo-frame[src]').forEach(e => {
+			this.renderLoading(e);
+		});
+
+
 		//clear document before caching
 		document.addEventListener('turbo:before-cache', event => {
 			this.closeAllModals();
@@ -49,8 +55,9 @@ const TurboHelper = class {
 			});
 			
 			const frameId = event.detail.fetchOptions.headers['Turbo-Frame'];
-			if (frameId !== undefined) {
-				document.querySelectorAll(`#${frameId}`).forEach(e => this.renderLoading(e));
+			
+			if (frameId) {
+				this.renderLoading(document.getElementById(frameId));
 			} else {
 				this.renderLoading();
 			}
@@ -67,7 +74,12 @@ const TurboHelper = class {
 					return;
 				}
 			}
-			
+
+			//if stream, disable the loading animation
+			if (event.detail.fetchResponse.response.headers.get('content-type').includes('turbo-stream')) {
+				this.clearLoadingComponents();
+			}
+
 			//redirect to a full page (for instance redirect to login page if user is not yet logged in)
 			const fetchResponse = event.detail.fetchResponse;
 			const redirectLocation = fetchResponse.response.headers.get('Turbo-Location');
@@ -96,6 +108,11 @@ const TurboHelper = class {
 					e.dispatchEvent(new Event('modal:open'));
 				}
 			});
+
+			//loading animation for instant loading turbo-frame
+			document.querySelectorAll('turbo-frame[src][busy]').forEach(e => {
+				this.renderLoading(e);
+			});
 		});
 	}
 
@@ -113,6 +130,7 @@ const TurboHelper = class {
 	}
 
 	clearLoadingComponents() {
+		document.querySelectorAll('frame-loading-component').forEach(e => e.remove());
 		document.querySelectorAll('loading-component').forEach(e => e.remove());
 		document.querySelectorAll('#navbarContent').forEach(e => e.classList.remove('invisible'));
 	}
@@ -133,7 +151,9 @@ const TurboHelper = class {
 				document.body.appendChild(document.createElement('loading-component'));
 			}
 		} else {
-			e.appendChild(document.createElement('frame-loading-component'));
+			if (e.getElementsByTagName('frame-loading-component').length === 0) {
+				e.appendChild(document.createElement('frame-loading-component'));
+			}
 		}
 	}
 

@@ -23,7 +23,7 @@ class StatusController extends AbstractController
 	#[Route(path: '/project/{project}/status', name: 'status', requirements: ['project' => '\d+'])]
 	public function index(StatusRepository $statusRepository, Project $project) : Response
 	{
-		$this->denyAccessUnlessGranted('SHOW_STATUS', $project);
+		$this->denyAccessUnlessGranted('STATUS_SHOW', $project);
 
 		return $this->renderForm('generic/list.html.twig', [
 			'title' => $this->translator->trans('Statuses for') . ' : ' . $project->getName(),
@@ -35,7 +35,7 @@ class StatusController extends AbstractController
 	#[Route(path: '/project/{project}/status/new', name: 'status_new', requirements: ['project' => '\d+'])]
 	public function new(Request $request, Project $project) : Response
 	{
-		$this->denyAccessUnlessGranted('NEW_STATUS', $project);
+		$this->denyAccessUnlessGranted('STATUS_NEW', $project);
 
 		$status = new Status();
 		$status->setProject($project);
@@ -68,7 +68,7 @@ class StatusController extends AbstractController
 	{
 		$project = $status->getProject();
 
-		$this->denyAccessUnlessGranted('EDIT_STATUS', $project);
+		$this->denyAccessUnlessGranted('STATUS_EDIT', $project);
 
 		$form = $this->createForm(StatusType::class, $status);
 		$form = $this->createForm(StatusType::class, $status);
@@ -100,7 +100,7 @@ class StatusController extends AbstractController
 	{
 		$project = $status->getProject();
 		
-		$this->denyAccessUnlessGranted('DELETE_STATUS', $project);
+		$this->denyAccessUnlessGranted('STATUS_DELETE', $project);
 		
 		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
 			$entityManager = $this->doctrine->getManager();

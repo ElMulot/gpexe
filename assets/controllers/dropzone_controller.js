@@ -29,7 +29,6 @@ export default class extends Controller {
         uploadsDirectory: String,
 		name: String,
 		mimeType: String,
-		iconPath: String,
     }
 
 	connect() {
@@ -54,6 +53,8 @@ export default class extends Controller {
 			});
 		}
 
+		this.dispatch('connected');
+
 	}
 
 	onInputChange() {
@@ -62,19 +63,21 @@ export default class extends Controller {
         if (typeof file === 'undefined') {
             return;
         }
-
+		
 		//check if uploaded file match the requested mime type
 		if (file.type && this.mimeTypeValue.match(/^\w+\/[-+.\w*]+$/g) !== null) {
 			if (file.type.includes(this.mimeTypeValue.replace('*', '')) === false) {
 				return;
 			}
 		}
-
-        // Hide the input and placeholder
+		
+		// Hide the input and placeholder
         this.inputTarget.style.display = 'none';
         this.placeholderTarget.style.display = 'none';
 		this.previewClearButtonTarget.style.display = 'block';
 		this.previewImageTarget.style.display = 'block';
+		this.previewImageTarget.className = '';
+		this.previewImageTarget.style = '';
 		this.previewTarget.style.display = 'flex';
 
         // Show the filename in preview if not image + icon or image
@@ -83,8 +86,7 @@ export default class extends Controller {
 			this.previewImageTarget.style.width = this.imageWidth + 'px';
 			this.previewImageTarget.style.height = this.imageHeight + 'px';
 			const src = URL.createObjectURL(file);
-			this.previewImageTarget.src = src;
-
+			this.previewImageTarget.style.backgroundImage = `url("${src}")`;
 			if (this.nameValue === '') { //new upload
 				this.imageTarget.innerHTML = `<img class="mw-100" src="${src}" />`;
 				this.nameValue = '';
@@ -93,10 +95,8 @@ export default class extends Controller {
 
 		} else {
 			this.previewFilenameTarget.textContent = file.name;
-			this.previewImageTarget.style.width = '50px';
-			this.previewImageTarget.style.height = '50px';
-			const src = this.iconPathValue;
-			this.previewImageTarget.src = src;
+			this.previewImageTarget.style.fontSize = "2rem";
+			this.previewImageTarget.classList.add('bi', 'bi-' + this.getfileEarmark(file));
 		}
     }
 
@@ -152,5 +152,42 @@ export default class extends Controller {
         this.previewImageTarget.style.display = 'none';
         // this.previewImageTarget.style.backgroundImage = 'none';
         this.previewFilenameTarget.textContent = '';
+	}
+
+	getFileExtension(filename) {
+		return filename.slice((filename.lastIndexOf(".") - 1 >>> 0) + 2);
+	}
+
+	getfileEarmark(file) {
+
+		switch (this.getFileExtension(file.name)) {
+			
+			case '':
+				return 'file-earmark';
+
+			case 'pdf':
+				return 'file-earmark-pdf';
+
+			case 'doc':
+			case 'docx':
+			case 'docm':
+			case 'dot':
+			case 'dotx':
+			case 'dotm':
+				return 'file-earmark-word';
+
+			case 'xls':
+			case 'xlsx':
+			case 'xlxm':
+			case 'xlt':
+			case 'xltx':
+			case 'xltm':
+			case 'xlsb':
+				return 'file-earmark-spreadsheet';
+			
+			default:
+				return 'file-earmark-' + this.getFileExtension(filename);
+
+		}
 	}
 }

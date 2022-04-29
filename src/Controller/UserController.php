@@ -24,7 +24,7 @@ class UserController extends AbstractController
 	#[Route(path: '/user', name: 'user')]
 	public function index(UserRepository $userRepository) : Response
 	{
-		return $this->renderForm('user/index.html.twig', [
+		return $this->renderForm('pages/user/index.html.twig', [
 			'class' => User::class,
 			'entities' => $userRepository->findAll(),
 		]);
@@ -39,6 +39,7 @@ class UserController extends AbstractController
 
 		if ($form->isSubmitted() && $form->isValid()) {
 			$user->setPassword($this->passwordHasher->hashPassword($user, $user->getPassword()));
+			$user->setCreatedOn(new \DateTime());
 			$entityManager = $this->doctrine->getManager();
 			$entityManager->persist($user);
 			$entityManager->flush();

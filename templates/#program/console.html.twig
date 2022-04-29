@@ -1,0 +1,15 @@
+{% for label, messages in app.flashes %}
+	{% for message in messages %}
+		<div class="text-{{ label }}">{{ message }}.</div>
+	{% endfor %}
+{% endfor %}
+
+{% if redirect == constant('App\\Service\\Code\\ProgramCache::PRELOAD') %}
+	<a class="active" data-toggle="ajax" data-url="{{ path('program_preload', {'program': program.id}) }}" data-target="#output"></a>
+{% elseif redirect == constant('App\\Service\\Code\\ProgramCache::LOAD') %}
+	<a class="active" data-toggle="ajax" data-url="{{ path('program_load', {'program': program.id}) }}" data-target="#output"></a>
+{% elseif redirect == constant('App\\Service\\Code\\ProgramCache::NEW_BATCH') %}
+	<a class="active" data-toggle="ajax" data-url="{{ path('program_console', {'program': program.id}) }}" data-target="#console"></a>
+{% elseif redirect == constant('App\\Service\\Code\\ProgramCache::COMPLETED') %}
+	<a class="active" data-toggle="ajax" data-url="{{ path('program_completed', {'program': program.id}) }}" data-target="#output"></a>
+{% endif %}

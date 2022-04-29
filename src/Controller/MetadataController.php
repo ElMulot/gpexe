@@ -23,7 +23,7 @@ class MetadataController extends AbstractController
 	#[Route(path: '/project/{project}/metadata', name: 'metadata', requirements: ['project' => '\d+'])]
 	public function index(MetadataRepository $metadataRepository, Project $project) : Response
 	{
-		$this->denyAccessUnlessGranted('EDIT_PROJECT', $project);
+		$this->denyAccessUnlessGranted('PROJECT_EDIT', $project);
 
 		return $this->renderForm('generic/list.html.twig', [
 			'title' => $this->translator->trans('Metadatas for') . ' : ' . $project->getName(),
@@ -35,7 +35,7 @@ class MetadataController extends AbstractController
 	#[Route(path: '/project/{project}/metadata/new', name: 'metadata_new', requirements: ['project' => '\d+'])]
 	public function new(Request $request, Project $project) : Response
 	{
-		$this->denyAccessUnlessGranted('EDIT_PROJECT', $project);
+		$this->denyAccessUnlessGranted('PROJECT_EDIT', $project);
 
 		$metadata = new Metadata();
 		$metadata->setProject($project);
@@ -68,7 +68,7 @@ class MetadataController extends AbstractController
 	{
 		$project = $metadata->getProject();
 
-		$this->denyAccessUnlessGranted('EDIT_PROJECT', $project);
+		$this->denyAccessUnlessGranted('PROJECT_EDIT', $project);
 
 		$form = $this->createForm(MetadataType::class, $metadata);
 		$form->handleRequest($request);
@@ -98,7 +98,7 @@ class MetadataController extends AbstractController
 	{
 		$project = $metadata->getProject();
 
-		$this->denyAccessUnlessGranted('EDIT_PROJECT', $project);
+		$this->denyAccessUnlessGranted('PROJECT_EDIT', $project);
 		
 		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
 			$entityManager = $this->doctrine->getManager();

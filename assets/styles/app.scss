@@ -6,11 +6,14 @@
 @import "~bootstrap/scss/utilities/api";
 @import "~bootstrap/scss/helpers";
 @import "~bootstrap/scss/modal";
+@import "~bootstrap/scss/bootstrap";
 @import "~bootswatch/dist/slate/bootswatch";
 
 // --------------------
 // General
 // --------------------
+
+$btn-padding-x: 0.5rem;
 
 small {
 	display: block;
@@ -21,7 +24,7 @@ button:focus {
     box-shadow: none !important;
 }
 
-a {
+a, button {
 	cursor: pointer;
 	@extend .text-truncate;
 }
@@ -31,6 +34,11 @@ a {
 	&.btn-danger {
 		width: 6rem;
 	}
+}
+
+.form-check-input:checked {
+	background-color: $gray-900;
+	border-color: $gray-900;
 }
 
 // --------------------
@@ -68,7 +76,17 @@ a {
 	border-right: $nav-tabs-border-width solid $nav-tabs-border-color;
 	border-bottom: $nav-tabs-border-width solid $nav-tabs-border-color;
 	@include border-bottom-radius($border-radius);
-	min-height: 4rem;
+}
+
+// --------------------
+// Button
+// --------------------
+
+.btn-width {
+	width: 10rem;
+	&.btn-group > .btn {
+		@extend .text-truncate;
+	}
 }
 
 // --------------------
