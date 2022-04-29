@@ -5,8 +5,8 @@
 # https://symfony.com/doc/current/best_practices/configuration.html#application-related-configuration
 parameters:
     webmaster: 'Nicolas VEDEL'
-    version: 0.5.9
-    date: 22-04-2022
+    version: 0.5.10
+    date: 29-04-2022
     disable_log: true
     uploads_directory: 'uploads'
     container.dumper.inline_factories: true

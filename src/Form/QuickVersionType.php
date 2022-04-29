@@ -171,7 +171,7 @@ class QuickVersionType extends AbstractType
 						'format' => 'dd-MM-yyyy',
 						'html5' => false,
 						'mapped' => false,
-				        'data' => Date::fromFormat($this->propertyService->toString($version->getPropertyValue($field['codename']))),
+				        'data' => ($version->getPropertyValue($field['codename']) != '')?Date::fromFormat($version->getPropertyValue($field['codename'])):null,
 					]);
 					break;
 					
