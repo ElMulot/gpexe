@@ -54,9 +54,9 @@ class FiltersExtension extends AbstractExtension
 		return $value;
 	}
 	
-	public function toString($property, Metadata $metadata = null)
+	public function toString($property)
 	{
-		return $this->propertyService->toString($property, $metadata);
+		return $this->propertyService->toString($property);
 	}
 }
 

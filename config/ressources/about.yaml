@@ -144,3 +144,13 @@
     date: 22/04/2022
     changes:
         - Correction de bugs
+- 
+    version: 0.5.10
+    date: 29/04/2022
+    changes:
+        - Correction d'un bug d'affichage de la date
+- 
+    version: 0.5.11
+    date: 06/05/2022
+    changes:
+        - Correction d'un bug lors d'une modifiation rapide d'un champ

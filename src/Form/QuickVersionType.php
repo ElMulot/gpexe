@@ -2,27 +2,30 @@
 
 namespace App\Form;
 
-use App\Entity\Metadata;
-use App\Entity\MetadataItem;
-use App\Entity\Status;
 use App\Entity\User;
-use App\Entity\Version;
 use App\Entity\Visa;
 use App\Helpers\Date;
-use App\Repository\MetadataRepository;
+use App\Entity\Status;
+use App\Entity\Version;
+use Spatie\Regex\Regex;
+use App\Entity\Metadata;
+use App\Entity\MetadataItem;
+use App\Entity\MetadataValue;
+use App\Service\PropertyService;
 use App\Repository\UserRepository;
 use App\Repository\VisaRepository;
-use App\Service\PropertyService;
-use Spatie\Regex\Regex;
-use Symfony\Bridge\Doctrine\Form\Type\EntityType;
+use App\Repository\MetadataRepository;
 use Symfony\Component\Form\AbstractType;
+use function PHPUnit\Framework\isInstanceOf;
+use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Form\FormBuilderInterface;
-use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
+
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
-use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Security\Core\Security;
 
 class QuickVersionType extends AbstractType
 {
@@ -166,12 +169,15 @@ class QuickVersionType extends AbstractType
 					break;
 					
 				case Metadata::DATE:
-				    $builder->add($field['id'], DateType::class, $options + [
+					if ($data = $version->getPropertyValue($field['codename'])) {
+						if ($data instanceof MetadataValue) $data = new \DateTime($data->getValue());
+					}
+					$builder->add($field['id'], DateType::class, $options + [
 						'widget' => 'single_text',
 						'format' => 'dd-MM-yyyy',
 						'html5' => false,
 						'mapped' => false,
-				        'data' => Date::fromFormat($this->propertyService->toString($version->getPropertyValue($field['codename']))),
+				        'data' => $data,
 					]);
 					break;
 					
