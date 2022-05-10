@@ -142,12 +142,6 @@ deleted:
             one   {Révision supprimée}
             other {Révisions supprimées}
         }
-      
-notEmpty:
-    field: 'Le champ "{field}" ne doit pas être vide'
-
-alreadyExist:
-    reference: 'La référence "{reference}" existe déjà'
 
 alert:
     prod:

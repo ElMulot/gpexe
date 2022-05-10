@@ -1,37 +1,29 @@
-<turbo-stream action="update" target="header">
-	<template>
-		<tr {{ stimulus_controller('header') }}>
-			<th id="selector">
-				<div class="btn-group">
-					<div class="btn btn-sm btn-primary rounded-0 py-2">
-						<input class="form-check-input" type="checkbox" id="check_all">
-					</div>
-				</div>
-			</th>
-			{% for field in fields %}
+<ul class="nav nav-tabs" role="tablist" {{ stimulus_controller('nav') }}>
 
-				{% if field.id in query.display|keys and field.display.header is same as(true) %}
+	<li class="nav-item" role="presentation">
+		<button type="button" class="nav-link active" id="view_label" data-bs-toggle="tab" data-bs-target="#view_pannel" role="tab" aria-controls="view_pannel" aria-selected="true">
+			View
+		</button>
+	</li>
+	<li class="nav-item" role="presentation">
+		<button type="button" class="nav-link disabled" id="serie_label" data-bs-toggle="tab" data-bs-target="#serie_pannel" role="tab" aria-controls="serie_pannel" aria-selected="none">
+			Series
+		</button>
+	</li>
+	<li class="nav-item" role="presentation">
+		<button type="button" class="nav-link" id="progress_label" data-bs-toggle="tab" data-bs-target="#progress_pannel" role="tab" aria-controls="progress_pannel" aria-selected="none">
+			Progress
+		</button>
+	</li>
+</ul>
+<div class="tab-content" {{ stimulus_target('engineering--main', 'navContainer') }}>
+	<turbo-frame class="tab-pane fade show active" id="view_pannel" role="tabpanel" aria-labelledby="view_label" src="{{ path('view', {'project': project.id}) }}">
+		
+	</turbo-frame>
+	<turbo-frame class="tab-pane fade" id="serie_pannel" role="tabpanel" aria-labelledby="serie_label"{% if display_serie_select is same as(false) and display_serie_new is same as (false) %} src="{{ path('serie', {'project': project.id, 'id': series|map(v => v.id) }) }}"{% endif %}>
 
-					{% if field.id == 'document_reference' %}
-						{{ include('pages/engineering/index/header/_document_reference.html.twig') }}
-					{% elseif field.type == 'BOOLEAN'|enum_constant('metadata_type_enum') %}
-						{{ include('pages/engineering/index/header/_boolean.html.twig') }}
-					{% elseif field.type == 'TEXT'|enum_constant('metadata_type_enum') %}
-						{{ include('pages/engineering/index/header/_text.html.twig') }}
-					{% elseif field.type == 'DATE'|enum_constant('metadata_type_enum') %}
-						{{ include('pages/engineering/index/header/_date.html.twig') }}
-					{% elseif field.type == 'LINK'|enum_constant('metadata_type_enum') %}
-						{{ include('pages/engineering/index/header/_link.html.twig') }}
-					{% elseif field.type == 'LIST'|enum_constant('metadata_type_enum') %}
-						{{ include('pages/engineering/index/header/_list.html.twig') }}
-					{% endif %}
-					
-				{% endif %}
+	</turbo-frame>
+	<turbo-frame class="tab-pane fade" id="progress_pannel" role="tabpanel" aria-labelledby="progress_label">
 
-			{% endfor %}
-
-		</tr>
-	</template>
-</turbo-stream>
-
-
+	</turbo-frame>
+</div>

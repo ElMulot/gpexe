@@ -6,14 +6,14 @@ use Fresh\DoctrineEnumBundle\DBAL\Types\AbstractEnumType;
 
 final class MetadataTypeEnum extends AbstractEnumType
 {
-	public final const BOOLEAN  = 'boolean';
+	public final const BOOL  	= 'bool';
 	public final const TEXT		= 'text';
 	public final const DATE		= 'date';
 	public final const LINK		= 'link';
 	public final const LIST		= 'list';
 	
 	protected static array $choices = [
-		self::BOOLEAN			=> 'Checkbox',
+		self::BOOL				=> 'Checkbox',
 		self::TEXT				=> 'Text',
 		self::DATE				=> 'Date',
 		self::LINK				=> 'Link',

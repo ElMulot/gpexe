@@ -1,0 +1,42 @@
+<turbo-stream action="update" target="thead">
+	<template>
+		<tr {{ stimulus_controller('engineering--thead') }}>
+			<th style="width: 2rem;">
+				<div class="btn-group">
+					<div class="btn btn-sm btn-primary rounded-0 py-2">
+						<input class="form-check-input" type="checkbox" id="check_all">
+					</div>
+				</div>
+			</th>
+			{% for field in fields %}
+
+				{% if field.id in query.display|keys and field.display.thead is same as(true) %}
+
+					{% if field.id == 'document_reference' %}
+						{{ include('pages/engineering/index/thead/_document_reference.html.twig') }}
+					{% elseif field.type == 'BOOL'|enum_constant('metadata_type_enum') %}
+						{{ include('pages/engineering/index/thead/_boolean.html.twig') }}
+					{% elseif field.type == 'TEXT'|enum_constant('metadata_type_enum') %}
+						{{ include('pages/engineering/index/thead/_text.html.twig') }}
+					{% elseif field.type == 'DATE'|enum_constant('metadata_type_enum') %}
+						{{ include('pages/engineering/index/thead/_date.html.twig') }}
+					{% elseif field.type == 'LINK'|enum_constant('metadata_type_enum') %}
+						{{ include('pages/engineering/index/thead/_link.html.twig') }}
+					{% elseif field.type == 'LIST'|enum_constant('metadata_type_enum') %}
+						{{ include('pages/engineering/index/thead/_list.html.twig') }}
+					{% endif %}
+					
+				{% endif %}
+
+			{% endfor %}
+			<th style="width: 6rem;">
+				<div class="d-inline-flex">
+					{{ include('pages/engineering/index/thead/_fields_picker.html.twig') }}
+					{{ include('pages/engineering/index/thead/_filters_picker.html.twig') }}
+				</div>
+			</th>
+		</tr>
+	</template>
+</turbo-stream>
+
+

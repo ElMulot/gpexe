@@ -5,19 +5,18 @@ namespace App\Controller;
 use App\Entity\User;
 use App\Form\NewUserType;
 use App\Form\EditUserType;
-use Symfony\UX\Turbo\TurboBundle;
 use App\Repository\UserRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
-class UserController extends AbstractController
+class UserController extends AbstractTurboController
 {
 	
-	public function __construct(private readonly ManagerRegistry $doctrine, private readonly UserPasswordHasherInterface $passwordHasher)
+	public function __construct(private readonly ManagerRegistry $doctrine,
+								private readonly UserPasswordHasherInterface $passwordHasher)
 	{
 	}
 	
@@ -46,10 +45,7 @@ class UserController extends AbstractController
 			
 			$this->addFlash('success', 'New entry created');
 
-			$request->setRequestFormat(TurboBundle::STREAM_FORMAT);
-			return $this->renderForm('generic/success.stream.html.twig', [
-				'redirect' => $this->generateUrl('user'),
-			]);
+			return $this->renderSuccess($request, 'user');
 
 		} else {
 
@@ -75,10 +71,7 @@ class UserController extends AbstractController
 			
 			$this->addFlash('success', 'Datas updated');
 
-			$request->setRequestFormat(TurboBundle::STREAM_FORMAT);
-			return $this->renderForm('generic/success.stream.html.twig', [
-				'redirect' => $this->generateUrl('user'),
-			]);
+			return $this->renderSuccess($request, 'user');
 
 		} else {
 
@@ -99,10 +92,7 @@ class UserController extends AbstractController
 			
 			$this->addFlash('success', 'Entry deleted');
 
-			$request->setRequestFormat(TurboBundle::STREAM_FORMAT);
-			return $this->renderForm('generic/success.stream.html.twig', [
-				'redirect' => $this->generateUrl('company'),
-			]);
+			return $this->renderSuccess($request, 'company');
 
 		} else {
 

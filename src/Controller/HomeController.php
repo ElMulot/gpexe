@@ -12,13 +12,15 @@ use App\Repository\ProjectRepository;
 use App\Repository\VersionRepository;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 
-class HomeController extends AbstractController
+class HomeController extends AbstractTurboController
 {
 	
-	public function __construct(private readonly FieldService $fieldService, private readonly ProjectRepository $projectRepository, private readonly VersionRepository $versionRepository, private readonly StatusRepository $statusRepository)
+	public function __construct(private readonly FieldService $fieldService,
+								private readonly ProjectRepository $projectRepository,
+								private readonly StatusRepository $statusRepository,
+								private readonly VersionRepository $versionRepository)
 	{
 	}
 	
@@ -34,7 +36,7 @@ class HomeController extends AbstractController
 	public function alert(Project $project) : Response
 	{
 		$fields = $this->fieldService->getFields($project);
-		$company = $this->getUser()->getCompany();
+		$company = $this->getUserCompany();
 		$prodSettings = [
 			'display' => [
 				'document_reference' => $fields['document.reference']['default_width'],
@@ -96,11 +98,6 @@ class HomeController extends AbstractController
 		return $this->renderForm('pages/main/about.html.twig', [
 			'items' => Yaml::parseFile($this->getParameter('kernel.project_dir') . '/config/ressources/about.yaml'),
 		]);
-	}
-
-	public function getUser(): User
-	{
-		return parent::getUser();
 	}
 	
 }

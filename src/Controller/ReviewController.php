@@ -11,10 +11,9 @@ use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
-
-class ReviewController extends AbstractController
+//todo : à mettre à jour complètement
+class ReviewController extends AbstractTurboController
 {   
 	
 	public function __construct(private readonly ManagerRegistry $doctrine)
@@ -170,10 +169,5 @@ class ReviewController extends AbstractController
 				'company' => $company,
 			]);
 		}
-	}
-	
-	public function getUser(): User
-	{
-		return parent::getUser();
 	}
 }

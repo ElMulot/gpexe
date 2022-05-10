@@ -23,7 +23,8 @@ class FiltersExtension extends AbstractExtension
 			new TwigFilter('to_string', [$this, 'toString']),
 			new TwigFilter('title', [$this, 'getTitle']),
 			new TwigFilter('type', [$this, 'getType']),
-			
+			new TwigFilter('turbo_stream_header_to_array', [$this, 'turboStreamHeaderToArray']),
+			new TwigFilter('turbo_stream_header_to_string', [$this, 'turboStreamHeaderToString']),			
 		];
 	}
 
@@ -69,6 +70,26 @@ class FiltersExtension extends AbstractExtension
 			return $this->entityManager->getClassMetadata($class)->getTypeOfField($header);
 		}
 	}
+
+    public function turboStreamHeaderToArray(?string $json): array
+	{
+		if ($json == false) {
+			return [];
+		} else {
+			return json_decode($json) ?? [$json];
+		}
+    }
+
+    public function turboStreamHeaderToString(?array $var): string
+	{
+		if ($var == false) {
+			return '';
+		} elseif (count($var) === 1) {
+			return reset($var);
+		} else {
+			return json_encode($var);
+		}
+    }
 }
 
 ?>

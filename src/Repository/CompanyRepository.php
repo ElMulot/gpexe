@@ -93,4 +93,19 @@ class CompanyRepository extends RepositoryService
 			->getArrayResult()
 		;
 	}
+
+	/**
+	 * @return Company[]
+	 */
+	public function getCompaniesBySerieIds(array $ids): array
+	{
+		$qb = $this->newQb('c');
+		
+		return $qb->innerJoin('c.series', 's')
+			->andWhere($qb->in('s.id', $ids))
+			->addOrderBy('c.name')
+			->getQuery()
+			->getResult()
+		;
+	}
 }

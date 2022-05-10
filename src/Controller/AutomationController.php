@@ -6,7 +6,6 @@ use App\Entity\Project;
 use App\Entity\Automation;
 use App\Form\AutomationType;
 use App\Service\ProgramService;
-use Symfony\UX\Turbo\TurboBundle;
 use App\Repository\AutomationRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\HttpFoundation\Request;
@@ -16,12 +15,13 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
-class AutomationController extends AbstractController
+class AutomationController extends AbstractTurboController
 {
 	
-	public function __construct(private readonly ManagerRegistry $doctrine, private readonly AutomationRepository $automationRepository, private readonly ProgramService $programService)
+	public function __construct(private readonly AutomationRepository $automationRepository,
+								private readonly ManagerRegistry $doctrine,
+								private readonly ProgramService $programService)
 	{
 	}
 	
@@ -52,9 +52,8 @@ class AutomationController extends AbstractController
 			
 			$this->addFlash('success', 'Datas updated');
 
-			$request->setRequestFormat(TurboBundle::STREAM_FORMAT);
-			return $this->renderForm('generic/success.stream.html.twig', [
-				'redirect' => $this->generateUrl('automation', ['project' => $automation->getProject()->getId()]),
+			return $this->renderSuccess($request, 'automation', [
+				'project' => $automation->getProject()->getId()
 			]);
 
 		} else {

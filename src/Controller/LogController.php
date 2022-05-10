@@ -5,9 +5,8 @@ namespace App\Controller;
 use App\Repository\LogRepository;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
-class LogController extends AbstractController
+class LogController extends AbstractTurboController
 {
 	
 	public function __construct(private readonly LogRepository $logRepository)

@@ -21,12 +21,13 @@
 	"delete": "Delete",
 	"close": "Close",
 	"cancel": "Annuler",
+	"clear": "Clear",
 	"all": "All",
 	"fromDate": "From date",
 	"toDate": "To date",
-	"highlight": "Highlight",
 	"empty": "Empty",
 	"date": "Date",
 	"cropImage": "Crop image",
-	"crop": "Crop"
+	"crop": "Crop",
+	"today": "Today"
 }

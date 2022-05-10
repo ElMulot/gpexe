@@ -6,7 +6,7 @@ export default class extends Controller {
     static targets = ['button'];
 
     static values = {
-        ids: Array,
+        selected: Number,
     }
 
     static param = {
@@ -14,13 +14,13 @@ export default class extends Controller {
     }
 
     connect() {
-        
+
         if (this.buttonTargets.length === 0) { //no series to display
             document.getElementById('serie_label').classList.add('disabled');
             Tab.getInstance(document.getElementById('view_label')).show();
         } else {
             document.getElementById('serie_label').classList.remove('disabled');
-            this.updateClasses(this.idsValue);
+            this.updateClasses(this.selectedValue);
             this.dispatch('connected');
         }
 
@@ -28,19 +28,24 @@ export default class extends Controller {
     }
 
     update({ params }) {
-        this.updateClasses([params.id]);
+        this.updateClasses(params.id);
     }
 
-    updateClasses(ids) {
+    updateClasses(selected) {
+
+        var ids = [];
+        
         this.buttonTargets.forEach(e => {
-            if (ids.includes(Number(e.dataset.serieIdParam))) {
+            if (selected === 0 || e.getAttribute('data-engineering--serie-id-param') == selected) {
                 e.classList.remove('btn-primary');
                 e.classList.add('btn-outline-primary');
+                ids.push(Number(e.getAttribute('data-engineering--serie-id-param')));
             } else {
                 e.classList.remove('btn-outline-primary');
                 e.classList.add('btn-primary');
             }
         });
+
         this.dispatch('update', { detail: { ids: ids } });
     }
 }

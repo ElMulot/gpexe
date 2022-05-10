@@ -4,53 +4,103 @@
 @import "~bootswatch/dist/slate/bootswatch";
 
 
-form[name="engineering"] {
-	width: 100%;
+$enable-negative-margins: true;
+
+#engineering {
+	height: 100%;
+	min-height: 100%;
 }
 
-.table {
-	margin-left: 1rem;
-	margin-right: 1rem;
-	font-size: 80%;
-	font-weight: 400;
-	width: auto !important;
-	// table-layout: fixed;
+main {
+	height: calc(100% - 2rem);
+	min-height: calc(100% - 2rem);
+	overflow-y: auto;
+}
 
-	> :not(:first-child) {
-		border-top: 0 !important;
+header > .tab-content {
+	height: 6rem;
+	overflow-y: hidden;
+	overflow-x: hidden;
+	transition: height 0.35s ease;
+
+	> turbo-frame {
+		height: 100%;
+
+		> div {
+			height: 100%
+		}
 	}
 }
 
-th {
-	position: sticky;
-	z-index: $zindex-sticky;
-	height: 2.5rem;
-	padding: 0 !important;
+.nav-items {
+	height: calc(100% + 2*map-get($spacers, 3));
+	margin-top: calc(-1 * map-get($spacers, 3)) !important;
+	margin-bottom: calc(-1 * map-get($spacers, 3)) !important;
+	
+	overflow-y: auto;
+	> div {
+		width: 15rem;
+		@extend #{'.mx-2', '.my-3'};
+	}
+}
 
-	.dropdown-toggle {
-		min-width: 2rem;
-		&::after {
-			display: none;
+#table {
+	width: 100%;
+	overflow-y: auto;
+
+	table {
+		margin-left: 1rem;
+		margin-right: 1rem;
+		font-size: 80%;
+		font-weight: 400;
+		width: auto !important;
+		// table-layout: fixed;
+	
+		> :not(:first-child) {
+			border-top: 0 !important;
 		}
 	}
 
-	.dropdown-menu {
-		@include border-top-radius(0);
-	}
+	th {
+		position: sticky;
+		top: 0;
+		// z-index: $zindex-sticky;
+		height: 2.5rem;
+		padding: 0 !important;
 	
-	.dropdown-list {
-		max-height: 20rem;
+		.dropdown-toggle {
+			min-width: 2rem;
+			&::after {
+				display: none;
+			}
+		}
+	
+		.dropdown-menu {
+			@include border-top-radius(0);
+		}
+		
+		.dropdown-list {
+			max-height: 20rem;
+			overflow-y: auto;
+		}
+	
+		label {
+			width: 100%;
+			@extend .text-truncate;
+		}
 	}
 
-	label {
-		width: 100%;
+	td {
+		border: none;
+		line-height: 2rem;
 		@extend .text-truncate;
 	}
-	
 }
 
-td {
-	border: none;
-	line-height: 2rem;
-	@extend .text-truncate;
+.nav-shown {
+	height: calc(100% - 20rem);
+}
+
+.nav-hidden {
+	height: calc(100% - 16rem);
 }

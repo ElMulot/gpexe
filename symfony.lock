@@ -146,9 +146,6 @@
     "phpspec/prophecy": {
         "version": "1.14.0"
     },
-    "phpstan/phpstan": {
-        "version": "1.4.3"
-    },
     "phpunit/php-code-coverage": {
         "version": "9.2.8"
     },
@@ -204,9 +201,6 @@
     },
     "psr/simple-cache": {
         "version": "1.0.1"
-    },
-    "rector/rector": {
-        "version": "0.12.15"
     },
     "sebastian/cli-parser": {
         "version": "1.0.1"

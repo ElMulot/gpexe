@@ -5,23 +5,14 @@
 	{{ parent() }}
 {% endblock %}
 
-{% block body %}
+{% block content %}
 
 	<header class="sticky-top">
-		<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-			<div class="container-fluid">
-				<button class="navbar-toggler ms-auto" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
-					<span class="navbar-toggler-icon"></span>
-				</button>
-				<div id="navbarContent" class="collapse navbar-collapse">
-					{{ block('navbar') }}
-				</div>
-			</div>
-		</nav>
+		{{ block('header') }}
 	</header>
 	
 	<main class="container-fluid d-flex justify-content-center">
-		{{ block('content') }}
+		{{ block('main') }}
 	</main>
 	
 	{{ block('fs_modal') }}
@@ -33,9 +24,22 @@
 	{{ block('md_modal') }}
 
 	<footer id="footer" class="toast-container position-absolute bottom-0 start-50 translate-middle-x pb-3">
-		{% include "generic/_footer.html.twig" %}
+		{{ block('footer') }}
 	</footer>
 
+{% endblock %}
+
+{% block header %}
+	<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+		<div class="container-fluid">
+			<button class="navbar-toggler ms-auto" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+				<span class="navbar-toggler-icon"></span>
+			</button>
+			<div id="navbarContent" class="collapse navbar-collapse">
+				{{ block('navbar') }}
+			</div>
+		</div>
+	</nav>
 {% endblock %}
 
 {% block fs_modal %}
@@ -52,4 +56,8 @@
 
 {% block md_modal %}
 	{% include "modal/md_modal.html.twig" %}
+{% endblock %}
+
+{% block footer %}
+	{% include "generic/_footer.html.twig" %}
 {% endblock %}

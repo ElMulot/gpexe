@@ -229,7 +229,7 @@ class Serie implements \Stringable
 		
 		switch ($metadata->getType()) {
 			
-			case MetadataTypeEnum::BOOLEAN:
+			case MetadataTypeEnum::BOOL:
 			case MetadataTypeEnum::TEXT:
 			case MetadataTypeEnum::DATE:
 			case MetadataTypeEnum::LINK:
@@ -255,7 +255,7 @@ class Serie implements \Stringable
 	{
 		
 		switch ($metadata->getType()) {
-			case MetadataTypeEnum::BOOLEAN:
+			case MetadataTypeEnum::BOOL:
 				$value = ($value)?true:false;
 				break;
 			case MetadataTypeEnum::DATE:
@@ -287,7 +287,7 @@ class Serie implements \Stringable
 		
 		switch ($metadata->getType()) {
 			
-			case MetadataTypeEnum::BOOLEAN:
+			case MetadataTypeEnum::BOOL:
 			case MetadataTypeEnum::TEXT:
 			case MetadataTypeEnum::DATE:
 				foreach ($this->getMetadataValues()->getValues() as $metadataValue) {

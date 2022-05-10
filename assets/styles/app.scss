@@ -15,6 +15,12 @@
 
 $btn-padding-x: 0.5rem;
 
+html, body {
+	height: 100%;
+	min-height: 100%;
+	overflow: hidden;
+}
+
 small {
 	display: block;
     font-size: $font-size-base * .7;

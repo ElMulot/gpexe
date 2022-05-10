@@ -126,7 +126,7 @@ class QuickVersionType extends AbstractType
 					]);
 					break;
 				
-				case MetadataTypeEnum::BOOLEAN:
+				case MetadataTypeEnum::BOOL:
 					$builder->add($field['id'], ChoiceType::class, $options + [
 						'choices' => [
 							'Yes' => true,

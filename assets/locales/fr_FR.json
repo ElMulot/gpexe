@@ -21,12 +21,13 @@
 	"delete": "Supprimer",
 	"close": "Fermer",
 	"cancel": "Annuler",
+	"clear": "Effacer",
 	"all": "Tout",
 	"fromDate": "De",
 	"toDate": "A",
-	"highlight": "Surligner",
 	"empty": "Vide",
 	"date": "Date",
 	"cropImage": "Redimensionner l'image",
-	"crop": "Redimensionner"
+	"crop": "Redimensionner",
+	"today": "Aujourd'hui"
 }

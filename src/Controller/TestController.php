@@ -9,6 +9,7 @@ use Spatie\Regex\Regex;
 use App\Service\Code\Node;
 use Symfony\UX\Turbo\TurboBundle;
 use Doctrine\Persistence\ManagerRegistry;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Component\Stopwatch\Stopwatch;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -21,14 +22,17 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class TestController extends AbstractController
 {
-	
 	public function __construct(private readonly TranslatorInterface $translator, private readonly ManagerRegistry $doctrine)
 	{
 	}
 	
-	#[Route(path: '/test', name: 'test')]
-	public function index() : Response
+    /**
+     * @param int id Id of the post to be highlighted
+     */
+	#[Route(path: '/test', name: 'test', requirements: ['id' => '\d+'])]
+	public function index(Request $request) : Response
 	{
+		dd($request->get('id'));
 		return $this->renderForm('test/index.html.twig', [
 			
 		]);

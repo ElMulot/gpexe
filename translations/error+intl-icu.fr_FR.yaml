@@ -1,0 +1,11 @@
+notEmpty:
+    field: Le champ "{field}" ne doit pas être vide
+
+alreadyExist:
+    reference: La référence "{reference}" existe déjà
+
+notFound:
+    company: Aucune entreprise n'a pu être trouvée
+
+logic:
+    codeNotReached: Ce code ne devrait pas être atteint

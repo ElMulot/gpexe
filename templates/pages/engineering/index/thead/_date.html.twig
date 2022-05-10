@@ -1,0 +1,49 @@
+{% set width = query.display[field.id] ?? field.default_width %}
+
+<th style="width: {{ width }}rem; min-width: {{ width }}rem; max-width: {{ width }}rem;"
+	{{ stimulus_controller('engineering--header', { 'codename': field.codename, 'type': field.type }) }}>
+	<div class="btn-group w-100" role="group">
+		<button type="button" class="btn btn-sm btn-primary rounded-0 w-100 py-2">
+			{{ field.title }}
+		</button>
+		<button type="button" class="btn btn-sm btn-primary dropdown-toggle dropdown-toggle-split rounded-0 px-0 py-2" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside" data-bs-reference="parent" data-bs-offset="0, 0">
+			<i class="bi-funnel"></i>
+		</button>
+		<div class="dropdown-menu">
+			<div style="width:15rem;">
+				<div class="d-flex flex-wrap justify-content-center px-3 pt-2">
+					<button type="button" class="btn btn-sm btn-primary mx-1" {{ stimulus_action('engineering--header', 'sortDesc') }}>
+						<i class="bi bi-arrow-bar-down"></i>
+					</button>
+					<button type="button" class="btn btn-sm btn-primary px-3 mx-1" {{ stimulus_action('engineering--header', 'filter') }}>
+						{% trans %}Filter{% endtrans %}
+					</button>
+					<button type="button" class="btn btn-sm btn-primary mx-1" {{ stimulus_action('engineering--header', 'sortAsc') }}>
+						<i class="bi bi-arrow-bar-up"></i>
+					</button>
+					<div class="input-group input-group-sm m-2">
+						<div class="input-group-text pe-0">
+							<input class="form-check-input mt-0 me-2" type="checkbox" value="" aria-label="Checkbox for following text input">≥
+						</div>
+						<input type="text" class="form-control" aria-label="Text input with checkbox"
+						{{ stimulus_controller('flatpickr', {'mandatory': true, 'todayBtn': true, 'dateFormat': 'd-m-Y' }) }}
+						{{ stimulus_target('engineering--header', 'greaterThan') }}>
+					</div>
+					<div class="input-group input-group-sm m-2">
+						<div class="input-group-text pe-0">
+							<input class="form-check-input mt-0 me-2" type="checkbox" value="" aria-label="Checkbox for following text input">≤
+						</div>
+						<input type="text" class="form-control" aria-label="Text input with checkbox"
+						{{ stimulus_controller('flatpickr', {'mandatory': true, 'todayBtn': true, 'dateFormat': 'd-m-Y' }) }}
+						{{ stimulus_target('engineering--header', 'lessThan') }}>
+					</div>
+					<div class="form-check form-switch w-100 mx-2">
+						<input class="form-check-input" type="checkbox" role="switch" id="switch_{{ field.id }}"
+							{{ stimulus_target('engineering--header', 'highlight') }}>
+						<label class="form-check-label" for="switch_{{ field.id }}">{% trans %}Highlight{% endtrans %}</label>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</th>

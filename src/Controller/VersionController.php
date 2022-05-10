@@ -21,10 +21,9 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 
-class VersionController extends AbstractController
+class VersionController extends AbstractTurboController
 {
 	public function __construct(private readonly TranslatorInterface $translator, private readonly ManagerRegistry $doctrine, private readonly CompanyRepository $companyRepository, private readonly DocumentRepository $documentRepository, private readonly VersionRepository $versionRepository, private readonly MetadataRepository $metadataRepository, private readonly StatusRepository $statusRepository, private readonly AjaxRedirectService $ajaxRedirectService, private readonly DocumentService $documentService, FieldService $fieldService)
 	{
@@ -391,11 +390,6 @@ class VersionController extends AbstractController
 			}
 		}
 		return new Response('');
-	}
-
-	public function getUser(): User
-	{
-		return parent::getUser();
 	}
 	
 	private function isMultiple($form, string $id): bool

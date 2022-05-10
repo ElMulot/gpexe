@@ -90,7 +90,7 @@ class Metadata implements \Stringable
 	public function setType(string $type): self
 	{
 		MetadataTypeEnum::assertValidChoice($type);
-		if ($type === MetadataTypeEnum::BOOLEAN) {
+		if ($type === MetadataTypeEnum::BOOL) {
 			$this->isMandatory = true;
 		}
 		$this->type = $type;
@@ -105,7 +105,7 @@ class Metadata implements \Stringable
 
 	public function setIsMandatory(bool $isMandatory): self
 	{
-		if ($this->type === MetadataTypeEnum::BOOLEAN) {
+		if ($this->type === MetadataTypeEnum::BOOL) {
 			$isMandatory = true;
 		}
 		$this->isMandatory = $isMandatory;
@@ -210,7 +210,7 @@ class Metadata implements \Stringable
 
 	public function isBoolean(): bool
 	{
-		return ($this->getType() == MetadataTypeEnum::BOOLEAN);
+		return ($this->getType() == MetadataTypeEnum::BOOL);
 	}
 
 	public function isText(): bool

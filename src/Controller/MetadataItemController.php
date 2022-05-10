@@ -9,14 +9,14 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Doctrine\Persistence\ManagerRegistry;
 
-
-class MetadataItemController extends AbstractController
+//todo : à mettre à jour complètement
+class MetadataItemController extends AbstractTurboController
 {
 
-	public function __construct(private readonly TranslatorInterface $translator, private readonly ManagerRegistry $doctrine)
+	public function __construct(private readonly ManagerRegistry $doctrine,
+								private readonly TranslatorInterface $translator)
 	{
 	}
 	

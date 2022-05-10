@@ -57,8 +57,8 @@ class FieldService
 				'default_width' => 15,
 				'mandatory' => true,
 				'display' => [
-					'header' => true,
-					'selector' => false,
+					'thead' => true,
+					'filter' => false,
 					'program' => true,
 				],
 				'permissions' => [
@@ -75,8 +75,8 @@ class FieldService
 				'default_width' => 4,
 				'mandatory' => true,
 				'display' => [
-					'header' => true,
-					'selector' => false,
+					'thead' => true,
+					'filter' => false,
 					'program' => true,
 				],
 				'permissions' => [
@@ -93,8 +93,8 @@ class FieldService
 				'default_width' => 30,
 				'mandatory' => true,
 				'display' => [
-					'header' => true,
-					'selector' => false,
+					'thead' => true,
+					'filter' => false,
 					'program' => true,
 				],
 				'permissions' => [
@@ -111,8 +111,8 @@ class FieldService
 				'default_width' => 8,
 				'mandatory' => true,
 				'display' => [
-					'header' => true,
-					'selector' => false,
+					'thead' => true,
+					'filter' => false,
 					'program' => true,
 				],
 				'permissions' => [
@@ -129,8 +129,8 @@ class FieldService
 				'default_width' => 8,
 				'mandatory' => false,
 				'display' => [
-					'header' => true,
-					'selector' => false,
+					'thead' => true,
+					'filter' => false,
 					'program' => true,
 				],
 				'permissions' => [
@@ -147,8 +147,8 @@ class FieldService
 				'default_width' => 8,
 				'mandatory' => false,
 				'display' => [
-					'header' => true,
-					'selector' => false,
+					'thead' => true,
+					'filter' => false,
 					'program' => true,
 				],
 				'permissions' => [
@@ -165,8 +165,8 @@ class FieldService
 				'default_width' => 8,
 				'mandatory' => true,
 				'display' => [
-					'header' => true,
-					'selector' => false,
+					'thead' => true,
+					'filter' => false,
 					'program' => true,
 				],
 				'permissions' => [
@@ -178,13 +178,13 @@ class FieldService
 				'id' =>'version_is_required',
 				'codename' => 'version.isRequired',
 				'title' => $this->translator->trans('Required'),
-				'type' => MetadataTypeEnum::BOOLEAN,
+				'type' => MetadataTypeEnum::BOOL,
 				'parent' => 'version',
 				'default_width' => 8,
 				'mandatory' => true,
 				'display' => [
-					'header' => true,
-					'selector' => false,
+					'thead' => true,
+					'filter' => false,
 					'program' => true,
 				],
 				'permissions' => [
@@ -201,8 +201,8 @@ class FieldService
 				'default_width' => 10,
 				'mandatory' => false,
 				'display' => [
-					'header' => true,
-					'selector' => false,
+					'thead' => true,
+					'filter' => false,
 					'program' => true,
 				],
 				'permissions' => [
@@ -219,8 +219,8 @@ class FieldService
 				'default_width' => 10,
 				'mandatory' => false,
 				'display' => [
-					'header' => true,
-					'selector' => false,
+					'thead' => true,
+					'filter' => false,
 					'program' => true,
 				],
 				'permissions' => [
@@ -237,8 +237,8 @@ class FieldService
 				'default_width' => 10,
 				'mandatory' => false,
 				'display' => [
-					'header' => true,
-					'selector' => false,
+					'thead' => true,
+					'filter' => false,
 					'program' => true,
 				],
 				'permissions' => [
@@ -255,8 +255,8 @@ class FieldService
 				'default_width' => 10,
 				'mandatory' => true,
 				'display' => [
-					'header' => true,
-					'selector' => false,
+					'thead' => true,
+					'filter' => false,
 					'program' => true,
 				],
 				'permissions' => [
@@ -273,8 +273,8 @@ class FieldService
 				'default_width' => 10,
 				'mandatory' => true,
 				'display' => [
-					'header' => true,
-					'selector' => false,
+					'thead' => true,
+					'filter' => false,
 					'program' => true,
 				],
 				'permissions' => [
@@ -291,8 +291,8 @@ class FieldService
 				'default_width' => 10,
 				'mandatory' => true,
 				'display' => [
-					'header' => true,
-					'selector' => false,
+					'thead' => true,
+					'filter' => false,
 					'program' => true,
 				],
 				'permissions' => [
@@ -309,8 +309,8 @@ class FieldService
 				'default_width' => 10,
 				'mandatory' => true,
 				'display' => [
-					'header' => true,
-					'selector' => false,
+					'thead' => true,
+					'filter' => false,
 					'program' => true,
 				],
 				'permissions' => [
@@ -327,8 +327,8 @@ class FieldService
 				'default_width' => 0,
 				'mandatory' => true,
 				'display' => [
-					'header' => false,
-					'selector' => false,
+					'thead' => false,
+					'filter' => false,
 					'program' => true,
 				],
 				'permissions' => [
@@ -348,8 +348,8 @@ class FieldService
 				'default_width' => 10,
 				'mandatory' => $codification->getIsMandatory(),
 				'display' => [
-					'header' => $codification->isFixed() === false,
-					'selector' => false,
+					'thead' => $codification->isFixed() === false,
+					'filter' => false,
 					'program' => true,
 				],
 				'permissions' => [
@@ -369,8 +369,8 @@ class FieldService
 				'default_width' => 10,
 				'mandatory' => $metadata->getIsMandatory(),
 				'display' => [
-					'header' => true,
-					'selector' => false,
+					'thead' => true,
+					'filter' => false,
 					'program' => true,
 				],
 				'permissions' => [
@@ -391,8 +391,8 @@ class FieldService
 					'default_width' => 10,
 					'mandatory' => false,
 					'display' => [
-						'header' => true,
-						'selector' => false,
+						'thead' => true,
+						'filter' => false,
 						'program' => true,
 					],
 					'permissions' => [
@@ -410,8 +410,8 @@ class FieldService
 					'default_width' => 0,
 					'mandatory' => false,
 					'display' => [
-						'header' => false,
-						'selector' => false,
+						'thead' => false,
+						'filter' => false,
 						'program' => true,
 					],
 					'permissions' => [
@@ -429,8 +429,8 @@ class FieldService
 					'default_width' => 0,
 					'mandatory' => false,
 					'display' => [
-						'header' => false,
-						'selector' => false,
+						'thead' => false,
+						'filter' => false,
 						'program' => true,
 					],
 					'permissions' => [
@@ -448,8 +448,8 @@ class FieldService
 				'title' => $this->translator->trans('First'),
 				'parent' => 'version',
 				'display' => [
-					'header' => false,
-					'selector' => true,
+					'thead' => false,
+					'filter' => true,
 					'program' => true,
 				],
 				'permissions' => [
@@ -463,8 +463,8 @@ class FieldService
 				'title' => $this->translator->trans('First scheduled'),
 				'parent' => 'version',
 				'display' => [
-					'header' => false,
-					'selector' => true,
+					'thead' => false,
+					'filter' => true,
 					'program' => true,
 				],
 				'permissions' => [
@@ -478,8 +478,8 @@ class FieldService
 				'title' => $this->translator->trans('First delivered'),
 				'parent' => 'version',
 				'display' => [
-					'header' => false,
-					'selector' => true,
+					'thead' => false,
+					'filter' => true,
 					'program' => true,
 				],
 				'permissions' => [
@@ -493,8 +493,8 @@ class FieldService
 				'title' => $this->translator->trans('Last scheduled'),
 				'parent' => 'version',
 				'display' => [
-					'header' => false,
-					'selector' => true,
+					'thead' => false,
+					'filter' => true,
 					'program' => true,
 				],
 				'permissions' => [
@@ -508,8 +508,8 @@ class FieldService
 				'title' => $this->translator->trans('Last delivered'),
 				'parent' => 'version',
 				'display' => [
-					'header' => false,
-					'selector' => true,
+					'thead' => false,
+					'filter' => true,
 					'program' => true,
 				],
 				'permissions' => [
@@ -523,8 +523,8 @@ class FieldService
 				'title' => $this->translator->trans('Last'),
 				'parent' => 'version',
 				'display' => [
-					'header' => false,
-					'selector' => true,
+					'thead' => false,
+					'filter' => true,
 					'program' => true,
 				],
 				'permissions' => [
@@ -547,7 +547,7 @@ class FieldService
 		foreach ($this->codificationRepository->getCodifications($project) as $codification) {
 			
 			$element = [
-				'id' 		=> $codification->getFullId(),
+				'id' 			=> $codification->getFullId(),
 				'title' 		=> $codification->getName(),
 				'sort'			=> false,
 			];
@@ -557,7 +557,10 @@ class FieldService
 				case CodificationTypeEnum::LIST:
 					$choices = [];
 					foreach ($this->codificationItemRepository->getCodificationItem($codification) as $codificationItem) {
-						$choices[$codificationItem->getId()] = $codificationItem->getValue();
+						$choices[] = [
+							'id' => $codificationItem->getId(),
+							'name' => $codificationItem->getValue(),
+						];
 					}
 					$element['filter'] = [
 						'type'			=> MetadataTypeEnum::LIST,
@@ -572,15 +575,15 @@ class FieldService
 					break;
 					
 			}
-			$fields[$codification->getFullCodename()]['elements'] = $element;
+			$fields[$codification->getFullCodename()]['element'] = $element;
 		}
 		
-		$fields['version.name']['elements'][] = [
+		$fields['version.name']['element'] = [
 			'id' 		=> 'version_name',
 			'title' 	=> $this->translator->trans('Révision'),
 		];
 		
-		$fields['document.name']['elements'][] = [
+		$fields['document.name']['element'] = [
 			'id' 		=> 'document_name',
 			'title' 	=> $this->translator->trans('Name'),
 			'sort'		=> true,
@@ -589,7 +592,7 @@ class FieldService
 			],
 		];
 		
-		$fields['version.initialScheduledDate']['elements'][] = [
+		$fields['version.initialScheduledDate']['element'] = [
 			'id' 		=> 'version_initial_scheduled_date',
 			'title' 	=> $this->translator->trans('Initial scheduled date'),
 			'sort'		=> true,
@@ -598,7 +601,7 @@ class FieldService
 			],
 		];
 		
-		$fields['version.scheduledDate']['elements'][] = [
+		$fields['version.scheduledDate']['element'] = [
 			'id' 		=> 'version_scheduled_date',
 			'title' 	=> $this->translator->trans('Scheduled date'),
 			'sort'		=> true,
@@ -607,7 +610,7 @@ class FieldService
 			]
 		];
 		
-		$fields['version.deliveryDate']['elements'][] = [
+		$fields['version.deliveryDate']['element'] = [
 			'id' 		=> 'version_delivery_date',
 			'title' 	=> $this->translator->trans('Delivery date'),
 			'sort'		=> true,
@@ -616,7 +619,7 @@ class FieldService
 			]
 		];
 		
-		$fields['version.date']['elements'][] = [
+		$fields['version.date']['element'] = [
 			'id' 		=> 'version_date',
 			'title' 	=> $this->translator->trans('Date'),
 			'sort'		=> true,
@@ -625,16 +628,16 @@ class FieldService
 			]
 		];
 		
-		$fields['version.isRequired']['elements'][] = [
+		$fields['version.isRequired']['element'] = [
 			'id' 		=> 'version_is_required',
 			'title' 	=> $this->translator->trans('Required'),
 			'sort'		=> true,
 			'filter'	=> [
-				'type'		=> MetadataTypeEnum::BOOLEAN,
+				'type'		=> MetadataTypeEnum::BOOL,
 			]
 		];
 		
-		$fields['version.writer']['elements'][] = [
+		$fields['version.writer']['element'] = [
 			'id' 		=> 'version_writer',
 			'title' 	=> $this->translator->trans('Writer'),
 			'sort'		=> true,
@@ -644,7 +647,7 @@ class FieldService
 			]
 		];
 		
-		$fields['version.checker']['elements'][] = [
+		$fields['version.checker']['element'] = [
 			'id' 		=> 'version_checker',
 			'title' 	=> $this->translator->trans('Checker'),
 			'sort'		=> true,
@@ -654,7 +657,7 @@ class FieldService
 			]
 		];
 		
-		$fields['version.approver']['elements'][] = [
+		$fields['version.approver']['element'] = [
 			'id' 		=> 'version_approver',
 			'title' 	=> $this->translator->trans('Approver'),
 			'sort'		=> true,
@@ -664,7 +667,7 @@ class FieldService
 			]
 		];
 		
-		$fields['serie.name']['elements'][] = [
+		$fields['serie.name']['element'] = [
 			'id' 		=> 'serie_name',
 			'title' 	=> $this->translator->trans('Serie name'),
 			'sort'		=> true,
@@ -674,7 +677,7 @@ class FieldService
 			]
 		];
 		
-		$fields['serie.company']['elements'][] = [
+		$fields['serie.company']['element'] = [
 			'id' 		=> 'serie_company',
 			'title' 	=> $this->translator->trans('Company'),
 			'sort'		=> true,
@@ -684,7 +687,7 @@ class FieldService
 			]
 		];
 		
-		$fields['status.value']['elements'][] = [
+		$fields['status.value']['element'] = [
 			'id' 		=> 'status_value',
 			'title' 	=> $this->translator->trans('Status value'),
 			'sort'		=> true,
@@ -694,7 +697,7 @@ class FieldService
 			]
 		];
 		
-		$fields['status.type']['elements'][] = [
+		$fields['status.type']['element'] = [
 			'id' 		=> 'status_type',
 			'title' 	=> $this->translator->trans('Status type'),
 			'sort'		=> true,
@@ -708,7 +711,7 @@ class FieldService
 			
 			switch ($metadata->getType()) {
 
-				case MetadataTypeEnum::BOOLEAN:
+				case MetadataTypeEnum::BOOL:
 				case MetadataTypeEnum::TEXT:
 				case MetadataTypeEnum::DATE:
 					$element = [
@@ -722,7 +725,10 @@ class FieldService
 				case MetadataTypeEnum::LIST:
 					$choices = [];
 					foreach ($this->metadataItemRepository->getMetadataItem($metadata) as $metadataItem) {
-						$choices[$metadataItem->getId()] = $metadataItem->getValue();
+						$choices[] = [
+							'id' => $metadataItem->getId(),
+							'name' => $metadataItem->getValue(),
+						];
 					}
 					$element = [
 						'id' 		=> $metadata->getFullId(),
@@ -734,12 +740,12 @@ class FieldService
 						]
 					];
 			};
-			$fields[$metadata->getFullCodename()]['elements'] = $element;
+			$fields[$metadata->getFullCodename()]['element'] = $element;
 		}
 		
 		foreach ($this->companyRepository->getCheckerCompanies($project) as $checkerCompany) {
 			if ($project->getVisasByCompany($checkerCompany)->isEmpty() === false) {
-				$fields['visa.' . $checkerCompany->getCodename() . '.value']['elements'][] = [
+				$fields['visa.' . $checkerCompany->getCodename() . '.value']['element'] = [
 					'id' 		=> 'visa_' . $checkerCompany->getId(),
 					'title' 	=> $this->translator->trans('Visa') . ' ' . $checkerCompany->getName(),
 					'sort'		=> true,

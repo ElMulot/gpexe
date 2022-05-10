@@ -418,7 +418,7 @@ class Document implements \Stringable
 		
 		switch ($metadata->getType()) {
 			
-			case MetadataTypeEnum::BOOLEAN:
+			case MetadataTypeEnum::BOOL:
 			case MetadataTypeEnum::TEXT:
 			case MetadataTypeEnum::DATE:
 			case MetadataTypeEnum::LINK:
@@ -448,7 +448,7 @@ class Document implements \Stringable
 		}
 		
 		switch ($metadata->getType()) {
-			case MetadataTypeEnum::BOOLEAN:
+			case MetadataTypeEnum::BOOL:
 				$value = ($value)?true:false;
 				break;
 			case MetadataTypeEnum::DATE:
@@ -478,7 +478,7 @@ class Document implements \Stringable
 		
 		switch ($metadata->getType()) {
 			
-			case MetadataTypeEnum::BOOLEAN:
+			case MetadataTypeEnum::BOOL:
 			case MetadataTypeEnum::TEXT:
 			case MetadataTypeEnum::DATE:
 			case MetadataTypeEnum::LINK:

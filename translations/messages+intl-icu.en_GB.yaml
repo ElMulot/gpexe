@@ -142,12 +142,6 @@ deleted:
             one   {Version deleted}
             other {Versions deleted}
         }
-      
-notEmpty:
-    field: 'The field "{field}" must not be empty'
-
-alreadyExist:
-    reference: 'The reference "{reference}" already exist'
 
 alert:
     prod:

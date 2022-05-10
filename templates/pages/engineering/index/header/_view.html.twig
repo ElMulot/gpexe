@@ -1,19 +1,18 @@
 <turbo-frame id="view_pannel">
-	<div class="row p-2" {{ stimulus_controller('view', {'id': selected_view.id}) }}>
-		<div class="col px-2">
+	<div class="row px-2" {{ stimulus_controller('engineering--view', {'id': selected_view?selected_view.id}) }}>
+		<div class="col px-2 nav-items">
 			{% for view in views %}
-				{% set selected = (view == selected_view) %}
-				<div class="btn-group btn-width" role="group">
+				<div class="btn-group" role="group">
 					<button type="button" class="btn" 
-						{{ stimulus_target('view', 'button') }} 
-						{{ stimulus_action('view', 'update') }} 
-						{{ stimulus_param('view', {'id': view.id}) }}>
+						{{ stimulus_target('engineering--view', 'button') }} 
+						{{ stimulus_action('engineering--view', 'update') }} 
+						{{ stimulus_param('engineering--view', {'id': view.id}) }}>
 							{{ view.name }}
 					</button>
 					{% if is_granted('VIEW_EDIT', view) or is_granted('VIEW_DELETE', view) %}
-						<div class="btn-group" role="group">
+						<div class="btn-group dropend" role="group">
 							<button type="button" class="btn dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" 
-								{{ stimulus_target('view', 'button') }} {{ stimulus_param('view', {'id': view.id}) }}>
+								{{ stimulus_target('engineering--view', 'button') }} {{ stimulus_param('engineering--view', {'id': view.id}) }}>
 							</button>
 							<ul class="dropdown-menu">
 								{% if is_granted('VIEW_EDIT', view) %}

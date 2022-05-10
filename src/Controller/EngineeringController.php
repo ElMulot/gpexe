@@ -13,9 +13,8 @@ use App\Repository\CodificationRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
-class EngineeringController extends AbstractController
+class EngineeringController extends AbstractTurboController
 {
 	public function __construct(
 								private readonly CodificationRepository $codificationRepository,
@@ -26,8 +25,8 @@ class EngineeringController extends AbstractController
 	{
 	}
     
-    #[Route(path: '/project/{project}/header', name: 'engineering_header', requirements: ['project' => '\d+'])]
-	public function header(Request $request, Project $project) : Response
+    #[Route(path: '/project/{project}/thead', name: 'engineering_thead', requirements: ['project' => '\d+'])]
+	public function thead(Request $request, Project $project) : Response
 	{
 		$this->denyAccessUnlessGranted('VIEW_SHOW', $project);
 
@@ -50,17 +49,16 @@ class EngineeringController extends AbstractController
 		}
 		
 		$request->query->replace($view->getValue());
-
+		dump($fields);
 		$request->setRequestFormat(TurboBundle::STREAM_FORMAT);
-		
-		return $this->renderForm('pages/engineering/index/_header.html.twig', [
+		return $this->renderForm('pages/engineering/index/_thead.html.twig', [
 			'fields' => $fields,
 			'query' => $request->query->all(),
 		]);
 	}
 	
-    #[Route(path: '/project/{project}/body', name: 'engineering_body', requirements: ['project' => '\d+'])]
-	public function body(Request $request, Project $project) : Response
+    #[Route(path: '/project/{project}/tbody', name: 'engineering_tbody', requirements: ['project' => '\d+'])]
+	public function tbody(Request $request, Project $project) : Response
 	{
 		$serieIds = $request->query->get('series');
         if (is_array($serieIds) === false) {
@@ -108,8 +106,7 @@ class EngineeringController extends AbstractController
 		// $serializer = new Serializer([new DateTimeNormalizer(['datetime_format' => 'd-m-Y'])]);
 
 		$request->setRequestFormat(TurboBundle::STREAM_FORMAT);
-		
-		return $this->renderForm('pages/engineering/index/_body.html.twig', [
+		return $this->renderForm('pages/engineering/index/_tbody.html.twig', [
 			// 'datas' => $serializer->normalize($versions),
 			'fields' => $fields,
 			'items' => $versions,

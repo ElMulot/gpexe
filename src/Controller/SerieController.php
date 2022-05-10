@@ -16,38 +16,51 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
+use Symfony\Component\Form\Exception\InvalidArgumentException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 
-class SerieController extends AbstractController
+class SerieController extends AbstractTurboController
 {
-	public function __construct(private readonly TranslatorInterface $translator, private readonly ManagerRegistry $doctrine, private readonly SerieRepository $serieRepository, private readonly MetadataRepository $metadataRepository)
+	public function __construct(private readonly ManagerRegistry $doctrine,
+								private readonly MetadataRepository $metadataRepository,
+								private readonly SerieRepository $serieRepository,
+								private readonly TranslatorInterface $translator)
 	{
 	}
 	
-	#[Route(path: '/project/{project}/{company}/serie', name: 'serie', requirements: ['project' => '\d+', 'company' => '\d+'])]
-	public function index(Project $project, Company $company) : Response
+	/**
+	 * Query parameters :
+	 * 	+ array		id				array of serie ids that could be displayed
+	 * 	+ int		selected		serie id to display
+	 */
+	#[Route(path: '/project/{project}/serie', name: 'serie', requirements: ['project' => '\d+'])]
+	public function index(Request $request, Project $project) : Response
 	{
-		if ($this->isGranted('PROJECT_SHOW', $project) === false) {
-			return $this->redirectToRoute('project');
-		}
+		$this->denyAccessUnlessGranted('SERIE_SHOW', $project);
+		
+		$serieIds = $request->get('id');
+		$selectedSerieId = $request->get('selected');
+		
+		$series = $this->serieRepository->getSeriesByIds($serieIds);
 
-		$series = $this->serieRepository->getSeriesByCompany($project, $company);
-		if (empty($series)) {
-			return $this->redirectToRoute('project', [
-				'project' => $project->getId(),
-			]);
+		if ($selectedSerieId === null) {
+			$selectedSerie = false;
 		} else {
-			return $this->renderForm('generic/list.html.twig', [
-				'header' => $this->translator->trans('Series for') . ' : ' . $project->getName(),
-				'route_back' => $this->generateUrl('serie_route', [
-					'project' => $project->getId(),
-					'company' => $company->getId()
-				]),
-				'class' => Serie::class,
-				'entities' => $series,
-			]);
+			$selectedSerie = match(count($series)) {
+				0		=>  false,
+				1		=> current($series),
+				default	=> array_reduce($series, fn($carry, $item) => ($item->getId() == $selectedSerieId)?$item:$carry),
+			};
 		}
+		
+		return $this->renderForm('pages/engineering/index/header/_serie.html.twig', [
+			'title' => $this->translator->trans('Series for') . ' : ' . $project->getName(),
+			'class' => Serie::class,
+			'series' => $series,
+			'selected_serie' => $selectedSerie,
+			'project' => $project,
+		]);
 	}
 
 	#[Route(path: '/project/{project}/series/{company}', name: 'series_list_by_company', requirements: ['project' => '\d+', 'company' => '\d+'])]
@@ -58,7 +71,9 @@ class SerieController extends AbstractController
 
 		if (empty($series) === true) {
 			if ($this->isGranted('SERIE_NEW', $project) === false) {
-				return $this->redirectToRoute('project');
+				return $this->redirectToRoute('project', [
+					'project' => $project,
+				]);
 			}
 		} else {
 			$this->denyAccessUnlessGranted('ENGINEERING_SHOW', reset($series));
@@ -74,16 +89,28 @@ class SerieController extends AbstractController
 	#[Route(path: '/project/{project}/series/{belong}', name: 'series_list_by_belonging', requirements: ['project' => '\d+', 'belong' => 'all|mdr|sdr'])]
 	public function seriesByBelonging(Project $project, string $belong) : Response
 	{	
-		$series = match($belong) {
-			SerieBelongingEnum::MDR => $this->serieRepository->getMdrSeriesByProject($project),
-			SerieBelongingEnum::SDR => $this->serieRepository->getSdrSeriesByProject($project),
-			default => $this->serieRepository->getSeriesByProject($project),
-		};
+		switch ($belong) {
+			case SerieBelongingEnum::ALL:
+				$this->denyAccessUnlessGranted('SHOW_ALL', $project);
+				$series = $this->serieRepository->getSeriesByProject($project);
+				break;
+			case SerieBelongingEnum::MDR:
+				$this->denyAccessUnlessGranted('SHOW_MDR', $project);
+				$series = $this->serieRepository->getMdrSeriesByProject($project);
+				break;
+			case SerieBelongingEnum::SDR:
+				$this->denyAccessUnlessGranted('SHOW_SDR', $project);
+				$series = $this->serieRepository->getSdrSeriesByProject($project);
+				break;
+			default:
+				throw new \LogicException('logic.codeNotReached');
+		}
+
 		
 		if (empty($series) === true) {
-			return $this->redirectToRoute('projects_list');
-		} else {
-			$this->denyAccessUnlessGranted('ENGINEERING_SHOW', reset($series));
+			return $this->redirectToRoute('project', [
+				'project' => $project,
+			]);
 		}
 
 		return $this->renderForm('pages/engineering/index.html.twig', [
@@ -92,62 +119,52 @@ class SerieController extends AbstractController
 		]);
 	}
 
-	#[Route(path: '/project/{project}/series/{company}/select', name: 'serie_select', requirements: ['project' => '\d+', 'company' => '\d+'])]
-	public function select(Project $project, Company $company) : Response
+	/**
+	 * Query parameters :
+	 * 	+ array		id				array of serie ids that could be displayed
+	 */
+	#[Route(path: '/project/{project}/series/select', name: 'serie_select', requirements: ['project' => '\d+'])]
+	public function select(Request $request, Project $project) : Response
 	{
-		$series = $this->serieRepository->getSeriesByCompany($project, $company);
+		$serieIds = $request->get('id');
 		
-		$this->denyAccessUnlessGranted('ENGINEERING_SHOW', reset($series));
+		$series = $this->serieRepository->getSeriesByIds($serieIds);
+		
+		foreach ($series as $serie) {
+			$this->denyAccessUnlessGranted('ENGINEERING_SHOW', $serie);
+		}
 
 		return $this->renderForm('pages/engineering/index/_select.html.twig', [
 			'series' => $series,
 			'project' => $project,
-			'company' => $company,
 		]);
 
 	}
 
-
-	#[Route(path: '/project/{project}/serie/pannel', name: 'serie_pannel', requirements: ['project' => '\d+'])]
-	public function pannel(Request $request, Project $project) : Response
+	/**
+	 * Query parameters :
+	 * 	+ array		id				array of serie ids that will be used for company selector in the form
+	 */
+	#[Route(path: '/project/{project}/serie/new/{company?}', name: 'serie_new', requirements: ['project' => '\d+', 'company' => '\d+'])]
+	public function new(Request $request, Project $project, ?Company $company) : Response
 	{
-		$this->denyAccessUnlessGranted('VIEW_SHOW', $project);
-		
-		$seriesIds = $request->get('id');
-		$selectedSerieId = $request->get('selected');
-		
-		$series = $this->serieRepository->getSeriesByIds($seriesIds) ?? [];
-
-		if ($selectedSerieId === null) {
-			$selectedSeries = $series;
-		} else {
-			$selectedSeries = match(count($series)) {
-				0		=>  $series,
-				1		=> [current($series)],
-				default	=> array_filter($series, fn($item) => $item->getId() == $selectedSerieId),
-			};
-		}
-
-		return $this->renderForm('pages/engineering/index/_serie.html.twig', [
-			'series' => $series,
-			'selected_series' => $selectedSeries,
-			'project' => $project,
-		]);
-	}
-
-	
-	#[Route(path: '/project/{project}/{company}/serie/new', name: 'serie_new', requirements: ['project' => '\d+', 'company' => '\d+'])]
-	public function new(Request $request, Project $project, Company $company) : Response
-	{
-		if ($this->isGranted('SERIE_NEW', $project) === false) {
-			return $this->redirectToRoute('project');
-		}
+		$this->denyAccessUnlessGranted('SERIE_NEW', $project);
 
 		$serie = new Serie();
 		$serie->setProject($project);
 		$serie->setCompany($company);
-		$form = $this->createForm(SerieType::class, $serie);
+
+		try {
+			$form = $this->createForm(SerieType::class, $serie, [
+				'ids' => $request->get('id'),
+			]);
+		} catch (InvalidArgumentException $e) {
+			$this->addFlash('warning', $e->getMessage());
+			return $this->renderError($request, 'serie', ['project' => $project->getId(), 'id' => $request->get('id')]);
+		}
+
 		$form->handleRequest($request);
+
 		if ($form->isSubmitted() && $form->isValid()) {
 			
 			foreach ($this->metadataRepository->getMetadatasForSerie($project) as $metadata) {
@@ -155,7 +172,7 @@ class SerieController extends AbstractController
 				
 				if ($value === null && $metadata->getIsMandatory()) {
 					$this->addFlash('danger', $this->translator->trans('notEmpty.field', ['field' => $metadata->getName()]));
-					return $this->renderForm('ajax/form.html.twig', [
+					return $this->renderForm('generic/new.html.twig', [
 						'form' => $form,
 					]);
 				}
@@ -177,9 +194,11 @@ class SerieController extends AbstractController
 			$entityManager->flush();
 			
 			$this->addFlash('success', 'New serie created');
-			return $this->redirectToRoute('serie', [
+
+			return $this->renderSuccess($request, 'serie', [
 				'project' => $project->getId(),
-				'company' => $company->getId(),
+				'id' => $request->get('id') + [$serie->getId()],
+				'selected' => [$serie->getId()]
 			]);
 		} else {
 			return $this->renderForm('generic/new.html.twig', [
@@ -187,20 +206,23 @@ class SerieController extends AbstractController
 			]);
 		}
 	}
-	
+		
+	/**
+	 * Query parameters :
+	 * 	+ array		id				array of serie ids that could be displayed
+	 * 	+ int		selected		serie id to display
+	 */
 	#[Route(path: '/project/serie/{serie}/edit', name: 'serie_edit', requirements: ['serie' => '\d+'])]
 	public function edit(Request $request, Serie $serie) : Response
 	{
-		$project = $serie->getProject();
-
-		if ($this->isGranted('SERIE_EDIT', $serie) === false) {
-			return $this->redirectToRoute('project');
-		}
+		$this->denyAccessUnlessGranted('SERIE_EDIT', $serie);
 
 		$form = $this->createForm(SerieType::class, $serie);
 		$form->handleRequest($request);
 		if ($form->isSubmitted() && $form->isValid()) {
 			
+			$project = $serie->getProject();
+
 			foreach ($this->metadataRepository->getMetadatasForSerie($project) as $metadata) {
 				$value = $form->get($metadata->getCodeName())->getData();
 				
@@ -219,7 +241,7 @@ class SerieController extends AbstractController
 				} catch (\Error $e) {
 					if ($metadata->getIsMandatory() === true) {
 						$this->addFlash('danger', $e->getMessage());
-						return $this->renderForm('ajax/form.html.twig', [
+						return $this->renderForm('generic/edit.html.twig', [
 							'form' => $form,
 						]);
 					}
@@ -229,47 +251,39 @@ class SerieController extends AbstractController
 			$entityManager = $this->doctrine->getManager();
 			$entityManager->persist($serie);
 			$entityManager->flush();
+
 			$this->addFlash('success', 'Serie updated');
-			return $this->redirectToRoute('serie', [
-				'project' => $project->getId(),
-				'company' => $serie->getCompany()->getId(),
-			]);
+
+			return $this->renderSuccess($request, 'serie', ['project' => $project->getId(), 'id' => $request->get('id'), 'selected' => $request->get('selected')]);
 		} else {
-			return $this->renderForm('generic/form.html.twig', [
-				'route_back' =>  $this->generateUrl('serie', [
-					'project' => $project->getId(),
-					'company' => $serie->getCompany()->getId(),
-				]),
-				'form' => $form,
+			return $this->renderForm('generic/edit.html.twig', [
+				'form' => $form
 			]);
 		}
 	}
 	
+	/**
+	 * Query parameters :
+	 * 	+ array		id				array of serie ids that could be displayed
+	 */
 	#[Route(path: '/project/serie/{serie}/delete', name: 'serie_delete', methods: ['GET', 'DELETE'], requirements: ['serie' => '\d+'])]
 	public function delete(Request $request, Serie $serie) : Response
 	{
-		$project = $serie->getProject();
-
-		if ($this->isGranted('SERIE_DELETE', $serie) === false) {
-			return $this->redirectToRoute('project');
-		}
+		$this->denyAccessUnlessGranted('SERIE_DELETE', $serie);
 
 		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
+
+			$project = $serie->getProject();
+
 			$entityManager = $this->doctrine->getManager();
 			$entityManager->remove($serie);
 			$entityManager->flush();
 			
 			$this->addFlash('success', 'Serie deleted');
-			return $this->redirectToRoute('serie', [
-				'project' => $serie->getProject()->getId(),
-				'company' => $serie->getCompany()->getId(),
-			]);
+
+			return $this->renderSuccess($request, 'serie', ['project' => $project->getId(), 'id' => $request->get('id')]);
 		} else {
 			return $this->renderForm('generic/delete.html.twig', [
-				'route_back' =>  $this->generateUrl('serie', [
-					'project' => $serie->getProject()->getId(),
-					'company' => $serie->getCompany()->getId(),
-				]),
 				'entities' => [$serie],
 			]);
 		}

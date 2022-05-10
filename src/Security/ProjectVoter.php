@@ -97,7 +97,7 @@ class ProjectVoter extends Voter
             'PROJECT_DELETE' => $this->security->isGranted('ROLE_ADMIN'),
             'DOCUMENT_EDIT', 'DOCUMENT_MOVE', 'DOCUMENT_DELETE' => $this->security->isGranted('CONTROLLER') || $this->security->isGranted('EDITOR'),
             'REVIEW_NEW', 'REVIEW_EDIT', 'REVIEW_DELETE' => $this->security->isGranted('ROLE_USER') && ($user->getCompany()->isMainContractor() || $user->getCompany()->isChecker() || $this->security->isGranted('ROLE_CONTROLLER') && $user->getCompany()->isMainContractor()),
-            default => throw new \LogicException('This code should not be reached!')
+            default => throw new \LogicException('logic.codeNotReached'),
         };
     }
 

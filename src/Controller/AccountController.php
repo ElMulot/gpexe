@@ -5,18 +5,17 @@ namespace App\Controller;
 use App\Entity\User;
 use App\Form\AccountType;
 use App\Form\ChangePasswordType;
-use Symfony\UX\Turbo\TurboBundle;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
-class AccountController extends AbstractController
+class AccountController extends AbstractTurboController
 {
 	
-	public function __construct(private readonly UserPasswordHasherInterface $passwordHasher, private readonly ManagerRegistry $doctrine)
+	public function __construct(private readonly ManagerRegistry $doctrine,
+								private readonly UserPasswordHasherInterface $passwordHasher)
 	{
 	}
 	
@@ -49,10 +48,7 @@ class AccountController extends AbstractController
 			
 			$this->addFlash('success', 'Datas updated');
 
-			$request->setRequestFormat(TurboBundle::STREAM_FORMAT);
-			return $this->renderForm('generic/success.stream.html.twig', [
-				'redirect' => $this->generateUrl('personal'),
-			]);
+			return $this->renderSuccess($request, 'personal');
 
 		} else {
 
@@ -85,11 +81,6 @@ class AccountController extends AbstractController
 				'form' => $form,
 			]);
 		}
-	}
-
-	public function getUser(): User
-	{
-		return parent::getUser();
 	}
 }
 ?>

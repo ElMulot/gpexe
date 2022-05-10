@@ -9,13 +9,14 @@ use App\Repository\CodificationItemRepository;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Doctrine\Persistence\ManagerRegistry;
 
-class CodificationItemController extends AbstractController
+//todo : à mettre à jour complètement
+class CodificationItemController extends AbstractTurboController
 {
 
-	public function __construct(private readonly TranslatorInterface $translator, private readonly ManagerRegistry $doctrine)
+	public function __construct(private readonly ManagerRegistry $doctrine,
+								private readonly TranslatorInterface $translator)
 	{
 	}
 
@@ -54,7 +55,8 @@ class CodificationItemController extends AbstractController
 			$entityManager->flush();
 
 			$this->addFlash('success', 'New entry created');
-			return $this->redirectToRoute('codification_item', [
+			
+			return $this->renderSuccess($request, 'codification_item', [
 				'codification' => $codification->getId()
 			]);
 		} else {
@@ -81,7 +83,8 @@ class CodificationItemController extends AbstractController
 			$entityManager->flush();
 			
 			$this->addFlash('success', 'Datas updated');
-			return $this->redirectToRoute('codification_item', [
+
+			return $this->renderSuccess($request, 'codification_item', [
 				'codification' => $codificationItem->getCodification()->getId()
 			]);
 		} else {
@@ -107,7 +110,8 @@ class CodificationItemController extends AbstractController
 			$entityManager->flush();
 
 			$this->addFlash('success', 'Entry deleted');
-			return $this->redirectToRoute('codification_item', [
+
+			return $this->renderSuccess($request, 'codification_item', [
 				'codification_item' => $codificationItem->getCodification()->getId()
 			]);
 		} else {

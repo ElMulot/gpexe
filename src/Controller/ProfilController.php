@@ -4,15 +4,13 @@ namespace App\Controller;
 
 use App\Entity\Profil;
 use App\Form\ProfilType;
-use Symfony\UX\Turbo\TurboBundle;
 use App\Repository\ProfilRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
-class ProfilController extends AbstractController
+class ProfilController extends AbstractTurboController
 {
 	
 	public function __construct(private readonly ManagerRegistry $doctrine)
@@ -42,10 +40,7 @@ class ProfilController extends AbstractController
 			
 			$this->addFlash('success', 'New entry created');
 
-			$request->setRequestFormat(TurboBundle::STREAM_FORMAT);
-			return $this->renderForm('generic/success.stream.html.twig', [
-				'redirect' => $this->generateUrl('profil'),
-			]);
+			return $this->renderSuccess($request, 'profil');
 
 		} else {
 
@@ -67,10 +62,7 @@ class ProfilController extends AbstractController
 			
 			$this->addFlash('success', 'Datas updated');
 
-			$request->setRequestFormat(TurboBundle::STREAM_FORMAT);
-			return $this->renderForm('generic/success.stream.html.twig', [
-				'redirect' => $this->generateUrl('profil'),
-			]);
+			return $this->renderSuccess($request, 'profil');
 
 		} else {
 
@@ -91,19 +83,13 @@ class ProfilController extends AbstractController
 			
 			$this->addFlash('success', 'Entry deleted');
 
-			$request->setRequestFormat(TurboBundle::STREAM_FORMAT);
-			return $this->renderForm('generic/success.stream.html.twig', [
-				'redirect' => $this->generateUrl('profil'),
-			]);
+			return $this->renderSuccess($request, 'profil');
 
 		} elseif ($profilRepository->getCountAdminProfil($profil->getId()) == 0) {
 
 			$this->addFlash('danger', 'The last profil with Admin rights cannot be deleted');
 
-			$request->setRequestFormat(TurboBundle::STREAM_FORMAT);
-			return $this->renderForm('generic/success.stream.html.twig', [
-				'redirect' => $this->generateUrl('profil'),
-			]);
+			return $this->renderSuccess($request, 'profil');
 			
 		} else {
 

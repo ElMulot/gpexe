@@ -47,7 +47,7 @@ class VersionType extends AbstractType
 			]);
 		}
 		
-		$this->buildField('Required', 'isRequired', 'version.isRequired', MetadataTypeEnum::BOOLEAN, $versions);
+		$this->buildField('Required', 'isRequired', 'version.isRequired', MetadataTypeEnum::BOOL, $versions);
 		
 		$this->buildField('Date', 'date', 'version.date', MetadataTypeEnum::DATE, $versions);
 		
@@ -115,7 +115,7 @@ class VersionType extends AbstractType
 	private function buildField(string $label, string $id, string $codename, int $type, array $versions=null, $options=[])
 	{
 	   	
-		if (($options['required'] ?? true) === true && $type != MetadataTypeEnum::BOOLEAN) {
+		if (($options['required'] ?? true) === true && $type != MetadataTypeEnum::BOOL) {
 			$options['constraints'] = [new NotBlank()];
 		}
 		
@@ -133,7 +133,7 @@ class VersionType extends AbstractType
 		
 		switch ($type) {
 			
-			case MetadataTypeEnum::BOOLEAN:
+			case MetadataTypeEnum::BOOL:
 				
 				$data = false;
 				if ($version && $multiple === false) {

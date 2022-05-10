@@ -1,16 +1,16 @@
-<turbo-stream action="update" target="body">
+<turbo-stream action="update" target="tbody">
 	<template>
 		{% for item in items %}
 			<tr>
 				<td>
 				</td>
 				{% for field in fields %}
-					{% if field.id in query.display|keys and field.display.header is same as(true) %}
+					{% if field.id in query.display|keys and field.display.thead is same as(true) %}
 						{% if field.id == 'version_name' %}
 							<td style="text-align: center;">
 								{{ (item[field.id] ?? '') }}
 							</td>
-						{% elseif field.type == 'BOOLEAN'|enum_constant('metadata_type_enum') %}
+						{% elseif field.type == 'BOOL'|enum_constant('metadata_type_enum') %}
 							<td style="text-align: center;">
 								{{ ((item[field.id] ?? false) == 1?'Yes':'No')|trans }}
 							</td>
@@ -25,9 +25,18 @@
 						{% endif %}
 					{% endif %}
 				{% endfor %}
+				<td>
+					<a class="btn btn-sm btn-success mx-1 w-100" href="{{ path('version_detail', {'version': item.version_id }) }}" data-turbo-frame="xl_modal">{% trans %}Details{% endtrans %}</a>
+				</td>
 			</tr>
 		{% endfor %}
 	</template>
 </turbo-stream>
 
 
+
+<turbo-stream action="update" target="pagination">
+	<template>
+		{{ include('pages/engineering/index/footer/_pagination.html.twig') }}
+	</template>
+</turbo-stream>

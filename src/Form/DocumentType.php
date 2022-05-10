@@ -113,7 +113,7 @@ class DocumentType extends AbstractType
 	
 	private function buildField(string $label, string $id, string $codename, int $type, $documents=[], $options=[])
 	{
-		if (($options['required'] ?? true) === true && $type !== MetadataTypeEnum::BOOLEAN && $type != CodificationTypeEnum::REGEX) {
+		if (($options['required'] ?? true) === true && $type !== MetadataTypeEnum::BOOL && $type != CodificationTypeEnum::REGEX) {
 			$options['constraints'] = [new NotBlank()];
 		}
 		
@@ -132,7 +132,7 @@ class DocumentType extends AbstractType
 		
 		switch ($type) {
 			
-			case MetadataTypeEnum::BOOLEAN:
+			case MetadataTypeEnum::BOOL:
 				
 				$data = false;
 				if ($document && $multiple === false) {

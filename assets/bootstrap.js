@@ -1,5 +1,6 @@
 import { startStimulusApp } from '@symfony/stimulus-bridge';
 import { defineCustomElement } from 'vue';
+import Flatpickr from 'stimulus-flatpickr';
 
 // Registers Stimulus controllers from controllers.json and in the controllers/ directory
 export const app = startStimulusApp(require.context(
@@ -7,6 +8,7 @@ export const app = startStimulusApp(require.context(
     true,
     /\.[jt]sx?$/
 ));
+app.debug = false;
 
 // Register vue custom elements
 (components => {
@@ -19,4 +21,10 @@ export const app = startStimulusApp(require.context(
 })(require.context('./components', true, /\.vue$/, 'lazy'));
 
 // register any custom, 3rd party controllers here
-// app.register('some_controller_name', SomeImportedController);
+// app.register('flatpickr', Flatpickr);
+
+//helper
+function listStimulusController(app) {	
+	app.keys().forEach(key => console.log(key));
+}
+

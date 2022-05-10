@@ -57,7 +57,7 @@ class SerieVoter extends Voter
             'ENGINEERING_SHOW', 'REVIEW_SHOW' => $this->security->isGranted('ROLE_USER') && ($user->getCompany()->isMainContractor() || $user->getCompany()->isChecker() || $serie->getCompany() === $user->getCompany()),
             'SERIE_EDIT', 'SERIE_DELETE' => $project->hasUser($user) && $this->security->isGranted('ROLE_CONTROLLER') && $user->getCompany()->isMainContractor(),
             'DOCUMENT_NEW' => $project->hasUser($user) && $this->security->isGranted('ROLE_EDITOR') && $user->getCompany()->isMainContractor(),
-            default => throw new \LogicException('This code should not be reached!')
+            default => throw new \LogicException('logic.codeNotReached'),
         };
     }
 }

@@ -9,7 +9,6 @@ use App\Entity\Serie;
 use App\Service\RepositoryService;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use Doctrine\Common\Collections\Collection;
 
 /**
  * @method Serie|null find($id, $lockMode = null, $lockVersion = null)
@@ -26,7 +25,7 @@ class SerieRepository extends RepositoryService
 	}
 	
 	/**
-	 * @return Collection|Serie[]
+	 * @return Serie[]
 	 */
 	public function getSeriesByIds(array $ids)
 	{

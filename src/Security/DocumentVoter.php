@@ -58,7 +58,7 @@ class DocumentVoter extends Voter
             'DOCUMENT_EDIT' => $this->security->isGranted('EDITOR'),
             'DOCUMENT_MOVE' => $this->security->isGranted('EDITOR'),
             'DOCUMENT_DELETE' => $this->security->isGranted('EDITOR'),
-            default => throw new \LogicException('This code should not be reached!')
+            default => throw new \LogicException('logic.codeNotReached'),
         };
     }
 }

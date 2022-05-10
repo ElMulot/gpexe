@@ -4,7 +4,6 @@ namespace App\Controller;
 use App\Entity\Visa;
 use App\Form\VisaType;
 use App\Entity\Project;
-use Symfony\UX\Turbo\TurboBundle;
 use App\Repository\VisaRepository;
 use App\Repository\CompanyRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -12,12 +11,14 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
-class VisaController extends AbstractController
+class VisaController extends AbstractTurboController
 {
 
-	public function __construct(private readonly TranslatorInterface $translator, private readonly ManagerRegistry $doctrine, private readonly CompanyRepository $companyRepository, private readonly VisaRepository $visaRepository)
+	public function __construct(private readonly CompanyRepository $companyRepository,
+								private readonly ManagerRegistry $doctrine,
+								private readonly TranslatorInterface $translator,
+								private readonly VisaRepository $visaRepository)
 	{
 	}
 	
@@ -53,9 +54,8 @@ class VisaController extends AbstractController
 
 			$this->addFlash('success', 'New entry created');
 
-			$request->setRequestFormat(TurboBundle::STREAM_FORMAT);
-			return $this->renderForm('generic/success.stream.html.twig', [
-				'redirect' => $this->generateUrl('visa', ['project' => $project->getId()]),
+			return $this->renderSuccess($request, 'visa', [
+				'project' => $project->getId(),
 			]);
 
 		} else {
@@ -85,9 +85,8 @@ class VisaController extends AbstractController
 			$entityManager->flush();
 			$this->addFlash('success', 'Datas updated');
 
-			$request->setRequestFormat(TurboBundle::STREAM_FORMAT);
-			return $this->renderForm('generic/success.stream.html.twig', [
-				'redirect' => $this->generateUrl('visa', ['project' => $project->getId()]),
+			return $this->renderSuccess($request, 'visa', [
+				'project' => $project->getId(),
 			]);
 
 		} else {
@@ -113,9 +112,8 @@ class VisaController extends AbstractController
 
 			$this->addFlash('success', 'Entry deleted');
 
-			$request->setRequestFormat(TurboBundle::STREAM_FORMAT);
-			return $this->renderForm('generic/success.stream.html.twig', [
-				'redirect' => $this->generateUrl('visa', ['project' => $project->getId()]),
+			return $this->renderSuccess($request, 'visa', [
+				'project' => $project->getId(),
 			]);
 
 		} else {

@@ -1,0 +1,9 @@
+{% set width = query.display[field.id] ?? field.default_width %}
+
+<th style="width: {{ width }}rem; min-width: {{ width }}rem; max-width: {{ width }}rem;">
+	<div class="btn-group w-100" role="group">
+		<button type="button" class="btn btn-sm btn-primary rounded-0 w-100 py-2">
+			{{ field.title }}
+		</button>
+	</div>
+</th>

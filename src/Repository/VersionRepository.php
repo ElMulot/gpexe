@@ -156,7 +156,7 @@ class VersionRepository extends RepositoryService
 							
 							switch ($field['type']) {
 								
-								case MetadataTypeEnum::BOOLEAN:
+								case MetadataTypeEnum::BOOL:
 								case MetadataTypeEnum::TEXT:
 								case MetadataTypeEnum::LINK:
 									if ($qb->hasAlias($field['id'] . '_') === false) {
@@ -359,7 +359,7 @@ class VersionRepository extends RepositoryService
 								
 								switch ($field['type']) {
 									
-									case MetadataTypeEnum::BOOLEAN:
+									case MetadataTypeEnum::BOOL:
 									case MetadataTypeEnum::TEXT:
 									case MetadataTypeEnum::LINK:
 										if ($qb->hasAlias($field['id'] . '_') === false) {
@@ -801,7 +801,7 @@ class VersionRepository extends RepositoryService
 							
 							switch ($field['type']) {
 								
-								case MetadataTypeEnum::BOOLEAN:
+								case MetadataTypeEnum::BOOL:
 								case MetadataTypeEnum::TEXT:
 								case MetadataTypeEnum::LINK:
 									$qb
@@ -830,7 +830,7 @@ class VersionRepository extends RepositoryService
 							
 							switch ($field['type']) {
 								
-								case MetadataTypeEnum::BOOLEAN:
+								case MetadataTypeEnum::BOOL:
 									if ($value == '1') {
 										$qb->andHaving($qb->eq($field['id'] . '_value', 1));
 									} else {

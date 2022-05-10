@@ -4,7 +4,6 @@ namespace App\Controller;
 use App\Entity\User;
 use App\Entity\Project;
 use App\Form\ProjectType;
-use Symfony\UX\Turbo\TurboBundle;
 use App\Entity\Enum\CompanyTypeEnum;
 use App\Service\FileUploaderService;
 use App\Repository\CompanyRepository;
@@ -15,11 +14,14 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
-class ProjectController extends AbstractController
+class ProjectController extends AbstractTurboController
 {
-	public function __construct(private readonly ManagerRegistry $doctrine, private readonly CompanyRepository $companyRepository, private readonly ProjectRepository $projectRepository, private readonly ProgramRepository $programRepository, private readonly FileUploaderService $fileUploadService)
+	public function __construct(private readonly CompanyRepository $companyRepository,
+								private readonly FileUploaderService $fileUploadService,
+								private readonly ManagerRegistry $doctrine,
+								private readonly ProgramRepository $programRepository,
+								private readonly ProjectRepository $projectRepository)
 	{
 	}
 
@@ -81,7 +83,7 @@ class ProjectController extends AbstractController
 			return $this->redirectToRoute('projects_list');
 		}
 
-		if ($this->getUser()->getCompany()->isMainContractor() || $this->getUser()->getCompany()->isChecker()) {
+		if ($this->getUserCompany()->isMainContractor() || $this->getUserCompany()->isChecker()) {
 			$user = null;
 		} else {
 			$user = $this->getUser();
@@ -121,11 +123,7 @@ class ProjectController extends AbstractController
 
 			$this->addFlash('success', 'New entry created');
 			
-			$request->setRequestFormat(TurboBundle::STREAM_FORMAT);
-			return $this->renderForm('generic/success.stream.html.twig', [
-				'target' => 'projects',
-				'redirect' => $this->generateUrl('projects_list'),
-			]);
+			return $this->renderSuccess($request, 'projects_list');
 		} else {
 			return $this->renderForm('pages/project/new.html.twig', [
 				'form' => $form
@@ -149,11 +147,7 @@ class ProjectController extends AbstractController
 
 			$this->addFlash('success', 'Datas updated');
 
-			$request->setRequestFormat(TurboBundle::STREAM_FORMAT);
-			return $this->renderForm('generic/success.stream.html.twig', [
-				'target' => 'projects',
-				'redirect' => $this->generateUrl('projects_list'),
-			]);
+			return $this->renderSuccess($request, 'projects_list');
 		} else {
 			return $this->renderForm('pages/project/edit.html.twig', [
 				'form' => $form
@@ -175,22 +169,13 @@ class ProjectController extends AbstractController
 
 			$this->addFlash('success', 'Entry deleted');
 
-			$request->setRequestFormat(TurboBundle::STREAM_FORMAT);
-			return $this->renderForm('generic/success.stream.html.twig', [
-				'target' => 'projects',
-				'redirect' => $this->generateUrl('projects_list'),
-			]);
+			return $this->renderSuccess($request, 'projects_list');
 		} else {
 			return $this->renderForm('generic/delete.html.twig', [
 				'title' => 'Delete project',
 				'entities' => [$project],
 			]);
 		}
-	}
-
-	protected function getUser(): User
-	{
-		return parent::getUser();
 	}
 }
 ?>

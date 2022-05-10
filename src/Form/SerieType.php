@@ -2,36 +2,55 @@
 
 namespace App\Form;
 
-use App\Entity\Enum\MetadataTypeEnum;
+use App\Entity\Serie;
+use App\Entity\Company;
 use App\Entity\Metadata;
 use App\Entity\MetadataItem;
 use App\Entity\MetadataValue;
-use App\Entity\Serie;
+use App\Entity\Enum\MetadataTypeEnum;
+use App\Repository\CompanyRepository;
 use App\Repository\MetadataRepository;
-use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
-use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
+use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
-use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Form\Exception\InvalidArgumentException;
 
 class SerieType extends AbstractType
 {
 	
-	private $builder;
-	
-	public function __construct(private readonly MetadataRepository $metadataRepository)
+	public function __construct(private readonly CompanyRepository $companyRepository,
+								private readonly MetadataRepository $metadataRepository)
 	{
 	}
 	
 	public function buildForm(FormBuilderInterface $builder, array $options)
 	{
 		
-		
+		$ids = $options['ids'] ?? [];
+
 		$builder->add('name');
+		
+		if ($builder->getData()->getCompany() === null) {
+			if (empty($ids) === true) {
+				$builder->add('company');
+			} else {
+				$companies = $this->companyRepository->getCompaniesBySerieIds($ids);
+				
+				if ($companies == false) {
+					throw new InvalidArgumentException('notFound.company');
+				}
+				$builder->add('company', EntityType::class, [
+					'class' => Company::class,
+					'choices' => $companies,
+				]);
+			}
+		}
 		
 		$project = $builder->getData()->getProject();
 		foreach ($this->metadataRepository->getMetadatasForSerie($project) as $metadata) {
@@ -40,7 +59,7 @@ class SerieType extends AbstractType
 			
 			switch ($metadata->getType()) {
 				
-				case MetadataTypeEnum::BOOLEAN:
+				case MetadataTypeEnum::BOOL:
 					
 					$builder->add($metadata->getCodeName(), ChoiceType::class, [
 						'label' => $metadata->getName(),
@@ -118,6 +137,9 @@ class SerieType extends AbstractType
 	{
 		$resolver->setDefaults([
 			'data_class' => Serie::class,
+			'ids' => [],
 		]);
+
+		$resolver->setAllowedTypes('ids', ['null', 'string[]']);
 	}
 }

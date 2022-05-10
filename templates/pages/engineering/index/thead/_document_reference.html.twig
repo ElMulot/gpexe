@@ -1,0 +1,93 @@
+{% set width = query.display[field.id] ?? field.default_width %}
+
+<th style="width: {{ width }}rem; min-width: {{ width }}rem; max-width: {{ width }}rem;">
+	<div class="btn-group w-100" role="group">
+		<button type="button" class="btn btn-sm btn-primary rounded-0 w-100 py-2">
+			{{ field.title }}
+		</button>
+		<button type="button" class="btn btn-sm btn-primary dropdown-toggle dropdown-toggle-split rounded-0 px-0 py-2" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside" data-bs-reference="parent" data-bs-offset="0, 0">
+			<i class="bi-funnel"></i>
+		</button>
+		<div class="dropdown-menu">
+			<div class="d-flex flex-row">
+				{% for codification in fields|filter(v => v.parent == 'codification' and v.display.thead is same as(true)) %}
+					<div style="width:15rem;" {{ stimulus_controller('engineering--header', { 'codename': codification.codename, 'type': codification.type }) }}>
+						<div class="border-bottom border-dark px-1 pb-2 text-center">
+							{{ codification.title }}
+						</div>
+						<div class="d-flex flex-wrap justify-content-center px-3 pt-2">
+							<button type="button" class="btn btn-sm btn-primary px-3 mx-1" {{ stimulus_action('engineering--header', 'filter') }}>
+								{% trans %}Filter{% endtrans %}
+							</button>
+							<div class="input-group input-group-sm m-2">
+								<input type="text" class="form-control" aria-label="{% trans %}Filter{% endtrans %}"
+									{{ stimulus_target('engineering--header', 'liveSearch') }}
+									{{ stimulus_action({'engineering--header': ['liveSearch', {'keypress': 'filter'}]}) }}>
+								<button type="button" class="btn btn-sm btn-light border" {{ stimulus_action('engineering--header', 'clearLiveSearch') }}>
+									<i class="bi bi-x"></i>
+								</button>
+							</div>
+						</div>
+						{% if codification.element.filter.choices is defined %}
+							<div class="dropdown-list border-top border-dark pt-2 px-3">
+								<div class="form-check">
+									<input type="checkbox" class="form-check-input" id="{{ field.id ~ '_select_all' }}"
+										{{ stimulus_target('engineering--header', 'selectAll') }}
+										{{ stimulus_action('engineering--header', 'selectAll') }}>
+									<label for="{{ field.id ~ '_select_all' }}" class="form-check-label">
+										{% trans %}Select all{% endtrans %}
+									</label>
+								</div>
+								{% for choice in codification.element.filter.choices %}
+									<div class="form-check" {{ stimulus_target('engineering--header', 'checkbox') }}>
+										<input type="checkbox" class="form-check-input" value="{{ choice.id }}" id="{{ codification.id ~ '_' ~ choice.id }}">
+										<label for="{{ codification.id ~ '_' ~ choice.id }}" class="form-check-label">
+											{{ choice.name }}
+										</label>
+									</div>
+								{% endfor %}
+							</div>
+						{% endif %}
+					</div>
+				{% endfor %}
+				<div style="width:15rem;" {{ stimulus_controller('engineering--header', { 'codename': 'reference', 'type': 'text' }) }}>
+					<div class="dropdown-title border-bottom border-dark px-1 pb-2 text-center">
+						{% trans %}Search by reference{% endtrans %}
+					</div>
+					<div class="d-flex flex-wrap justify-content-center px-3 pt-2">
+						<button type="button" class="btn btn-sm btn-primary px-3 mx-1"
+							{{ stimulus_action('engineering--header', 'filter') }}>
+							{% trans %}Filter{% endtrans %}
+						</button>
+						<div class="input-group input-group-sm m-2">
+							<input type="text" class="form-control" aria-label="{% trans %}Filter{% endtrans %}" placeholder="{% trans %}Type a reference{% endtrans %}"
+								{{ stimulus_target('engineering--header', 'liveSearch') }}
+								{{ stimulus_action('engineering--header', 'filter', 'keypress') }}>
+								<button type="button" class="btn btn-sm btn-light border" {{ stimulus_action('engineering--header', 'clearLiveSearch') }}>
+								<i class="bi bi-x"></i>
+							</button>
+						</div>
+					</div>
+					<div class="dropdown-list border-top border-dark pt-2 px-3">
+						<div class="row mb-2">
+							<div class="col-2 small">^</div>
+							<div class="col-10 small">{% trans %}Start of string{% endtrans %}</div>
+						</div>
+						<div class="row mb-2">
+							<div class="col-2 small">$</div>
+							<div class="col-10 small">{% trans %}End of string{% endtrans %}</div>
+						</div>
+						<div class="row mb-2">
+							<div class="col-2 small">?</div>
+							<div class="col-10 small">{% trans %}One missing character{% endtrans %}</div>
+						</div>
+						<div class="row mb-2">
+							<div class="col-2 small">*</div>
+							<div class="col-10 small">{% trans %}One or more missing character{% endtrans %}</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</th>

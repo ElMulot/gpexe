@@ -25,7 +25,6 @@ const TurboHelper = class {
 			this.renderLoading(e);
 		});
 
-
 		//clear document before caching
 		document.addEventListener('turbo:before-cache', event => {
 			this.closeAllModals();
@@ -57,6 +56,12 @@ const TurboHelper = class {
 			const frameId = event.detail.fetchOptions.headers['Turbo-Frame'];
 			
 			if (frameId) {
+				const $frame = document.getElementById(frameId);
+				if ($frame === null) {
+					console.error(`The page has no matching <turbo-frame id="${frameId}"> element`);
+					event.preventDefault();
+					return false;
+				}
 				this.renderLoading(document.getElementById(frameId));
 			} else {
 				this.renderLoading();
@@ -145,7 +150,7 @@ const TurboHelper = class {
 		if (e instanceof HTMLBodyElement) {
 			document.querySelectorAll('#navbarContent').forEach(e => e.classList.add('invisible'));
 		}
-
+		
 		if (e instanceof HTMLBodyElement || [...e.children].some(e => e.classList.contains('modal'))) {
 			if (document.getElementsByTagName('loading-component').length === 0) {
 				document.body.appendChild(document.createElement('loading-component'));

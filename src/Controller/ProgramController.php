@@ -19,20 +19,26 @@ use App\Repository\AutomationRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Security\Core\Security;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
 
-
-class ProgramController extends AbstractController
+//todo : à mettre à jour complètement
+class ProgramController extends AbstractTurboController
 {
 	
-	public function __construct(private readonly TranslatorInterface $translator, private readonly ManagerRegistry $doctrine, private readonly AutomationRepository $automationRepository, private readonly ProgramRepository $programRepository, private readonly ProgressRepository $progressRepository, private readonly SerieRepository $serieRepository, private readonly ParseService $parseService, private readonly ProgramService $programService, private readonly FieldService $fieldService, Security $security)
+	public function __construct(private readonly AutomationRepository $automationRepository,
+								private readonly FieldService $fieldService,
+								private readonly ManagerRegistry $doctrine,
+								private readonly ProgramRepository $programRepository,
+								private readonly ProgramService $programService,
+								private readonly ProgressRepository $progressRepository,
+								private readonly ParseService $parseService,
+								private readonly SerieRepository $serieRepository,
+								private readonly TranslatorInterface $translator)
 	{
 	}
 	
@@ -200,7 +206,7 @@ class ProgramController extends AbstractController
 	// if ($this->isGranted('ROLE_ADMIN') === false &&
 	// 	($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false) &&
 	// 	($this->isGranted('ROLE_USER') === false || $project->hasUser($this->getUser()) === false ||
-	//  ($this->getUser()->getCompany()->isMainContractor() === false &&  $this->isUserAttachedToSeries() === false) || 
+	//  ($this->getUserCompany()->isMainContractor() === false &&  $this->isUserAttachedToSeries() === false) || 
 	//  $program->isTypeProgress() === false)) {
 
 	#[Route(path: '/project/program/{program}/load', name: 'program_load', requirements: ['program' => '\d+'])]
@@ -583,17 +589,12 @@ class ProgramController extends AbstractController
 		}
 	}
 
-	public function getUser(): User
-	{
-		return parent::getUser();
-	}
-
 	private function isUserAttachedToSeries($series): bool
 	{
 		return array_intersect(
 			array_column(
 				$this->serieRepository->getSeriesByIdsAsArray(
-					$this->getUser()->getCompany()->getSeries()->getValues()
+					$this->getUserCompany()->getSeries()->getValues()
 				), 'id'
 			), $series) == true;
 	}

@@ -311,7 +311,7 @@ class Version implements \Stringable
 		
 		switch ($metadata->getType()) {
 			
-			case MetadataTypeEnum::BOOLEAN:
+			case MetadataTypeEnum::BOOL:
 			case MetadataTypeEnum::TEXT:
 			case MetadataTypeEnum::DATE:
 			case MetadataTypeEnum::LINK:
@@ -337,7 +337,7 @@ class Version implements \Stringable
 	{
 		
 		switch ($metadata->getType()) {
-			case MetadataTypeEnum::BOOLEAN:
+			case MetadataTypeEnum::BOOL:
 				$value = ($value)?true:false;
 				break;
 			case MetadataTypeEnum::DATE:
@@ -367,7 +367,7 @@ class Version implements \Stringable
 		
 		switch ($metadata->getType()) {
 			
-			case MetadataTypeEnum::BOOLEAN:
+			case MetadataTypeEnum::BOOL:
 			case MetadataTypeEnum::TEXT:
 			case MetadataTypeEnum::DATE:
 			case MetadataTypeEnum::LINK:
@@ -418,7 +418,7 @@ class Version implements \Stringable
 				break;
 		}
 		
-		if ($metadata->getType() === MetadataTypeEnum::BOOLEAN) {
+		if ($metadata->getType() === MetadataTypeEnum::BOOL) {
 			return $this;
 		}
 		throw new \Error(sprintf('Erreur en écrivant la valeur "%s" dans le champ "%s"', $value, $metadata->getCodename()));

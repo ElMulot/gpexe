@@ -102,6 +102,7 @@ Encore
 	.addAliases({
 		'components': path.resolve('assets/components'),
 		'helpers': path.resolve('assets/helpers'),
+		'styles': path.resolve('assets/styles'),
 		'i18n': path.resolve('assets/i18n'),
 	})
 

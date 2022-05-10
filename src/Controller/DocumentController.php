@@ -28,11 +28,10 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
 
-class DocumentController extends AbstractController
+class DocumentController extends AbstractTurboController
 {
 	
 	public function __construct(private readonly TranslatorInterface $translator,
@@ -62,12 +61,12 @@ class DocumentController extends AbstractController
 
 		if ($serie === null) {
 			$company = null;
-			if ($this->getUser()->getCompany()->isMainContractor() === false) {
+			if ($this->getUserCompany()->isMainContractor() === false) {
 				return $this->redirectToRoute('project');
 			}
 		} else {
 			$company = $serie->getCompany();
-			if ($this->getUser()->getCompany()->isMainContractor() === false && $this->getUser()->getCompany() !== $serie->getCompany()) {
+			if ($this->getUserCompany()->isMainContractor() === false && $this->getUserCompany() !== $serie->getCompany()) {
 				return $this->redirectToRoute('project');
 			}
 		}
@@ -120,13 +119,13 @@ class DocumentController extends AbstractController
 			}
 		}
 		if ($serie === null) {
-			if ($this->getUser()->getCompany()->isMainContractor() === false) {
+			if ($this->getUserCompany()->isMainContractor() === false) {
 				throw $this->createAccessDeniedException();
 			}
 			$series = $this->serieRepository->getSeriesByTypeAsArray($project, $type);
 			$serieId = 0;
 		} else {
-			if ($this->getUser()->getCompany()->isMainContractor() === false && $this->getUser()->getCompany() !== $serie->getCompany()) {
+			if ($this->getUserCompany()->isMainContractor() === false && $this->getUserCompany() !== $serie->getCompany()) {
 				throw $this->createAccessDeniedException();
 			}
 			$series = [$serie];
@@ -178,12 +177,12 @@ class DocumentController extends AbstractController
 			}
 		}
 		if ($serie === null) {
-			if ($this->getUser()->getCompany()->isMainContractor() === false) {
+			if ($this->getUserCompany()->isMainContractor() === false) {
 				throw $this->createAccessDeniedException();
 			}
 			$series = $this->serieRepository->getSeriesByTypeAsArray($project, $type);
 		} else {
-			if ($this->getUser()->getCompany()->isMainContractor() === false && $this->getUser()->getCompany() !== $serie->getCompany()) {
+			if ($this->getUserCompany()->isMainContractor() === false && $this->getUserCompany() !== $serie->getCompany()) {
 				throw $this->createAccessDeniedException();
 			}
 			$series = [$serie];
@@ -495,11 +494,6 @@ class DocumentController extends AbstractController
 				'entities' => $documents,
 			]);
 		}
-	}
-
-	public function getUser(): User
-	{
-		return parent::getUser();
 	}
 	
 	private function getDefaultDisplay(array $fields): array

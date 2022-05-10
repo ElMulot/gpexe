@@ -6,64 +6,59 @@ use App\Entity\User;
 use App\Entity\View;
 use App\Form\ViewType;
 use App\Entity\Project;
-use Symfony\UX\Turbo\TurboBundle;
 use App\Repository\ViewRepository;
-use App\Service\AjaxRedirectService;
-use App\Service\FieldService;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 
-class ViewController extends AbstractController
+class ViewController extends AbstractTurboController
 {
 	
-	public function __construct(private readonly ManagerRegistry $doctrine, private readonly ViewRepository $viewRepository, private readonly AjaxRedirectService $ajaxRedirectService, private readonly FieldService $fieldService)
+	public function __construct(private readonly ManagerRegistry $doctrine,
+								private readonly TranslatorInterface $translator,
+								private readonly ViewRepository $viewRepository)
 	{
-	}
-	
-	#[Route(path: '/project/{project}/view', name: 'view', requirements: ['project' => '\d+'])]
-	public function index(Project $project) : Response
-	{
-		$this->denyAccessUnlessGranted('VIEW_SHOW', $project);
-		
-		$views = $this->viewRepository->getViewsByProjectAndByUserAsArray($project, $this->getUser());
-		foreach ($views as &$view) {
-			if ($view['user_id'] == $this->getUser()->getId() || $this->isGranted('USER', $project)) {
-				$view['edit_url'] = $this->generateUrl('view_edit', [
-					'view' => $view['id'],
-				]);
-				$view['delete_url'] = $this->generateUrl('view_delete', [
-					'view' => $view['id'],
-				]);
-			}
-		}
-		return new JsonResponse($views);
 	}
 
-	#[Route(path: '/project/{project}/view/pannel/{selected_view?}', name: 'view_pannel', requirements: ['project' => '\d+', 'selected_view' => '\d+'])]
-	#[ParamConverter('selectedView', options: ['strip_null' => true, 'mapping' => ['selected_view' => 'id']])]
-	public function pannel(Request $request, Project $project, ?int $selectedView) : Response
+	/**
+	 * Query parameters :
+	 * 	+ int		selected		view id to display
+	 */
+	#[Route(path: '/project/{project}/view', name: 'view', requirements: ['project' => '\d+'])]
+	public function index(Request $request, Project $project) : Response
 	{
 		$this->denyAccessUnlessGranted('VIEW_SHOW', $project);
 		
 		$views = $this->viewRepository->getViewsByProjectAndByUser($project, $this->getUser());
-		if ($selectedView === null) {
+		
+		$selectedViewId = $request->get('selected');
+
+		if ($selectedViewId === null) {
 			$selectedView = $this->viewRepository->getDefaultViewByProjectAndByUser($project, $this->getUser());
+		} else {
+			$selectedView = match(count($views)) {
+				0		=>  null,
+				1		=> current($views),
+				default	=> current(array_filter($views, fn($item) => $item->getId() == $selectedViewId)),
+			};
 		}
 		
 		// $request->setRequestFormat(TurboBundle::STREAM_FORMAT);
-		return $this->renderForm('pages/engineering/index/_view.html.twig', [
+		return $this->renderForm('pages/engineering/index/header/_view.html.twig', [
 			'views' => $views,
 			'selected_view' => $selectedView,
 			'project' => $project,
 		]);
 	}
 	
+	/**
+	 * Query parameters :
+	 * 	+ int		page		page to display
+	 * 	+ int		view		view to display
+	 */
 	#[Route(path: '/project/{project}/view/new', name: 'view_new', requirements: ['project' => '\d+'])]
 	public function new(Request $request, Project $project) : Response
 	{
@@ -83,9 +78,13 @@ class ViewController extends AbstractController
 			$entityManager->flush();
 			
 			$this->addFlash('success', 'New view created');
-			return $this->ajaxRedirectService->get($this->generateUrl('view', ['project' => $project->getId()]), '#views');
+
+			return $this->renderSuccess($request, 'view', [
+				'project' => $view->getProject()->getId(),
+				'selected' => $view->getId()
+			]);
 		} else {
-			return $this->renderForm('ajax/form.html.twig', [
+			return $this->renderForm('generic/new.html.twig', [
 				'form' => $form
 			]);
 		}
@@ -103,9 +102,12 @@ class ViewController extends AbstractController
 			$entityManager->flush();
 			
 			$this->addFlash('success', 'View updated');
-			return $this->ajaxRedirectService->get($this->generateUrl('view', ['project' => $view->getProject()->getId()]), '#views');
+			
+			return $this->renderSuccess($request, 'view', [
+				'project' => $view->getProject()->getId()
+			]);
 		} else {
-			return $this->renderForm('ajax/form.html.twig', [
+			return $this->renderForm('generic/edit.html.twig', [
 				'form' => $form
 			]);
 		}
@@ -117,22 +119,29 @@ class ViewController extends AbstractController
 	{
 		$this->denyAccessUnlessGranted('VIEW_DELETE', $view);
 
+		$selectedView = $this->viewRepository->getDefaultViewByProjectAndByUser($view->getProject(), $this->getUser());
+
 		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
 			$entityManager = $this->doctrine->getManager();
 			$entityManager->remove($view);
 			$entityManager->flush();
-			
+
 			$this->addFlash('success', 'View deleted');
-			return $this->ajaxRedirectService->get($this->generateUrl('view', ['project' => $view->getProject()->getId()]), '#views');
+			
+			if ($selectedView === null) {
+				return $this->renderSuccess($request, 'view', [
+					'project' => $view->getProject()->getId()
+				]);
+			} else {
+				return $this->renderSuccess($request, 'view', [
+					'project' => $view->getProject()->getId(),
+					'selected' => $selectedView->getId(),
+				]);
+			}
 		} else {
-			return $this->renderForm('ajax/delete.html.twig', [
+			return $this->renderForm('generic/delete.html.twig', [
 				'entities' => [$view],
 			]);
 		}
-	}
-
-	public function getUser(): User
-	{
-		return parent::getUser();
 	}
 }
