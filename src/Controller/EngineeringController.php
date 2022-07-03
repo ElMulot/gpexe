@@ -37,19 +37,21 @@ class EngineeringController extends AbstractTurboController
 
 		$fields = $this->fieldService->getFieldsForJs($project, $serieIds);
 
-		$view = null;
-        if ($viewId = $request->query->get('view')) {
-			$view = $this->viewRepository->getViewById($viewId);
-		}
-		if ($view === null) {
-			$view = $this->viewRepository->getDefaultViewByProjectAndByUser($project, $this->getUser());
-		}
-		if ($view === null) {
-			$view = $this->getDefaultDisplay($fields);
+		if ($request->query->get('display') === null) {
+			$view = null;
+			if ($viewId = $request->query->get('view')) {
+				$view = $this->viewRepository->getViewById($viewId);
+			}
+			if ($view === null) {
+				$view = $this->viewRepository->getDefaultViewByProjectAndByUser($project, $this->getUser());
+			}
+			if ($view === null) {
+				$view = $this->getDefaultDisplay($fields);
+			}
+			$request->query->replace($view->getValue());
 		}
 		
-		$request->query->replace($view->getValue());
-		dump($fields);
+		$request->query->set('series', $serieIds);
 		$request->setRequestFormat(TurboBundle::STREAM_FORMAT);
 		return $this->renderForm('pages/engineering/index/_thead.html.twig', [
 			'fields' => $fields,
@@ -77,35 +79,29 @@ class EngineeringController extends AbstractTurboController
 		$request->query->remove('page');
 
 		$fields = $this->fieldService->getFields($project);
-
-		$view = null;
-        if ($viewId = $request->query->get('view')) {
-			$view = $this->viewRepository->getViewById($viewId);
-		}
 		
-		if ($view === null) {
-			$view = $this->getDefaultDisplay($fields);
-		}
-		
-		$request->query->replace($view->getValue());
-
 		$codifications = $this->codificationRepository->getCodifications($project);
 
 		$versionsCount = $this->versionRepository->getVersionsCount($codifications, $fields, $series, $project, $request);
-		
-		$resultsPerPage = $request->query->get('results_per_page') ?? 50;
-		if ($resultsPerPage == 0) { //display all
+
+		$maxResultsPerPage = $request->query->get('max_results_per_page') ?? $this->getParameter('max_results_per_page');
+		if ($maxResultsPerPage == 0) { //display all
 			$pageMax = 1;
 		} else {
-			$pageMax = max(ceil($versionsCount / $resultsPerPage), 1);
+			$pageMax = max(ceil($versionsCount / $maxResultsPerPage), 1);
 		}
-		$request->query->set('results_per_page', $resultsPerPage);
+		$request->query->set('max_results_per_page', $maxResultsPerPage);
 		$request->query->set('page', min($page, $pageMax));
 
 		$versions = $this->versionRepository->getVersionsAsArray($codifications, $fields, $series, $project, $request);
 		// $serializer = new Serializer([new DateTimeNormalizer(['datetime_format' => 'd-m-Y'])]);
 
 		$request->setRequestFormat(TurboBundle::STREAM_FORMAT);
+		
+		dump($fields);
+		dump($request->query->all());
+		dump($versions);
+
 		return $this->renderForm('pages/engineering/index/_tbody.html.twig', [
 			// 'datas' => $serializer->normalize($versions),
 			'fields' => $fields,

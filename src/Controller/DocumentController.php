@@ -143,13 +143,13 @@ class DocumentController extends AbstractTurboController
 			}
 		}
 		$versionsCount = $this->versionRepository->getVersionsCount($codifications, $fields, $series, $project, $request);
-		$resultsPerPage = $request->query->get('results_per_page') ?? 50;
-		if ($resultsPerPage == 0) { //display all
+		$maxResultsPerQuery = $request->query->get('max_results_per_page') ?? 50;
+		if ($maxResultsPerQuery == 0) { //display all
 			$pageMax = 1;
 		} else {
-			$pageMax = max(ceil($versionsCount / $resultsPerPage), 1);
+			$pageMax = max(ceil($versionsCount / $maxResultsPerQuery), 1);
 		}
-		$request->query->set('results_per_page', $resultsPerPage);
+		$request->query->set('max_results_per_page', $maxResultsPerQuery);
 		$request->query->set('page', min($page, $pageMax));
 		$versions = $this->versionRepository->getVersionsAsArray($codifications, $fields, $series, $project, $request);
 		$serializer = new Serializer([new DateTimeNormalizer(['datetime_format' => 'd-m-Y'])]);
@@ -197,7 +197,7 @@ class DocumentController extends AbstractTurboController
 				$request->query->set('display', $this->getDefaultDisplay($fields));
 			}
 		}
-		$request->query->set('results_per_page', 0);
+		$request->query->set('max_results_per_page', 0);
 		$versions = $this->versionRepository->getVersionsAsArray($codifications, $fields, $series, $project, $request);
 		try {
 			$this->programService->exportFromView($fields, $versions, $request);

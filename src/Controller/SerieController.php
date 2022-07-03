@@ -54,7 +54,7 @@ class SerieController extends AbstractTurboController
 			};
 		}
 		
-		return $this->renderForm('pages/engineering/index/header/_serie.html.twig', [
+		return $this->renderForm('pages/engineering/index/nav/_serie.html.twig', [
 			'title' => $this->translator->trans('Series for') . ' : ' . $project->getName(),
 			'class' => Serie::class,
 			'series' => $series,

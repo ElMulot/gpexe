@@ -1,21 +1,54 @@
-<div class="dropdown" {{ stimulus_controller('engineering--header', { 'type': 'fields_picker' }) }}>
-	<button class="btn btn-sm btn-primary rounded-0 px-3 py-2" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+{% set displayed = query.display|keys %}
+<div class="dropdown" {{ stimulus_controller('engineering--header', {'id': 'fileds_picker'}) }}>
+	<button class="btn btn-sm btn-primary rounded-0 px-3 py-2" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside"
+		{{ stimulus_target('engineering--header', 'toggle') }}>
 		<i class="bi bi-display"></i>
 	</button>
 	<div class="dropdown-menu dropdown-menu-end">
-		<div style="width: 15rem;">
+		<div style="width: 15rem;"
+			{{ stimulus_target('engineering--header', 'component') }}
+			{{ stimulus_controller('engineering--header--fields-picker', {'displayed': displayed}) }}>
 			<div class="border-bottom border-dark px-1 pb-2 text-center">
 				{% trans %}Headers{% endtrans %}
+				<div class="form-check form-switch mx-2 float-end d-table">
+					<input class="form-check-input" type="checkbox" role="switch" id="fields_picker_name_switch"
+						{{ stimulus_target('engineering--header--fields-picker', 'name') }}
+						{{ stimulus_action('engineering--header--fields-picker', 'toggleName') }}>
+				</div>
 			</div>
-			<div class="dropdown-list pt-2 px-3">
+			<div class="d-flex flex-wrap justify-content-center px-3 pt-2">
+				<button type="button" class="btn btn-sm btn-primary px-3 mx-1"
+					{{ stimulus_target('engineering--header--fields-picker', 'filter') }}
+					{{ stimulus_action('engineering--header', 'filter') }}>
+					{% trans %}Filter{% endtrans %}
+				</button>
+				<div class="input-group input-group-sm m-2">
+					<input type="text" class="form-control" aria-label="{% trans %}Filter{% endtrans %}"
+						{{ stimulus_target('engineering--header--fields-picker', 'liveSearch') }}
+						{{ stimulus_action({'engineering--header--fields-picker': 'liveSearch'}) }}>
+					<button type="button" class="btn btn-sm btn-light border" {{ stimulus_action('engineering--header--fields-picker', 'clear') }}>
+						<i class="bi bi-x"></i>
+					</button>
+				</div>
+			</div>
+			<div class="dropdown-list border-top border-dark pt-2 px-3">
+				<div class="form-check">
+					<input type="checkbox" class="form-check-input" id="fields_picker_select_all"
+						{{ stimulus_target('engineering--header--fields-picker', 'selectAll') }}
+						{{ stimulus_action('engineering--header--fields-picker', 'selectAll') }}>
+					<label for="fields_picker_select_all" class="form-check-label">
+						{% trans %}Select all{% endtrans %}
+					</label>
+				</div>
 				{% for field in fields %}
 					{% if field.display.thead is same as(true) %}
 						<div class="form-check">
-							<input type="checkbox" class="form-check-input" id="{{ field.id }}"
-								{{ stimulus_action('engineering--header', 'filter') }}
-								{{ stimulus_param('engineering--header', {'key': field.id}) }}>
-							<label for="{{ field.id }}" class="form-check-label w-100">
-								{{ field.title }}
+							<input type="checkbox" class="form-check-input" value="{{ field.default_width }}" id="fields_picker_{{ field.id }}"
+								{{ stimulus_target('engineering--header--fields-picker', 'checkbox') }}
+								data-id = "{{ field.id }}"
+								data-title = "{{ field.title }}"
+								data-codename = "{{ field.codename }}">
+							<label for="fields_picker_{{ field.id }}" class="form-check-label w-100" title="">
 							</label>
 						</div>
 					{% endif %}

@@ -116,7 +116,7 @@ class VersionRepository extends RepositoryService
 					
 				case 'version_approver':
 					if ($qb->hasAlias('approver') === false) {
-						$qb->leftJoin('approver.checker', 'approver');
+						$qb->leftJoin('version.approver', 'approver');
 					}
 					$qb->addOrderBy('approver.name', $order);
 					break;
@@ -233,15 +233,17 @@ class VersionRepository extends RepositoryService
 		//page
 		$page = $request->query->get('page');
 		
-		if ($request->query->get('results_per_page') > 0) {
+		if ($request->query->get('max_results_per_page') > 0) {
 			$qb
-				->setFirstResult(($page -1) * $request->query->get('results_per_page'))
-				->setMaxResults($request->query->get('results_per_page'));
+				->setFirstResult(($page -1) * $request->query->get('max_results_per_page'))
+				->setMaxResults($request->query->get('max_results_per_page'));
 		}
 		
 		$display = array_keys($request->query->all('display') ?? []);
 		
-		if (array_search('document_reference', $display) !== false || preg_grep('/codification_(\d+)/', $display)) {
+		//je ne sais pas pourquoi cette condition est présente
+		//todo : à clarifier
+		// if (array_search('document_reference', $display) !== false || preg_grep('/codification_(\d+)/', $display)) {
 			
 			foreach ($fields as $field) {
 				
@@ -282,15 +284,15 @@ class VersionRepository extends RepositoryService
 						break;
 						
 					case 'version_initial_scheduled_date':
-						$qb->addSelect('version.initialScheduledDate AS version_initial_scheduled_date');
+						$qb->addSelect("DATE_FORMAT(version.initialScheduledDate, '%d-%m-%Y') AS version_initial_scheduled_date");
 						break;
 					
 					case 'version_scheduled_date':
-						$qb->addSelect('version.scheduledDate AS version_scheduled_date');
+						$qb->addSelect("DATE_FORMAT(version.scheduledDate, '%d-%m-%Y') AS version_scheduled_date");
 						break;
 					
 					case 'version_delivery_date':
-						$qb->addSelect('version.deliveryDate AS version_delivery_date');
+						$qb->addSelect("DATE_FORMAT(version.deliveryDate, '%d-%m-%Y') AS version_delivery_date");
 						break;
 						
 					case 'version_date':
@@ -431,7 +433,7 @@ class VersionRepository extends RepositoryService
 						break;
 				}
 			}
-		}
+		// }
 		
 		$results = $qb->getQuery()->getArrayResult();
 		
@@ -640,13 +642,13 @@ class VersionRepository extends RepositoryService
 			->andWhere($qb->in('serie.id', $series))
 		;
 		
-		if ($request->query->all('filter')) {
+		if ($request->query->all('filters')) {
 			
 			foreach ($fields as $field) {
 				
-				if (array_key_exists($field['id'], $request->query->all('filter'))) {
+				if (array_key_exists($field['id'], $request->query->all('filters'))) {
 					
-					$value = $request->query->all('filter')[$field['id']];
+					$value = $request->query->all('filters')[$field['id']];
 					
 					switch ($field['id']) {
 						
@@ -718,7 +720,7 @@ class VersionRepository extends RepositoryService
 							break;
 							
 						case 'version_is_required':
-							$qb->andWhere($qb->eq('version.isRequired', ($value != "0")));
+							$qb->andWhere($qb->eq('version.isRequired', ($value == "1")));
 							break;
 							
 						case 'version_writer':

@@ -4,10 +4,7 @@
             "path": "."
         },
         {
-            "name": "SSH FS - gpexe",
-            "uri": "ssh://gpexe/home/gpexeff/www/gpexe"
-        },
-        {
+            "name": "test",
             "path": "..\\test"
         }
     ],

@@ -7,6 +7,7 @@ use App\Entity\Enum\CompanyTypeEnum;
 use App\Entity\Project;
 use App\Entity\Serie;
 use App\Service\RepositoryService;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
@@ -25,7 +26,7 @@ class SerieRepository extends RepositoryService
 	}
 	
 	/**
-	 * @return Serie[]
+	 * @return Collection
 	 */
 	public function getSeriesByIds(array $ids)
 	{

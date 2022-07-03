@@ -47,7 +47,7 @@ class ViewController extends AbstractTurboController
 		}
 		
 		// $request->setRequestFormat(TurboBundle::STREAM_FORMAT);
-		return $this->renderForm('pages/engineering/index/header/_view.html.twig', [
+		return $this->renderForm('pages/engineering/index/nav/_view.html.twig', [
 			'views' => $views,
 			'selected_view' => $selectedView,
 			'project' => $project,

@@ -1,179 +1,227 @@
 import { Controller } from 'stimulus';
-import UrlParams from 'helpers/url_params_helper';
+import { Dropdown } from 'bootstrap';
 
 export default class extends Controller {
 
-	static targets = ['liveSearch', 'selectAll', 'checkbox', 'highlight'];
+	#dropdown = null;
+	#countOfRequest = 0;
+	#request = [];
+
+	static targets = ['toggle', 'menu', 'component'];
 
 	static values = {
-		codename: String,
-		type: String,
+		id: String,
+		width: Number,
+		filtered: Boolean,
+		sortedDesc: Boolean,
+		sortedAsc: Boolean,
+		resizable: Boolean,
+		movable: Boolean,
 	}
 
-	static params = {
-		key: Number
-	}
+	static classes = ['empty', 'fill', 'arrowDown', 'arrowUp'];
 
 	connect() {
 
-		if (this.typeValue === 'date') {
-			this.element.addEventListener('flatpickr:open', event => {
-				event.stopPropagation();
-				event.target.parentElement.querySelectorAll('input[type="checkbox"]').forEach(e => {
-					e.checked = true;
-				});
-			});
-			
-			this.element.addEventListener('flatpickr:close', event => {
-				event.stopPropagation();
-				event.target.parentElement.querySelectorAll('input[type="checkbox"]').forEach(e => {
-					e.checked = event.target.value !== '';
-				});
-			});
+		/**
+		 * Create Dropdown instance.
+		 */
+		this.#dropdown = new Dropdown(this.toggleTarget);
+
+		if (this.#dropdown === null) {
+			throw new Error("Invalid dropdown target.");
 		}
 
+		/**
+		 * Listener that reset the menu when opened.
+		 */
+		this.toggleTarget.addEventListener('show.bs.dropdown', () => {
+			this.componentTargets.forEach(e => {
+				this.dispatch('reset', {
+					target: e
+				});
+			});
+		});
+
+		/**
+		 * Listener triggered on resize action.
+		 */
+		this.element.addEventListener('engineering--main:requestResize', () => {
+			if (this.hasWidthValue === true) {
+				this.dispatch('display', {
+					detail: [{
+						key: this.idValue,
+						value: this.widthValue,
+					}]
+				});
+			}
+		});
+
+		/**
+		 * Listener triggered on order action.
+		 */
+		 this.element.addEventListener('engineering--main:requestMove', event => {
+			this.dispatch('order', {
+				detail: [{
+					key: this.idValue,
+					value: event.detail.order,
+				}]
+			});
+		});
+
+		/**
+		 * Listener triggered when update requested.
+		 */
+		this.element.addEventListener('engineering--main:update', event => {
+			
+			if (event.detail.width !== undefined) {
+				this.widthValue = event.detail.width;
+			}
+			
+			if (event.detail.filtered !== undefined) {
+				this.filteredValue = event.detail.filtered.length !== 0;
+			}
+			
+			if (event.detail.sortedDesc !== undefined) {
+				this.sortedDescValue = event.detail.sortedDesc !== false;
+			}
+			
+			if (event.detail.sortedAsc !== undefined) {
+				this.sortedAscValue = event.detail.sortedAsc !== false;
+			}
+			
+			this.componentTargets.forEach(e => {
+				this.dispatch('update', {
+					target: e,
+					detail: event.detail,
+				});
+			});
+
+			this.#reset();
+
+			this.#dropdown.hide();
+
+        });
+
+		/**
+		 * Listener triggered on Filter button clicked.
+		 */
+		this.element.addEventListener('engineering--header--component:filter', event => {
+
+			if (Array.isArray(event.detail)) {
+				this.#request = [...this.#request, ...event.detail];
+			} else {
+				this.#request.push(event.detail);
+			}
+			this.#countOfRequest++;
+			if (this.#countOfRequest === this.componentTargets.length) {
+				this.dispatch('filter',  { detail: this.#request });
+			}
+		});
+
+		/**
+		 * Listener triggered on SortDesc button clicked.
+		 */
+		this.element.addEventListener('engineering--header--component:sortDesc', event => {
+			this.dispatch('sortDesc',  {
+				detail: event.detail
+			});
+		});
+
+		/**
+		 * Listener triggered on SortAsc button clicked.
+		 */
+		this.element.addEventListener('engineering--header--component:sortAsc', event => {
+			this.dispatch('sortAsc',  {
+				detail: event.detail
+			});
+		});
+
+		/**
+		 * Listener triggered on Highlight switch changed.
+		 */
+		this.element.addEventListener('engineering--header--component:highlight', event => {
+			this.dispatch('highlight',  {
+				detail: event.detail
+			});
+		});
+
+		/**
+		 * Listener triggered on Highlight switch changed.
+		 */
+		 this.element.addEventListener('engineering--header--component:display', event => {
+			this.dispatch('display',  {
+				detail: event.detail
+			});
+		});
+
+		this.#reset();
 		this.dispatch('connected');
 	}
-
-	sortDesc() {
-		this.dispatch('sortDesc', { detail: { value: this.codenameValue } });
-	}
-
+	
+	/**
+	 * Action when Filter button clicked.
+	 * @param {Object} event 
+	 */
 	filter(event) {
-
+		
 		if (event.type === 'keypress' && event.which !== 13) {
 			return;
 		}
 
-		switch (this.typeValue) {
-			
-			case 'bool':
-				this.checkboxTargets.forEach(e => {
-					let $input = e.querySelector('input');
-					if ($input !== null && $input.checked == true) {
-						this.dispatch('filter', { detail: { key: this.codenameValue, value: e.value } });
-					}
-				});
-				break;
-			
-			case 'text':
-			case 'regex':
-				if (this.hasLiveSearchTarget === true) {
-					this.dispatch('filter', { detail: { key: this.codenameValue, value: this.liveSearchTarget.value } });
-				}
-				break;
-
-			case 'date':
-				let dates = [];
-				if (this.hasGreaterThanTarget === true) {
-					dates.push(">" + this.greaterThanTarget.value);
-				}
-				if (this.hasLessThanTarget === true) {
-					dates.push("<" + this.lessThanTarget.value);
-				}
-
-				this.dispatch('filter', { detail: { key: this.codenameValue, value: dates } });
-
-				if (this.hasHighlightTarget === true) {
-					this.dispatch('highlight', { detail: { value: this.getHighlightTarget.checked?this.codenameValue:'' } });
-				}
-
-				break;
-
-			case 'list':
-				let ids = [];
-				this.checkboxTargets.forEach(e => {
-					let $input = e.querySelector('input');
-					if ($input !== null && $input.checked === true) {
-						ids.push($input.value);
-					}
-				});
-
-				this.dispatch('filter', { detail: { key: this.codenameValue, value: ids } });
-				break;
-			
-			case 'fields_picker':
-				this.dispatch('display', { detail: { key: event.params.key, value: event.target.checked == true } });
-
-			case 'filters_picker':
-				this.dispatch('filter', { detail: { key: event.params.key, value: event.target.checked == true } });
-				break;
-
-		}
-		
-
-	}
-
-	sortAsc() {
-		this.dispatch('sortAsc', { detail: { value: this.codenameValue } });
-	}
-
-	boolChoice({ params }) {
-		this.checkboxTargets.forEach(e => {
-			let $input = e.querySelector('input');
-			if ($input !== null) {
-				$input.checked = ($input.value == params.key);
-			}
-		});
-		this.filter();
-	}
-
-	liveSearch(event) {
-
-		if (this.hasLiveSearchTarget === true) {
-			switch (this.typeValue) {
-				case 'text':
-				case 'regex':
-					break;
-
-				case 'list':
-					if (this.liveSearchTarget.value === '') {
-						this.clearLiveSearch();
-						return;
-					}
-
-					this.checkboxTargets.forEach(e => {
-
-						let $label = e.querySelector('label');
-						let $input = e.querySelector('input');
-						if ($label !== null && $input !== null) {
-							if ($label.textContent.toLowerCase().includes(this.liveSearchTarget.value.toLowerCase())) {
-								$input.checked = true;
-								e.style.removeProperty('display');
-							} else {
-								$input.checked = false;
-								e.style.display = 'none';
-							}
-						}
-					});
-					break;
-			}
-		}
-
-	}
-
-	clearLiveSearch() {
-
-		if (this.hasLiveSearchTarget === true) {
-			this.liveSearchTarget.value = '';
-			this.checkboxTargets.forEach(e => {
-				let $input = e.querySelector('input');
-				if ($input !== null) {
-					$input.checked = false;
-				}
-				e.style.removeProperty('display');
+		this.#countOfRequest = 0;
+		this.#request = [];
+		this.componentTargets.forEach(e => {			
+			this.dispatch('requestFilter', {
+				target: e,
 			});
-		}
-
-	}
-
-	selectAll() {
-		this.checkboxTargets.forEach(e => {
-			let $input = e.querySelector('input');
-			if ($input !== null) {
-				$input.checked = this.selectAllTarget.value;
-			}
 		});
 	}
-	
+
+	/**
+	 * Reset icons in Toggle target.
+	 */
+	#reset() {
+		this.#renderWidth();
+		this.#renderFiltered();
+		this.#renderSortedDesc();
+		this.#renderSortedAsc();
+	}
+
+	#renderWidth() {
+		if (this.hasWidthValue === true) {
+			this.element.style.minWidth = this.widthValue + 'rem';
+			this.element.style.width = this.widthValue + 'rem';
+			this.element.style.maxWidth = this.widthValue + 'rem';
+		}
+	}
+
+	#renderFiltered() {
+		if (this.hasFilteredValue === true) {
+			this.toggleTarget.querySelectorAll(`.${this.emptyClass} .${this.fillClass}`).forEach(e => e.remove());
+			if (this.filteredValue === true) {
+				this.toggleTarget.innerHTML = `<i class="bi ${this.fillClass}"></i>`;
+			} else {
+				this.toggleTarget.innerHTML = `<i class="bi ${this.emptyClass}"></i>`;
+			}
+		}
+	}
+
+	#renderSortedDesc() {
+		if (this.hasSortedDescValue === true) {
+			this.toggleTarget.querySelectorAll(`.${this.arrowDownClass}`).forEach(e => e.remove());
+			if (this.sortedDescValue === true) {
+				this.toggleTarget.innerHTML += `<i class="bi ${this.arrowDownClass}"></i>`;
+			}
+		}
+	}
+
+	#renderSortedAsc(value) {
+		if (this.hasSortedAscValue === true) {
+			this.toggleTarget.querySelectorAll(`.${this.arrowUpClass}`).forEach(e => e.remove());
+			if (this.sortedAscValue === true) {
+				this.toggleTarget.innerHTML += `<i class="bi ${this.arrowUpClass}"></i>`;
+			}
+		}
+	}
 }

@@ -14,13 +14,14 @@ class StimulusExtension extends AbstractExtension
         return [
             new TwigFunction('stimulus_value', [$this, 'renderStimulusValue'], ['needs_environment' => true, 'is_safe' => ['html_attr']]),
             new TwigFunction('stimulus_param', [$this, 'renderStimulusParam'], ['needs_environment' => true, 'is_safe' => ['html_attr']]),
+            new TwigFunction('stimulus_class', [$this, 'renderStimulusClass'], ['needs_environment' => true, 'is_safe' => ['html_attr']]),
         ];
 	}
 
     /**
      * @param string|array $dataOrControllerName This can either be a map of controller names
-     *                                           as keys set to their "targets". Or this can
-     *                                           be a string controller name and targets are
+     *                                           as keys set to their "values". Or this can
+     *                                           be a string controller name and values are
      *                                           passed as the 2nd argument.
      * @param string|null  $values               array of values if a string is passed to the 1st argument
      *
@@ -72,8 +73,8 @@ class StimulusExtension extends AbstractExtension
 
 	/**
      * @param string|array $dataOrControllerName This can either be a map of controller names
-     *                                           as keys set to their "targets". Or this can
-     *                                           be a string controller name and targets are
+     *                                           as keys set to their "params". Or this can
+     *                                           be a string controller name and params are
      *                                           passed as the 2nd argument.
      * @param array        $params   		     array of params if a string is passed to the 1st argument
      *
@@ -121,6 +122,55 @@ class StimulusExtension extends AbstractExtension
         }
 
 		return implode(' ', $values);
+    }
+
+    /**
+     * @param string|array $dataOrControllerName This can either be a map of controller names
+     *                                           as keys set to their "classes". Or this can
+     *                                           be a string controller name and classes are
+     *                                           passed as the 2nd argument.
+     * @param string|null  $classes              array of classes if a string is passed to the 1st argument
+     *
+     * @throws \Twig\Error\RuntimeError
+     */
+    public function renderStimulusClass(Environment $env, $dataOrControllerName, array $classes = []): string
+    {
+        if (\is_string($dataOrControllerName)) {
+            $data = [$dataOrControllerName => $classes];
+        } else {
+            if ($classes) {
+                throw new \InvalidArgumentException('You cannot pass a string to the second argument while passing an array to the first argument of stimulus_class().');
+            }
+
+            $data = $dataOrControllerName;
+
+            if (!$data) {
+                return '';
+            }
+        }
+        
+        $classes = [];
+
+        foreach ($data as $controllerName => $controllerValues) {
+            $controllerName = twig_escape_filter($env, $this->normalizeControllerName($controllerName), 'html_attr');
+            
+            foreach ($controllerValues as $key => $value) {
+                if (null === $value) {
+                    continue;
+                }
+
+                if (!is_scalar($value)) {
+                    $value = json_encode($value);
+                }
+
+                $key = twig_escape_filter($env, $this->normalizeKeyName($key), 'html_attr');
+                $value = twig_escape_filter($env, $value, 'html_attr');
+
+                $classes[] = 'data-'.$controllerName.'-'.$key.'-class="'.$value.'"';
+            }
+        }
+
+		return implode(' ', $classes);
     }
 
     /**

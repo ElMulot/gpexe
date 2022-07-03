@@ -1,33 +1,42 @@
 {% set width = query.display[field.id] ?? field.default_width %}
+{% set filtered = (query.filter[field.id] is defined)?query.filter[field.id] %}
+{% set sortedAsc = query.sortAsc is defined and query.sortAsc == field.id %}
+{% set sortedDesc = query.sortDesc is defined and query.sortDesc == field.id %}
 
-
-
-<th style="width: {{ width }}rem; min-width: {{ width }}rem; max-width: {{ width }}rem;"
-	{{ stimulus_controller('engineering--header', { 'codename': field.codename, 'type': field.type }) }}>
+<th data-responsive
+	{{ stimulus_target('engineering--main', 'header') }}
+	{{ stimulus_controller('engineering--header', {'id': field.id, 'width': width, 'filtered': filtered == true, 'sortedAsc': sortedAsc, 'sortedAsc': sortedAsc}) }}
+	{{ stimulus_class('engineering--header', {'empty': 'bi-funnel', 'fill': 'bi-funnel-fill', 'arrowDown':'bi-arrow-down', 'arrowUp':'bi-arrow-up'}) }}>
 	<div class="btn-group w-100" role="group">
 		<button type="button" class="btn btn-sm btn-primary rounded-0 w-100 py-2">
 			{{ field.title }}
 		</button>
-		<button type="button" class="btn btn-sm btn-primary dropdown-toggle dropdown-toggle-split rounded-0 px-0 py-2" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside" data-bs-reference="parent" data-bs-offset="0, 0">
-			<i class="bi-funnel"></i>
+		<button type="button" class="btn btn-sm btn-primary dropdown-toggle dropdown-toggle-split rounded-0 px-0 py-2" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside" data-bs-reference="parent" data-bs-offset="0, 0"
+			{{ stimulus_target('engineering--header', 'toggle') }}>
 		</button>
-		<div class="dropdown-menu">
-			<div style="width:15rem;">
+		<div class="dropdown-menu" {{ stimulus_target('engineering--header', 'menu') }}>
+			<div style="width:15rem;"
+				{{ stimulus_target('engineering--header', 'component') }}
+				{{ stimulus_controller('engineering--header--text', { 'id': field.id, 'filtered': filtered, 'sortedAsc': sortedAsc, 'sortedDesc': sortedDesc }) }}>
 				<div class="d-flex flex-wrap justify-content-center px-3 pt-2">
-					<button type="button" class="btn btn-sm btn-primary mx-1" {{ stimulus_action('engineering--header', 'sortDesc') }}>
+					<button type="button" class="btn btn-sm btn-primary mx-1"
+						{{ stimulus_target('engineering--header--text', 'sortDesc') }}
+						{{ stimulus_action('engineering--header--text', 'sortDesc') }}>
 						<i class="bi bi-arrow-bar-down"></i>
 					</button>
 					<button type="button" class="btn btn-sm btn-primary px-3 mx-1" {{ stimulus_action('engineering--header', 'filter') }}>
 						{% trans %}Filter{% endtrans %}
 					</button>
-					<button type="button" class="btn btn-sm btn-primary mx-1" {{ stimulus_action('engineering--header', 'sortAsc') }}>
+					<button type="button" class="btn btn-sm btn-primary mx-1"
+						{{ stimulus_target('engineering--header--text', 'sortAsc') }}
+						{{ stimulus_action('engineering--header--text', 'sortAsc') }}>
 						<i class="bi bi-arrow-bar-up"></i>
 					</button>
 					<div class="input-group input-group-sm m-2">
 						<input type="text" class="form-control" aria-label="{% trans %}Filter{% endtrans %}"
-							{{ stimulus_target('engineering--header', 'liveSearch') }}
-							{{ stimulus_action('engineering--header', 'liveSearch', 'keypress') }}>
-						<button type="button" class="btn btn-sm btn-light border" {{ stimulus_action('engineering--header', 'clearLiveSearch') }}>
+							{{ stimulus_target('engineering--header--text', 'textbox') }}
+							{{ stimulus_action('engineering--header', 'filter', 'keypress') }}>
+						<button type="button" class="btn btn-sm btn-light border" {{ stimulus_action('engineering--header--text', 'clear') }}>
 							<i class="bi bi-x"></i>
 						</button>
 					</div>

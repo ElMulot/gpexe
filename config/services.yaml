@@ -11,6 +11,7 @@ parameters:
     maintenance_mode: false
     disable_log: true
     uploads_directory: 'uploads'
+    max_results_per_page: 50
     container.dumper.inline_factories: true
     router.request_context.scheme: '%env(SCHEME)%'
     asset.request_context.secure: true

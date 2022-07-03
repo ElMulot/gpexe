@@ -1,45 +1,62 @@
 {% set width = query.display[field.id] ?? field.default_width %}
+{% set filtered = (query.filter[field.id] is defined)?query.filter[field.id]:[] %}
+{% set sortedAsc = query.sortAsc is defined and query.sortAsc == field.id %}
+{% set sortedDesc = query.sortDesc is defined and query.sortDesc == field.id %}
+{% set highlighted = query.highlight is defined and query.highlight == field.id %}
 
-<th style="width: {{ width }}rem; min-width: {{ width }}rem; max-width: {{ width }}rem;"
-	{{ stimulus_controller('engineering--header', { 'codename': field.codename, 'type': field.type }) }}>
+<th data-responsive
+	{{ stimulus_target('engineering--main', 'header') }}
+	{{ stimulus_controller('engineering--header', {'id': field.id, 'width': width, 'filtered': filtered is not empty, 'sortedAsc': sortedAsc, 'sortedAsc': sortedAsc}) }}
+	{{ stimulus_class('engineering--header', {'empty': 'bi-funnel', 'fill': 'bi-funnel-fill', 'arrowDown':'bi-arrow-down', 'arrowUp':'bi-arrow-up'}) }}>
 	<div class="btn-group w-100" role="group">
 		<button type="button" class="btn btn-sm btn-primary rounded-0 w-100 py-2">
 			{{ field.title }}
 		</button>
-		<button type="button" class="btn btn-sm btn-primary dropdown-toggle dropdown-toggle-split rounded-0 px-0 py-2" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside" data-bs-reference="parent" data-bs-offset="0, 0">
-			<i class="bi-funnel"></i>
+		<button type="button" class="btn btn-sm btn-primary dropdown-toggle dropdown-toggle-split rounded-0 px-0 py-2" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside" data-bs-reference="parent" data-bs-offset="0, 0"
+			{{ stimulus_target('engineering--header', 'toggle') }}>
 		</button>
-		<div class="dropdown-menu">
-			<div style="width:15rem;">
+		<div class="dropdown-menu" {{ stimulus_target('engineering--header', 'menu') }}>
+			<div style="width:15rem;"
+				{{ stimulus_target('engineering--header', 'component') }}
+				{{ stimulus_controller('engineering--header--date', { 'id': field.id, 'filtered': filtered, 'sortedDesc': sortedDesc, 'sortedAsc': sortedAsc, 'highlighted': highlighted }) }}>
 				<div class="d-flex flex-wrap justify-content-center px-3 pt-2">
-					<button type="button" class="btn btn-sm btn-primary mx-1" {{ stimulus_action('engineering--header', 'sortDesc') }}>
+					<button type="button" class="btn btn-sm btn-primary mx-1"
+						{{ stimulus_target('engineering--header--date', 'sortDesc') }}
+						{{ stimulus_action('engineering--header--date', 'sortDesc') }}>
 						<i class="bi bi-arrow-bar-down"></i>
 					</button>
 					<button type="button" class="btn btn-sm btn-primary px-3 mx-1" {{ stimulus_action('engineering--header', 'filter') }}>
 						{% trans %}Filter{% endtrans %}
 					</button>
-					<button type="button" class="btn btn-sm btn-primary mx-1" {{ stimulus_action('engineering--header', 'sortAsc') }}>
+					<button type="button" class="btn btn-sm btn-primary mx-1"
+						{{ stimulus_target('engineering--header--date', 'sortAsc') }}
+						{{ stimulus_action('engineering--header--date', 'sortAsc') }}>
 						<i class="bi bi-arrow-bar-up"></i>
 					</button>
 					<div class="input-group input-group-sm m-2">
 						<div class="input-group-text pe-0">
-							<input class="form-check-input mt-0 me-2" type="checkbox" value="" aria-label="Checkbox for following text input">≥
+							<input class="form-check-input mt-0 me-2" type="checkbox" value="" aria-label="Checkbox for following text input"
+								{{ stimulus_target('engineering--header--date', 'greaterThanCheckbox') }}
+								{{ stimulus_action('engineering--header--date', 'clear') }}>≥
 						</div>
 						<input type="text" class="form-control" aria-label="Text input with checkbox"
-						{{ stimulus_controller('flatpickr', {'mandatory': true, 'todayBtn': true, 'dateFormat': 'd-m-Y' }) }}
-						{{ stimulus_target('engineering--header', 'greaterThan') }}>
+							{{ stimulus_controller('flatpickr', {'mandatory': true, 'todayBtn': true, 'dateFormat': 'd-m-Y' }) }}
+							{{ stimulus_target('engineering--header--date', 'greaterThanTextbox') }}>
 					</div>
 					<div class="input-group input-group-sm m-2">
 						<div class="input-group-text pe-0">
-							<input class="form-check-input mt-0 me-2" type="checkbox" value="" aria-label="Checkbox for following text input">≤
+							<input class="form-check-input mt-0 me-2" type="checkbox" value="" aria-label="Checkbox for following text input"
+								{{ stimulus_target('engineering--header--date', 'lessThanCheckbox') }}
+								{{ stimulus_action('engineering--header--date', 'clear') }}>≤
 						</div>
-						<input type="text" class="form-control" aria-label="Text input with checkbox"
-						{{ stimulus_controller('flatpickr', {'mandatory': true, 'todayBtn': true, 'dateFormat': 'd-m-Y' }) }}
-						{{ stimulus_target('engineering--header', 'lessThan') }}>
+							<input type="text" class="form-control" aria-label="Text input with checkbox"
+							{{ stimulus_controller('flatpickr', {'mandatory': true, 'todayBtn': true, 'dateFormat': 'd-m-Y' }) }}
+							{{ stimulus_target('engineering--header--date', 'lessThanTextbox') }}>
 					</div>
 					<div class="form-check form-switch w-100 mx-2">
 						<input class="form-check-input" type="checkbox" role="switch" id="switch_{{ field.id }}"
-							{{ stimulus_target('engineering--header', 'highlight') }}>
+							{{ stimulus_target('engineering--header--date', 'highlight') }}
+							{{ stimulus_action('engineering--header--date', 'highlight') }}>
 						<label class="form-check-label" for="switch_{{ field.id }}">{% trans %}Highlight{% endtrans %}</label>
 					</div>
 				</div>

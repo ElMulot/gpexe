@@ -3,21 +3,25 @@
 @import "~bootstrap-icons";
 @import "~bootswatch/dist/slate/bootswatch";
 
+// --------------------
+// Misc
+// --------------------
 
 $enable-negative-margins: true;
 
-#engineering {
+main, #engineering {
 	height: 100%;
-	min-height: 100%;
 }
 
-main {
-	height: calc(100% - 2rem);
-	min-height: calc(100% - 2rem);
-	overflow-y: auto;
+frame-loading-component {
+	width: 100%;
 }
 
-header > .tab-content {
+// --------------------
+// Nav
+// --------------------
+
+nav > .tab-content {
 	height: 6rem;
 	overflow-y: hidden;
 	overflow-x: hidden;
@@ -36,25 +40,32 @@ header > .tab-content {
 	height: calc(100% + 2*map-get($spacers, 3));
 	margin-top: calc(-1 * map-get($spacers, 3)) !important;
 	margin-bottom: calc(-1 * map-get($spacers, 3)) !important;
-	
 	overflow-y: auto;
+
 	> div {
 		width: 15rem;
 		@extend #{'.mx-2', '.my-3'};
 	}
 }
 
+// --------------------
+// Table
+// --------------------
+
 #table {
+	// display: flex;
+	// flex-wrap: wrap;
+	display: block;
 	width: 100%;
 	overflow-y: auto;
 
 	table {
+		table-layout: fixed;
 		margin-left: 1rem;
 		margin-right: 1rem;
 		font-size: 80%;
 		font-weight: 400;
-		width: auto !important;
-		// table-layout: fixed;
+		width: min-content !important;
 	
 		> :not(:first-child) {
 			border-top: 0 !important;
@@ -64,7 +75,6 @@ header > .tab-content {
 	th {
 		position: sticky;
 		top: 0;
-		// z-index: $zindex-sticky;
 		height: 2.5rem;
 		padding: 0 !important;
 	
@@ -94,6 +104,10 @@ header > .tab-content {
 		border: none;
 		line-height: 2rem;
 		@extend .text-truncate;
+
+		> a {
+			height: 1.9rem;
+		}
 	}
 }
 
@@ -103,4 +117,58 @@ header > .tab-content {
 
 .nav-hidden {
 	height: calc(100% - 16rem);
+}
+
+// --------------------
+// Responsive
+// --------------------
+
+#table > ul {
+	// background-color: $body-bg;
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+	user-select: none;
+	-moz-user-select: none;
+	cursor: move;
+	
+	li {
+		float: left;
+		margin: 0;
+		padding: 0;
+
+		> table {
+			margin-left: 0 !important;
+			margin-right: 0 !important;
+		}
+		
+		&.drag-placeholder {
+			// background-color: $body-bg;
+			-moz-box-shadow: 5px 4px 4px $table-border-color inset;
+			-webkit-box-shadow: 5px 4px 4px $table-border-color inset;
+			box-shadow: 5px 4px 4px $table-border-color inset;
+			border-bottom: 1px solid $table-border-color;
+			border-right: 1px solid $table-border-color;
+		}
+
+		&.drag-helper {
+			background-color: $body-bg;
+			position: absolute;
+			z-index: $zindex-fixed;
+			cursor: move;
+			overflow: hidden;
+		}
+	}
+}
+
+
+
+
+
+.move-helper button {
+	cursor: move !important;
+}
+
+.move-hidden {
+	display: none;
 }

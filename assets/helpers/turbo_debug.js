@@ -46,6 +46,10 @@ const TurboDebug = class {
             this.executeWithEvent(event);
         });
 
+		document.addEventListener('turbo:load ', (event) => {
+            this.executeWithEvent(event);
+        });
+
 		document.addEventListener('turbo:frame-render', (event) => {
             this.executeWithEvent(event);
         });

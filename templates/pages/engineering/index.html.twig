@@ -8,38 +8,30 @@
 	{{ parent() }}
 {% endblock %}
 
-{% block content %}
-	<div id="engineering" {{ stimulus_controller('engineering--main', {'urlHeader': path('engineering_thead', {'project': project.id}), 'urlBody': path('engineering_tbody', {'project': project.id})}) }}>
-		{{ parent() }}
-	</div>
-{% endblock %}
-
-{% block header %}
-	{{ parent() }}
-	{{ include('pages/engineering/index/_header.html.twig') }}
-{% endblock %}
-
 {% block navbar %}
 	{{ include('navbar/_engineering.html.twig') }}
 {% endblock %}
 
 {% block main %}
-
-		<turbo-frame id="table" class="table-responsive nav-shown mb-4" {{ stimulus_target('engineering--main', 'table') }}>
-			<table class="table table-sm table-hover table-active">
-				<thead id="thead" {{ stimulus_target('engineering--main', 'thead') }}>
-				</thead>
-				<tbody id="tbody" {{ stimulus_target('engineering--main', 'tbody') }}>
+		<div id="engineering" {{ stimulus_controller('engineering--main', {'urlHeader': path('engineering_thead', {'project': project.id}), 'urlBody': path('engineering_tbody', {'project': project.id})}) }}>
+			<nav class="sticky-top">
+				{{ include('pages/engineering/index/_nav.html.twig') }}
+			</nav>
+			<turbo-frame id="table" class="table-responsive nav-shown mb-4"
+				{{ stimulus_target('engineering--main', 'tableContainer') }}
+				{{ stimulus_action('engineering--main', 'scrollDown', 'scroll')}}>
+				<table class="table table-sm table-hover table-active" {{ stimulus_target('engineering--main', 'table') }}>
+					<thead id="thead" {{ stimulus_target('engineering--main', 'thead') }}>
 					
-				</tbody>
-			</table>
-		</turbo-frame>
-
-{% endblock %}
-
-{% block footer %}
-	{{ include('pages/engineering/index/_footer.html.twig') }} #}
-	{{ parent() }}
+					</thead>
+					<tbody id="tbody" {{ stimulus_target('engineering--main', 'tbody') }}>
+						
+					</tbody>
+				</table>
+			</turbo-frame>
+			<div id="request"></div>
+			<input type="hidden" id="pagination" value="0" {{ stimulus_target('engineering--main', 'pagination') }}>
+		</div>
 {% endblock %}
 
 {% block xl_modal %}

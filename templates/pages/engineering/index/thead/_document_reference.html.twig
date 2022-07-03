@@ -1,56 +1,91 @@
 {% set width = query.display[field.id] ?? field.default_width %}
+{% set codifications = fields|filter(v => v.parent == 'codification' and v.display.thead is same as(true)) %}
+{% set filtered = codifications|filter(v => query.filter[v.id] is defined) is not empty %}
+{% set sortedAsc = query.sortAsc is defined and codifications|filter(v => query.sortAsc == v.id) is not empty %}
+{% set sortedDesc = query.sortDesc is defined and codifications|filter(v => query.sortDesc == v.id) is not empty %}
 
-<th style="width: {{ width }}rem; min-width: {{ width }}rem; max-width: {{ width }}rem;">
+<th data-responsive
+		{{ stimulus_target('engineering--main', 'header') }}
+		{{ stimulus_controller('engineering--header', {'id': field.id, 'width': width, 'filtered': filtered, 'sortedAsc': sortedAsc, 'sortedAsc': sortedAsc}) }}
+		{{ stimulus_class('engineering--header', {'empty': 'bi-funnel', 'fill': 'bi-funnel-fill', 'arrowDown':'bi-arrow-down', 'arrowUp':'bi-arrow-up'}) }}>
 	<div class="btn-group w-100" role="group">
 		<button type="button" class="btn btn-sm btn-primary rounded-0 w-100 py-2">
 			{{ field.title }}
 		</button>
-		<button type="button" class="btn btn-sm btn-primary dropdown-toggle dropdown-toggle-split rounded-0 px-0 py-2" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside" data-bs-reference="parent" data-bs-offset="0, 0">
-			<i class="bi-funnel"></i>
+		<button type="button" class="btn btn-sm btn-primary dropdown-toggle dropdown-toggle-split rounded-0 px-0 py-2" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside" data-bs-reference="parent" data-bs-offset="0, 0"
+			{{ stimulus_target('engineering--header', 'toggle') }}>
 		</button>
-		<div class="dropdown-menu">
+		<div class="dropdown-menu" {{ stimulus_target('engineering--header', 'menu') }}>
 			<div class="d-flex flex-row">
-				{% for codification in fields|filter(v => v.parent == 'codification' and v.display.thead is same as(true)) %}
-					<div style="width:15rem;" {{ stimulus_controller('engineering--header', { 'codename': codification.codename, 'type': codification.type }) }}>
-						<div class="border-bottom border-dark px-1 pb-2 text-center">
-							{{ codification.title }}
-						</div>
-						<div class="d-flex flex-wrap justify-content-center px-3 pt-2">
-							<button type="button" class="btn btn-sm btn-primary px-3 mx-1" {{ stimulus_action('engineering--header', 'filter') }}>
-								{% trans %}Filter{% endtrans %}
-							</button>
-							<div class="input-group input-group-sm m-2">
-								<input type="text" class="form-control" aria-label="{% trans %}Filter{% endtrans %}"
-									{{ stimulus_target('engineering--header', 'liveSearch') }}
-									{{ stimulus_action({'engineering--header': ['liveSearch', {'keypress': 'filter'}]}) }}>
-								<button type="button" class="btn btn-sm btn-light border" {{ stimulus_action('engineering--header', 'clearLiveSearch') }}>
-									<i class="bi bi-x"></i>
-								</button>
+				{% for codification in codifications %}
+					{% if codification.type == 'list' %}
+						{% set filtered = (query.filters[codification.id] is defined)?query.filters[codification.id]:[] %}
+						<div style="width:15rem;"
+							{{ stimulus_target('engineering--header', 'component') }}
+							{{ stimulus_controller('engineering--header--list', { 'id': codification.id, 'filtered':filtered }) }}>
+							<div class="border-bottom border-dark px-1 pb-2 text-center">
+								{{ codification.title }}
 							</div>
-						</div>
-						{% if codification.element.filter.choices is defined %}
+							<div class="d-flex flex-wrap justify-content-center px-3 pt-2">
+								<button type="button" class="btn btn-sm btn-primary px-3 mx-1" {{ stimulus_action('engineering--header', 'filter') }}>
+									{% trans %}Filter{% endtrans %}
+								</button>
+								<div class="input-group input-group-sm m-2">
+									<input type="text" class="form-control" aria-label="{% trans %}Filter{% endtrans %}"
+										{{ stimulus_target('engineering--header--list', 'liveSearch') }}
+										{{ stimulus_action({'engineering--header--list': 'liveSearch', 'engineering--header': {'keypress': 'filter'}}) }}>
+									<button type="button" class="btn btn-sm btn-light border" {{ stimulus_action('engineering--header--list', 'clear') }}>
+										<i class="bi bi-x"></i>
+									</button>
+								</div>
+							</div>
 							<div class="dropdown-list border-top border-dark pt-2 px-3">
 								<div class="form-check">
-									<input type="checkbox" class="form-check-input" id="{{ field.id ~ '_select_all' }}"
-										{{ stimulus_target('engineering--header', 'selectAll') }}
-										{{ stimulus_action('engineering--header', 'selectAll') }}>
-									<label for="{{ field.id ~ '_select_all' }}" class="form-check-label">
+									<input type="checkbox" class="form-check-input" id="{{ codification.id ~ '_select_all' }}"
+										{{ stimulus_target('engineering--header--list', 'selectAll') }}
+										{{ stimulus_action('engineering--header--list', 'selectAll') }}>
+									<label for="{{ codification.id ~ '_select_all' }}" class="form-check-label">
 										{% trans %}Select all{% endtrans %}
 									</label>
 								</div>
 								{% for choice in codification.element.filter.choices %}
-									<div class="form-check" {{ stimulus_target('engineering--header', 'checkbox') }}>
-										<input type="checkbox" class="form-check-input" value="{{ choice.id }}" id="{{ codification.id ~ '_' ~ choice.id }}">
+									<div class="form-check">
+										<input type="checkbox" class="form-check-input" value="{{ choice.id }}" id="{{ codification.id ~ '_' ~ choice.id }}"
+											{{ stimulus_target('engineering--header--list', 'checkbox') }}>
 										<label for="{{ codification.id ~ '_' ~ choice.id }}" class="form-check-label">
 											{{ choice.name }}
 										</label>
 									</div>
 								{% endfor %}
 							</div>
-						{% endif %}
-					</div>
+						</div>
+					{% elseif codification.type == 'regex' %}
+						{% set filtered = (query.filters[codification.id] is defined)?query.filters[codification.id] %}
+						<div style="width:15rem;"
+							{{ stimulus_target('engineering--header', 'component') }}
+							{{ stimulus_controller('engineering--header--text', { 'id': codification.id, 'filtered': filtered }) }}>
+							<div class="border-bottom border-dark px-1 pb-2 text-center">
+								{{ codification.title }}
+							</div>
+							<div class="d-flex flex-wrap justify-content-center px-3 pt-2">
+								<button type="button" class="btn btn-sm btn-primary px-3 mx-1" {{ stimulus_action('engineering--header', 'filter') }}>
+									{% trans %}Filter{% endtrans %}
+								</button>
+								<div class="input-group input-group-sm m-2">
+									<input type="text" class="form-control" aria-label="{% trans %}Filter{% endtrans %}"
+										{{ stimulus_target('engineering--header--text', 'textbox') }}
+										{{ stimulus_action('engineering--header', 'filter', 'keypress') }}>
+									<button type="button" class="btn btn-sm btn-light border" {{ stimulus_action('engineering--header--text', 'clear') }}>
+										<i class="bi bi-x"></i>
+									</button>
+								</div>
+							</div>
+						</div>
+					{% endif %}
 				{% endfor %}
-				<div style="width:15rem;" {{ stimulus_controller('engineering--header', { 'codename': 'reference', 'type': 'text' }) }}>
+				<div style="width:15rem;"
+					{{ stimulus_target('engineering--header', 'component') }}
+					{{ stimulus_controller('engineering--header--text', { 'id': 'reference' }) }}>
 					<div class="dropdown-title border-bottom border-dark px-1 pb-2 text-center">
 						{% trans %}Search by reference{% endtrans %}
 					</div>
@@ -61,9 +96,9 @@
 						</button>
 						<div class="input-group input-group-sm m-2">
 							<input type="text" class="form-control" aria-label="{% trans %}Filter{% endtrans %}" placeholder="{% trans %}Type a reference{% endtrans %}"
-								{{ stimulus_target('engineering--header', 'liveSearch') }}
+								{{ stimulus_target('engineering--header--text', 'textbox') }}
 								{{ stimulus_action('engineering--header', 'filter', 'keypress') }}>
-								<button type="button" class="btn btn-sm btn-light border" {{ stimulus_action('engineering--header', 'clearLiveSearch') }}>
+								<button type="button" class="btn btn-sm btn-light border" {{ stimulus_action('engineering--header--text', 'clear') }}>
 								<i class="bi bi-x"></i>
 							</button>
 						</div>

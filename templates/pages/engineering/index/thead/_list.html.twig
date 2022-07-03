@@ -1,31 +1,42 @@
 {% set width = query.display[field.id] ?? field.default_width %}
+{% set filtered = (query.filter[field.id] is defined)?query.filter[field.id]:[] %}
+{% set sortedAsc = query.sortAsc is defined and query.sortAsc == field.id %}
+{% set sortedDesc = query.sortDesc is defined and query.sortDesc == field.id %}
 
-<th style="width: {{ width }}rem; min-width: {{ width }}rem; max-width: {{ width }}rem;"
-	{{ stimulus_controller('engineering--header', { 'codename': field.codename, 'type': field.type }) }}>
+<th data-responsive
+	{{ stimulus_target('engineering--main', 'header') }}
+	{{ stimulus_controller('engineering--header', {'id': field.id, 'width': width, 'filtered': filtered is not empty, 'sortedAsc': sortedAsc, 'sortedAsc': sortedAsc}) }}
+	{{ stimulus_class('engineering--header', {'empty': 'bi-funnel', 'fill': 'bi-funnel-fill', 'arrowDown':'bi-arrow-down', 'arrowUp':'bi-arrow-up'}) }}>
 	<div class="btn-group w-100" role="group">
 		<button type="button" class="btn btn-sm btn-primary rounded-0 w-100 py-2">
 			{{ field.title }}
 		</button>
-		<button type="button" class="btn btn-sm btn-primary dropdown-toggle dropdown-toggle-split rounded-0 px-0 py-2" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside" data-bs-reference="parent" data-bs-offset="0, 0">
-			<i class="bi-funnel"></i>
+		<button type="button" class="btn btn-sm btn-primary dropdown-toggle dropdown-toggle-split rounded-0 px-0 py-2" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside" data-bs-reference="parent" data-bs-offset="0, 0"
+			{{ stimulus_target('engineering--header', 'toggle') }}>
 		</button>
-		<div class="dropdown-menu">
-			<div style="width:15rem;">
+		<div class="dropdown-menu" {{ stimulus_target('engineering--header', 'menu') }}>
+			<div style="width:15rem;"
+				{{ stimulus_target('engineering--header', 'component') }}
+				{{ stimulus_controller('engineering--header--list', { 'id': field.id, 'filtered': filtered, 'sortedDesc': sortedDesc, 'sortedAsc':sortedAsc }) }}>
 				<div class="d-flex flex-wrap justify-content-center px-3 pt-2">
-					<button type="button" class="btn btn-sm btn-primary mx-1" {{ stimulus_action('engineering--header', 'sortDesc') }}>
+					<button type="button" class="btn btn-sm btn-primary mx-1"
+						{{ stimulus_target('engineering--header--list', 'sortDesc') }}
+						{{ stimulus_action('engineering--header--list', 'sortDesc') }}>
 						<i class="bi bi-arrow-bar-down"></i>
 					</button>
 					<button type="button" class="btn btn-sm btn-primary px-3 mx-1" {{ stimulus_action('engineering--header', 'filter') }}>
 						{% trans %}Filter{% endtrans %}
 					</button>
-					<button type="button" class="btn btn-sm btn-primary mx-1" {{ stimulus_action('engineering--header', 'sortAsc') }}>
+					<button type="button" class="btn btn-sm btn-primary mx-1"
+						{{ stimulus_target('engineering--header--list', 'sortAsc') }}
+						{{ stimulus_action('engineering--header--list', 'sortAsc') }}>
 						<i class="bi bi-arrow-bar-up"></i>
 					</button>
 					<div class="input-group input-group-sm m-2">
 						<input type="text" class="form-control" aria-label="{% trans %}Filter{% endtrans %}"
-							{{ stimulus_target('engineering--header', 'liveSearch') }}
-							{{ stimulus_action('engineering--header', 'liveSearch') }}>
-						<button type="button" class="btn btn-sm btn-light border" {{ stimulus_action('engineering--header', 'clearLiveSearch') }}>
+							{{ stimulus_target('engineering--header--list', 'liveSearch') }}
+							{{ stimulus_action({'engineering--header--list': 'liveSearch', 'engineering--header': {'keypress': 'filter'}}) }}>
+						<button type="button" class="btn btn-sm btn-light border" {{ stimulus_action('engineering--header--list', 'clear') }}>
 							<i class="bi bi-x"></i>
 						</button>
 					</div>
@@ -33,14 +44,17 @@
 				{% if field.element.filter.choices is defined %}
 					<div class="dropdown-list border-top border-dark pt-2 px-3">
 						<div class="form-check">
-							<input type="checkbox" class="form-check-input" id="{{ field.id ~ '_select_all' }}" {{ stimulus_target('engineering--header', 'selectAll') }} {{ stimulus_action('engineering--header', 'selectAll') }}>
+							<input type="checkbox" class="form-check-input" id="{{ field.id ~ '_select_all' }}"
+								{{ stimulus_target('engineering--header--list', 'selectAll') }}
+								{{ stimulus_action('engineering--header--list', 'selectAll') }}>
 							<label for="{{ field.id ~ '_select_all' }}" class="form-check-label">
 								{% trans %}Select all{% endtrans %}
 							</label>
 						</div>
 						{% for choice in field.element.filter.choices %}
-							<div class="form-check" {{ stimulus_target('engineering--header', 'checkbox') }}>
-								<input type="checkbox" class="form-check-input" value="{{ choice.id }}" id="{{ field.id ~ '_' ~ choice.id }}">
+							<div class="form-check">
+								<input type="checkbox" class="form-check-input" value="{{ choice.id }}" id="{{ field.id ~ '_' ~ choice.id }}"
+									{{ stimulus_target('engineering--header--list', 'checkbox') }}>
 								<label for="{{ field.id ~ '_' ~ choice.id }}" class="form-check-label w-100">
 									{{ choice.name }}
 								</label>

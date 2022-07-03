@@ -1,0 +1,27 @@
+{% if page_max > 1 %}
+	<nav aria-label="Pagination" {{ stimulus_controller('engineering--pagination') }}>
+		<ul class="pagination">
+			<li class="page-item{% if query.page == 1 %} disabled{% endif %}">
+				<button type="button" class="page-link" aria-label="Previous" {{ stimulus_action('engineering--pagination', 'changePage') }} {{ stimulus_param('engineering--pagination', {'page': query.page-1}) }}>
+					<span aria-hidden="true">&laquo;</span>
+				</button>
+			</li>
+			{% for i in max(1, query.page-1)..min(page_max, query.page+1) %}
+				<li class="page-item{% if i == query.page %} active{% endif %}">
+					<button type="button" class="page-link" {{ stimulus_action('engineering--pagination', 'changePage') }} {{ stimulus_param('engineering--pagination', {'page': i}) }}>{{ i }}</button>
+				</li>
+			{% endfor %}
+			<li class="page-item{% if query.page == page_max %} disabled{% endif %}">
+				<button type="button" class="page-link" aria-label="Next" {{ stimulus_action('engineering--pagination', 'changePage') }} {{ stimulus_param('engineering--pagination', {'page': query.page+1}) }}>
+					<span aria-hidden="true">&raquo;</span>
+				</button>
+			</li>
+		</ul>
+	</nav>
+	<select class="form-select form-select-sm" aria-label="Results per page">
+		<option selected>Open this select menu</option>
+		<option value="1">One</option>
+		<option value="2">Two</option>
+		<option value="3">Three</option>
+	</select>
+{% endif %}

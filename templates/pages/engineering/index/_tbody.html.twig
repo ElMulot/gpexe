@@ -1,4 +1,4 @@
-<turbo-stream action="update" target="tbody">
+<turbo-stream action="append" target="tbody">
 	<template>
 		{% for item in items %}
 			<tr>
@@ -33,10 +33,8 @@
 	</template>
 </turbo-stream>
 
-
-
-<turbo-stream action="update" target="pagination">
+<turbo-stream action="replace" target="pagination">
 	<template>
-		{{ include('pages/engineering/index/footer/_pagination.html.twig') }}
+		<input id="pagination" type="hidden" value="{{ (query.page < page_max)?query.page:0 }}" {{ stimulus_target('engineering--main', 'pagination') }}>
 	</template>
 </turbo-stream>

@@ -5,13 +5,13 @@ export default class extends Controller {
 	
     static targets = ['close'];
 
-	modal = null;
+	#modal = null;
 
     connect() {
         
         this.element.style.zIndex = this.getZIndex(this.element) + [...document.body.querySelectorAll('.modal.show')].length;
         
-        this.modal = new Modal(this.element, {
+        this.#modal = new Modal(this.element, {
 			backdrop: false,
 		});
 
@@ -55,42 +55,42 @@ export default class extends Controller {
     }
 
     onModalOpen() {
-        if (this.modal._isShown === false) {
-            this.modal.show();
+        if (this.#modal._isShown === false) {
+            this.#modal.show();
         } else {
             document.querySelectorAll('loading-component').forEach(e => e.remove());
         }
     }
 
     onModalClose() {
-        console.log('modal:close', this.modal);
-        if (this.modal === null) {
+        console.log('modal:close', this.#modal);
+        if (this.#modal === null) {
             return;
         }
-        if (this.element && this.modal._isShown === true) {
-            this.modal.hide();
+        if (this.element && this.#modal._isShown === true) {
+            this.#modal.hide();
         }
         document.querySelectorAll('loading-component').forEach(e => e.remove());
     }
 
     onModalDispose() {
-        console.log('modal:dispose', this.modal);
-        if (this.modal === null) {
+        console.log('modal:dispose', this.#modal);
+        if (this.#modal === null) {
             return;
         }
         if (this.element) {
             this.element.classList.remove('fade');
         }
-        if (this.modal._backdrop) {
-            this.modal._backdrop._config.isAnimated = false;
+        if (this.#modal._backdrop) {
+            this.#modal._backdrop._config.isAnimated = false;
         }
         this.onModalClose();
-        this.modal.dispose();
-        this.modal = null;
+        this.#modal.dispose();
+        this.#modal = null;
     }
 
     onModalDelete() {
-        console.log('modal:delete', this.modal, this.element);
+        console.log('modal:delete', this.#modal, this.element);
         this.element.remove();
         //this.onModalDispose();
     }

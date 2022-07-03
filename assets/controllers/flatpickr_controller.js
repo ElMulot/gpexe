@@ -3,7 +3,6 @@ import i18n from 'i18n';
 
 import { English } from "flatpickr/dist/l10n/default.js"
 import { French } from "flatpickr/dist/l10n/fr.js"
-import { t } from 'i18next';
 
 require("styles/flatpickr.scss");
 
@@ -45,6 +44,10 @@ export default class extends Flatpickr {
 		this.createClearButton();
 		this.createTodayButton();
 		
+		this.fp.input.addEventListener('setDate', (event) => {
+			this.fp.setDate(event.detail);
+		});
+
 		this.dispatch('connected');
 
 	}
@@ -65,7 +68,7 @@ export default class extends Flatpickr {
 				case 'fr_FR':
 					return French;
 				default:
-					return English
+					return English;
 			}
 		}
 
