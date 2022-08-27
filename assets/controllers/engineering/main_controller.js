@@ -322,16 +322,18 @@ export default class extends Controller {
 	 */
 	 #setResizable() {
 		
-		this.theadTarget.querySelectorAll('col-resize-handle-right-component, col-resize-handle-left-component').forEach(e => e.remove());
+		this.theadTarget.querySelectorAll('col-resize-handle-component').forEach(e => e.remove());
 
 		this.headerTargets.filter(e => e.dataset.responsive !== undefined).forEach(e => {
 			
 			const $nextElement = e.nextElementSibling;
 			if ($nextElement instanceof HTMLTableCellElement) {
-				const $resizeHandleRight = document.createElement('col-resize-handle-right-component');
+				const $resizeHandleRight = document.createElement('col-resize-handle-component');
+				$resizeHandleRight.setAttribute('position', 'right');
 				e.appendChild($resizeHandleRight);
 				
-				const $resizeHandleLeft = document.createElement('col-resize-handle-left-component');
+				const $resizeHandleLeft = document.createElement('col-resize-handle-component');
+				$resizeHandleLeft.setAttribute('position', 'left');
 				$nextElement.appendChild($resizeHandleLeft);
 
 				$resizeHandleRight.addEventListener('mousedown', event => {

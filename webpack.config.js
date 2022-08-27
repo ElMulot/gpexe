@@ -82,28 +82,28 @@ Encore
 	//.enableReactPreset()
 
 	// uncomment if you use Vue
-	.enableVueLoader(options => {
-        return {
-			customElement: /\.vue$/,
-		};
-    }, {
-		version: 3,
-		runtimeCompilerBuild: false,
-	})
+	// .enableVueLoader(options => {
+    //     return {
+	// 		customElement: /\.vue$/,
+	// 	};
+    // }, {
+	// 	version: 3,
+	// 	runtimeCompilerBuild: false,
+	// })
 
 	//flags for esm-bundler
-	.addPlugin(
-	    new webpack.DefinePlugin({
-	        __VUE_OPTIONS_API__: true,
-	        __VUE_PROD_DEVTOOLS__: false
-	    })
-	)
+	// .addPlugin(
+	//     new webpack.DefinePlugin({
+	//         __VUE_OPTIONS_API__: true,
+	//         __VUE_PROD_DEVTOOLS__: false
+	//     })
+	// )
 
 	.addAliases({
-		'components': path.resolve('assets/components'),
-		'helpers': path.resolve('assets/helpers'),
-		'styles': path.resolve('assets/styles'),
-		'i18n': path.resolve('assets/i18n'),
+		'components': `${__dirname}/assets/components`,
+		'helpers': `${__dirname}/assets/helpers`,
+		'styles': `${__dirname}/assets/styles`,
+		'i18n': `${__dirname}/assets/i18n`,
 	})
 
 	// uncomment to get integrity="..." attributes on your script & link tags
