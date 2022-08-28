@@ -1,6 +1,4 @@
-import i18n from 'i18n';
-import { Modal } from 'bootstrap';
-import { Controller } from 'stimulus';
+import { Controller } from '@hotwired/stimulus';
 import Cropper from 'cropperjs';
 
 // import Dropzone from "@symfony/ux-dropzone/dist/controller.js";

@@ -39,7 +39,7 @@ class VersionController extends AbstractTurboController
 
 		$this->denyAccessUnlessGranted('DOCUMENT_SHOW_DETAIL', $document);
 
-		return $this->renderForm('version/detail.html.twig', [
+		return $this->renderForm('pages/engineering/index/version/_detail.html.twig', [
 			'version' => $version,
 			'document' => $document,
 			'project' => $project,

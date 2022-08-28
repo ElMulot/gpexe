@@ -7,17 +7,39 @@
 <div>
 	<h1>Test page</h1>
 	
-	<div class="d-flex justify-content-center">
-		<a type="button" class="btn btn-primary" href="{{ path('test') }}">Reset</a>
-		<a type="button" class="btn btn-primary" href="{{ path('f2') }}" data-turbo-frame="f2">Lien 2</a>
-	</div>
+	{% set items = {} %}
+	{% set i = 1 %}
 
-	<turbo-frame id="f1">Frame 1</turbo-frame><br/><br/>
-	<turbo-frame id="f2">Frame 2
-		
-	</turbo-frame><br/><br/>
-	<turbo-frame id="f3">Frame 3</turbo-frame>
+	{% for d in dates %}
+		{% set items = items|merge({
+			('Name'~i): d.name,
+			('Is required'~i): d.isRequired,
+			('Date created'~i): d.date,
+			('Date created meta'~i): d.getPropertyValue('version.date'),
+			('Français'~i): d.getPropertyValue('version.frenchMandatory'),
+			('Date published'~i): d.getPropertyValue('version.dateTransmitted'),
+			(i): '-------------------------------',
+		}) %}
+		{% set i = i+1 %}
+	{% endfor %}
+
+
+	{% for key, item in items %}
+
+		<p>{{ key }} :
+			{% if item is not null %}
+				{% if item.timezone is defined %}
+					[Object]
+				{% else %}
+					{{ item }}
+				{% endif %}
+			{% endif %}
+		</p>
+
+	{% endfor %}
 
 </div>
+
+
 
 {% endblock %}

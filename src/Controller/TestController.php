@@ -5,8 +5,7 @@ namespace App\Controller;
 use App\Entity\Serie;
 use App\Helpers\Date;
 use App\Entity\Project;
-use Spatie\Regex\Regex;
-use App\Service\Code\Node;
+use App\Entity\Version;
 use Symfony\UX\Turbo\TurboBundle;
 use Doctrine\Persistence\ManagerRegistry;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
@@ -18,7 +17,6 @@ use Symfony\Component\Validator\Constraints\Count;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-
 
 class TestController extends AbstractController
 {
@@ -32,9 +30,10 @@ class TestController extends AbstractController
 	#[Route(path: '/test', name: 'test', requirements: ['id' => '\d+'])]
 	public function index(Request $request) : Response
 	{
-		dd($request->get('id'));
+		$repository = $this->doctrine->getManager()->getRepository(Version::class);
+
 		return $this->renderForm('test/index.html.twig', [
-			
+			'dates' => [$repository->findOneBy(['id' => '5308']), $repository->findOneBy(['id' => '5310'])],
 		]);
 	}
 

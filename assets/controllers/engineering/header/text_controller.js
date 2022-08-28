@@ -1,4 +1,4 @@
-import { Controller } from 'stimulus';
+import { Controller } from '@hotwired/stimulus';
 
 /**
  * @classdesc Manage local behaviour of the header menus for text fields (reset, clear).

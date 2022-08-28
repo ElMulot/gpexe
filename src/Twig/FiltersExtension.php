@@ -52,9 +52,13 @@ class FiltersExtension extends AbstractExtension
 		return $value;
 	}
 	
-	public function toString(string $property): string
+	public function toString(?string $value, string $dateFormat): string
 	{
-		return $this->propertyService->toString($property);
+		if ($value) {
+			return $this->propertyService->toString($value, $dateFormat);
+		} else {
+			return '';
+		}
 	}
 
 	public function getTitle(string $header): string

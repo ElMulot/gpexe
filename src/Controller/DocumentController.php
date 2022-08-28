@@ -220,10 +220,11 @@ class DocumentController extends AbstractTurboController
 		$document = $version->getDocument();
 		$this->denyAccessUnlessGranted('DOCUMENT_SHOW_DETAIL', $document);
 
-		return $this->renderForm('document/detail.html.twig', [
+		return $this->renderForm('pages/engineering/index/document/_detail.html.twig', [
 			'current_version' => $version,
 			'versions' => $this->versionRepository->getVersionsByDocument($document),
 			'document' => $document,
+			'serie' => $document->getSerie(),
 		]);
 	}
 

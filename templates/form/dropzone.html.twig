@@ -1,7 +1,7 @@
 {% block dropzone_widget %}
     {% set attr = attr|merge({class: (attr.class|default('') ~ ' dropzone-input')|trim}) %}
 	{% set fileName = data.filename|default('') %}
-    <div class="dropzone-container" {{ stimulus_controller('dropzone', {'uploads_directory': asset(uploads_directory ~ '/'), 'name': ('.tmp' in fileName)?'':fileName, 'mime_type': mime_type })}}>
+    <div class="dropzone-container" {{ stimulus_controller('dropzone', {'uploads_directory': asset(uploads_directory ~ '/'), 'name': ('.tmp' in fileName)?'':fileName, 'mime_type': mime_type }) }}>
         <input type="file" {{ block('widget_attributes') }} {{ stimulus_target('dropzone', 'input') }} />
 
         <div class="align-self-center" {{ stimulus_target('dropzone', 'placeholder') }}>

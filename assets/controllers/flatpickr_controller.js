@@ -1,14 +1,17 @@
-import Flatpickr from 'stimulus-flatpickr';
+import { Controller } from '@hotwired/stimulus';
+import Flatpickr from 'flatpickr';
 import i18n from 'i18n';
 
-import { English } from "flatpickr/dist/l10n/default.js"
+import { english } from "flatpickr/dist/l10n/default.js"
 import { French } from "flatpickr/dist/l10n/fr.js"
 
 require("styles/flatpickr.scss");
 
-export default class extends Flatpickr {
+export default class extends Controller {
 	
-    static values = {
+    #fp;
+	
+	static values = {
         mandatory: {
 			type: Boolean,
 			default: false,
@@ -28,7 +31,6 @@ export default class extends Flatpickr {
     }
 
 	initialize() {
-		
 		this.config = {
 			dateFormat: this.dateFormatValue,
 			weekNumbers: true,
@@ -40,26 +42,42 @@ export default class extends Flatpickr {
 
 	connect() {
 
-		super.connect();
-		this.createClearButton();
-		this.createTodayButton();
+		this.#fp = Flatpickr(this.element, this.config);
+
+		if (this.mandatoryValue === false) {
+			this.createClearButton();
+		}
+
+		if (this.todayBtnValue === true) {
+			this.createTodayButton();
+		}
+
+		// super.connect();
+		// this.createClearButton();
+		// this.createTodayButton();
 		
-		this.fp.input.addEventListener('setDate', (event) => {
-			this.fp.setDate(event.detail);
+		/**
+		 * Listener triggered on setDate event (event.detail must be a Date object)
+		 */
+		this.element.addEventListener('setDate', (event) => {
+			this.#fp.setDate(event.detail, true);
 		});
 
 		this.dispatch('connected');
 
 	}
 
-	open() {
-		this.dispatch('open');
-	}
+	// open() {
+	// 	this.dispatch('open');
+	// }
 
-	close() {
-		this.dispatch('close');
-	}
+	// close() {
+	// 	this.dispatch('close');
+	// }
 
+	/**
+	 * Get Locale from <html> attribute
+	 */
 	getLocale() {
 
 		if (document.documentElement.hasAttribute('lang') === true) {
@@ -68,24 +86,30 @@ export default class extends Flatpickr {
 				case 'fr_FR':
 					return French;
 				default:
-					return English;
+					return english;
 			}
 		}
 
 		return English;
 	}
 
+	/**
+	 * Add a clear button
+	 */
 	createClearButton() {
 		const $clearButton = `<button type="button" class="btn btn-sm btn-primary m-2">${i18n.t('clear')}</button>`.toElement();
 		$clearButton.addEventListener('click', (event) => {
 			event.preventDefault();
 			event.stopPropagation();
-			this.fp.clear();
-			this.fp.close();
+			this.#fp.clear();
+			this.#fp.close();
 		});
-		this.fp.calendarContainer.appendChild($clearButton);
+		this.#fp.calendarContainer.appendChild($clearButton);
 	}
 
+	/**
+	 * Add a today button
+	 */
 	createTodayButton() {
 		const $todayButton = `<button type="button" class="btn btn-sm btn-primary m-2">${i18n.t('today')}</button>`.toElement();
 		$todayButton.addEventListener('click', (event) => {
@@ -93,14 +117,14 @@ export default class extends Flatpickr {
 			event.stopPropagation();
 			let today = new Date();
 			let iteration = 0;
-			while (this.fp.isEnabled(today) === false && iteration < 7) {
+			while (this.#fp.isEnabled(today) === false && iteration < 7) {
 				iteration++;
-				today = today.setDate(today.getDate() + 1);
+				today = new Date(today.setDate(today.getDate() + 1));
 			}
-			this.fp.setDate(today, true);
-			this.fp.close();
+			this.#fp.setDate(today, true);
+			this.#fp.close();
 		});
-		this.fp.calendarContainer.appendChild($todayButton);
+		this.#fp.calendarContainer.appendChild($todayButton);
 	}
 
 	// all flatpickr hooks are available as callbacks in your Stimulus controller

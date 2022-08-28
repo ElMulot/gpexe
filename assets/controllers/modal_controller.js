@@ -1,16 +1,15 @@
-import { Controller } from 'stimulus';
+import { Controller } from '@hotwired/stimulus';
 import { Modal } from 'bootstrap';
 
 export default class extends Controller {
 	
     static targets = ['close'];
-
+    
 	#modal = null;
 
     connect() {
         
         this.element.style.zIndex = this.getZIndex(this.element) + [...document.body.querySelectorAll('.modal.show')].length;
-        
         this.#modal = new Modal(this.element, {
 			backdrop: false,
 		});
@@ -109,8 +108,7 @@ export default class extends Controller {
         
         var $modalBackdrop = document.querySelector('.modal-backdrop');
         if ($modalBackdrop === null) {
-            $modalBackdrop = document.createElement('div');
-            $modalBackdrop.classList.add('modal-backdrop', 'show');
+            $modalBackdrop = '<div class="modal-backdrop show"></div>'.toElement();
             document.body.appendChild($modalBackdrop);
         }
 

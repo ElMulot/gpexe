@@ -30,9 +30,8 @@ class PropertyService
 				} else if ($value instanceof MetadataItem) {
 					return $value->getValue();
 				} else if ($value instanceof MetadataValue) {
-					
 					return match($value->getMetadata()->getType()) {
-						MetadataTypeEnum::BOOL	=> $this->translator->trans(($value->getValue())?'Yes':'No'),
+						MetadataTypeEnum::BOOL		=> $this->translator->trans(($value->getValue())?'Yes':'No'),
 						MetadataTypeEnum::TEXT		=> $value->getValue(),
 						MetadataTypeEnum::DATE		=> Date::fromFormat($value->getValue())->format($dateFormat),
 						MetadataTypeEnum::LINK		=> $value->getValue(),

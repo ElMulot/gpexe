@@ -1,33 +1,36 @@
 @import "~bootstrap/scss/functions";
 @import "~bootstrap/scss/variables";
 @import "~bootstrap/scss/mixins";
+@import "~bootstrap/scss/maps";
 @import "~bootstrap/scss/utilities";
 @import "~bootstrap/scss/utilities/api";
 
-nav > div {
-    @include media-breakpoint-down(lg) {
-        padding-top: map-get($spacers, 1);
-        padding-bottom: map-get($spacers, 1);
-	}
-}
+header {
+    nav > div {
+        @include media-breakpoint-down(lg) {
+            padding-top: map-get($spacers, 1);
+            padding-bottom: map-get($spacers, 1);
+        }
+    }
 
-.nav-item {
-    min-width: 10rem;
-    @include media-breakpoint-down(lg) {
-        text-align: left;
-	}
-    @include media-breakpoint-up(lg) {
-        text-align: center;
-	}
-}
+    .nav-item, .nav-link {
+        min-width: 10rem;
+        @include media-breakpoint-down(lg) {
+            text-align: left;
+        }
+        @include media-breakpoint-up(lg) {
+            text-align: center;
+        }
+    }
 
-.nav-title {
-    @include media-breakpoint-down(lg) {
-        display: none;
-	}
-    @extend .fs-5;
-}
+    .nav-title {
+        @include media-breakpoint-down(lg) {
+            display: none;
+        }
+        @extend .fs-5;
+    }
 
-.nav-item > * {
-    width: 100%;
+    .nav-item > *, .nav-link > * {
+        width: 100%;
+    }
 }

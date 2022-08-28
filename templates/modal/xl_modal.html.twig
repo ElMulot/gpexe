@@ -1,7 +1,7 @@
 <turbo-frame id="xl_modal"{% if src is defined %} src="{{ src }}"{% endif %}>
 	<div class="modal fade" tabindex="-1" aria-labelledby="xl_modal_label" aria-hidden="true" {{ stimulus_controller('modal') }}>
 		<div class="modal-dialog modal-xl">
-			<div class="modal-content">
+			<div class="modal-content h-100">
 				{% if title is defined %}
 					<div class="modal-header">
 						<h5 class="modal-title" id="xl_modal_label">{{ title|trans }}</h5>
@@ -9,7 +9,7 @@
 					</div>
 				{% endif %}
 				{% if block('modal_body') is defined %}
-					<div class="modal-body">
+					<div class="modal-body h-100">
 						{{ block('modal_body') }}
 					</div>
 				{% endif %}
@@ -17,7 +17,7 @@
 					{% if block('modal_footer') is defined %}
 						{{ block('modal_footer') }}
 					{% else %}
-						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans %}Close{% endtrans %}</button>
+						<button type="button" class="btn btn-dismiss" data-bs-dismiss="modal">{% trans %}Close{% endtrans %}</button>
 					{% endif %}
 				</div>
 			</div>

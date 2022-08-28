@@ -1,4 +1,4 @@
-import { Controller } from 'stimulus';
+import { Controller } from '@hotwired/stimulus';
 import UrlParams from 'helpers/url_params_helper';
 
 export default class extends Controller {
@@ -23,7 +23,7 @@ export default class extends Controller {
 		$helper: null,
 	}
 
-	static targets = ['navContainer', 'tableContainer', 'table', 'thead', 'header', 'tbody', 'pagination'];
+	static targets = ['navContainer', 'tableContainer', 'table', 'thead', 'header', 'tbody', 'navigation', 'lastPageLoaded'];
 
 	static values = {
 		urlHeader: String,
@@ -65,7 +65,7 @@ export default class extends Controller {
 		 */
 		this.element.addEventListener('engineering--view:update', event => {
 			const serieIds = this.#urlParams.get('series');
-			this.paginationTarget.value = 0;
+			this.lastPageLoadedTarget.value = 0;
 			this.#urlParams.deleteAll();
 			this.#urlParams.set('view', event.detail.id);
 			this.#urlParams.set('series', serieIds);
@@ -76,7 +76,7 @@ export default class extends Controller {
 		 * Listener triggered on user change serie.
 		 */
 		this.element.addEventListener('engineering--serie:update', event => {
-			this.paginationTarget.value = 0;
+			this.lastPageLoadedTarget.value = 0;
 			this.#urlParams.delete('page');
 			this.#urlParams.set('series', event.detail.ids);
 			this.setThead();
@@ -265,6 +265,7 @@ export default class extends Controller {
 		if (this.#urlParams.has('series') === true && this.#urlParams.has('view') === true || this.#urlParams.has('display') === true) {
 			this.theadTarget.innerHTML = '';
 			this.tbodyTarget.innerHTML = '';
+			this.navigationTarget.innerHTML = '';
 			this.tableContainerTarget.src = '';
 			this.appendThead();
 		}
@@ -289,20 +290,18 @@ export default class extends Controller {
 	 */
 	setTbody() {
 		this.tbodyTarget.innerHTML = '';
+		this.navigationTarget.innerHTML = '';
 		this.tableContainerTarget.src = '';
 		this.appendTbody();
 	}
 	
 	/**
-	 * Action when scrolDown event triggered.
+	 * Action when moreResults event triggered.
 	 * @param {Object} event 
 	 */
-	scrollDown(event) {
-
-		if (event.target.offsetHeight + event.target.scrollTop >= event.target.scrollHeight && this.paginationTarget.value > 0) {
-			this.#urlParams.set('page', Number(this.paginationTarget.value) + 1);
-			this.appendTbody();
-		}
+	 moreResults(event) {
+		this.#urlParams.set('page', Number(this.lastPageLoadedTarget.value) + 1);
+		this.appendTbody();
 	}
 
 	
@@ -328,12 +327,10 @@ export default class extends Controller {
 			
 			const $nextElement = e.nextElementSibling;
 			if ($nextElement instanceof HTMLTableCellElement) {
-				const $resizeHandleRight = document.createElement('col-resize-handle-component');
-				$resizeHandleRight.setAttribute('position', 'right');
+				const $resizeHandleRight = '<col-resize-handle-component position="right"></col-resize-handle-component>'.toElement();
 				e.appendChild($resizeHandleRight);
 				
-				const $resizeHandleLeft = document.createElement('col-resize-handle-component');
-				$resizeHandleLeft.setAttribute('position', 'left');
+				const $resizeHandleLeft = '<col-resize-handle-component position="left"></col-resize-handle-component>'.toElement();
 				$nextElement.appendChild($resizeHandleLeft);
 
 				$resizeHandleRight.addEventListener('mousedown', event => {
@@ -482,35 +479,37 @@ export default class extends Controller {
 
 		document.addEventListener('mouseup', () => {
 			if (this.#move.$currentHeader !== null) {
-				let items = [...this.#move.$container.children];
-				let currentIndex = this.headerTargets.indexOf(this.#move.$currentHeader);
-				let newIndex = items.filter(e => e.classList.contains('drag-helper') === false).indexOf(this.#move.$placeholder);
 
-				this.dispatch('requestMove', {
-					target: this.#move.$currentHeader,
-					detail: {
-						order: newIndex + 1,
+				if (this.#move.$container !== null) {
+					let items = [...this.#move.$container.children];
+					let currentIndex = this.headerTargets.indexOf(this.#move.$currentHeader);
+					let newIndex = items.filter(e => e.classList.contains('drag-helper') === false).indexOf(this.#move.$placeholder);
+
+					this.dispatch('requestMove', {
+						target: this.#move.$currentHeader,
+						detail: {
+							order: newIndex + 1,
+						}
+					});
+
+					if (currentIndex > newIndex) {
+						this.tableTarget.querySelectorAll('tr').forEach(e => {
+							e.insertBefore(e.children.item(currentIndex), e.children.item(newIndex));
+						});
+					} else {
+						this.tableTarget.querySelectorAll('tr').forEach(e => {
+							e.insertBefore(e.children.item(currentIndex), e.children.item(newIndex).nextElementSibling);
+						});
 					}
-				});
+					
+					this.#move.$container.remove();
+					this.#move.$container = null;
 
-				if (currentIndex > newIndex) {
-					this.tableTarget.querySelectorAll('tr').forEach(e => {
-						e.insertBefore(e.children.item(currentIndex), e.children.item(newIndex));
-					});
-				} else {
-					this.tableTarget.querySelectorAll('tr').forEach(e => {
-						e.insertBefore(e.children.item(currentIndex), e.children.item(newIndex).nextElementSibling);
-					});
+					this.tableTarget.style.removeProperty('display');
+
+					this.#setResizable();
 				}
-				
 				this.#move.$currentHeader = null;
-				
-				this.#move.$container.remove();
-				this.#move.$container = null;
-
-				this.tableTarget.style.removeProperty('display');
-
-				this.#setResizable();
 			}
 		});
 

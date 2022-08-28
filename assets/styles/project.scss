@@ -2,6 +2,10 @@
 @import "~bootstrap/scss/bootstrap";
 @import "~bootswatch/dist/slate/bootswatch";
 
+main {
+	height: 100%;
+}
+
 .btn > img, .btn > div {
 	height: 3rem;
 	width: 3.1rem;
@@ -22,4 +26,14 @@
 
 .tooltip-arrow {
     display: none !important;
+}
+
+.container-lg {
+	height: calc(100% - 10rem);
+}
+
+.tab-content {
+	height: 100%;
+	overflow-x: hidden;
+	overflow-y: auto;
 }

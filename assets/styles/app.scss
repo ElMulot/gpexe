@@ -2,6 +2,7 @@
 @import "~bootstrap/scss/functions";
 @import "~bootstrap/scss/variables";
 @import "~bootstrap/scss/mixins";
+@import "~bootstrap/scss/maps";
 @import "~bootstrap/scss/utilities";
 @import "~bootstrap/scss/utilities/api";
 @import "~bootstrap/scss/helpers";
@@ -95,6 +96,11 @@ a {
 	}
 }
 
+.btn-dismiss {
+	@extend .btn-secondary;
+	width: 20rem;
+}
+
 // --------------------
 // Dropdowns
 // --------------------
@@ -112,13 +118,17 @@ a {
 // Cards
 // --------------------
 
+.border {
+	border: $nav-tabs-border-width solid $nav-tabs-border-color !important;
+}
+
 .card-width {
 	@extend #{'.bg-primary', '.mb-3', '.text-white'};
 	width: 18rem;
 }
 
 .card-header {
-	@extend #{'.card-header', '.fw-bold', '.text-center'};
+	@extend #{'.fw-bold', '.text-white', '.text-center'};
 	// @include btn-shadow($gray-800);
 }
 

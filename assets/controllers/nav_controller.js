@@ -1,4 +1,4 @@
-import { Controller } from 'stimulus';
+import { Controller } from '@hotwired/stimulus';
 import { Collapse } from './../helpers/bootstrap_helper';
 
 export default class extends Controller {
@@ -32,6 +32,7 @@ export default class extends Controller {
                 });
 
                 // render active link at startup
+                console.log(this.element.querySelectorAll('.active'))
                 this.element.querySelectorAll('.active').forEach(e => {
                     if (e.href !== undefined) {
                         $pannel.src = e.href;

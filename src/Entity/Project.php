@@ -15,58 +15,61 @@ use App\Repository\ProjectRepository;
 class Project implements \Stringable
 {
 	#[ORM\Id]
-	#[ORM\GeneratedValue]
-	#[ORM\Column(type: 'integer')]
-	private $id;
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
+    private $id;
 
 	#[ORM\Column(type: 'string', length: 100)]
-	private $name;
+    private $name;
 
 	#[ORM\Column(type: 'string', length: 255, nullable: true)]
-	private $image;
+    private $image;
 
 	#[ORM\Column(type: 'string', length: 4, nullable: true)]
-	private $splitter;
+    private $splitter;
+
+	#[ORM\Column(type: 'integer')]
+    private $prodWarningLimit;
+
+	#[ORM\Column(type: 'integer')]
+    private $prodDangerLimit;
+
+	#[ORM\Column(type: 'integer')]
+    private $checkWarningLimit;
+
+	#[ORM\Column(type: 'integer')]
+    private $checkDangerLimit;
+
+	#[ORM\Column(length: 255)]
+	private ?string $dateFormat = null;
 
 	#[ORM\Column(type: 'integer')]
 	private $newVersionTime;
 
-	#[ORM\Column(type: 'integer')]
-	private $prodWarningLimit;
-
-	#[ORM\Column(type: 'integer')]
-	private $prodDangerLimit;
-
-	#[ORM\Column(type: 'integer')]
-	private $checkWarningLimit;
-
-	#[ORM\Column(type: 'integer')]
-	private $checkDangerLimit;
-
 	#[ORM\ManyToMany(targetEntity: User::class, inversedBy: 'projects')]
-	private $users;
+    private $users;
 
 	#[ORM\OneToMany(targetEntity: Codification::class, mappedBy: 'project', orphanRemoval: true, fetch: 'EAGER')]
-	private $codifications;
+    private $codifications;
 
 	#[ORM\OneToMany(targetEntity: Metadata::class, mappedBy: 'project', orphanRemoval: true, fetch: 'EAGER')]
-	private $metadatas;
+    private $metadatas;
 
 	#[ORM\OneToMany(targetEntity: Status::class, mappedBy: 'project', orphanRemoval: true)]
-	private $statuses;
+    private $statuses;
 
 	#[ORM\OneToMany(targetEntity: Visa::class, mappedBy: 'project', orphanRemoval: true)]
-	private $visas;
+    private $visas;
 
 	#[ORM\OneToMany(targetEntity: Serie::class, mappedBy: 'project', orphanRemoval: true)]
-	#[ORM\OrderBy(value: ['name' => 'ASC'])]
-	private $series;
+    #[ORM\OrderBy(value: ['name' => 'ASC'])]
+    private $series;
 
 	#[ORM\OneToMany(targetEntity: View::class, mappedBy: 'project', orphanRemoval: true)]
-	private $views;
+    private $views;
 
 	#[ORM\OneToMany(targetEntity: Program::class, mappedBy: 'project', orphanRemoval: true)]
-	private $programs;
+    private $programs;
 
 	public function __construct()
 	{
@@ -109,7 +112,7 @@ class Project implements \Stringable
 	public function setImage(?string $image): self
 	{
 		$this->image = $image;
-
+	
 		return $this;
 	}
 
@@ -121,19 +124,7 @@ class Project implements \Stringable
 	public function setSplitter(?string $splitter): self
 	{
 		$this->splitter = $splitter;
-
-		return $this;
-	}
-
-	public function getNewVersionTime(): ?int
-	{
-		return $this->newVersionTime;
-	}
-
-	public function setNewVersionTime(int $newVersionTime): self
-	{
-		$this->newVersionTime = $newVersionTime;
-
+	
 		return $this;
 	}
 
@@ -182,6 +173,30 @@ class Project implements \Stringable
 	{
 		$this->checkDangerLimit = $checkDangerLimit;
 
+		return $this;
+	}
+
+	public function getDateFormat(): ?string
+	{
+	return $this->dateFormat;
+	}
+
+	public function setDateFormat(string $dateFormat): self
+	{
+	$this->dateFormat = $dateFormat;
+
+	return $this;
+	}
+	
+	public function getNewVersionTime(): ?int
+	{
+		return $this->newVersionTime;
+	}
+
+	public function setNewVersionTime(int $newVersionTime): self
+	{
+		$this->newVersionTime = $newVersionTime;
+	
 		return $this;
 	}
 
@@ -446,7 +461,7 @@ class Project implements \Stringable
 
 		return $this;
 	}
-	
+
 	public function __toString(): string
 	{
 		return (string)$this->getName();

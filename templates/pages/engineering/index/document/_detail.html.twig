@@ -1,0 +1,40 @@
+{% set title = 'Document detail' %}
+
+{% extends 'modal/fs_modal.html.twig' %}
+
+{% block modal_body %}
+	<div class="row h-100">
+		<div id="menu" class="col-auto d-flex flex-column h-100">
+			<div class="nav nav-pills align-content-start justify-content-center overflow-auto h-100" aria-orientation="vertical" {{ stimulus_controller('nav') }}>
+				{% for version in versions %}
+					<a class="nav-link d-flex w-75 my-1{% if version == current_version %} active{% endif %}" data-turbo-frame="version_detail" href="{{ path('version_detail', {'version': version.id}) }}" {% if version == current_version %} aria-current="page"{% endif %}>
+						<div class="flex-grow-1 text-truncate">{{ version.name }}</div>
+						{% if version.isRequired %}
+							<span class="badge bg-info">{% trans %}required{% endtrans %}</span>
+						{% elseif version.status.isInformation %}
+							<span class="badge bg-success">{% trans %}information{% endtrans %}</span>
+						{% elseif version.status.isCancel %}
+							<span class="badge bg-secondary">{% trans %}cancelled{% endtrans %}</span>
+						{% elseif version.status.isAsBuilt %}
+							<span class="badge bg-success">{% trans %}as built{% endtrans %}</span>
+						{% endif %}
+					</a>
+				{% endfor %}
+			</div>
+			
+			<div class="align-items-end">
+				{% if is_granted('DOCUMENT_NEW', serie) %}
+					<a class="btn btn-primary w-100 my-1" data-turbo-frame="xl_modal" href="{{ path('version_new', {'document': document.id}) }}">{% trans %}New{% endtrans %}</a>
+				{% endif %}
+				{% if is_granted('DOCUMENT_EDIT', document) %}
+					<a class="btn btn-primary w-100 my-1" data-turbo-frame="xl_modal" href="{{ path('version_edit') }}">{% trans %}Edit{% endtrans %}</a>
+				{% endif %}
+				{% if is_granted('DOCUMENT_DELETE', document) %}
+					<a class="btn btn-primary w-100 my-1" data-turbo-frame="xl_modal" href="{{ path('version_delete') }}">{% trans %}Delete{% endtrans %}</a>
+				{% endif %}
+			</div>
+		</div>
+		<turbo-frame id="version_detail" class="col px-3 overflow-auto h-100">
+		</turbo-frame>
+	</div>
+{% endblock %}

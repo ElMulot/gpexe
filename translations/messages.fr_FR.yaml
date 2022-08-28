@@ -117,10 +117,32 @@ Check warning limit: Seuil d'alerte mineure en vérification
 Number of working days delay before showing the line in orange in the dashboard and in the documents list for documents to be checked.: Nombre de jours ouvrés de retard avant d'afficher la ligne en orange sur le panneau d'accueil et dans la liste des documents pour les documents qui sont à vérifier.
 Check danger limit: Seuil d'alerte majeure en vérification
 Number of working days delay before showing the line in red in the dashboard and in the documents list for documents to be checked.: Nombre de jours ouvrés de retard avant d'afficher la ligne en rouge sur le panneau d'accueil et dans la liste des documents pour les documents qui sont à vérifier.
+Date format: Format de la date
+List of supported characters.: Liste des caractères supportées.
 New version time: Délai pour une nouvelle révision
 Number of working days allowed to produce a new revision of a document.: Nombre de jours ouvrés autorisés pour produire une nouvelle révision d'un document.
 Project admin: Administration du projet
 Main contractors: Entrepreneurs principaux
+
+#Engineering
+Views: Vues
+Series: Series
+Query: Recherche
+Symbol: Symbole
+must be used as splitter: doit être utilisé comme séparateur
+The wild-card: Le caractère
+can be used in place of one or several parameter: peut être utilisé à la place de un ou plusieurs caractères
+Filter: Filtrer
+None documents selected: Pas de document sélectionné
+Only one reference must be selected: Une seule référence doit être sélectionnée
+The same codification has been setting up to more than one document: Une codification identique a été appliquée à plus d'un document
+Document updated: Document mis à jour
+The document has been successfully moved: Le document a été déplacé avec succès
+Details: Détails
+Document detail: Détails sur le document
+Load more results: Charger plus de résultats
+Headers: Colonnes
+Special filters: Filtres spéciaux
 
 #Serie
 Serie: Serie
@@ -137,19 +159,6 @@ Serie deleted: Serie supprimée
 #Document
 Document: Document
 Reference: Reference
-Document detail: Détails sur le document
-Details: Détails
-Query: Recherche
-Symbol: Symbole
-must be used as splitter: doit être utilisé comme séparateur
-The wild-card: Le caractère
-can be used in place of one or several parameter: peut être utilisé à la place de un ou plusieurs caractères
-Filter: Filtrer
-None documents selected: Pas de document sélectionné
-Only one reference must be selected: Une seule référence doit être sélectionnée
-The same codification has been setting up to more than one document: Une codification identique a été appliquée à plus d'un document
-Document updated: Document mis à jour
-The document has been successfully moved: Le document a été déplacé avec succès
 
 #Version
 Version: Revision

@@ -17,18 +17,16 @@
 {% endmacro %} -->
 
 {% macro turbo(id, items) %}
-	<ul class="nav nav-tabs" {{ stimulus_controller('nav') }}>
+	<nav class="nav nav-tabs" {{ stimulus_controller('nav') }}>
 		{% for item in items %}
 			{% if item.class is defined and 'active' in item.class %}
 				{% set item = item|merge({'aria-current': 'page'}) %}
 			{% endif %}
-			<li class="nav-item">
-				<a data-turbo-frame="{{ id }}" {{ block('attributes') }}>
-					{{ item.name }}
-				</a>
-			</li>
+			<a data-turbo-frame="{{ id }}" {{ block('attributes') }}>
+				{{ item.name }}
+			</a>
 		{% endfor %}
-	</ul>
+	</nav>
 	<div class="tab-content">
 		<turbo-frame id="{{ id }}" class="show"></turbo-frame>
 	</div>

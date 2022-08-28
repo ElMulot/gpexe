@@ -26,15 +26,22 @@
 					{% endif %}
 				{% endfor %}
 				<td>
-					<a class="btn btn-sm btn-success mx-1 w-100" href="{{ path('version_detail', {'version': item.version_id }) }}" data-turbo-frame="xl_modal">{% trans %}Details{% endtrans %}</a>
+					<a class="btn btn-sm btn-success mx-1 w-100" href="{{ path('document_detail', {'version': item.version_id }) }}" data-turbo-frame="fs_modal">{% trans %}Details{% endtrans %}</a>
 				</td>
 			</tr>
 		{% endfor %}
 	</template>
 </turbo-stream>
 
-<turbo-stream action="replace" target="pagination">
+<turbo-stream action="replace" target="navigation">
 	<template>
-		<input id="pagination" type="hidden" value="{{ (query.page < page_max)?query.page:0 }}" {{ stimulus_target('engineering--main', 'pagination') }}>
+		<div id="navigation" class="d-flex justify-content-center" {{ stimulus_target('engineering--main', 'navigation') }}>
+			<a class="btn btn-sm btn-primary"
+				{% if query.page >= page_max %}style="display: none"{% endif %}
+				{{ stimulus_action('engineering--main', 'moreResults') }}>
+					{% trans %}Load more results{% endtrans %}
+			</a>
+			<input type="hidden" value="{{ (query.page < page_max)?query.page:0 }}" {{ stimulus_target('engineering--main', 'lastPageLoaded') }}>
+		</div>
 	</template>
 </turbo-stream>

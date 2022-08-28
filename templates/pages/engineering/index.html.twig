@@ -14,12 +14,11 @@
 
 {% block main %}
 		<div id="engineering" {{ stimulus_controller('engineering--main', {'urlHeader': path('engineering_thead', {'project': project.id}), 'urlBody': path('engineering_tbody', {'project': project.id})}) }}>
-			<nav class="sticky-top">
+			<div class="sticky-top">
 				{{ include('pages/engineering/index/_nav.html.twig') }}
-			</nav>
+			</div>
 			<turbo-frame id="table" class="table-responsive nav-shown mb-4"
-				{{ stimulus_target('engineering--main', 'tableContainer') }}
-				{{ stimulus_action('engineering--main', 'scrollDown', 'scroll')}}>
+				{{ stimulus_target('engineering--main', 'tableContainer') }}>
 				<table class="table table-sm table-hover table-active" {{ stimulus_target('engineering--main', 'table') }}>
 					<thead id="thead" {{ stimulus_target('engineering--main', 'thead') }}>
 					
@@ -28,9 +27,11 @@
 						
 					</tbody>
 				</table>
+				<div id="navigation" class="d-flex justify-content-center" {{ stimulus_target('engineering--main', 'navigation') }}>
+					<input type="hidden" value="0" {{ stimulus_target('engineering--main', 'lastPageLoaded') }}>
+				</div>
 			</turbo-frame>
 			<div id="request"></div>
-			<input type="hidden" id="pagination" value="0" {{ stimulus_target('engineering--main', 'pagination') }}>
 		</div>
 {% endblock %}
 

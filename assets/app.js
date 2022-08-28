@@ -50,11 +50,9 @@ String.prototype.toDate = function () {
  * @return {Node} - A node, or null if string is empty.
  */
 String.prototype.toElement = function() {
-
 	let template = document.createElement('template');
 	template.innerHTML = this.trim();
 	return template.content.firstChild;
-
 }
 
 /**

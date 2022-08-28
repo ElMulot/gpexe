@@ -1,0 +1,135 @@
+{% import "macros/_nav.html.twig" as nav %}
+
+<turbo-frame id="version_detail" class="col px-3 overflow-auto h-100">
+	<div class="card border border-dark rounded">
+		<div class="card-header">{{ document.reference ~ project.splitter ~ version.name }} - {{ document.name }}</div>
+		<div class="card-body">
+			<div class="row">
+				<div class="col-4 col-lg-2">
+					{% if version.isRequired %}
+						{% trans %}Expected date{% endtrans %} :
+					{% else %}
+						{% trans %}Date of issue{% endtrans %} :
+					{% endif %}
+				</div>
+				<div class="col-8 col-lg-4">
+					{{ version.date|date(project.dateFormat) }}
+					{% if version.isRequired and version.scheduledDate %}
+						{% if version.scheduledDate < date('today') %}
+							<span> ({{ 'delay'|trans({'count': version.scheduledDate.diff(date('today')).days}) }})</span>
+						{% endif %}
+					{% endif %}
+				</div>
+				<div class="col-4 col-lg-2">
+					{% trans %}Status{% endtrans %} :
+				</div>
+				<div class="col-8 col-lg-4">
+					{{ version.status }}
+				</div>
+				<div class="col-4 col-lg-2">
+					{% trans %}Company{% endtrans %} :
+				</div>
+				<div class="col-8 col-lg-4">
+					{{ document.serie.company.name }}
+				</div>
+				<div class="col-4 col-lg-2">
+					{% trans %}Serie{% endtrans %} :
+				</div>
+				<div class="col-8 col-lg-4">
+					{{ document.serie.name }}
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="row g-1 mt-0">
+		<div class="col-12 col-lg-6">
+			<div class="card border border-dark rounded">
+				<div class="card-header">{% trans %}People involved{% endtrans %}</div>
+				<div class="card-body">
+					<div class="row">
+						<div class="col-4">
+							{% trans %}Writer{% endtrans %} :
+						</div>
+						<div class="col-8">
+							{{ version.writer }}
+						</div>
+						<div class="col-4">
+							{% trans %}Checker{% endtrans %} :
+						</div>
+						<div class="col-8">
+							{{ version.checker }}
+						</div>
+						<div class="col-4">
+							{% trans %}Approver{% endtrans %} :
+						</div>
+						<div class="col-8">
+							{{ version.approver }}
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-12 col-lg-6">
+			{% if version.isRequired and (is_granted('ROLE_ADMIN') or (is_granted('ROLE_EDITOR') and app.user.company.isMainContractor)) %}
+				<div class="card border border-dark rounded h-100">
+					<div class="card-header">{% trans %}Document recieved{% endtrans %}</div>
+					<div class="card-body">
+						<div class="row justify-content-md-center">
+							<button id="save" class="btn btn-primary w-50" data-toggle="modal ajax" data-target="#modal" data-url="{{ path('version_edit', {'id[]': version.id, 'modal': true, 'save': true}) }}">{% trans %}Save document{% endtrans %}</button>
+						</div>
+					</div>
+				</div>
+			{% elseif version.isRequired == false %}
+
+				{% set items = [] %}
+				{% for checker in checkers %}
+					{% set items = items|merge([{
+						'name': checker.name,
+						'href': path('review', {'version': version.id, 'company': checker.id}),
+						'class': ((checker == app.user.company) or (app.user.company not in checkers and checker == checkers|first))?"active",
+					}]) %}
+				{% endfor %}
+				{{ nav.turbo('review_pannel', items) }}
+			{% endif %}
+		</div>
+	</div>
+	<div class="card border border-dark rounded mt-1">
+		<div class="card-header">{% trans %}Metadatas{% endtrans %}</div>
+		<div class="card-body">
+			<div class="row">
+				{% if version.isRequired and version.initialScheduledDate %}
+					<div class="col-4">
+						{% trans %}Initial scheduled date{% endtrans %} :
+					</div>
+					<div class="col-8">
+						{{ version.initialScheduledDate|date(project.dateFormat) }}
+					</div>
+				{% endif %}
+				{% if version.isRequired and version.scheduledDate %}
+					<div class="col-4">
+						{% trans %}Scheduled date{% endtrans %} :
+					</div>
+					<div class="col-8">
+						{{ version.scheduledDate|date(project.dateFormat) }}
+					</div>
+				{% endif %}
+				{% for metadata in project.metadatas %}
+					<div class="col-4">
+						{{ metadata.name }} :
+					</div>
+					<div class="col-8">
+						{% if metadata.isLink %}
+							{% if version.getPropertyValue(metadata.fullCodename) is empty  %}
+								{% trans %}n/a{% endtrans %}
+							{% else %}
+								{# <a class="btn btn-sm btn-primary text-nowrap" href="{{ version.getPropertyValue(metadata.fullCodename)|to_string }}" target="_blank" rel="noopener noreferrer">{% trans %}Click here{% endtrans %}</a> #}
+							{% endif %}
+						{% else %}
+							{{ version.getPropertyValue(metadata.fullCodename)|to_string(project.dateFormat) }}
+						{% endif %}
+					</div>
+				{% endfor %}
+			</div>
+		</div>
+	</div>
+</turbo-frame>
