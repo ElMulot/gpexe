@@ -154,3 +154,8 @@
     date: 06/05/2022
     changes:
         - Correction d'un bug lors d'une modifiation rapide d'un champ
+- 
+    version: 0.5.12
+    date: 05/09/2022
+    changes:
+        - Correction d'un bug lors d'une modifiation rapide d'un champ

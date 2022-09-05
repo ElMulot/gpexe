@@ -83,7 +83,7 @@ class QuickVersionType extends AbstractType
 					
 				case (($result = Regex::match('/metadata_(\d+)/', $field['id']))->hasMatch()):
 				    
-					foreach ($this->metadataRepository->getMetadatasForVersion($project) as $metadata) {
+					foreach ($this->metadataRepository->getMetadatas($project) as $metadata) {
 						if ($metadata->getId() == $result->group(1)) {
 							switch ($metadata->getType()) {
 								case Metadata::LIST:
