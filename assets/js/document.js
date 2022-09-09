@@ -1928,7 +1928,10 @@ $(document).ready(function() {
 						case type.date:
 							dataClass = 'text-center';
 							if (value != null) {
-								value = value.toDate();
+								if (s = /\d{4}-\d{2}-\d{2}/g.exec(value)) {
+									const [year, month, day] = s[0].split("-");
+									value = new Date(year, month - 1, day);
+								}
 							}
 							
 							if (data['highlight']) {

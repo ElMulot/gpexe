@@ -13,6 +13,7 @@ use App\Entity\Metadata;
 use App\Entity\Project;
 use App\Entity\Company;
 use App\Entity\Document;
+use App\Entity\MetadataValue;
 use App\Entity\Status;
 use App\Entity\User;
 use App\Entity\Version;
@@ -95,11 +96,11 @@ class VersionRepository extends RepositoryService
 					break;
 					
 				case 'version_date':
-					if ($qb->hasAlias('version_date_') === false) {
-						$qb->addSelect("IF(version.isRequired = false, version.deliveryDate, version.scheduledDate) AS HIDDEN version_date_");
+					if ($qb->hasAlias('version_date') === false) {
+						$qb->addSelect("IF(version.isRequired = false, version.deliveryDate, version.scheduledDate) AS version_date");
 					}
 					
-					$qb->addOrderBy('version_date_', $order);
+					$qb->addOrderBy('version_date', $order);
 					break;
 					
 				case 'version_writer':
@@ -161,34 +162,51 @@ class VersionRepository extends RepositoryService
 								case Metadata::BOOLEAN:
 								case Metadata::TEXT:
 								case Metadata::LINK:
-									if ($qb->hasAlias($field['id'] . '_') === false) {
-										$qb
-											->leftJoin($field['parent'] . '.metadataValues', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
-											->groupBy('version.id')
+									if ($qb->hasAlias($field['id']) === false) {
+										$qb->addNestedSelect(
+											$this->newQB()
+												->select($field['id'] . '_.value')
+												->from($this->getParentClass($field['parent']), $field['parent'] . '_' . $field['id'] . '_')
+												->leftJoin($field['parent'] . '_' . $field['id'] . '_.metadataValues', $field['id'] . '_')
+												->andWhere($qb->eq($field['id'] . '_.metadata', $id))
+												->andWhere($field['parent'] . '_' . $field['id'] . '_.id = ' . $field['parent'] . '.id'),
+												$field['id']
+											)
 										;
 									}
-									$qb->addOrderBy($field['id'] . '_.value', $order);
+									$qb->addOrderBy($field['id'], $order);
 									break;
 									
 								case Metadata::DATE:
-									if ($qb->hasAlias($field['id'] . '_') === false) {
-										$qb
-											->leftJoin($field['parent'] . '.metadataValues', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
-											->groupBy('version.id')
-											->addSelect($this->dateStatement($field['id']))
+									if ($qb->hasAlias($field['id']) === false) {
+										$qb->addNestedSelect(
+											$this->newQB()
+												->select('STR_TO_DATE(' . $field['id'] . "_.value, '%d-%m-%Y')")
+												->from($this->getParentClass($field['parent']), $field['parent'] . '_' . $field['id'] . '_')
+												->leftJoin($field['parent'] . '_' . $field['id'] . '_.metadataValues', $field['id'] . '_')
+												->andWhere($qb->eq($field['id'] . '_.metadata', $id))
+												->andWhere($field['parent'] . '_' . $field['id'] . '_.id = ' . $field['parent'] . '.id'),
+												$field['id']
+											)
 										;
 									}
-									$qb->addOrderBy($field['id'] . '_value', $order);
+									$qb->addOrderBy($field['id'], $order);
 									break;
 									
 								case Metadata::LIST:
-									if ($qb->hasAlias($field['id'] . '_') === false) {
-										$qb
-											->leftJoin($field['parent'] . '.metadataItems', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
-											->groupBy('version.id')
+									if ($qb->hasAlias($field['id']) === false) {
+										$qb->addNestedSelect(
+											$this->newQB()
+												->select($field['id'] . '_items.value')
+												->from($this->getParentClass($field['parent']), $field['parent'] . '_' . $field['id'])
+												->leftJoin($field['parent'] . '_' . $field['id'] . '.metadataItems', $field['id'] . '_items')
+												->andWhere($qb->eq($field['id'] . '_items.metadata', $id))
+												->andWhere($field['parent'] . '_' . $field['id'] . '.id = ' . $field['parent'] . '.id'),
+												$field['id']
+											)
 										;
 									}
-									$qb->addOrderBy($field['id'] . '_.value', $order);
+									$qb->addOrderBy($field['id'], $order);
 									break;
 									
 							}
@@ -284,19 +302,21 @@ class VersionRepository extends RepositoryService
 						break;
 						
 					case 'version_initial_scheduled_date':
-						$qb->addSelect('version.initialScheduledDate AS version_initial_scheduled_date');
+						$qb->addSelect("DATE_FORMAT(version.initialScheduledDate, '%Y-%m-%d') AS version_initial_scheduled_date");
 						break;
 					
 					case 'version_scheduled_date':
-						$qb->addSelect('version.scheduledDate AS version_scheduled_date');
+						$qb->addSelect("DATE_FORMAT(version.scheduledDate, '%Y-%m-%d') AS version_scheduled_date");
 						break;
 					
 					case 'version_delivery_date':
-						$qb->addSelect('version.deliveryDate AS version_delivery_date');
+						$qb->addSelect("DATE_FORMAT(version.deliveryDate, '%Y-%m-%d') AS version_delivery_date");
 						break;
 						
 					case 'version_date':
-						$qb->addSelect("DATE_FORMAT(IF(version.isRequired = false, version.deliveryDate, version.scheduledDate), '%d-%m-%Y') AS version_date");
+						if ($qb->hasAlias('version_date') === false) {
+							$qb->addSelect("IF(version.isRequired = false, version.deliveryDate, version.scheduledDate) AS version_date");
+						}
 						break;
 						
 					case 'version_is_required':
@@ -364,34 +384,49 @@ class VersionRepository extends RepositoryService
 									case Metadata::BOOLEAN:
 									case Metadata::TEXT:
 									case Metadata::LINK:
-										if ($qb->hasAlias($field['id'] . '_') === false) {
-											$qb
-												->leftJoin($field['parent'] . '.metadataValues', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
-												->groupBy('version.id')
+										if ($qb->hasAlias($field['id']) === false) {
+											$qb->addNestedSelect(
+												$this->newQB()
+													->select($field['id'] . '_.value')
+													->from($this->getParentClass($field['parent']), $field['parent'] . '_' . $field['id'] . '_')
+													->leftJoin($field['parent'] . '_' . $field['id'] . '_.metadataValues', $field['id'] . '_')
+													->andWhere($qb->eq($field['id'] . '_.metadata', $id))
+													->andWhere($field['parent'] . '_' . $field['id'] . '_.id = ' . $field['parent'] . '.id'),
+													$field['id']
+												)
 											;
 										}
-										$qb->addSelect(sprintf('MAX(%1$s_.value) AS %1$s', $field['id']));
 										break;
-										
+
 									case Metadata::DATE:
-										if ($qb->hasAlias($field['id'] . '_') === false) {
-											$qb
-												->leftJoin($field['parent'] . '.metadataValues', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
-												->groupBy('version.id')
+										if ($qb->hasAlias($field['id']) === false) {
+											$qb->addNestedSelect(
+												$this->newQB()
+													->select('STR_TO_DATE(' . $field['id'] . "_.value, '%d-%m-%Y')")
+													->from($this->getParentClass($field['parent']), $field['parent'] . '_' . $field['id'] . '_')
+													->leftJoin($field['parent'] . '_' . $field['id'] . '_.metadataValues', $field['id'] . '_')
+													->andWhere($qb->eq($field['id'] . '_.metadata', $id))
+													->andWhere($field['parent'] . '_' . $field['id'] . '_.id = ' . $field['parent'] . '.id'),
+													$field['id']
+												)
 											;
 										}
-										$qb->addSelect(sprintf('MAX(%1$s_.value) AS %1$s', $field['id']));
 										break;
-										
+
 									case Metadata::LIST:
 										
-										if ($qb->hasAlias($field['id'] . '_') === false) {
-											$qb
-												->leftJoin($field['parent'] . '.metadataItems', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
-												->groupBy('version.id')
+										if ($qb->hasAlias($field['id']) === false) {
+											$qb->addNestedSelect(
+												$this->newQB()
+													->select($field['id'] . '_items.value')
+													->from($this->getParentClass($field['parent']), $field['parent'] . '_' . $field['id'])
+													->leftJoin($field['parent'] . '_' . $field['id'] . '.metadataItems', $field['id'] . '_items')
+													->andWhere($qb->eq($field['id'] . '_items.metadata', $id))
+													->andWhere($field['parent'] . '_' . $field['id'] . '.id = ' . $field['parent'] . '.id'),
+													$field['id']
+												)
 											;
 										}
-										$qb->addSelect(sprintf('MAX(%1$s_.value) AS %1$s', $field['id']));
 										break;
 										
 								}
@@ -481,9 +516,9 @@ class VersionRepository extends RepositoryService
 		}
 		
 		array_walk($results, function(&$item) use ($request, $project) {
-// 			if (array_key_exists('version_date', $item)) {
-// 				$item['version_date'] = Regex::replace('/(\d{4})-(\d{2})-(\d{2})/', '${3}-${2}-${1}', $item['version_date'])->result();
-// 			}
+			// if (array_key_exists('version_date', $item)) {
+			// 	$item['version_date'] = Regex::replace('/(\d{4})-(\d{2})-(\d{2})/', '${3}-${2}-${1}', $item['version_date'])->result();
+			// }
 			
 			if ($highlight = $request->query->get('highlight')) {
 				
@@ -709,13 +744,15 @@ class VersionRepository extends RepositoryService
 							break;
 							
 						case 'version_date':
-							$qb->addSelect("IF(version.isRequired = false, version.deliveryDate, version.scheduledDate) AS HIDDEN version_date_");
+							if ($qb->hasAlias('version_date') === false) {
+								$qb->addSelect("IF(version.isRequired = false, version.deliveryDate, version.scheduledDate) AS version_date");
+							}
 							$value = implode(',', $value);
 							if (($result = Regex::match('/>(\d{2}-\d{2}-\d{4})/', $value))->hasMatch()) {
-								$qb->andHaving($qb->gte('version_date_', new \DateTime($result->group(1))));
+								$qb->andHaving($qb->gte('version_date', new \DateTime($result->group(1))));
 							}
 							if (($result = Regex::match('/<(\d{2}-\d{2}-\d{4})/', $value))->hasMatch()) {
-								$qb->andHaving($qb->lte('version_date_', new \DateTime($result->group(1))));
+								$qb->andHaving($qb->lte('version_date', new \DateTime($result->group(1))));
 							}
 							break;
 							
@@ -791,7 +828,7 @@ class VersionRepository extends RepositoryService
 									break;
 									
 								case Codification::REGEX:
-									$qb->andWhere($qb->like($field['id'] . '_.value', $this->likeStatement($value)));
+									$qb->andWhere($qb->like($field['id'], $this->likeStatement($value)));
 									break;
 									
 							}
@@ -806,25 +843,41 @@ class VersionRepository extends RepositoryService
 								case Metadata::BOOLEAN:
 								case Metadata::TEXT:
 								case Metadata::LINK:
-									$qb
-										->leftJoin($field['parent'] . '.metadataValues', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
-										->groupBy('version.id')
-										->addSelect(sprintf('MAX(%1$s_.value) AS HIDDEN %1$s_value', $field['id']))
+									$qb->addNestedSelect(
+										$this->newQB()
+											->select($field['id'] . '_.value')
+											->from($this->getParentClass($field['parent']), $field['parent'] . '_' . $field['id'] . '_')
+											->leftJoin($field['parent'] . '_' . $field['id'] . '_.metadataValues', $field['id'] . '_')
+											->andWhere($qb->eq($field['id'] . '_.metadata', $id))
+											->andWhere($field['parent'] . '_' . $field['id'] . '_.id = ' . $field['parent'] . '.id'),
+											$field['id']
+										)
 									;
 									break;
+
 								case Metadata::DATE:
-									$qb
-										->leftJoin($field['parent'] . '.metadataValues', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
-										->groupBy('version.id')
-										->addSelect($this->dateStatement($field['id']))
+									$qb->addNestedSelect(
+										$this->newQB()
+											->select('STR_TO_DATE(' . $field['id'] . "_.value, '%d-%m-%Y')")
+											->from($this->getParentClass($field['parent']), $field['parent'] . '_' . $field['id'] . '_')
+											->leftJoin($field['parent'] . '_' . $field['id'] . '_.metadataValues', $field['id'] . '_')
+											->andWhere($qb->eq($field['id'] . '_.metadata', $id))
+											->andWhere($field['parent'] . '_' . $field['id'] . '_.id = ' . $field['parent'] . '.id'),
+											$field['id']
+										)
 									;
 									break;
-									
+
 								case Metadata::LIST:
-									$qb
-										->leftJoin($field['parent'] . '.metadataItems', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
-										->groupBy('version.id')
-										->addSelect(sprintf('MAX(%1$s_.id) AS HIDDEN %1$s_id', $field['id']))
+									$qb->addNestedSelect(
+										$this->newQB()
+											->select($field['id'] . '_.id')
+											->from($this->getParentClass($field['parent']), $field['parent'] . '_' . $field['id'] . '_')
+											->leftJoin($field['parent'] . '_' . $field['id'] . '_.metadataItems', $field['id'] . '_')
+											->andWhere($qb->eq($field['id'] . '_.metadata', $id))
+											->andWhere($field['parent'] . '_' . $field['id'] . '_.id = ' . $field['parent'] . '.id'),
+											$field['id'] . '_id', true
+										)
 									;
 									break;
 									
@@ -834,14 +887,14 @@ class VersionRepository extends RepositoryService
 								
 								case Metadata::BOOLEAN:
 									if ($value == '1') {
-										$qb->andHaving($qb->eq($field['id'] . '_value', 1));
+										$qb->andHaving($qb->eq($field['id'], 1));
 									} else {
-										$qb->andHaving($qb->isNull($field['id'] . '_value'));
+										$qb->andHaving($qb->isNull($field['id']));
 									}
 									break;
 									
 								case Metadata::TEXT:
-									$qb->andHaving($qb->like($field['id'] . '_value', $this->likeStatement($value)));
+									$qb->andHaving($qb->like($field['id'], $this->likeStatement($value)));
 									break;
 									
 								case Metadata::DATE:
@@ -850,29 +903,29 @@ class VersionRepository extends RepositoryService
 										if (Regex::match('/(?<=,)0/', $value)->hasMatch()) {
 											$qb->andHaving(
 												$qb->orX(
-													$qb->gte($field['id'] . '_value', new \DateTime($r->group(1))),
-													$qb->isNull($field['id'] . '_value')
+													$qb->gte($field['id'], new \DateTime($r->group(1))),
+													$qb->isNull($field['id'])
 												)
 											);
 										} else {
-											$qb->andHaving($qb->gte($field['id'] . '_value', new \DateTime($r->group(1))));
+											$qb->andHaving($qb->gte($field['id'], new \DateTime($r->group(1))));
 										}
 									}
 									if (($r = Regex::match('/<(\d{2}-\d{2}-\d{4})/', $value))->hasMatch()) {
 										if (Regex::match('/(?<=,)0/', $value)->hasMatch()) {
 											$qb->andHaving(
 												$qb->orX(
-													$qb->lte($field['id'] . '_value', new \DateTime($r->group(1))),
-													$qb->isNull($field['id'] . '_value')
+													$qb->lte($field['id'], new \DateTime($r->group(1))),
+													$qb->isNull($field['id'])
 													)
 												);
 										} else {
-											$qb->andHaving($qb->lte($field['id'] . '_value', new \DateTime($r->group(1))));
+											$qb->andHaving($qb->lte($field['id'], new \DateTime($r->group(1))));
 										}
 									}
 									if (($r = Regex::match('/^0/', $value))->hasMatch()) {
 										$qb->andHaving(
-											$qb->isNull($field['id'] . '_value')
+											$qb->isNull($field['id'])
 										);
 									}
 									break;
@@ -997,9 +1050,15 @@ class VersionRepository extends RepositoryService
 		return str_replace('%%', '%', '%' . str_replace('*', '%', $value) . '%');	
 	}
 	
-	private function dateStatement(string $value): string
-	{		
-		return "STR_TO_DATE(MAX(" . $value . "_.value), '%d-%m-%Y') AS HIDDEN " . $value . "_value";
+	private function getParentClass(string $parent): string
+	{
+		switch ($parent) {
+			case 'serie':
+				return Serie::class;
+			case 'document':
+				return Document::class;
+			case 'version':
+				return Version::class;
+		};
 	}
-	
 }

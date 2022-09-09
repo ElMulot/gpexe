@@ -159,3 +159,8 @@
     date: 05/09/2022
     changes:
         - Correction d'un bug lors d'une modifiation rapide d'un champ
+- 
+    version: 0.5.13
+    date: 07/09/2022
+    changes:
+        - Optimisation de l'affichage lorsque plusieurs colonnes metadataValues sont affichées

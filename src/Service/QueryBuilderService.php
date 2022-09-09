@@ -33,10 +33,9 @@ class QueryBuilderService extends QueryBuilder
 		return parent::addSelect($select);
 	}
 	
-	public function addNestedSelect(QueryBuilderService $qb, $alias): self
+	public function addNestedSelect(QueryBuilderService $qb, $alias, $hidden = false): self
 	{
-		$this->addAlias($alias);
-		return $this->addSelect('(' . $qb->getDQL() . ') AS ' . $alias);
+		return $this->addSelect('(' . $qb->getDQL() . ') AS ' . (($hidden)?'HIDDEN ':'') . $alias);
 	}
 	
 	public function eq($field, $parameter): Expr\Comparison
