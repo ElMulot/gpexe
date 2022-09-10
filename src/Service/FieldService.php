@@ -603,7 +603,7 @@ class FieldService
 		
 		$fields['version.name']['elements'][] = [
 			'id' 		=> 'version_name',
-			'title' 	=> $this->translator->trans('Révision'),
+			'title' 	=> $this->translator->trans('Version'),
 		];
 		
 		$fields['document.name']['elements'][] = [

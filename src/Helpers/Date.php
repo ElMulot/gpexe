@@ -32,19 +32,19 @@ class Date extends \DateTime {
 		}
 	}
 	
-	public function add($interval): Date
+	public function add(\DateInterval|string $interval): Date
 	{
 		if ($this->isValid) {
-			$dateInterval = new \DateInterval($interval);
+			$dateInterval = new \DateInterval(strval($interval));
 			parent::add($dateInterval);
 		}
 		return $this;
 	}
 	
-	public function sub($interval): Date
+	public function sub(\DateInterval|string $interval): Date
 	{
 		if ($this->isValid) {
-			$dateInterval = new \DateInterval($interval);
+			$dateInterval = new \DateInterval(strval($interval));
 			parent::sub($dateInterval);
 		}
 		return $this;
@@ -105,6 +105,7 @@ class Date extends \DateTime {
 		return $nbFullWeeks * 5 + max($nbRemainingDays, 0);
 	}
 	
+	#[\ReturnTypeWillChange]
 	public function diff($date2, $absolute = null): ?\DateInterval
 	{
 		if ($this->isValid === false)

@@ -1,63 +1,59 @@
 {
-    "folders": [
-        {
-            "path": "."
-        },
-        {
-            "name": "test",
-            "path": "..\\test"
-        }
-    ],
-    "settings": {
-        "sshfs.configs": [
-            {
-                "name": "gpexe",
-                "host": "ssh.cluster030.hosting.ovh.net",
-                "username": "gpexeff",
-                "password": "Juanito1111",
-                "root": "/home/gpexeff/www/gpexe"
-            }
-        ],
-        "files.exclude": {
-            ".snyk": true,
-            "**/.DS_Store": true,
-            "**/.git": true,
-            "**/.gitignore": true,
-            "**/.hg": true,
-            "**/.svn": true,
-            "**/CVS": true,
-            "**/Thumbs.db": true,
-            "bin": true,
-            "composer.lock": true,
-            "docker-compose*.yml": true,
-            "node_modules": true,
-            "package-lock.json": true,
-            "phpunit.xml.dist": true,
-            "symfony.lock": true,
-            "var": true
-        },
-        "explorerExclude.backup": null,
-        "files.watcherExclude": {
-            "public/**": true
-        },
-        "outline.showConstants": false,
-        "outline.showArrays": false,
-        "outline.showEnums": false,
-        "outline.showNamespaces": false,
-        "outline.showNumbers": false,
-        "outline.showNull": false,
-        "outline.showObjects": false,
-        "outline.showOperators": false,
-        "outline.showStrings": false,
-        "outline.showStructs": false,
-        "outline.showVariables": false,
-        "outline.showTypeParameters": false,
-        "outline.showBooleans": false,
-        "outline.showEnumMembers": false,
-        "outline.showFields": false,
-        "outline.showProperties": false,
-        "twig-language.elseLine": true,
-        "intelephense.environment.phpVersion": "8.1.2",
-        "intelephense.environment.documentRoot": "./gpexe/public/",
-    },
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"sshfs.configs": [
+			{
+				"name": "gpexe",
+				"host": "ssh.cluster030.hosting.ovh.net",
+				"username": "gpexeff",
+				"password": "Juanito1111",
+				"root": "/home/gpexeff/www/gpexe"
+			}
+		],
+		"files.exclude": {
+			".snyk": true,
+			"**/.DS_Store": true,
+			"**/.git": true,
+			"**/.gitignore": true,
+			"**/.hg": true,
+			"**/.svn": true,
+			"**/CVS": true,
+			"**/Thumbs.db": true,
+			"bin": true,
+			"composer.lock": true,
+			"docker-compose*.yml": true,
+			"node_modules": true,
+			"package-lock.json": true,
+			"phpunit.xml.dist": true,
+			"symfony.lock": true,
+			"var": true
+		},
+		"explorerExclude.backup": null,
+		"files.watcherExclude": {
+			"public/**": true
+		},
+		"outline.showConstants": false,
+		"outline.showArrays": false,
+		"outline.showEnums": false,
+		"outline.showNamespaces": false,
+		"outline.showNumbers": false,
+		"outline.showNull": false,
+		"outline.showObjects": false,
+		"outline.showOperators": false,
+		"outline.showStrings": false,
+		"outline.showStructs": false,
+		"outline.showVariables": false,
+		"outline.showTypeParameters": false,
+		"outline.showBooleans": false,
+		"outline.showEnumMembers": false,
+		"outline.showFields": false,
+		"outline.showProperties": false,
+		"twig-language.elseLine": true,
+		"intelephense.environment.phpVersion": "8.1.2",
+		"intelephense.environment.documentRoot": "./gpexe/public/",
+	}
 }

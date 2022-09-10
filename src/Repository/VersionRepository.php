@@ -828,7 +828,7 @@ class VersionRepository extends RepositoryService
 									break;
 									
 								case Codification::REGEX:
-									$qb->andWhere($qb->like($field['id'], $this->likeStatement($value)));
+									$qb->andWhere($qb->like($field['id'] . '_.value', $this->likeStatement($value)));
 									break;
 									
 							}
