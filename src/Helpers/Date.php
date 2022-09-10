@@ -32,7 +32,7 @@ class Date extends \DateTime {
 		}
 	}
 	
-	public function add(\DateInterval|string $interval): Date
+	public function add($interval): Date
 	{
 		if ($this->isValid) {
 			$dateInterval = new \DateInterval(strval($interval));
@@ -41,7 +41,7 @@ class Date extends \DateTime {
 		return $this;
 	}
 	
-	public function sub(\DateInterval|string $interval): Date
+	public function sub($interval): Date
 	{
 		if ($this->isValid) {
 			$dateInterval = new \DateInterval(strval($interval));
