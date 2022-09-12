@@ -31,7 +31,6 @@ class LogListener
 		
 		$this->entityManager = $args->getEntityManager();
 		$uow = $this->entityManager->getUnitOfWork();
-		
 		foreach ($uow->getScheduledEntityInsertions() as $entity) {
 			if ($entity instanceof Log || $entity instanceof ChangeSet) {
 				continue;

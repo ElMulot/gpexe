@@ -70,7 +70,6 @@ class UserController extends AbstractController
 			$entityManager = $this->getDoctrine()->getManager();
 			$entityManager->flush();
 			
-			$this->addFlash('success', 'Datas updated');
 			return $this->redirectToRoute('user');
 		} else {
 			$view = $form->createView();

@@ -58,7 +58,7 @@ class Project
 	private $checkDangerLimit;
 	
 	/**
-	 * @ORM\ManyToMany(targetEntity=User::class, inversedBy="projects")
+	 * @ORM\ManyToMany(targetEntity=User::class, inversedBy="projects", cascade={"persist"})
 	 */
 	private $users;
 

@@ -51,6 +51,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 	/**
 	 * @ORM\Column(type="datetime")
 	 */
+	private $createdOn;
+
+	/**
+	 * @ORM\Column(type="datetime")
+	 */
 	private $lastConnected;
 
 	/**
@@ -81,10 +86,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 	public function __construct()
 	{
 		$this->locale = 'fr_FR';
+		$this->createdOn = new \DateTime();
 		$this->lastConnected = new \DateTime();
 		$this->projects = new ArrayCollection();
-	 	$this->versions = new ArrayCollection();
-	  $this->views = new ArrayCollection();
+	  	$this->views = new ArrayCollection();
 	}
 
 	public function getId(): ?int
@@ -169,6 +174,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 		return $this;
 	}
 
+	public function getCreatedOn(): ?\DateTimeInterface
+	{
+		return $this->createdOn;
+	}
+
+	public function setCreatedOn(\DateTimeInterface $createdOn): self
+	{
+		$this->createdOn = $createdOn;
+
+		return $this;
+	}
+
 	public function getLastConnected(): ?\DateTimeInterface
 	{
 		return $this->lastConnected;
@@ -217,7 +234,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 	{
 		if (!$this->projects->contains($project)) {
 			$this->projects[] = $project;
-			$project->addUser($this);
+			// $project->addUser($this);
 		}
 
 		return $this;
@@ -227,7 +244,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 	{
 		if ($this->projects->contains($project)) {
 			$this->projects->removeElement($project);
-			$project->removeUser($this);
+			// $project->removeUser($this);
 		}
 
 		return $this;
