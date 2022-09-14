@@ -8,3 +8,7 @@ twig:
         date: '%date%'
         name: 'GPExe'
         uploads_directory: '%uploads_directory%'
+
+when@test:
+    twig:
+        strict_variables: true
