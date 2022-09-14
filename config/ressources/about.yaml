@@ -170,3 +170,9 @@
     changes:
         - Mise à jour des librairies
         - Correction de bugs
+- 
+    version: 0.5.15
+    date: 14/09/2022
+    changes:
+        - Mise à jour de la configuration
+        - Correction de bugs
