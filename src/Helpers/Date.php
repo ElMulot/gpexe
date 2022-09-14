@@ -50,8 +50,11 @@ class Date extends \DateTime {
 		return $this;
 	}
 	
-	public static function fromFormat(string $expression, $format = 'd-m-Y'): ?\DateTime
+	public static function fromFormat(?string $expression, $format = 'd-m-Y'): ?\DateTime
 	{
+		if (!$expression) {
+			return new static();
+		}
 		$date = \DateTime::createFromFormat('!' . $format, $expression);
 		if ($date && $date->format($format) === $expression) {
 			return new static($date->format(\DateTime::ATOM));

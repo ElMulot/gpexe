@@ -526,7 +526,7 @@ class VersionRepository extends RepositoryService
 					if ($item[$highlight] instanceof \DateTimeInterface) {
 						$date = $item[$highlight];
 					} else {
-						$date = Date::fromFormat($item[$highlight]);
+						$date = Date::fromFormat($item[$highlight], 'Y-m-d');
 					}
 					if ($date < new Date('today')) {
 						$item['highlight'] = 'FF919180';
