@@ -17,40 +17,40 @@ class Metadata implements \Stringable
 {
 	#[ORM\Id]
 	#[ORM\GeneratedValue]
-	#[ORM\Column(type: 'integer')]
-	private $id;
+	#[ORM\Column]
+	private ?int $id = null;
 
-	#[ORM\Column(type: 'string', length: 100)]
-	private $name;
+	#[ORM\Column(length: 100)]
+	private ?string $name = null;
 
-	#[ORM\Column(type: 'string', length: 100)]
-	private $codename;
+	#[ORM\Column(length: 100)]
+	private ?string $codename = null;
 
 	#[ORM\Column(type: 'metadata_type_enum')]
 	#[DoctrineAssert\EnumType(entity: MetadataTypeEnum::class)]
-	private $type;
+	private ?string $type = null;
 
-	#[ORM\Column(type: 'boolean')]
-	private $isMandatory;
+	#[ORM\Column]
+	private ?bool $isMandatory = null;
 
 	#[ORM\Column(type: 'metadata_parent_enum')]
 	#[DoctrineAssert\EnumType(entity: MetadataParentEnum::class)]
-	private $parent;
+	private ?string $parent = null;
 
-	#[ORM\ManyToOne(targetEntity: Project::class, inversedBy: 'metadatas', fetch: 'EAGER')]
-	#[ORM\JoinColumn(nullable: false)]
-	private $project;
+	#[ORM\ManyToOne(inversedBy: 'metadatas', fetch: 'EAGER')]
+	private ?Project $project = null;
 
 	#[ORM\OneToMany(targetEntity: MetadataItem::class, mappedBy: 'metadata', orphanRemoval: true)]
-	private $metadataItems;
+	private Collection $metadataItems;
 
 	#[ORM\OneToMany(targetEntity: MetadataValue::class, mappedBy: 'metadata', orphanRemoval: true)]
-	private $metadataValues;
+	private Collection $metadataValues;
 
 	public function __construct()
 	{
 		$this->type = MetadataTypeEnum::getDefaultValue();
 		$this->metadataItems = new ArrayCollection();
+		$this->metadataValues = new ArrayCollection();
 	}
 
 	public function getId(): ?int

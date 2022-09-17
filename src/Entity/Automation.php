@@ -10,27 +10,26 @@ class Automation
 {
 	#[ORM\Id]
 	#[ORM\GeneratedValue]
-	#[ORM\Column(type: 'integer')]
-	private $id;
+	#[ORM\Column]
+	private ?int $id = null;
 
-	#[ORM\Column(type: 'boolean')]
-	private $enabled;
+	#[ORM\Column]
+	private ?bool $enabled = null;
 
-	#[ORM\Column(type: 'datetime', nullable: true)]
-	private $lastRun;
+	#[ORM\Column(nullable: true)]
+	private ?\DateTime $lastRun = null;
 
-	#[ORM\Column(type: 'datetime', nullable: true)]
-	private $nextRun;
+	#[ORM\Column(nullable: true)]
+	private ?\DateTime $nextRun = null;
 
-	#[ORM\Column(type: 'string', length: 255)]
-	private $command;
+	#[ORM\Column(length: 255)]
+	private ?string $command = null;
 
-	#[ORM\Column(type: 'json', nullable: true)]
+	#[ORM\Column(nullable: true)]
 	private array $arguments = [];
 
-	#[ORM\ManyToOne(targetEntity: Project::class, cascade: ['persist'])]
-	#[ORM\JoinColumn(nullable: false)]
-	private $project;
+	#[ORM\ManyToOne(cascade: ['persist'])]
+	private ?Project $project = null;
 
 	public function getId(): ?int
 	{

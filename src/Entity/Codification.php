@@ -16,40 +16,40 @@ class Codification implements \Stringable
 {
 	#[ORM\Id]
 	#[ORM\GeneratedValue]
-	#[ORM\Column(type: 'integer')]
-	private $id;
+	#[ORM\Column]
+	private ?int $id = null;
 
-	#[ORM\Column(type: 'string', length: 100)]
-	private $name;
+	#[ORM\Column(length: 100)]
+	private ?string $name = null;
 
-	#[ORM\Column(type: 'string', length: 100)]
-	private $codename;
+	#[ORM\Column(length: 100)]
+	private ?string $codename = null;
 
 	#[ORM\Column(type: 'codification_type_enum')]
 	#[DoctrineAssert\EnumType(entity: CodificationTypeEnum::class)]
-	private $type;
+	private ?string $type = null;
 
-	#[ORM\Column(type: 'string', length: 10, nullable: true)]
-	private $value;
+	#[ORM\Column(length: 10, nullable: true)]
+	private ?string $value = null;
 
-	#[ORM\Column(type: 'boolean')]
-	private $isMandatory;
+	#[ORM\Column]
+	private ?bool $isMandatory = null;
 
-	#[ORM\ManyToOne(targetEntity: Project::class, inversedBy: 'codifications', fetch: 'EAGER')]
-	#[ORM\JoinColumn(nullable: false)]
-	private $project;
+	#[ORM\ManyToOne(inversedBy: 'codifications', fetch: 'EAGER')]
+	private ?Project $project = null;
 
 	#[ORM\OneToMany(targetEntity: CodificationItem::class, mappedBy: 'codification', orphanRemoval: true)]
-	private $codificationItems;
+	private Collection $codificationItems;
 
 	#[ORM\OneToMany(targetEntity: CodificationValue::class, mappedBy: 'codification', orphanRemoval: true)]
-	private $codificationValues;
+	private Collection $codificationValues;
 
 	public function __construct()
 	{
 		$this->type = CodificationTypeEnum::getDefaultValue();
 		$this->isMandatory = true;
 		$this->codificationItems = new ArrayCollection();
+		$this->codificationValues = new ArrayCollection();
 	}
 
 	public function getId(): ?int

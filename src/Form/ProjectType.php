@@ -31,7 +31,6 @@ class ProjectType extends AbstractType
 			->add('splitter', TextType::class, [
 				'help' => 'Character used as separation between each item of the document codification.'
 			])
-			->add('dateFormat')
 			->add('newVersionTime', IntegerType::class, [
 				'help' => 'Number of working days allowed to produce a new revision of a document.'
 			])

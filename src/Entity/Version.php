@@ -15,54 +15,52 @@ class Version implements \Stringable
 {
 	#[ORM\Id]
 	#[ORM\GeneratedValue]
-	#[ORM\Column(type: 'integer')]
-	private $id;
+	#[ORM\Column]
+	private ?int $id = null;
 
-	#[ORM\Column(type: 'string', length: 100)]
-	private $name;
+	#[ORM\Column(length: 100)]
+	private ?string $name = null;
 
-	#[ORM\Column(type: 'boolean')]
-	private $isRequired;
+	#[ORM\Column]
+	private ?bool $isRequired = null;
 
-	#[ORM\Column(type: 'date', nullable: true)]
-	private $initialScheduledDate;
+	#[ORM\Column(nullable: true)]
+	private ?\DateTime $initialScheduledDate = null;
 
-	#[ORM\Column(type: 'date', nullable: true)]
-	private $scheduledDate;
+	#[ORM\Column(nullable: true)]
+	private ?\DateTime $scheduledDate = null;
 
-	#[ORM\Column(type: 'date', nullable: true)]
-	private $deliveryDate;
+	#[ORM\Column(nullable: true)]
+	private ?\DateTime $deliveryDate = null;
 
-	#[ORM\ManyToOne(targetEntity: Status::class)]
-	#[ORM\JoinColumn(nullable: false)]
-	private $status;
+	#[ORM\ManyToOne]
+	private ?Status $status = null;
 
 	#[ORM\ManyToMany(targetEntity: MetadataItem::class, cascade: ['persist'])]
 	#[ORM\JoinTable(name: 'version_metadata_item')]
-	private $metadataItems;
+	private Collection $metadataItems;
 
 	#[ORM\ManyToMany(targetEntity: MetadataValue::class, cascade: ['persist'])]
 	#[ORM\JoinTable(name: 'version_metadata_value')]
-	private $metadataValues;
+	private Collection $metadataValues;
+
+	#[ORM\ManyToOne]
+	#[ORM\JoinColumn(nullable: true)]
+	private ?User $writer = null;
 
 	#[ORM\ManyToOne(targetEntity: User::class)]
-	#[ORM\JoinColumn(onDelete: 'SET NULL')]
-	private $writer;
+	#[ORM\JoinColumn(nullable: true)]
+	private ?User $checker = null;
 
 	#[ORM\ManyToOne(targetEntity: User::class)]
-	#[ORM\JoinColumn(onDelete: 'SET NULL')]
-	private $checker;
+	#[ORM\JoinColumn(nullable: true)]
+	private ?User $approver = null;
 
-	#[ORM\ManyToOne(targetEntity: User::class)]
-	#[ORM\JoinColumn(onDelete: 'SET NULL')]
-	private $approver;
-
-	#[ORM\ManyToOne(targetEntity: Document::class, inversedBy: 'versions', cascade: ['persist'])]
-	#[ORM\JoinColumn(nullable: false)]
-	private $document;
+	#[ORM\ManyToOne(inversedBy: 'versions', cascade: ['persist'])]
+	private ?Document $document = null;
 
 	#[ORM\OneToMany(targetEntity: Review::class, mappedBy: 'version', orphanRemoval: true, cascade: ['persist'])]
-	private $reviews;
+	private Collection $reviews;
 
 	public function __construct()
 	{

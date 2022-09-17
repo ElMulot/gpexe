@@ -11,18 +11,17 @@ class CodificationItem implements \Stringable
 {
 	#[ORM\Id]
 	#[ORM\GeneratedValue]
-	#[ORM\Column(type: 'integer')]
-	private $id;
+	#[ORM\Column]
+	private ?int $id = null;
 
-	#[ORM\Column(type: 'string', length: 255)]
-	private $name;
+	#[ORM\Column(length: 255)]
+	private ?string $name = null;
 
-	#[ORM\Column(type: 'string', length: 10)]
-	private $value;
+	#[ORM\Column(length: 10)]
+	private ?string $value = null;
 
-	#[ORM\ManyToOne(targetEntity: Codification::class, inversedBy: 'codificationItems')]
-	#[ORM\JoinColumn(nullable: false)]
-	private $codification;
+	#[ORM\ManyToOne(inversedBy: 'codificationItems')]
+	private ?Codification $codification = null;
 	
 	public function getId(): ?int
 	{

@@ -10,22 +10,20 @@ class Visa implements \Stringable
 {
 	#[ORM\Id]
 	#[ORM\GeneratedValue]
-	#[ORM\Column(type: 'integer')]
-	private $id;
+	#[ORM\Column]
+	private ?int $id = null;
 
-	#[ORM\Column(type: 'string', length: 100)]
-	private $name;
+	#[ORM\Column(length: 100)]
+	private ?string $name = null;
 
-	#[ORM\Column(type: 'boolean')]
-	private $revisionRequired;
+	#[ORM\Column]
+	private ?bool $revisionRequired = null;
 
-	#[ORM\ManyToOne(targetEntity: Company::class, inversedBy: 'visas')]
-	#[ORM\JoinColumn(nullable: false)]
-	private $company;
+	#[ORM\ManyToOne(inversedBy: 'visas')]
+	private ?Company $company = null;
 
-	#[ORM\ManyToOne(targetEntity: Project::class, inversedBy: 'visas')]
-	#[ORM\JoinColumn(nullable: false)]
-	private $project;
+	#[ORM\ManyToOne(inversedBy: 'visas')]
+	private ?Project $project = null;
 
 	public function getId(): ?int
 	{

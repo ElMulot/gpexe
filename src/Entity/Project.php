@@ -16,60 +16,57 @@ class Project implements \Stringable
 {
 	#[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
-    private $id;
+	#[ORM\Column]
+	private ?int $id = null;
 
-	#[ORM\Column(type: 'string', length: 100)]
-    private $name;
+	#[ORM\Column(length: 100)]
+	private ?string $name = null;
 
-	#[ORM\Column(type: 'string', length: 255, nullable: true)]
-    private $image;
+	#[ORM\Column(length: 255, nullable: true)]
+	private ?string $image = null;
 
-	#[ORM\Column(type: 'string', length: 4, nullable: true)]
-    private $splitter;
+	#[ORM\Column(length: 4, nullable: true)]
+	private ?string $splitter = null;
 
-	#[ORM\Column(type: 'integer')]
-    private $prodWarningLimit;
+	#[ORM\Column]
+    private ?int $prodWarningLimit = null;
 
-	#[ORM\Column(type: 'integer')]
-    private $prodDangerLimit;
+	#[ORM\Column]
+    private ?int $prodDangerLimit = null;
 
-	#[ORM\Column(type: 'integer')]
-    private $checkWarningLimit;
+	#[ORM\Column]
+    private ?int $checkWarningLimit = null;
 
-	#[ORM\Column(type: 'integer')]
-    private $checkDangerLimit;
+	#[ORM\Column]
+    private ?int $checkDangerLimit = null;
 
-	#[ORM\Column(length: 255)]
-	private ?string $dateFormat = null;
-
-	#[ORM\Column(type: 'integer')]
-	private $newVersionTime;
+	#[ORM\Column]
+	private ?int $newVersionTime = null;
 
 	#[ORM\ManyToMany(targetEntity: User::class, inversedBy: 'projects')]
-    private $users;
+    private Collection $users;
 
 	#[ORM\OneToMany(targetEntity: Codification::class, mappedBy: 'project', orphanRemoval: true, fetch: 'EAGER')]
-    private $codifications;
+    private Collection $codifications;
 
 	#[ORM\OneToMany(targetEntity: Metadata::class, mappedBy: 'project', orphanRemoval: true, fetch: 'EAGER')]
-    private $metadatas;
+    private Collection $metadatas;
 
 	#[ORM\OneToMany(targetEntity: Status::class, mappedBy: 'project', orphanRemoval: true)]
-    private $statuses;
+    private Collection $statuses;
 
 	#[ORM\OneToMany(targetEntity: Visa::class, mappedBy: 'project', orphanRemoval: true)]
-    private $visas;
+    private Collection $visas;
 
 	#[ORM\OneToMany(targetEntity: Serie::class, mappedBy: 'project', orphanRemoval: true)]
     #[ORM\OrderBy(value: ['name' => 'ASC'])]
-    private $series;
+    private Collection $series;
 
 	#[ORM\OneToMany(targetEntity: View::class, mappedBy: 'project', orphanRemoval: true)]
-    private $views;
+    private Collection $views;
 
 	#[ORM\OneToMany(targetEntity: Program::class, mappedBy: 'project', orphanRemoval: true)]
-    private $programs;
+    private Collection $programs;
 
 	public function __construct()
 	{
@@ -174,18 +171,6 @@ class Project implements \Stringable
 		$this->checkDangerLimit = $checkDangerLimit;
 
 		return $this;
-	}
-
-	public function getDateFormat(): ?string
-	{
-	return $this->dateFormat;
-	}
-
-	public function setDateFormat(string $dateFormat): self
-	{
-	$this->dateFormat = $dateFormat;
-
-	return $this;
 	}
 	
 	public function getNewVersionTime(): ?int

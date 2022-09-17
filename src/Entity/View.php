@@ -10,28 +10,26 @@ class View implements \Stringable
 {
 	#[ORM\Id]
 	#[ORM\GeneratedValue]
-	#[ORM\Column(type: 'integer')]
-	private $id;
+	#[ORM\Column]
+	private ?int $id = null;
 
-	#[ORM\Column(type: 'string', length: 100)]
-	private $name;
+	#[ORM\Column(length: 100)]
+	private ?string $name = null;
 
-	#[ORM\Column(type: 'json')]
+	#[ORM\Column]
 	private array $value = [];
 
-	#[ORM\Column(type: 'boolean')]
-	private $isShared;
+	#[ORM\Column]
+	private ?bool $isShared = null;
 
-	#[ORM\Column(type: 'boolean')]
-	private $isDefault;
+	#[ORM\Column]
+	private ?bool $isDefault = null;
 
-	#[ORM\ManyToOne(targetEntity: Project::class, inversedBy: 'views')]
-	#[ORM\JoinColumn(nullable: false)]
-	private $project;
+	#[ORM\ManyToOne(inversedBy: 'views')]
+	private ?Project $project = null;
 
-	#[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'views')]
-	#[ORM\JoinColumn(nullable: false)]
-	private $user;
+	#[ORM\ManyToOne(inversedBy: 'views')]
+	private ?User $user = null;
 
 	public function getId(): ?int
 	{

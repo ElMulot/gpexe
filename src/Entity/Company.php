@@ -17,30 +17,30 @@ class Company implements \Stringable
 	
 	#[ORM\Id()]
 	#[ORM\GeneratedValue()]
-	#[ORM\Column(type: "integer")]
-	private $id;
+	#[ORM\Column]
+	private ?int $id = null;
 
-	#[ORM\Column(type: "string", length: 100, unique: true)]
-	private $name;
+	#[ORM\Column(length: 100, unique: true)]
+	private ?string $name = null;
 	
-	#[ORM\Column(type: "string", length: 100)]
-	private $codename;
+	#[ORM\Column(length: 100)]
+	private ?string $codename = null;
 	
 	#[ORM\Column(type: 'company_type_enum')]
 	#[DoctrineAssert\EnumType(entity: CompanyTypeEnum::class)]
-	private $type;
+	private ?string $type = null;
 
-	#[ORM\Column(type: "integer")]
-	private $priority;
+	#[ORM\Column]
+	private ?int $priority = null;
 
 	#[ORM\OneToMany(targetEntity: User::class, mappedBy: "company", orphanRemoval: true)]
-	private $users;
+	private Collection $users;
 
 	#[ORM\OneToMany(targetEntity: Serie::class, mappedBy: "company", orphanRemoval: true)]
-	private $series;
+	private Collection $series;
 	
 	#[ORM\OneToMany(targetEntity: Visa::class, mappedBy: "company", orphanRemoval: true)]
-	private $visas;
+	private Collection $visas;
 
 	public function __construct()
 	{
@@ -48,6 +48,7 @@ class Company implements \Stringable
 		$this->priority = 0;
 		$this->users = new ArrayCollection();
 	 	$this->series = new ArrayCollection();
+		$this->visas = new ArrayCollection();
 	}
 
 	public function getId(): ?int

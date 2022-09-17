@@ -15,31 +15,30 @@ class Log implements \Stringable
 
 	#[ORM\Id]
 	#[ORM\GeneratedValue]
-	#[ORM\Column(type: 'integer')]
-	private $id;
+	#[ORM\Column]
+	private ?int $id = null;
 
 	#[ORM\Column(type: 'log_type_enum')]
 	#[DoctrineAssert\EnumType(entity: LogTypeEnum::class)]
-	private $type;
+	private ?string $type = null;
 	
-	#[ORM\Column(type: 'string', length: 100)]
-	private $entity;
+	#[ORM\Column(length: 100)]
+	private ?string $entity = null;
 
-	#[ORM\Column(type: 'integer', nullable: true)]
-	private $entityId;
+	#[ORM\Column(nullable: true)]
+	private ?int $entityId = null;
 
-	#[ORM\Column(type: 'string', length: 255, nullable: true)]
-	private $entityName;
+	#[ORM\Column(length: 255, nullable: true)]
+	private ?string $entityName = null;
 
-	#[ORM\ManyToOne(targetEntity: User::class)]
-	#[ORM\JoinColumn(nullable: false)]
-	private $user;
+	#[ORM\ManyToOne]
+	private ?User $user = null;
 
-	#[ORM\Column(type: 'datetime')]
-	private $date;
+	#[ORM\Column]
+	private ?\DateTime $date = null;
 
 	#[ORM\OneToMany(targetEntity: ChangeSet::class, mappedBy: 'log', orphanRemoval: true)]
-	private $changeSets;
+	private Collection $changeSets;
 
 	public function __construct()
 	{

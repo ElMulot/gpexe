@@ -10,23 +10,20 @@ class Review
 {
 	#[ORM\Id]
 	#[ORM\GeneratedValue]
-	#[ORM\Column(type: 'integer')]
-	private $id;
+	#[ORM\Column]
+	private ?int $id = null;
 
-	#[ORM\ManyToOne(targetEntity: User::class)]
-	#[ORM\JoinColumn(nullable: false)]
-	private $user;
+	#[ORM\ManyToOne]
+	private ?User $user = null;
 
-	#[ORM\Column(type: 'date')]
-	private $date;
+	#[ORM\Column]
+	private ?\DateTime $date = null;
 
-	#[ORM\ManyToOne(targetEntity: Visa::class)]
-	#[ORM\JoinColumn(nullable: false)]
-	private $visa;
+	#[ORM\ManyToOne]
+	private ?Visa $visa = null;
 
-	#[ORM\ManyToOne(targetEntity: Version::class, inversedBy: 'reviews')]
-	#[ORM\JoinColumn(nullable: false)]
-	private $version;
+	#[ORM\ManyToOne(inversedBy: 'reviews')]
+	private ?Version $version = null;
 
 	public function __construct()
 	{

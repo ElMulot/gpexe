@@ -12,25 +12,24 @@ class Status implements \Stringable
 {
 	#[ORM\Id]
 	#[ORM\GeneratedValue]
-	#[ORM\Column(type: 'integer')]
-	private $id;
+	#[ORM\Column]
+	private ?int $id = null;
 
-	#[ORM\Column(type: 'string', length: 100)]
-	private $name;
+	#[ORM\Column(length: 100)]
+	private ?string $name = null;
 
-	#[ORM\Column(type: 'string', length: 10)]
-	private $value;
+	#[ORM\Column(length: 10)]
+	private ?string $value = null;
 
 	#[ORM\Column(type: 'status_type_enum')]
 	#[DoctrineAssert\EnumType(entity: StatusTypeEnum::class)]
-	private $type;
+	private ?string $type = null;
 
-	#[ORM\Column(type: 'boolean')]
-	private $isDefault;
+	#[ORM\Column]
+	private ?bool $isDefault = null;
 
-	#[ORM\ManyToOne(targetEntity: Project::class, inversedBy: 'statuses')]
-	#[ORM\JoinColumn(nullable: false)]
-	private $project;
+	#[ORM\ManyToOne(inversedBy: 'statuses')]
+	private ?Project $project = null;
 
 	public function __construct()
 	{

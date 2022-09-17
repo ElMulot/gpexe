@@ -12,23 +12,23 @@ class Profil implements \Stringable
 {
 	#[ORM\Id]
 	#[ORM\GeneratedValue]
-	#[ORM\Column(type: 'integer')]
-	private $id;
+	#[ORM\Column]
+	private ?int $id = null;
 
-	#[ORM\Column(type: 'string', length: 100, unique: true)]
-	private $name;
+	#[ORM\Column(length: 100, unique: true)]
+	private ?string $name = null;
 
-	#[ORM\Column(type: 'boolean')]
-	private $editDocuments;
+	#[ORM\Column]
+	private ?bool $editDocuments = null;
 
-	#[ORM\Column(type: 'boolean')]
-	private $isController;
+	#[ORM\Column]
+	private ?bool $isController = null;
 
-	#[ORM\Column(type: 'boolean')]
-	private $isAdmin;
+	#[ORM\Column]
+	private ?bool $isAdmin = null;
 
-	#[ORM\Column(type: 'boolean')]
-	private $isSuperAdmin;
+	#[ORM\Column]
+	private ?bool $isSuperAdmin = null;
 	
 	public function getId(): ?int
 	{

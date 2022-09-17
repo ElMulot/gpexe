@@ -16,34 +16,33 @@ class Document implements \Stringable
 {
 	#[ORM\Id]
 	#[ORM\GeneratedValue]
-	#[ORM\Column(type: 'integer')]
-	private $id;
+	#[ORM\Column]
+	private ?int $id = null;
 
-	#[ORM\Column(type: 'string', length: 255)]
-	private $name;
+	#[ORM\Column(length: 255)]
+	private ?string $name = null;
 
 	#[ORM\ManyToMany(targetEntity: CodificationItem::class, cascade: ['persist'])]
 	#[ORM\JoinTable(name: 'document_codification_item')]
-	private $codificationItems;
+	private Collection $codificationItems;
 
 	#[ORM\ManyToMany(targetEntity: CodificationValue::class, cascade: ['persist'])]
 	#[ORM\JoinTable(name: 'document_codification_value')]
-	private $codificationValues;
+	private Collection $codificationValues;
 
 	#[ORM\ManyToMany(targetEntity: MetadataItem::class, cascade: ['persist'])]
 	#[ORM\JoinTable(name: 'document_metadata_item')]
-	private $metadataItems;
+	private Collection $metadataItems;
 
 	#[ORM\ManyToMany(targetEntity: MetadataValue::class, cascade: ['persist'])]
 	#[ORM\JoinTable(name: 'document_metadata_value')]
-	private $metadataValues;
+	private Collection $metadataValues;
 
 	#[ORM\OneToMany(targetEntity: Version::class, mappedBy: 'document', cascade: ['persist'], orphanRemoval: true)]
-	private $versions;
+	private Collection $versions;
 
-	#[ORM\ManyToOne(targetEntity: Serie::class, inversedBy: 'documents', cascade: ['persist'])]
-	#[ORM\JoinColumn(nullable: false)]
-	private $serie;
+	#[ORM\ManyToOne(inversedBy: 'documents', cascade: ['persist'])]
+	private ?Serie $serie = null;
 
 	private $reference;
 

@@ -10,22 +10,20 @@ class Progress
 {
 	#[ORM\Id]
 	#[ORM\GeneratedValue]
-	#[ORM\Column(type: 'integer')]
-	private $id;
+	#[ORM\Column]
+	private ?int $id = null;
 
 	#[ORM\Column(type: 'date')]
-	private $date;
+	private ?\DateTime $date = null;
 
-	#[ORM\Column(type: 'float')]
-	private $value;
+	#[ORM\Column]
+	private ?float $value = null;
 
-	#[ORM\ManyToOne(targetEntity: Serie::class, inversedBy: 'progress')]
-	#[ORM\JoinColumn(nullable: false)]
-	private $serie;
+	#[ORM\ManyToOne(inversedBy: 'progress')]
+	private ?Serie $serie = null;
 
-	#[ORM\ManyToOne(targetEntity: Program::class, cascade: ['persist'], inversedBy: 'progress')]
-	#[ORM\JoinColumn(nullable: false)]
-	private $program;
+	#[ORM\ManyToOne(inversedBy: 'progress', cascade: ['persist'])]
+	private ?Program $program = null;
 
 	public function __construct()
 	{

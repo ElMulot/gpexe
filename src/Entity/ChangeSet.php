@@ -10,20 +10,20 @@ class ChangeSet
 {
 	#[ORM\Id]
 	#[ORM\GeneratedValue]
-	#[ORM\Column(type: 'integer')]
-	private $id;
+	#[ORM\Column]
+	private ?int $id = null;
 
-	#[ORM\Column(type: 'string', length: 255)]
-	private $field;
+	#[ORM\Column(length: 255)]
+	private ?string $field = null;
 
-	#[ORM\Column(type: 'string', length: 255, nullable: true)]
-	private $oldValue;
+	#[ORM\Column(length: 255, nullable: true)]
+	private ?string $oldValue = null;
 
-	#[ORM\Column(type: 'string', length: 255)]
-	private $newValue;
+	#[ORM\Column(length: 255)]
+	private ?string $newValue = null;
 
-	#[ORM\ManyToOne(targetEntity: Log::class, inversedBy: 'changeSets')]
-	private $log;
+	#[ORM\ManyToOne(inversedBy: 'changeSets')]
+	private ?Log $log = null;
 	
 	public function getId(): ?int
 	{

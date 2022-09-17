@@ -10,15 +10,14 @@ class CodificationValue implements \Stringable
 {
 	#[ORM\Id]
 	#[ORM\GeneratedValue]
-	#[ORM\Column(type: 'integer')]
-	private $id;
+	#[ORM\Column]
+	private ?int $id = null;
 
-	#[ORM\Column(type: 'string', length: 10)]
-	private $value;
+	#[ORM\Column(length: 10)]
+	private ?string $value = null;
 
-	#[ORM\ManyToOne(targetEntity: Codification::class, inversedBy: 'codificationValues')]
-	#[ORM\JoinColumn(nullable: false)]
-	private $codification;
+	#[ORM\ManyToOne(inversedBy: 'codificationValues')]
+	private ?Codification $codification = null;
 
 	public function getId(): ?int
 	{

@@ -10,15 +10,15 @@ class MetadataValue implements \Stringable
 {
 	#[ORM\Id]
 	#[ORM\GeneratedValue]
-	#[ORM\Column(type: 'integer')]
-	private $id;
+	#[ORM\Column]
+	private ?int $id = null;
 
-	#[ORM\Column(type: 'string', length: 255)]
-	private $value;
+	#[ORM\Column(length: 255)]
+	private ?string $value = null;
 
-	#[ORM\ManyToOne(targetEntity: Metadata::class, inversedBy: 'metadataValues')]
-	#[ORM\JoinColumn(nullable: false)]
-	private $metadata;
+	#[ORM\ManyToOne(inversedBy: 'metadataValues')]
+	private ?Metadata $metadata = null;
+
 
 	public function getId(): ?int
 	{

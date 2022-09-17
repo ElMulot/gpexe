@@ -17,32 +17,31 @@ class Serie implements \Stringable
 {
 	#[ORM\Id]
 	#[ORM\GeneratedValue]
-	#[ORM\Column(type: 'integer')]
-	private $id;
+	#[ORM\Column]
+	private ?int $id = null;
 
-	#[ORM\Column(type: 'string', length: 100)]
-	private $name;
+	#[ORM\Column(length: 100)]
+	private ?string $name = null;
 
 	#[ORM\ManyToMany(targetEntity: MetadataItem::class, cascade: ['persist'])]
 	#[ORM\JoinTable(name: 'serie_metadata_item')]
-	private $metadataItems;
+	private Collection $metadataItems;
 
 	#[ORM\ManyToMany(targetEntity: MetadataValue::class, cascade: ['persist'])]
-	private $metadataValues;
+	#[ORM\JoinTable(name: 'serie_metadata_value')]
+	private Collection $metadataValues;
 
-	#[ORM\ManyToOne(targetEntity: Company::class, inversedBy: 'series')]
-	#[ORM\JoinColumn(nullable: false)]
-	private $company;
+	#[ORM\ManyToOne(inversedBy: 'series')]
+	private ?Company $company = null;
 
-	#[ORM\ManyToOne(targetEntity: Project::class, inversedBy: 'series')]
-	#[ORM\JoinColumn(nullable: false)]
-	private $project;
+	#[ORM\ManyToOne(inversedBy: 'series')]
+	private ?Project $project = null;
 
 	#[ORM\OneToMany(targetEntity: Document::class, mappedBy: 'serie', cascade: ['persist'], orphanRemoval: true)]
-	private $documents;
+	private Collection $documents;
 
 	#[ORM\OneToMany(targetEntity: Progress::class, mappedBy: 'serie', orphanRemoval: true)]
-	private $progress;
+	private Collection $progress;
 
 	public function __construct()
 	{

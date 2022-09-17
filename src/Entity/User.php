@@ -13,59 +13,53 @@ use Symfony\Component\Security\Core\User\EquatableInterface;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[UniqueEntity(fields: 'email', message: 'An user with this email already exist.')]
-class User implements UserInterface, PasswordAuthenticatedUserInterface, EquatableInterface, \Stringable
+class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
 	#[ORM\Id]
 	#[ORM\GeneratedValue]
-	#[ORM\Column(type: 'integer')]
-	private $id;
+	#[ORM\Column]
+	private ?int $id = null;
 
-	#[ORM\Column(type: 'string', length: 180, unique: true)]
-	private $email;
+	#[ORM\Column(length: 180, unique: true)]
+	private ?string $email = null;
 
-	/**
-	 * @var string The hashed password
-	 */
-	#[ORM\Column(type: 'string')]
-	private string $password;
+	#[ORM\Column]
+	private ?string $password = null;
 
-	#[ORM\Column(type: 'string', length: 100)]
-	private $name;
+	#[ORM\Column(length: 100)]
+	private ?string $name = null;
 
-	#[ORM\Column(type: 'string', length: 5)]
-	private $locale;
+	#[ORM\Column(length: 5)]
+	private ?string $locale = null;
 
-	#[ORM\Column(type: 'boolean')]
-	private $activated;
+	#[ORM\Column]
+	private ?bool $activated = null;
 
-	#[ORM\Column(type: 'datetime')]
-	private $createdOn;
+	#[ORM\Column]
+	private ?\DateTime $createdOn = null;
 
-	#[ORM\Column(type: 'datetime')]
-	private $lastConnected;
+	#[ORM\Column]
+	private ?\DateTime $lastConnected = null;
 
-	#[ORM\ManyToOne(targetEntity: Profil::class)]
-	#[ORM\JoinColumn(nullable: false)]
-	private $profil;
+	#[ORM\ManyToOne]
+	private ?Profil $profil = null;
 
-	#[ORM\ManyToOne(targetEntity: Company::class, inversedBy: 'users')]
-	#[ORM\JoinColumn(nullable: false)]
-	private $company;
+	#[ORM\ManyToOne(inversedBy: 'users')]
+	private ?company $company = null;
 
 	private array $roles = [];
 
 	#[ORM\ManyToMany(targetEntity: Project::class, mappedBy: 'users')]
-	private $projects;
+	private Collection $projects;
 
 	#[ORM\OneToMany(targetEntity: View::class, mappedBy: 'user', orphanRemoval: true)]
-	private $views;
+	private Collection $views;
 
 	public function __construct()
 	{
 		$this->locale = 'fr_FR';
 		$this->lastConnected = new \DateTime();
 		$this->projects = new ArrayCollection();
-		$this->versions = new ArrayCollection();
 		$this->views = new ArrayCollection();
 	}
 
@@ -86,16 +80,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, Equatab
 		return $this;
 	}
 
-	/**
-	 * A visual identifier that represents this user.
-	 *
-	 * @see UserInterface
-	 */
+    /**
+     * The public representation of the user (e.g. a username, an email address, etc.)
+     *
+     * @see UserInterface
+     */
 	public function getUserIdentifier(): string
 	{
 		return (string) $this->email;
 	}
-	
+
     /**
      * @deprecated since Symfony 5.3
      */
@@ -104,9 +98,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, Equatab
 		return $this->getUserIdentifier();
 	}
 
-	/**
-	 * @see PasswordAuthenticatedUserInterface
-	 */
+    /**
+     * @see PasswordAuthenticatedUserInterface
+     */
 	public function getPassword(): string
 	{
 		return $this->password;
@@ -261,12 +255,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, Equatab
 		return $this;
 	}
 
-	/**
-	 * Returning a salt is only needed, if you are not using a modern
-	 * hashing algorithm (e.g. bcrypt or sodium) in your security.yaml.
-	 *
-	 * @see UserInterface
-	 */
+    /**
+     * Returning a salt is only needed, if you are not using a modern
+     * hashing algorithm (e.g. bcrypt or sodium) in your security.yaml.
+     *
+     * @see UserInterface
+     */
 	public function getSalt(): ?string
 	{
 		// not needed when using the "bcrypt" algorithm in security.yaml
@@ -282,6 +276,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, Equatab
 		// $this->plainPassword = null;
 	}
 
+    /**
+     * @see UserInterface
+     */	
 	public function getRoles(): array
 	{
 		if (empty($this->roles)) {
@@ -290,7 +287,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, Equatab
 			if ($this->getProfil()->getIsAdmin())			$this->roles[] = 'ROLE_ADMIN';
 			if ($this->getProfil()->getIsSuperAdmin())		$this->roles[] = 'ROLE_SUPER_ADMIN';
 		}
+
+		// guarantee every user at least has ROLE_USER
 		$this->roles[] = 'ROLE_USER';
+
 		return array_unique($this->roles);
 	}
 

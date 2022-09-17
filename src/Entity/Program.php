@@ -9,6 +9,9 @@ use Fresh\DoctrineEnumBundle\Validator\Constraints as DoctrineAssert;
 use App\Entity\Enum\ProgramTypeEnum;
 use App\Form\ProgramType;
 use App\Repository\ProgramRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Fresh\DoctrineEnumBundle\Exception\InvalidArgumentException;
 
 #[ORM\Entity(repositoryClass: ProgramRepository::class)]
@@ -17,47 +20,50 @@ class Program implements \Stringable
 {
 	#[ORM\Id]
 	#[ORM\GeneratedValue]
-	#[ORM\Column(type: 'integer')]
-	private $id;
+	#[ORM\Column]
+	private ?int $id = null;
 
-	#[ORM\Column(type: 'string', length: 100)]
-	private $name;
+	#[ORM\Column(length: 100)]
+	private ?string $name = null;
 
 	#[ORM\Column(type: 'program_type_enum')]
 	#[DoctrineAssert\EnumType(entity: ProgramTypeEnum::class)]
 	private $type;
 
-	#[ORM\Column(type: 'text')]
-	private $code;
+	#[ORM\Column(type: Types::TEXT)]
+	private ?string $code = null;
 
-	#[ORM\Column(type: 'boolean')]
-	private $enabled;
+	#[ORM\Column]
+	private ?bool $enabled = null;
 
-	#[ORM\ManyToOne(targetEntity: User::class)]
-	#[ORM\JoinColumn(nullable: false)]
-	private $createdBy;
+	#[ORM\ManyToOne]
+	private ?User $createdBy = null;
 
-	#[ORM\Column(type: 'datetime')]
-	private $createdOn;
+	#[ORM\Column]
+	private ?\DateTime $createdOn = null;
 
-	#[ORM\ManyToOne(targetEntity: User::class)]
-	private $lastModifiedBy;
+	#[ORM\ManyToOne]
+	private ?USer $lastModifiedBy = null;
 
-	#[ORM\Column(type: 'datetime', nullable: true)]
-	private $lastModifiedOn;
+	#[ORM\Column(nullable: true)]
+	private ?\DateTime $lastModifiedOn = null;
 	
 	#[ORM\OneToMany(targetEntity: Progress::class, mappedBy: 'program', cascade: ['persist'], orphanRemoval: true)]
-	private $progress;
+	private Collection $progress;
 
-	#[ORM\ManyToOne(targetEntity: Project::class, inversedBy: 'programs')]
-	#[ORM\JoinColumn(nullable: false)]
-	private $project;
+	#[ORM\ManyToOne(inversedBy: 'programs')]
+	private ?Project $project = null;
 
 	private $structure;
 
 	private $parsedCode;
 
 	private $parseError;
+
+	public function __construct()
+	{
+		$this->progress = new ArrayCollection();
+	}
 
 	public function getId(): ?int
 	{
