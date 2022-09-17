@@ -33,6 +33,7 @@ class Serie
 	
 	/**
 	 * @ORM\ManyToMany(targetEntity=MetadataValue::class, cascade={"persist"})
+	 * * @ORM\JoinTable(name="serie_metadata_value")
 	 */
 	private $metadataValues;
 	

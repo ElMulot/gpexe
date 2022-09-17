@@ -234,7 +234,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 	{
 		if (!$this->projects->contains($project)) {
 			$this->projects[] = $project;
-			// $project->addUser($this);
+			$project->addUser($this);
 		}
 
 		return $this;
@@ -244,7 +244,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 	{
 		if ($this->projects->contains($project)) {
 			$this->projects->removeElement($project);
-			// $project->removeUser($this);
+			$project->removeUser($this);
 		}
 
 		return $this;
