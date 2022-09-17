@@ -19,10 +19,11 @@ use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Stopwatch\Stopwatch;
 use Symfony\Contracts\Translation\TranslatorInterface;
-use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
+use Symfony\Component\HttpFoundation\Session\Session;
 
 class ProgramService
 {
@@ -45,7 +46,6 @@ class ProgramService
 	
 	public function __construct(private readonly TranslatorInterface $translator,
 								private readonly EntityManagerInterface $entityManager,
-								private readonly FlashBagInterface $flashBag,
 								private readonly SerieRepository $serieRepository,
 								private readonly DocumentRepository $documentRepository,
 								private readonly VersionRepository $versionRepository,
@@ -54,10 +54,15 @@ class ProgramService
 								private readonly FieldService $fieldService,
 								private readonly PropertyService $propertyService,
 								private readonly Security $security,
+								private readonly RequestStack $requestStack,
 								private readonly string $targetPath)
 	{
 		$this->stopWatch = new Stopwatch();
 		$this->programCache = new ProgramCache($this->fieldService);
+		
+		/**@var Session $session */
+		$session = $requestStack->getSession();
+		$this->flashBag = $session->getFlashBag();
 	}
 	
 	public function getCache()

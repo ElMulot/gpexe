@@ -11,15 +11,23 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 class TaskCommand extends Command
 {
 	protected static $defaultName = 'app:task';
 	
-	public function __construct(private readonly EntityManagerInterface $entityManager, private readonly FlashBagInterface $flashBag, private readonly AutomationRepository $automationRepository, private readonly ProgramRepository $programRepository, private readonly ProgramService $programService)
+	public function __construct(private readonly EntityManagerInterface $entityManager,
+								private readonly RequestStack $requestStack,
+								private readonly AutomationRepository $automationRepository,
+								private readonly ProgramRepository $programRepository,
+								private readonly ProgramService $programService)
 	{
 		parent::__construct();
+		
+		/**@var Session $session */
+		$session = $requestStack->getSession();
+		$this->flashBag = $session->getFlashBag();
 	}
 	
 	protected function configure()

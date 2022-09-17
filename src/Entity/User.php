@@ -45,7 +45,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 	private ?Profil $profil = null;
 
 	#[ORM\ManyToOne(inversedBy: 'users')]
-	private ?company $company = null;
+	private ?Company $company = null;
 
 	private array $roles = [];
 
