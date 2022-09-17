@@ -17,7 +17,12 @@ class AutomationCommand extends Command
 {
 		protected static $defaultName = 'app:cron';
 
-	public function __construct(private readonly EntityManagerInterface $entityManager, private readonly KernelInterface $kernel, private readonly AutomationRepository $automationRepository, private readonly CodificationValueRepository $codificationValueRepository, private readonly MetadataValueRepository $metadataValueRepository, private readonly ProgramRepository $programRepository)
+	public function __construct(private readonly EntityManagerInterface $entityManager,
+								private readonly KernelInterface $kernel,
+								private readonly AutomationRepository $automationRepository,
+								private readonly CodificationValueRepository $codificationValueRepository,
+								private readonly MetadataValueRepository $metadataValueRepository,
+								private readonly ProgramRepository $programRepository)
 	{
 		parent::__construct();
 	}
@@ -41,7 +46,7 @@ class AutomationCommand extends Command
 			$result = (int)$application->run($input, $output) || $result;
 		}
 
-		return $result;
+		return (int) $result;
 
 	}
 }

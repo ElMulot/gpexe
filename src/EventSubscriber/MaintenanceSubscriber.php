@@ -29,7 +29,7 @@ class MaintenanceSubscriber implements EventSubscriberInterface
 		}
 		
 		if ($this->maintenanceMode === true) {
-            $response = new Response(null, 302, [
+            $response = new Response(null, Response::HTTP_FOUND, [
                 'Location' => $this->urlGenerator->generate('logout', [], UrlGeneratorInterface::ABSOLUTE_URL),
             ]);
 			$event->setResponse($response);

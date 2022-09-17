@@ -25,6 +25,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 //todo : à mettre à jour complètement
 class ProgramController extends AbstractTurboController
@@ -38,7 +39,9 @@ class ProgramController extends AbstractTurboController
 								private readonly ProgressRepository $progressRepository,
 								private readonly ParseService $parseService,
 								private readonly SerieRepository $serieRepository,
-								private readonly TranslatorInterface $translator)
+								private readonly TranslatorInterface $translator,
+        						#[Autowire('%upload_directory%')]
+								private string $uploadsDirectory)
 	{
 	}
 	
@@ -338,7 +341,7 @@ class ProgramController extends AbstractTurboController
 					$this->programService->unload();
 					return $this->renderForm('program/export.html.twig', [
 						'program' => $program,
-						'file_path' => $this->getParameter('uploads_directory') . '/' . $pathParts['basename'],
+						'file_path' => $this->uploadsDirectory . '/' . $pathParts['basename'],
 					]);
 					
 				case ProgramTypeEnum::IMPORT:
@@ -357,7 +360,7 @@ class ProgramController extends AbstractTurboController
 						$this->programService->getCache()->setOption('ready_to_persist', true);
 						return $this->renderForm('program/check.html.twig', [
 							'program' => $program,
-							'file_path' => $this->getParameter('uploads_directory') . '/' . $pathParts['basename'],
+							'file_path' => $this->uploadsDirectory . '/' . $pathParts['basename'],
 						]);
 						
 					}

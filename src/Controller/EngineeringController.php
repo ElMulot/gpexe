@@ -13,6 +13,7 @@ use App\Repository\CodificationRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 class EngineeringController extends AbstractTurboController
 {
@@ -21,7 +22,9 @@ class EngineeringController extends AbstractTurboController
                                 private readonly FieldService $fieldService,
 								private readonly SerieRepository $serieRepository,
 								private readonly VersionRepository $versionRepository,
-								private readonly ViewRepository $viewRepository)
+								private readonly ViewRepository $viewRepository,
+								#[Autowire('%max_results_per_page%')]
+        						private int $maxResultsPerPage)
 	{
 	}
     
@@ -84,7 +87,7 @@ class EngineeringController extends AbstractTurboController
 
 		$versionsCount = $this->versionRepository->getVersionsCount($codifications, $fields, $series, $project, $request);
 
-		$maxResultsPerPage = $request->query->get('max_results_per_page') ?? $this->getParameter('max_results_per_page');
+		$maxResultsPerPage = $request->query->get('max_results_per_page') ?? $this->maxResultsPerPage;
 		if ($maxResultsPerPage == 0) { //display all
 			$pageMax = 1;
 		} else {

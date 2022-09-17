@@ -12,7 +12,7 @@ use App\Repository\ProjectRepository;
 use App\Repository\VersionRepository;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 class HomeController extends AbstractTurboController
 {
@@ -20,7 +20,9 @@ class HomeController extends AbstractTurboController
 	public function __construct(private readonly FieldService $fieldService,
 								private readonly ProjectRepository $projectRepository,
 								private readonly StatusRepository $statusRepository,
-								private readonly VersionRepository $versionRepository)
+								private readonly VersionRepository $versionRepository,
+								#[Autowire('%kernel.project_dir%')]
+        						private string $kernelProjectDir)
 	{
 	}
 	
@@ -96,7 +98,7 @@ class HomeController extends AbstractTurboController
 	public function about() : Response
 	{
 		return $this->renderForm('pages/main/about.html.twig', [
-			'items' => Yaml::parseFile($this->getParameter('kernel.project_dir') . '/config/ressources/about.yaml'),
+			'items' => Yaml::parseFile($this->kernelProjectDir . '/config/ressources/about.yaml'),
 		]);
 	}
 	

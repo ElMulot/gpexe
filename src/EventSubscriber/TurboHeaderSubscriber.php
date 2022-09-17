@@ -28,7 +28,7 @@ class TurboHeaderSubscriber implements EventSubscriberInterface
         }
         
         if ($response->isRedirection() === true && $request->headers->has('Turbo-Frame') === true) {
-            $response = new Response(null, 200, [
+            $response = new Response(null, Response::HTTP_OK, [
                 'Turbo-Location' => $response->headers->get('Location'),
             ]);
             $event->setResponse($response);

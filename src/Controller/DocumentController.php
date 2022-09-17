@@ -30,6 +30,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 class DocumentController extends AbstractTurboController
 {
@@ -48,7 +49,9 @@ class DocumentController extends AbstractTurboController
 								private readonly StatusRepository $statusRepository,
 								private readonly VersionRepository $versionRepository,
 								private readonly UserRepository $userRepository,
-								private readonly ViewRepository $viewRepository)
+								private readonly ViewRepository $viewRepository,
+								#[Autowire('%upload_directory%')]
+        						private string $uploadsDirectory)
 	{
 	}
 	
@@ -210,7 +213,7 @@ class DocumentController extends AbstractTurboController
 		$pathParts = pathinfo($filePath);
 		$this->programService->unload();
 		return $this->renderForm('document/export.html.twig', [
-			'file_path' => $this->getParameter('uploads_directory') . '/' . $pathParts['basename'],
+			'file_path' => $this->uploadsDirectory . '/' . $pathParts['basename'],
 		]);
 	}
 	

@@ -33,7 +33,7 @@ class ProgramService
 	final const VALID_COLOR 			= 'CCFF91';
 	final const BORDER_COLOR			= 'FF0000';
 	
-	private $comments;
+	private $comments = [];
 	
 	private $programCache;
 	
@@ -43,9 +43,19 @@ class ProgramService
 	
 	private $stopWatch;
 	
-	public function __construct(private readonly TranslatorInterface $translator, private readonly EntityManagerInterface $entityManager, private readonly FlashBagInterface $flashBag, private readonly SerieRepository $serieRepository, private readonly DocumentRepository $documentRepository, private readonly VersionRepository $versionRepository, private readonly StatusRepository $statusRespository, private readonly DocumentService $documentService, private readonly FieldService $fieldService, private readonly PropertyService $propertyService, private readonly Security $security, private readonly string $targetPath)
+	public function __construct(private readonly TranslatorInterface $translator,
+								private readonly EntityManagerInterface $entityManager,
+								private readonly FlashBagInterface $flashBag,
+								private readonly SerieRepository $serieRepository,
+								private readonly DocumentRepository $documentRepository,
+								private readonly VersionRepository $versionRepository,
+								private readonly StatusRepository $statusRespository,
+								private readonly DocumentService $documentService,
+								private readonly FieldService $fieldService,
+								private readonly PropertyService $propertyService,
+								private readonly Security $security,
+								private readonly string $targetPath)
 	{
-		$this->comments = [];
 		$this->stopWatch = new Stopwatch();
 		$this->programCache = new ProgramCache($this->fieldService);
 	}

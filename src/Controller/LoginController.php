@@ -10,13 +10,16 @@ use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationException;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 class LoginController extends AbstractController
 {
 	
 	private $imgDir;
 	
-	public function __construct(KernelInterface $kernel)
+	public function __construct(KernelInterface $kernel,
+								#[Autowire('%maintenance_mode%')]
+								private bool $maintenanceMode)
 	{
 		$this->imgDir = $kernel->getProjectDir() . '/assets/images/';
 	}
@@ -51,7 +54,7 @@ class LoginController extends AbstractController
 		}
 
 		//maintenance mode
-		if ($this->getParameter('maintenance_mode') === true) {
+		if ($this->maintenanceMode === true) {
 			$error = new CustomUserMessageAuthenticationException();
 			$error->setSafeMessage('Maintenance on going.');
 		} elseif ($request->cookies->has('sf_redirect')) {
