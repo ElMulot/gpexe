@@ -176,3 +176,8 @@
     changes:
         - Mise à jour de la configuration
         - Correction de bugs
+- 
+    version: 0.5.16
+    date: 14/10/2022
+    changes:
+        - Correction d'un bug lors de l'import de documents

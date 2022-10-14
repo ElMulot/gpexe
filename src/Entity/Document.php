@@ -269,6 +269,8 @@ class Document
 		if ($this->getCodificationItems()->count() == 0 && $this->getCodificationValues()->count() == 0) {
 			return null;
 		}
+
+
 		
 		$project = $this->getSerie()->getProject();
 		$references = [];
@@ -296,6 +298,10 @@ class Document
 				
 			}
 		}
+
+		if (count($references) != $project->getCodifications()->count()) {
+			return null;
+		}
 		
 		$this->reference = join($project->getSplitter(), $references);
 		
@@ -316,14 +322,14 @@ class Document
 			}
 			
 			if ($reference === null) {
-				throw new \Error(sprintf('Erreur: la codification "%s" n\'est pas valable.', $value));
+				throw new \Error(sprintf('Erreur: la codification "%s" n\'est pas valable.', $codification->getName()));
 			}
 			
 			try {
 				$this->setCodificationValue($codification, $reference);
 				$reference = null;
 			} catch (\Error $e) {
-				continue;
+				throw new \Error(sprintf('Erreur: la codification "%s" n\'est pas valable.', $codification->getName()));
 			}
 		}
 		
