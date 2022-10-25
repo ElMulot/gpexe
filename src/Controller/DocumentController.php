@@ -50,7 +50,7 @@ class DocumentController extends AbstractTurboController
 								private readonly VersionRepository $versionRepository,
 								private readonly UserRepository $userRepository,
 								private readonly ViewRepository $viewRepository,
-								#[Autowire('%uploads_directory%')]
+								#[Autowire('%app.uploads_directory%')]
         						private string $uploadsDirectory)
 	{
 	}

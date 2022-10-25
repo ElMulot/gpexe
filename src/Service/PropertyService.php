@@ -12,11 +12,12 @@ use App\Helpers\Date;
 
 class PropertyService
 {
-	public function __construct(private readonly TranslatorInterface $translator)
+	public function __construct(private readonly TranslatorInterface $translator,
+								private readonly string $dateFormat)
 	{
 	}
 	
-	public function toString($value, $dateFormat = 'd-m-Y')
+	public function toString($value)
 	{
 		switch (gettype($value)) {
 			case 'boolean':
@@ -24,7 +25,7 @@ class PropertyService
 				
 			case 'object':
 				if ($value instanceof \DateTimeInterface) {
-					return $value->format($dateFormat);
+					return $value->format($this->dateFormat);
 				} else if ($value instanceof User) {
 					return $value->getName();
 				} else if ($value instanceof MetadataItem) {
@@ -33,7 +34,7 @@ class PropertyService
 					return match($value->getMetadata()->getType()) {
 						MetadataTypeEnum::BOOL		=> $this->translator->trans(($value->getValue())?'Yes':'No'),
 						MetadataTypeEnum::TEXT		=> $value->getValue(),
-						MetadataTypeEnum::DATE		=> Date::fromFormat($value->getValue())->format($dateFormat),
+						MetadataTypeEnum::DATE		=> Date::fromFormat($value->getValue())->format($this->dateFormat),
 						MetadataTypeEnum::LINK		=> $value->getValue(),
 					};
 					

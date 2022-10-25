@@ -4,14 +4,15 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
-    name: 'GPExe'
-    webmaster: 'Nicolas VEDEL'
-    version: 0.5.8
-    date: 29-09-2021
-    maintenance_mode: false
-    disable_log: true
-    uploads_directory: 'uploads'
-    max_results_per_page: 50
+    app.name: 'GPExe'
+    app.webmaster: 'Nicolas VEDEL'
+    app.version: 0.5.8
+    app.date: 29-09-2021
+    app.uploads_directory: 'uploads'
+    app.config.date_format: d/m/Y
+    app.config.maintenance_mode: false
+    app.config.disable_log: true
+    app.config.max_results_per_page: 50
     container.dumper.inline_factories: true
     router.request_context.scheme: '%env(SCHEME)%'
     asset.request_context.secure: true
@@ -40,11 +41,11 @@ services:
     
     App\Form\DataTransformer\ImageTransformer:
         arguments:
-            $uploadsDirectory: '%uploads_directory%/'
+            $uploadsDirectory: '%app.uploads_directory%/'
 
     App\EventListener\LogListener:
         arguments:
-            $disableLog: '%disable_log%'
+            $disableLog: '%app.config.disable_log%'
         tags:
             -
                 name: 'doctrine.event_listener'
@@ -70,7 +71,7 @@ services:
 
     App\EventListener\ProjectListener:
         arguments:
-            $uploadsDirectory: '%uploads_directory%/'
+            $uploadsDirectory: '%app.uploads_directory%/'
         tags:
             -
                 name: 'doctrine.orm.entity_listener'
@@ -109,22 +110,26 @@ services:
 
     App\EventSubscriber\MaintenanceSubscriber:
         arguments:
-            $maintenanceMode: '%maintenance_mode%'
+            $maintenanceMode: '%app.config.maintenance_mode%'
  
+    App\Service\FileUploaderService:
+        arguments:
+            $targetPath: '%kernel.project_dir%/public/%app.uploads_directory%/'
+    
     App\Service\ParseService:
         arguments:
             $ressourcesDirectory: '%kernel.project_dir%/config/ressources/'       
     
     App\Service\ProgramService:
         arguments:
-            $targetPath: '%kernel.project_dir%/public/%uploads_directory%/'
+            $targetPath: '%kernel.project_dir%/public/%app.uploads_directory%/'
 
-    App\Service\FileUploaderService:
+    App\Service\PropertyService:
         arguments:
-            $targetPath: '%kernel.project_dir%/public/%uploads_directory%/'
-            
-    App\Service\RepositoryService:
+            $dateFormat: '%app.config.date_format%'
+
+    App\Service\QueryBuilderService:
         autowire: false
     
-    App\Service\QueryBuilderService:
+    App\Service\RepositoryService:
         autowire: false

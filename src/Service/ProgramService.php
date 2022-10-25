@@ -785,10 +785,10 @@ class ProgramService
 		
 		$colIndex = 0;
 		foreach ($fields as $field) {
-			if (in_array($field['id'], array_keys($request->query->get('display'))) === true) {
+			if (in_array($field['id'], array_keys($request->query->all('display'))) === true) {
 				$colAddress = Coordinate::stringFromColumnIndex($colIndex + 1);
 				$row->getCell($colAddress)
-					->setWidth(1.5 * $request->query->get('display')[$field['id']])
+					->setWidth(1.5 * $request->query->all('display')[$field['id']])
 					->setValue($field['title'])
 				;
 				$colIndex++;
@@ -802,7 +802,7 @@ class ProgramService
 			$row = $sheet->getRow($key+2);
 			$colIndex = 0;
 			foreach ($fields as $field) {
-				if (in_array($field['id'], array_keys($request->query->get('display'))) === true) {
+				if (in_array($field['id'], array_keys($request->query->all('display'))) === true) {
 					$colAddress = Coordinate::stringFromColumnIndex($colIndex + 1);
 					$row->getCell($colAddress)->setValue($version[$field['id']]);
 					$colIndex++;

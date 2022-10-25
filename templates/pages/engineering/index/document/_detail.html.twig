@@ -5,18 +5,23 @@
 {% block modal_body %}
 	<div class="row h-100">
 		<div id="menu" class="col-auto d-flex flex-column h-100">
-			<div class="nav nav-pills align-content-start justify-content-center overflow-auto h-100" aria-orientation="vertical" {{ stimulus_controller('nav') }}>
+			<div class="nav nav-pills align-content-start justify-content-center overflow-auto h-100" aria-orientation="vertical" {{ stimulus_controller('nav', {disableCollapse: true}) }}>
 				{% for version in versions %}
 					<a class="nav-link d-flex w-75 my-1{% if version == current_version %} active{% endif %}" data-turbo-frame="version_detail" href="{{ path('version_detail', {'version': version.id}) }}" {% if version == current_version %} aria-current="page"{% endif %}>
-						<div class="flex-grow-1 text-truncate">{{ version.name }}</div>
 						{% if version.isRequired %}
+							<div class="flex-grow-1 text-truncate text-info">{{ version.name }}</div>
 							<span class="badge bg-info">{% trans %}required{% endtrans %}</span>
 						{% elseif version.status.isInformation %}
+							<div class="flex-grow-1 text-truncate text-success">{{ version.name }}</div>
 							<span class="badge bg-success">{% trans %}information{% endtrans %}</span>
 						{% elseif version.status.isCancel %}
+							<div class="flex-grow-1 text-truncate text-secondary">{{ version.name }}</div>
 							<span class="badge bg-secondary">{% trans %}cancelled{% endtrans %}</span>
 						{% elseif version.status.isAsBuilt %}
+							<div class="flex-grow-1 text-truncate text-success">{{ version.name }}</div>
 							<span class="badge bg-success">{% trans %}as built{% endtrans %}</span>
+						{% else %}
+							<div class="flex-grow-1 text-truncate">{{ version.name }}</div>
 						{% endif %}
 					</a>
 				{% endfor %}

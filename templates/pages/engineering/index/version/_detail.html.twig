@@ -13,7 +13,7 @@
 					{% endif %}
 				</div>
 				<div class="col-8 col-lg-4">
-					{{ version.date|date(project.dateFormat) }}
+					{{ version.date|to_string }}
 					{% if version.isRequired and version.scheduledDate %}
 						{% if version.scheduledDate < date('today') %}
 							<span> ({{ 'delay'|trans({'count': version.scheduledDate.diff(date('today')).days}) }})</span>
@@ -80,16 +80,15 @@
 					</div>
 				</div>
 			{% elseif version.isRequired == false %}
-
 				{% set items = [] %}
 				{% for checker in checkers %}
 					{% set items = items|merge([{
 						'name': checker.name,
-						'href': path('review', {'version': version.id, 'company': checker.id}),
+						'href': path('review_detail', {'version': version.id, 'company': checker.id}),
 						'class': ((checker == app.user.company) or (app.user.company not in checkers and checker == checkers|first))?"active",
 					}]) %}
 				{% endfor %}
-				{{ nav.turbo('review_pannel', items) }}
+				{{ nav.turbo('review_detail', items, true) }}
 			{% endif %}
 		</div>
 	</div>
@@ -102,7 +101,7 @@
 						{% trans %}Initial scheduled date{% endtrans %} :
 					</div>
 					<div class="col-8">
-						{{ version.initialScheduledDate|date(project.dateFormat) }}
+						{{ version.initialScheduledDate|to_string }}
 					</div>
 				{% endif %}
 				{% if version.isRequired and version.scheduledDate %}
@@ -110,7 +109,7 @@
 						{% trans %}Scheduled date{% endtrans %} :
 					</div>
 					<div class="col-8">
-						{{ version.scheduledDate|date(project.dateFormat) }}
+						{{ version.scheduledDate|to_string }}
 					</div>
 				{% endif %}
 				{% for metadata in project.metadatas %}
@@ -125,7 +124,7 @@
 								{# <a class="btn btn-sm btn-primary text-nowrap" href="{{ version.getPropertyValue(metadata.fullCodename)|to_string }}" target="_blank" rel="noopener noreferrer">{% trans %}Click here{% endtrans %}</a> #}
 							{% endif %}
 						{% else %}
-							{{ version.getPropertyValue(metadata.fullCodename)|to_string(project.dateFormat) }}
+							{{ version.getPropertyValue(metadata.fullCodename)|to_string }}
 						{% endif %}
 					</div>
 				{% endfor %}

@@ -20,6 +20,7 @@ class Review
 	private ?\DateTime $date = null;
 
 	#[ORM\ManyToOne]
+	#[ORM\JoinColumn(nullable: true)]
 	private ?Visa $visa = null;
 
 	#[ORM\ManyToOne(inversedBy: 'reviews')]

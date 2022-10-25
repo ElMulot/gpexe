@@ -1,0 +1,13 @@
+<turbo-frame id="review_detail">
+
+	<div class="row">
+		
+		{{ form(form, {'attr': {'id': 'form', 'action': app.request.uri }}) }}
+
+		<div class="d-flex justify-content-center">
+			<a class="btn btn-sm btn-secondary btn-width m-1" href="{{ path('review_detail', {'version': version.id, 'company': company.id}) }}">{% trans %}Cancel{% endtrans %}</a>
+			<button type="submit" form="form" class="btn btn-sm btn-primary btn-width m-1">{% trans %}Modify{% endtrans %}</button>
+		</div>
+	</div>
+
+</turbo-frame>

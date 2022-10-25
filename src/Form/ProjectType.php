@@ -12,6 +12,7 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use App\Form\Type\DropzoneType;
+use App\Form\Type\VariousEntityType;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class ProjectType extends AbstractType
@@ -51,6 +52,7 @@ class ProjectType extends AbstractType
 				'choice_label' => 'name',
 				'multiple' => true,
 				'expanded' => false,
+				'required' => false,
 			])
 		;
 		$builder->get('image')->addModelTransformer($this->transformer);

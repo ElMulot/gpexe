@@ -2,10 +2,12 @@
 
 namespace App\Controller;
 
+use App\Entity\Company;
 use App\Entity\Serie;
 use App\Helpers\Date;
 use App\Entity\Project;
 use App\Entity\Version;
+use App\Entity\Visa;
 use Symfony\UX\Turbo\TurboBundle;
 use Doctrine\Persistence\ManagerRegistry;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
@@ -24,16 +26,15 @@ class TestController extends AbstractController
 	{
 	}
 	
-    /**
-     * @param int id Id of the post to be highlighted
-     */
 	#[Route(path: '/test', name: 'test', requirements: ['id' => '\d+'])]
 	public function index(Request $request) : Response
 	{
-		$repository = $this->doctrine->getManager()->getRepository(Version::class);
+		
+		// $project = $this->doctrine->getRepository(Project::class)->findOneBy(['id' => 1]);
+		// $company = $this->doctrine->getRepository(Company::class)->findOneBy(['id' => 1]);
 
 		return $this->renderForm('test/index.html.twig', [
-			'dates' => [$repository->findOneBy(['id' => '5308']), $repository->findOneBy(['id' => '5310'])],
+			// 'form' => $form,
 		]);
 	}
 

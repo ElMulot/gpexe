@@ -17,7 +17,7 @@
 			<div class="sticky-top">
 				{{ include('pages/engineering/index/_nav.html.twig') }}
 			</div>
-			<turbo-frame id="table" class="table-responsive nav-shown mb-4"
+			<turbo-frame id="table" class="table-responsive nav-shown mb-4" data-turbo-append="true"
 				{{ stimulus_target('engineering--main', 'tableContainer') }}>
 				<table class="table table-sm table-hover table-active" {{ stimulus_target('engineering--main', 'table') }}>
 					<thead id="thead" {{ stimulus_target('engineering--main', 'thead') }}>

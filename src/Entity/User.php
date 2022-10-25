@@ -91,14 +91,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 	}
 
     /**
-     * @deprecated since Symfony 5.3
-     */
-	public function getUsername(): string
-	{
-		return $this->getUserIdentifier();
-	}
-
-    /**
      * @see PasswordAuthenticatedUserInterface
      */
 	public function getPassword(): string
@@ -253,18 +245,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 		}
 
 		return $this;
-	}
-
-    /**
-     * Returning a salt is only needed, if you are not using a modern
-     * hashing algorithm (e.g. bcrypt or sodium) in your security.yaml.
-     *
-     * @see UserInterface
-     */
-	public function getSalt(): ?string
-	{
-		// not needed when using the "bcrypt" algorithm in security.yaml
-		return null;
 	}
 
 	/**

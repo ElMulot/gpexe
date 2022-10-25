@@ -8,7 +8,7 @@
 	{{ encore_entry_link_tags('form') }}
 	
 	{% if app.request.headers.has('Turbo-Stream-Replace') is same as (true) %}
-		{{ form(form, {'attr': {'data-turbo-stream-replace': app.request.headers.get('Turbo-Stream-Replace') }}) }}
+		{{ form(form) }}
 	{% else %}
 		{{ form(form) }}
 	{% endif %}

@@ -137,10 +137,12 @@ class ProjectController extends AbstractTurboController
 		if ($this->isGranted('PROJECT_EDIT', $project) === false) {
 			return $this->redirectToRoute('project');
 		}
-
+		
 		$form = $this->createForm(ProjectType::class, $project);
+		
 		$form->handleRequest($request);
 		if ($form->isSubmitted() && $form->isValid()) {
+			dump($project);
 			$entityManager = $this->doctrine->getManager();
 			$entityManager->persist($project);
 			$entityManager->flush();

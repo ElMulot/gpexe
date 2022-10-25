@@ -1,14 +1,16 @@
 twig:
     default_path: '%kernel.project_dir%/templates'
     form_themes:
-        - 'form/layout.html.twig'
+        #- 'form/layout.html.twig'
+        - 'bootstrap_5_layout.html.twig'
         - 'form/dropzone.html.twig'
+        - 'form/various_entity.html.twig'
     globals:
-        name: '%name%'
-        webmaster: '%webmaster%'
-        version: '%version%'
-        date: '%date%'
-        uploads_directory: '%uploads_directory%'
+        name: '%app.name%'
+        webmaster: '%app.webmaster%'
+        version: '%app.version%'
+        date: '%app.date%'
+        uploads_directory: '%app.uploads_directory%'
 
 when@test:
     twig:

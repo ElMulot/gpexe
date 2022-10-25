@@ -23,7 +23,7 @@ class EngineeringController extends AbstractTurboController
 								private readonly SerieRepository $serieRepository,
 								private readonly VersionRepository $versionRepository,
 								private readonly ViewRepository $viewRepository,
-								#[Autowire('%max_results_per_page%')]
+								#[Autowire('%app.config.max_results_per_page%')]
         						private int $maxResultsPerPage)
 	{
 	}
@@ -33,7 +33,7 @@ class EngineeringController extends AbstractTurboController
 	{
 		$this->denyAccessUnlessGranted('VIEW_SHOW', $project);
 
-		$serieIds = $request->query->get('series');
+		$serieIds = $request->query->all('series');
         if (is_array($serieIds) === false) {
             $serieIds = [];
         }
@@ -65,7 +65,7 @@ class EngineeringController extends AbstractTurboController
     #[Route(path: '/project/{project}/tbody', name: 'engineering_tbody', requirements: ['project' => '\d+'])]
 	public function tbody(Request $request, Project $project) : Response
 	{
-		$serieIds = $request->query->get('series');
+		$serieIds = $request->query->all('series');
         if (is_array($serieIds) === false) {
             $serieIds = [];
         }

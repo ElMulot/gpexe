@@ -18,7 +18,7 @@ class LoginController extends AbstractController
 	private $imgDir;
 	
 	public function __construct(KernelInterface $kernel,
-								#[Autowire('%maintenance_mode%')]
+								#[Autowire('%app.config.maintenance_mode%')]
 								private bool $maintenanceMode)
 	{
 		$this->imgDir = $kernel->getProjectDir() . '/assets/images/';

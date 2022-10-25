@@ -174,7 +174,18 @@ frame-loading-component {
 // --------------------
 
 #menu {
-	width: 15rem;
+	@include media-breakpoint-up(sm) {
+		width: 15rem;
+		.text-info, .text-success, .text-secondary {
+			color: var(--bs-nav-pills-link-active-color) !important;
+		}
+	}
+	@include media-breakpoint-down(sm) {
+		width: 6rem;
+		.badge {
+			display: none;
+		}
+	}
 }
 
 #version_detail {

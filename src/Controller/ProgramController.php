@@ -40,7 +40,7 @@ class ProgramController extends AbstractTurboController
 								private readonly ParseService $parseService,
 								private readonly SerieRepository $serieRepository,
 								private readonly TranslatorInterface $translator,
-        						#[Autowire('%uploads_directory%')]
+        						#[Autowire('%app.uploads_directory%')]
 								private string $uploadsDirectory)
 	{
 	}
@@ -105,7 +105,7 @@ class ProgramController extends AbstractTurboController
 
 		if ($this->isGranted('PROGRAM_EDIT', $project) === false && 
 			($this->isGranted('PROGRAM_PROGRESS_SHOW') === false || $program->isTypeProgress() === false) &&
-			($this->isGranted('PROJECT_SHOW', $project) === false || $program->isTypeProgress() === false || $this->isUserAttachedToSeries($request->query->get('series')) === false)) {
+			($this->isGranted('PROJECT_SHOW', $project) === false || $program->isTypeProgress() === false || $this->isUserAttachedToSeries($request->query->all('series')) === false)) {
 			return $this->redirectToRoute('project');
 		}
 
@@ -141,7 +141,7 @@ class ProgramController extends AbstractTurboController
 						$this->programService->preload($program, $request);
 						return $this->redirectToRoute('program_load', [
 							'program' => $program->getId(),
-							'series' => $request->query->get('series'),
+							'series' => $request->query->all('series'),
 						]);
 					} catch (\Error $e) {
 						$this->addFlash('danger', $e->getMessage());
@@ -219,7 +219,7 @@ class ProgramController extends AbstractTurboController
 		
 		if ($this->isGranted('PROGRAM_EDIT', $project) === false && 
 			($this->isGranted('PROGRAM_PROGRESS_SHOW') === false || $program->isTypeProgress() === false) &&
-			($this->isGranted('PROJECT_SHOW', $project) === false || $program->isTypeProgress() === false || $this->isUserAttachedToSeries($request->query->get('series')) === false)) {
+			($this->isGranted('PROJECT_SHOW', $project) === false || $program->isTypeProgress() === false || $this->isUserAttachedToSeries($request->query->all('series')) === false)) {
 			return $this->redirectToRoute('project');
 		}
 
@@ -293,7 +293,7 @@ class ProgramController extends AbstractTurboController
 						$serializer = new Serializer([new DateTimeNormalizer(['datetime_format' => 'd-m-Y'])]);
 						
 						/** @var array $series */
-						if ($series = $request->query->get('series')) {
+						if ($series = $request->query->all('series')) {
 							return new JsonResponse([
 								'series' => $this->serieRepository->getSeriesByIdsAsArray($series),
 								'current_progress' => $this->programService->progress($program, $series),

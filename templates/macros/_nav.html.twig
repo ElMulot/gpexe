@@ -16,8 +16,8 @@
 	</ul>
 {% endmacro %} -->
 
-{% macro turbo(id, items) %}
-	<nav class="nav nav-tabs" {{ stimulus_controller('nav') }}>
+{% macro turbo(id, items, disableCollapse = false) %}
+	<nav class="nav nav-tabs" {{ stimulus_controller('nav', {disableCollapse: disableCollapse}) }}>
 		{% for item in items %}
 			{% if item.class is defined and 'active' in item.class %}
 				{% set item = item|merge({'aria-current': 'page'}) %}

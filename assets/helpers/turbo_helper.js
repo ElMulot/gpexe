@@ -46,26 +46,46 @@ const TurboHelper = class {
 			
 			// event.detail.fetchOptions.headers['X-Requested-With'] = 'XMLHttpRequest';
 			
-			const target = (event.target instanceof HTMLFormElement)?event.target:event.explicitOriginalTarget
+			const target = (event.target instanceof HTMLFormElement)?event.target:event.explicitOriginalTarget;
+			
 			Object.entries(target.dataset).forEach(([k, d]) => {
 				if (k.match('^turbo') !== null) {
 					event.detail.fetchOptions.headers['Turbo-' + k.match(/([A-Z][a-z]+)/g).join('-')] = d;
 				}
 			});
-			
+
 			const frameId = event.detail.fetchOptions.headers['Turbo-Frame'];
-			
-			if (frameId) {
-				const $frame = document.getElementById(frameId);
+			let append = event.detail.fetchOptions.headers['Turbo-Append'] || false;
+
+			//determination of the targeted frame
+			if (!frameId || frameId === '_top') {
+				//if frame is not defined or if the whole page must be replaced, place a loading animation in the center of the page
+				var $frame = document.body;
+			} else if (frameId === '_self') {
+				//if _self is defined, clear the turbo-frame and place a loading animation in the center of instance
+				//to avoid this behaviour, explicitly specify the turbo-frame id
+				var $frame = event.target;
+			} else {
+				//if turbo-frame id is defined, append a loading animation
+				var $frame = document.getElementById(frameId);
 				if ($frame === null) {
 					console.error(`The page has no matching <turbo-frame id="${frameId}"> element`);
 					event.preventDefault();
 					return false;
 				}
-				this.renderLoading(document.getElementById(frameId));
-			} else {
-				this.renderLoading();
 			}
+
+			//if the targeted frame contain a modal, place the loader on the body
+			if ([...$frame.children].some(e => e.classList.contains('modal'))) {
+				$frame = document.body;
+			}
+			
+			//clear the targeted frame
+			if (append === false && $frame instanceof HTMLBodyElement === false) {
+				$frame.innerHTML = '';
+			}
+			
+			this.renderLoading($frame);
 			
 		});
 
@@ -151,7 +171,7 @@ const TurboHelper = class {
 			document.querySelectorAll('#navbarContent').forEach(e => e.classList.add('invisible'));
 		}
 		
-		if (e instanceof HTMLBodyElement || [...e.children].some(e => e.classList.contains('modal'))) {
+		if (e instanceof HTMLBodyElement) {
 			if (document.getElementsByTagName('loading-component').length === 0) {
 				document.body.appendChild(document.createElement('loading-component'));
 			}

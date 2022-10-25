@@ -1,42 +1,29 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout.html.twig' %}
+
+{% block stylesheets %}
+	{{ encore_entry_link_tags('engineering') }}
+	{{ parent() }}
+{% endblock %}
 
 {% block title %}Hello TestController!{% endblock %}
 
 {% block content %}
 
 <div>
-	<h1>Test page</h1>
 	
-	{% set items = {} %}
-	{% set i = 1 %}
+	<div class="d-flex justify-content-center align-items-center" style="height: 400px;">
 
-	{% for d in dates %}
-		{% set items = items|merge({
-			('Name'~i): d.name,
-			('Is required'~i): d.isRequired,
-			('Date created'~i): d.date,
-			('Date created meta'~i): d.getPropertyValue('version.date'),
-			('Français'~i): d.getPropertyValue('version.frenchMandatory'),
-			('Date published'~i): d.getPropertyValue('version.dateTransmitted'),
-			(i): '-------------------------------',
-		}) %}
-		{% set i = i+1 %}
-	{% endfor %}
+	{# <turbo-frame id="review_detail" src="{{ path('review_detail', {'version': 2610, 'company': 1}) }}"> #}
 
+	<turbo-frame id="review_detail" src="{{ path('review_edit', {'review': 11177}) }}">
+	
+	</turbo-frame>
 
-	{% for key, item in items %}
-
-		<p>{{ key }} :
-			{% if item is not null %}
-				{% if item.timezone is defined %}
-					[Object]
-				{% else %}
-					{{ item }}
-				{% endif %}
-			{% endif %}
-		</p>
-
-	{% endfor %}
+		{# <div class="row w-75">
+			{{ form(form) }}
+			<button type="submit" form="form" class="btn btn-primary">{% trans %}Save{% endtrans %}</button>
+		</div>
+	</div> #}
 
 </div>
 
