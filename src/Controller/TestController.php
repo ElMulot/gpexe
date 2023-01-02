@@ -2,27 +2,28 @@
 
 namespace App\Controller;
 
-use App\Entity\Company;
 use App\Entity\Serie;
-use App\Helpers\Date;
 use App\Entity\Project;
-use App\Entity\Version;
-use App\Entity\Visa;
+use App\Form\Type\ChoiceVariousType;
 use Symfony\UX\Turbo\TurboBundle;
 use Doctrine\Persistence\ManagerRegistry;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Component\Stopwatch\Stopwatch;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Validator\Constraints\Count;
 use Symfony\Contracts\Translation\TranslatorInterface;
-use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Validator\Validation;
 
 class TestController extends AbstractController
 {
-	public function __construct(private readonly TranslatorInterface $translator, private readonly ManagerRegistry $doctrine)
+	public function __construct(private readonly TranslatorInterface $translator,
+								private readonly ManagerRegistry $doctrine,
+                                private readonly string $publicDirectory,
+								#[Autowire('%app.uploads_directory%')]
+                                private readonly string $uploadsDirectory)
 	{
 	}
 	
@@ -32,6 +33,34 @@ class TestController extends AbstractController
 		
 		// $project = $this->doctrine->getRepository(Project::class)->findOneBy(['id' => 1]);
 		// $company = $this->doctrine->getRepository(Company::class)->findOneBy(['id' => 1]);
+
+		// $series = $this->doctrine->getRepository(Serie::class)->findBy(['id' => [3, 29]]);
+
+		/**@var Serie $serie */
+		// foreach ($series as $serie) {
+			// dump($serie->getDocuments()->getValues());
+			// foreach ($serie->getDocuments()->getValues() as $document) {
+				// $document->getVersions()->getValues();
+			// }
+		// }
+
+		// $form = $this->createFormBuilder(null, ['csrf_protection' => false])
+		// 	->add('test', ChoiceVariousType::class, [
+		// 		'choices' => [
+		// 			'Zero'	=> 0,
+		// 			'One'	=> 1,
+		// 			'Two'	=> 2,
+		// 		],
+		// 		'data' => [0, 1]
+		// 	])
+		// 	->getForm();
+
+		// $form->get('test')->submit([
+		// 	'input'		=> 50,
+		// 	'switch'	=> null,
+		// ]);
+
+		// dump($form->get('test')->getNormData());
 
 		return $this->renderForm('test/index.html.twig', [
 			// 'form' => $form,

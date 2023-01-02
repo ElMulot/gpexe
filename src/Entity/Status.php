@@ -6,8 +6,14 @@ use Doctrine\ORM\Mapping as ORM;
 use Fresh\DoctrineEnumBundle\Validator\Constraints as DoctrineAssert;
 use App\Entity\Enum\StatusTypeEnum;
 use App\Repository\StatusRepository;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Constraints\Regex;
 
 #[ORM\Entity(repositoryClass: StatusRepository::class)]
+#[UniqueEntity(
+	fields: ['name', 'project']
+)]
 class Status implements \Stringable
 {
 	#[ORM\Id]
@@ -16,6 +22,8 @@ class Status implements \Stringable
 	private ?int $id = null;
 
 	#[ORM\Column(length: 100)]
+	#[NotBlank]
+	#[Regex('/^[^$"]+$/')]
 	private ?string $name = null;
 
 	#[ORM\Column(length: 10)]
@@ -126,7 +134,7 @@ class Status implements \Stringable
 	{
 		return match ($codename) {
 			'status.name'			=> $this->getName(),
-			'status.value'			=> $this,
+			'status.value'			=> $this->getValue(),
 			'status.type'			=> $this->getType(),
 			'status.isInformation'	=> $this->getIsInformation(),
 			'status.isReview'		=> $this->getIsReview(),

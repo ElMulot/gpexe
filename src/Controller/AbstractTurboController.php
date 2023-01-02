@@ -10,7 +10,10 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
-
+/**
+ * Abstract class that integrate some turbo features.
+ * @abstract
+ */
 class AbstractTurboController extends AbstractController
 {
 	

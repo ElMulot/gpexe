@@ -17,7 +17,10 @@ class ViewVoter extends Voter
 
     protected function supports(string $attribute, $subject): bool
     {
-        if (!in_array($attribute, ['VIEW_EDIT', 'VIEW_DELETE'])) {
+        if (!in_array($attribute, [
+                'VIEW_EDIT',
+                'VIEW_DELETE'
+            ])) {
             return false;
         }
 

@@ -6,6 +6,8 @@ use App\Entity\User;
 use App\Entity\Company;
 use App\Entity\Version;
 use App\Entity\Document;
+use App\Entity\Project;
+use App\Exception\InternalErrorException;
 use App\Form\VersionType;
 use App\Service\FieldService;
 use App\Form\QuickVersionType;
@@ -46,103 +48,137 @@ class VersionController extends AbstractTurboController
 			'checkers' => $this->companyRepository->getCheckerCompanies($project),
 		]);
 	}
-	
-	#[Route(path: '/project/serie/document/{document}/version/new', name: 'version_new', requirements: ['document' => '\d+'], defaults: ['document' => 0])]
-	public function new(Request $request, Document $document = null) : Response
+
+	/**
+	 * Query parameters :
+	 * 	+ array		id				array of version ids that will be used for document selector in the form
+	 */
+	#[Route(path: '/project/{project}/version/new', name: 'version_new', requirements: ['project' => '\d+'])]
+	public function new(Request $request, Project $project) : Response
 	{
-		if ($document === null) {
-			$documents = $this->documentRepository->getDocumentsByRequest($request);
-			if ($documents == false) {
-				$this->addFlash('danger', 'None documents selected');
-				return $this->renderForm('ajax/error.html.twig');
-			}
-			
-			if (count($documents) > 1) {
-				$this->addFlash('danger', 'Only one reference must be selected');
-				return $this->renderForm('ajax/error.html.twig');
-			}
-			$document = reset($documents);
-		}
-		$serie = $document->getSerie();
-		$project = $serie->getProject();
-
-		$this->denyAccessUnlessGranted('DOCUMENT_NEW', $serie);
-
+		
+		$this->denyAccessUnlessGranted('VERSION_NEW', $project);
+		
 		$version = new Version();
-		$version->setDocument($document);
-		if ($lastVersion = $document->getLastVersion()) {
-			$version->setStatus($lastVersion->getStatus());
-			$version->setWriter($lastVersion->getWriter());
-			$version->setChecker($lastVersion->getChecker());
-			$version->setApprover($lastVersion->getApprover());
-			foreach ($this->metadataRepository->getMetadatasForVersion($project) as $metadata) {
-				if ($metadata->isBoolean() || $metadata->isList() || $metadata->getIsMandatory()) {
-					try {
-						$version->setMetadataValue($metadata, $lastVersion->getMetadataValue($metadata));
-					} catch (\Error $e) {
-						continue;
-					}
-				}
-			}
-		} else {
-			$version->setStatus($this->statusRepository->getDefaultStatus($project));
+
+		try {
+			$form = $this->createForm(VersionType::class, [$version], [
+				'project' => $project,
+				'ids' => $request->get('id'),
+			]);
+		} catch (InternalErrorException $e) {
+			$this->addFlash('warning', $e->getMessage());
+			//todo : review path
+			return $this->renderError($request, 'serie', ['project' => $project->getId(), 'id' => $request->get('id')]);
 		}
-		$form = $this->createForm(VersionType::class, $version, [
-			'serie' => $serie,
-		]);
+
 		$form->handleRequest($request);
+		
 		if ($form->isSubmitted() && $form->isValid()) {
-			
-			$version->setIsRequired($form->get('isRequired')->getData());
-			if ($version->getIsRequired()) {
-				$version->setScheduledDate($form->get('date')->getData());
-			} else {
-				$version->setDeliveryDate($form->get('date')->getData());
-			}
-			$version->setStatus($form->get('status')->getData());
-			$version->setWriter($form->get('writer')->getData());
-			$version->setChecker($form->get('checker')->getData());
-			$version->setApprover($form->get('approver')->getData());
-			
-			foreach ($this->metadataRepository->getMetadatasForVersion($project) as $metadata) {
-				
-				$value = $form->get($metadata->getFullId())->getData();
-				
-				if ($value === null && $metadata->getIsMandatory()) {
-					$this->addFlash('danger', $this->translator->trans('notEmpty.field', ['field' => $metadata->getName()]));
-					return $this->renderForm('ajax/form.html.twig', [
-						'form' => $form,
-					]);
-				}
-				
-				try {
-					$version->setMetadataValue($metadata, $value);
-				} catch (\Error $e) {
-					if ($metadata->getIsMandatory() === true) {
-						$this->addFlash('danger', $e->getMessage());
-						return $this->renderForm('ajax/form.html.twig', [
-							'form' => $form,
-						]);
-					}
-				}
-			}
-			
-			$entityManager = $this->doctrine->getManager();
-			$entityManager->persist($version);
-			$entityManager->flush();
-			
-			if ($request->query->has('modal')) {
-				return $this->ajaxRedirectService->get($this->generateUrl('document_detail', ['version' => $version->getId()]), '#modal_detail');
-			} else {
-				$this->addFlash('success', 'New version created');
-				return new Response();
-			}
-			
+
+			// return $this->redirectToRoute('version_new', [
+			// 	'document' => $document->getId()
+			// ]);
 		} else {
-			return $this->renderForm('ajax/form.html.twig', [
+			return $this->renderForm('pages/engineering/new/_pannel.html.twig', [
 				'form' => $form,
 			]);
 		}
+
+
+		// if ($document === null) {
+		// 	$documents = $this->documentRepository->getDocumentsByRequest($request);
+		// 	if ($documents == false) {
+		// 		$this->addFlash('danger', 'None documents selected');
+		// 		return $this->renderForm('ajax/error.html.twig');
+		// 	}
+			
+		// 	if (count($documents) > 1) {
+		// 		$this->addFlash('danger', 'Only one reference must be selected');
+		// 		return $this->renderForm('ajax/error.html.twig');
+		// 	}
+		// 	$document = reset($documents);
+		// }
+		// $serie = $document->getSerie();
+		// $project = $serie->getProject();
+
+		// $this->denyAccessUnlessGranted('DOCUMENT_NEW', $serie);
+
+		// $version = new Version();
+		// $version->setDocument($document);
+		// if ($lastVersion = $document->getLastVersion()) {
+		// 	$version->setStatus($lastVersion->getStatus());
+		// 	$version->setWriter($lastVersion->getWriter());
+		// 	$version->setChecker($lastVersion->getChecker());
+		// 	$version->setApprover($lastVersion->getApprover());
+		// 	foreach ($this->metadataRepository->getMetadatasForVersion($project) as $metadata) {
+		// 		if ($metadata->isBoolean() || $metadata->isList() || $metadata->getIsMandatory()) {
+		// 			try {
+		// 				$version->setMetadataValue($metadata, $lastVersion->getMetadataValue($metadata));
+		// 			} catch (\Error $e) {
+		// 				continue;
+		// 			}
+		// 		}
+		// 	}
+		// } else {
+		// 	$version->setStatus($this->statusRepository->getDefaultStatus($project));
+		// }
+		// $form = $this->createForm(VersionType::class, $version, [
+		// 	'serie' => $serie,
+		// ]);
+		// $form->handleRequest($request);
+		// if ($form->isSubmitted() && $form->isValid()) {
+			
+		// 	$version->setIsRequired($form->get('isRequired')->getData());
+		// 	if ($version->getIsRequired()) {
+		// 		$version->setScheduledDate($form->get('date')->getData());
+		// 	} else {
+		// 		$version->setDeliveryDate($form->get('date')->getData());
+		// 	}
+		// 	$version->setStatus($form->get('status')->getData());
+		// 	$version->setWriter($form->get('writer')->getData());
+		// 	$version->setChecker($form->get('checker')->getData());
+		// 	$version->setApprover($form->get('approver')->getData());
+			
+		// 	foreach ($this->metadataRepository->getMetadatasForVersion($project) as $metadata) {
+				
+		// 		$value = $form->get($metadata->getFullId())->getData();
+				
+		// 		if ($value === null && $metadata->getIsMandatory()) {
+		// 			$this->addFlash('danger', $this->translator->trans('notEmpty.field', ['field' => $metadata->getName()]));
+		// 			return $this->renderForm('ajax/form.html.twig', [
+		// 				'form' => $form,
+		// 			]);
+		// 		}
+				
+		// 		try {
+		// 			$version->setMetadataValue($metadata, $value);
+		// 		} catch (\Error $e) {
+		// 			if ($metadata->getIsMandatory() === true) {
+		// 				$this->addFlash('danger', $e->getMessage());
+		// 				return $this->renderForm('ajax/form.html.twig', [
+		// 					'form' => $form,
+		// 				]);
+		// 			}
+		// 		}
+		// 	}
+			
+		// 	$entityManager = $this->doctrine->getManager();
+		// 	$entityManager->persist($version);
+		// 	$entityManager->flush();
+			
+		// 	if ($request->query->has('modal')) {
+		// 		return $this->ajaxRedirectService->get($this->generateUrl('document_detail', ['version' => $version->getId()]), '#modal_detail');
+		// 	} else {
+		// 		$this->addFlash('success', 'New version created');
+		// 		return new Response();
+		// 	}
+			
+		// } else {
+		// 	return $this->renderForm('ajax/form.html.twig', [
+		// 		'form' => $form,
+		// 	]);
+		// }
 	}
 	
 	#[Route(path: '/project/serie/document/version/edit', name: 'version_edit')]
@@ -156,6 +192,8 @@ class VersionController extends AbstractTurboController
 		$document = reset($documents);
 		$serie = $document->getSerie();
 		$project = $serie->getProject();
+		
+		//todo : à revoir
 		$versions = $this->versionRepository->getVersions($request);
 		if ($request->query->has('save')) {
 			foreach ($versions as $version) {
@@ -260,6 +298,8 @@ class VersionController extends AbstractTurboController
 			return $this->redirectToRoute('project');
 		}
 		$document = reset($documents);
+		
+		//todo : à revoir
 		$versions = $this->versionRepository->getVersions($request);
 
 		$this->denyAccessUnlessGranted('DOCUMENT_DELETE', $document);

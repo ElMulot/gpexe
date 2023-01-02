@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use App\Repository\CodificationValueRepository;
+use Symfony\Component\Validator\Constraints\Regex;
 
 #[ORM\Entity(repositoryClass: CodificationValueRepository::class)]
 class CodificationValue implements \Stringable
@@ -14,6 +15,7 @@ class CodificationValue implements \Stringable
 	private ?int $id = null;
 
 	#[ORM\Column(length: 10)]
+	#[Regex('/^[^$"]+$/')]
 	private ?string $value = null;
 
 	#[ORM\ManyToOne(inversedBy: 'codificationValues')]

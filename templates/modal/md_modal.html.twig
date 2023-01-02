@@ -8,19 +8,18 @@
 						<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="{% trans %}Close{% endtrans %}"></button>
 					</div>
 				{% endif %}
-				{% if block('modal_body') is defined %}
-					<div class="modal-body">
-						{{ block('modal_body') }}
-					</div>
-				{% endif %}
+				<div class="modal-body">
+					{% block modal_body %}
+					{% endblock %}
+				</div>
 				<div class="modal-footer justify-content-center">
-					{% if block('modal_footer') is defined %}
-						{{ block('modal_footer') }}
-					{% else %}
-						<button type="button" class="btn btn-dismiss" data-bs-dismiss="modal">{% trans %}Close{% endtrans %}</button>
-					{% endif %}
+					{% block modal_footer %}
+						<button type="button" class="btn btn-dismiss btn-width" data-bs-dismiss="modal">{% trans %}Close{% endtrans %}</button>
+					{% endblock %}
 				</div>
 			</div>
 		</div>
 	</div>
 </turbo-frame>
+
+

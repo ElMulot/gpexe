@@ -10,8 +10,16 @@ use App\Entity\CodificationItem;
 use Fresh\DoctrineEnumBundle\Validator\Constraints as DoctrineAssert;
 use App\Entity\Enum\CodificationTypeEnum;
 use App\Repository\CodificationRepository;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use App\Validator\CodificationWithoutSplitter;
+use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Constraints\Regex;
 
 #[ORM\Entity(repositoryClass: CodificationRepository::class)]
+#[UniqueEntity(
+	fields: ['codename', 'project']
+)]
+#[CodificationWithoutSplitter]
 class Codification implements \Stringable
 {
 	#[ORM\Id]
@@ -20,22 +28,26 @@ class Codification implements \Stringable
 	private ?int $id = null;
 
 	#[ORM\Column(length: 100)]
+	#[NotBlank]
+	#[Regex('/^[^$"]+$/')]
 	private ?string $name = null;
 
 	#[ORM\Column(length: 100)]
+	#[NotBlank]
+	#[Regex('/^\w+$/')]
 	private ?string $codename = null;
 
 	#[ORM\Column(type: 'codification_type_enum')]
 	#[DoctrineAssert\EnumType(entity: CodificationTypeEnum::class)]
 	private ?string $type = null;
+	
+	#[ORM\Column(length: 10, nullable: true)]
+	private ?string $pattern = null;
 
 	#[ORM\Column(length: 10, nullable: true)]
 	private ?string $value = null;
 
-	#[ORM\Column]
-	private ?bool $isMandatory = null;
-
-	#[ORM\ManyToOne(inversedBy: 'codifications', fetch: 'EAGER')]
+	#[ORM\ManyToOne(inversedBy: 'codifications', cascade:["persist"], fetch: 'EAGER')]
 	private ?Project $project = null;
 
 	#[ORM\OneToMany(targetEntity: CodificationItem::class, mappedBy: 'codification', orphanRemoval: true)]
@@ -94,6 +106,18 @@ class Codification implements \Stringable
 		return $this;
 	}
 
+	public function getPattern(): ?string
+	{
+		return $this->pattern;
+	}
+
+	public function setPattern(string $pattern): self
+	{
+		$this->pattern = $pattern;
+
+		return $this;
+	}
+	
 	public function getValue(): ?string
 	{
 		return $this->value;
@@ -102,18 +126,6 @@ class Codification implements \Stringable
 	public function setValue(string $value): self
 	{
 		$this->value = $value;
-
-		return $this;
-	}
-
-	public function getIsMandatory(): ?bool
-	{
-		return $this->isMandatory;
-	}
-
-	public function setIsMandatory(bool $isMandatory): self
-	{
-		$this->isMandatory = $isMandatory;
 
 		return $this;
 	}

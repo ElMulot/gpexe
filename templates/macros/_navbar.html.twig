@@ -9,13 +9,18 @@
 {% endmacro %}
 
 {% macro dropdown(label, items) %}
-	{% set uuid = uuid() %}
+	{% if label.id is defined %}
+		{% set id = label.id %}
+	{% else %}
+		{% set id = uuid() %}
+	{% endif %}
+	
 	<li class="nav-item dropdown">
 		{% set item = label %}
-		<a class="nav-link dropdown-toggle" href="#" id="{{ uuid }}" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-turbo="false"{{ block('attributes') }}>
+		<a class="nav-link dropdown-toggle" href="#" id="{{ id }}" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-turbo="false"{{ block('attributes') }}>
 			{{ item.name|trans }}
 		</a>
-		<div class="dropdown-menu" aria-labelledby="{{ uuid }}">
+		<div class="dropdown-menu" aria-labelledby="{{ id }}">
 			{% for item in items %}
 				{% if item.href is defined %}
 					{% set item = item|merge({'class': (item.class|default('') ~ ' dropdown-item')|trim}) %}

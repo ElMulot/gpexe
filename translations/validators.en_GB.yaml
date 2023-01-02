@@ -1,3 +1,1 @@
-An user with this email already exist.: An user with this mail address already exist.
-A profil with this name already exist.: A profil with this name already exist.
-A company with this name already exist.: A company with this name already exist.
+#user.mail.not_blank: Un utilisateur avec cette adresse mail existe déjà.

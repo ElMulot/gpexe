@@ -10,9 +10,14 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use App\Repository\UserRepository;
 use Symfony\Component\Security\Core\User\EquatableInterface;
+use Symfony\Component\Validator\Constraints\Email;
+use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Constraints\Regex;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
-#[UniqueEntity(fields: 'email', message: 'An user with this email already exist.')]
+#[UniqueEntity(
+	fields: 'email'
+)]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
 	#[ORM\Id]
@@ -21,12 +26,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 	private ?int $id = null;
 
 	#[ORM\Column(length: 180, unique: true)]
+	#[Email]
 	private ?string $email = null;
 
 	#[ORM\Column]
 	private ?string $password = null;
 
 	#[ORM\Column(length: 100)]
+	#[NotBlank]
+	#[Regex('/^[^$"]+$/')]
 	private ?string $name = null;
 
 	#[ORM\Column(length: 5)]
@@ -58,6 +66,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 	public function __construct()
 	{
 		$this->locale = 'fr_FR';
+		$this->createdOn = new \DateTime();
 		$this->lastConnected = new \DateTime();
 		$this->projects = new ArrayCollection();
 		$this->views = new ArrayCollection();

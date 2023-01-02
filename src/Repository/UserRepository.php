@@ -51,6 +51,28 @@ class UserRepository extends RepositoryService implements PasswordUpgraderInterf
 			->getResult()
 		;
 	}
+
+	/**
+	 * Return an array of users from an array of version.id.
+	 * Used-by : VersionType
+	 * @param array|null $versionsIds
+	 * @return User[]
+	 */
+	public function getWriters(Project $project, ?array $versionsIds = []): array
+	{
+		$qb = $this->newQB('u');
+		return $qb
+			->innerJoin('u.projects', 'p')
+			->innerJoin('p.series', 's')
+			->innerJoin('s.documents', 'd')
+			->innerJoin('d.versions', 'v')
+			->andWhere($qb->eq('p.id', $project))
+			->andWhere($qb->in('v.id', $versionsIds))
+			->addOrderBy('u.name')
+			->getQuery()
+			->getResult()
+		;
+	}
 	
 	/**
 	 * @return User[]

@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use App\Repository\MetadataValueRepository;
+use Symfony\Component\Validator\Constraints\Regex;
 
 #[ORM\Entity(repositoryClass: MetadataValueRepository::class)]
 class MetadataValue implements \Stringable
@@ -14,6 +15,7 @@ class MetadataValue implements \Stringable
 	private ?int $id = null;
 
 	#[ORM\Column(length: 255)]
+	#[Regex('/^[^$"]+$/')]
 	private ?string $value = null;
 
 	#[ORM\ManyToOne(inversedBy: 'metadataValues')]

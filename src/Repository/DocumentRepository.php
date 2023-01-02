@@ -75,27 +75,38 @@ class DocumentRepository extends RepositoryService
 		
 		return $documents;
 	}
-	
-	
+
+	/**
+	 * Return an array of documents from an array of version.id.
+	 * Used by : EngineeringController->action
+	 * @param array|null $versionIds
+	 * @return Document[]
+	 */
+	public function getDocumentsByVersionsId(?array $versionIds = []): array
+	{
+		
+		$qb = $this->newQb('d');
+
+		return $qb
+			->innerJoin('d.versions', 'v')
+			->andWhere($qb->in('v.id', $versionIds))
+			->getQuery()
+			->getResult()
+		;
+	}
+
 	/**
 	 * @return Document[]
 	 *
 	 */
-	public function getDocumentsByRequest(Request $request)
-	{	
-		$versionIds = $request->query->all('id');
-		
-		if (is_array($versionIds)) {
-			$qb = $this->newQB('d');
-			return $qb
-				->innerJoin('d.versions', 'v')
-				->andWhere($qb->in('v.id', $versionIds))
-				->addGroupBy('d.id')
-				->getQuery()
-				->getResult()
-			;
-		}
-		return null;
+	public function getDocumentsByIds(?array $ids = [])
+	{
+		$qb = $this->newQb('d');
+		return $qb
+			->andWhere($qb->in('d.id', $ids))
+			->getQuery()
+			->getResult()
+		;
 	}
 	
 	/**

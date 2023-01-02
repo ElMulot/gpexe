@@ -55,5 +55,6 @@
         "twig-language.elseLine": true,
         "intelephense.environment.phpVersion": "8.1.2",
         "intelephense.environment.documentRoot": "./gpexe/public/",
+        "editor.insertSpaces": false,
     },
 }

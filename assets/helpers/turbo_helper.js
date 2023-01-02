@@ -1,5 +1,5 @@
 import * as Turbo from '@hotwired/turbo';
-import i18n from './../i18n';
+import i18n from 'i18n';
 
 // ---------------------------------------------------------------------------------------------------------------------
 // |                    |            Drive             |              Frame            |             Stream            |
@@ -35,28 +35,42 @@ const TurboHelper = class {
 		document.addEventListener('turbo:before-fetch-request', event => {
 			
 			//add in response specific headers
-			// ------------------------------------------------------------------------------------------------------------------
-			// |                       When                      |        event.target       |   event.explicitOriginalTarget   |
-			// ------------------------------------------------------------------------------------------------------------------
-			// | clicking on a link                              |  <html> element           |  <a> element                     |
-			// | clicking on a link with turbo-frame attribute   |  <turbo-frame> element    |  <a> element                     |
-			// | submitting a form with button Submit            |  <form> element           |  Submit <button> or <a> element  |
-			// | submitting a form with key press Enter          |  <form> element           |  <input> element                 |
-			// ------------------------------------------------------------------------------------------------------------------
+			// -------------------------------------------------------------------------------------------------------------------------
+			// |                       When                      |        event.target       |      event.explicitOriginalTarget       |
+			// -------------------------------------------------------------------------------------------------------------------------
+			// | clicking on a link                              |  <html> element           |  <a> element                            |
+			// | clicking on a link with turbo-frame attribute   |  <turbo-frame> element    |  <a> element                            |
+			// | submitting a form with button Submit            |  <form> element           |  Submit <button> or <a> element         |
+			// | submitting a form with key press Enter          |  <form> element           |  <input> element                        |
+			// | modifying src attribute in js                   |  <turbo-frame> element    |  <any> element that initiate the action |
+			// -------------------------------------------------------------------------------------------------------------------------
 			
 			// event.detail.fetchOptions.headers['X-Requested-With'] = 'XMLHttpRequest';
 			
-			const target = (event.target instanceof HTMLFormElement)?event.target:event.explicitOriginalTarget;
-			
-			Object.entries(target.dataset).forEach(([k, d]) => {
-				if (k.match('^turbo') !== null) {
+			// const target = (event.target instanceof HTMLFormElement)?event.target:event.explicitOriginalTarget;
+
+			//get data-turbo-* attribute on both event.target and event.explicitOriginalTarget and add it in the request header.
+			//in case of conflict, target has priority
+			//if target is the <html> element, only explicitOriginalTarget is used
+
+			const target = event.target;
+			const explicitOriginalTarget = event.explicitOriginalTarget;
+
+			if (target instanceof HTMLBodyElement === true) {
+				var dataset = Object.entries(explicitOriginalTarget.dataset);
+			} else {
+				var dataset = [...Object.entries(explicitOriginalTarget.dataset), ...Object.entries(target.dataset)];
+			}
+
+			dataset.forEach(([k, d]) => {
+				if (k.match('^turbo') !== null && d !== '') {
 					event.detail.fetchOptions.headers['Turbo-' + k.match(/([A-Z][a-z]+)/g).join('-')] = d;
 				}
 			});
-
+			
 			const frameId = event.detail.fetchOptions.headers['Turbo-Frame'];
-			let append = event.detail.fetchOptions.headers['Turbo-Append'] || false;
-
+			const append = event.detail.fetchOptions.headers['Turbo-Append'] || false;
+			
 			//determination of the targeted frame
 			if (!frameId || frameId === '_top') {
 				//if frame is not defined or if the whole page must be replaced, place a loading animation in the center of the page
@@ -81,10 +95,12 @@ const TurboHelper = class {
 			}
 			
 			//clear the targeted frame
+			// console.log($frame.innerHTML);
 			if (append === false && $frame instanceof HTMLBodyElement === false) {
 				$frame.innerHTML = '';
 			}
-			
+			// console.log($frame.innerHTML);
+
 			this.renderLoading($frame);
 			
 		});
@@ -101,9 +117,9 @@ const TurboHelper = class {
 			}
 
 			//if stream, disable the loading animation
-			if (event.detail.fetchResponse.response.headers.get('content-type').includes('turbo-stream')) {
+			// if (event.detail.fetchResponse.response.headers.get('content-type').includes('turbo-stream')) {
 				this.clearLoadingComponents();
-			}
+			// }
 
 			//redirect to a full page (for instance redirect to login page if user is not yet logged in)
 			const fetchResponse = event.detail.fetchResponse;

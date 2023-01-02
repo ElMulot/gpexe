@@ -30,7 +30,7 @@ Encore
 	.addEntry('app', './assets/app.js')
 
 	.addStyleEntry('login', './assets/styles/login.scss')
-	.addStyleEntry('form', './assets/styles/form.scss')
+	// .addStyleEntry('form', './assets/styles/form.scss')
 	.addStyleEntry('menu', './assets/styles/menu.scss')
 	.addStyleEntry('main', './assets/styles/main.scss')
 	.addStyleEntry('project', './assets/styles/project.scss')
@@ -105,7 +105,6 @@ Encore
 	// )
 
 	.addAliases({
-		'components': `${__dirname}/assets/components`,
 		'helpers': `${__dirname}/assets/helpers`,
 		'styles': `${__dirname}/assets/styles`,
 		'i18n': `${__dirname}/assets/i18n`,

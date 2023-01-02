@@ -6,6 +6,7 @@ use App\Entity\Project;
 use App\Entity\Version;
 use App\Entity\Document;
 use App\Entity\User;
+use App\Exception\InternalErrorException;
 use App\Form\DocumentType;
 use App\Form\SerieChangeType;
 use App\Service\FieldService;
@@ -29,6 +30,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 use Doctrine\Persistence\ManagerRegistry;
+use InvalidArgumentException;
 use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
@@ -51,7 +53,7 @@ class DocumentController extends AbstractTurboController
 								private readonly UserRepository $userRepository,
 								private readonly ViewRepository $viewRepository,
 								#[Autowire('%app.uploads_directory%')]
-        						private string $uploadsDirectory)
+        						private readonly string $uploadsDirectory)
 	{
 	}
 	
@@ -231,93 +233,106 @@ class DocumentController extends AbstractTurboController
 		]);
 	}
 
-	#[Route(path: '/project/serie/document/new', name: 'document_new')]
-	public function new(Request $request) : Response
+	/**
+	 * Query parameters :
+	 * 	+ array		id				array of document ids that will be used for serie selector in the form
+	 */
+	#[Route(path: '/project/{project}/document/new', name: 'document_new', requirements: ['project' => '\d+'])]
+	public function new(Request $request, Project $project) : Response
 	{
-		// $project = $serie->getProject();
+		
+		$this->denyAccessUnlessGranted('DOCUMENT_NEW', $project);
 
-		// $this->denyAccessUnlessGranted('DOCUMENT_NEW', $serie);
+		$document = new Document();
+		
+		try {
+			$form = $this->createForm(DocumentType::class, [$document], [
+				'project' => $project,
+				'ids' => $request->get('id'),
+			]);
+		} catch (InternalErrorException $e) {
+			$this->addFlash('warning', $e->getMessage());
+			//todo : review path
+			return $this->renderError($request, 'serie', ['project' => $project->getId(), 'id' => $request->get('id')]);
+		}
 
-		// $document = new Document();
-		// $document->setSerie($serie);
-		// $form = $this->createForm(DocumentType::class, $document, [
-		// 	'serie' => $serie
-		// ]);
-		// $form->handleRequest($request);
-		// if ($form->isSubmitted() && $form->isValid()) {
+		$form->handleRequest($request);
+		
+		if ($form->isSubmitted() && $form->isValid()) {
 			
-		// 	$entityManager = $this->doctrine->getManager();
-		// 	$this->documentService->removeOrphans();
-		// 	$entityManager->flush();
+			$entityManager = $this->doctrine->getManager();
+			$this->documentService->removeOrphans();
+			$entityManager->flush();
 			
-		// 	foreach ($this->codificationRepository->getCodifications($project) as $codification) {
+			// foreach ($this->codificationRepository->getCodifications($project) as $codification) {
 				
-		// 		if ($codification->isFixed()) {
-		// 			continue;
-		// 		}
+			// 	if ($codification->isFixed()) {
+			// 		continue;
+			// 	}
 				
-		// 		$value = $form->get($codification->getFullId())->getData();
+			// 	$value = $form->get($codification->getFullId())->getData();
 				
-		// 		if ($value === null && $codification->getIsMandatory()) {
-		// 			$this->addFlash('danger', $this->translator->trans('notEmpty.field', ['field' => $codification->getName()]));
-		// 			return $this->renderForm('ajax/form.html.twig', [
-		// 				'form' => $form,
-		// 			]);
-		// 		}
+			// 	if ($value === null && $codification->getIsMandatory()) {
+			// 		$this->addFlash('danger', $this->translator->trans('notEmpty.field', ['field' => $codification->getName()]));
+			// 		return $this->renderForm('ajax/form.html.twig', [
+			// 			'form' => $form,
+			// 		]);
+			// 	}
 				
-		// 		try {
-		// 			$document->setCodificationValue($codification, $value);
-		// 		} catch (\Error $e) {
-		// 			$this->addFlash('danger', $e->getMessage());
-		// 		}
-		// 	}
+			// 	try {
+			// 		$document->setCodificationValue($codification, $value);
+			// 	} catch (\Error $e) {
+			// 		$this->addFlash('danger', $e->getMessage());
+			// 	}
+			// }
 			
-		// 	if ($this->documentService->validateReference($document) === false) {
-		// 		$this->addFlash('danger', $this->translator->trans('alreadyExist.reference', ['reference' => $document->getReference()]));
-		// 		return $this->renderForm('ajax/form.html.twig', [
-		// 			'form' => $form,
-		// 		]);
-		// 	}
+			// if ($this->documentService->validateReference($document) === false) {
+			// 	$this->addFlash('danger', $this->translator->trans('alreadyExist.reference', ['reference' => $document->getReference()]));
+			// 	return $this->renderForm('ajax/form.html.twig', [
+			// 		'form' => $form,
+			// 	]);
+			// }
 			
-		// 	foreach ($this->metadataRepository->getMetadatasForDocument($project) as $metadata) {
-		// 		$value = $form->get($metadata->getFullId())->getData();
+			// foreach ($this->metadataRepository->getMetadatasForDocument($project) as $metadata) {
+			// 	$value = $form->get($metadata->getFullId())->getData();
 				
-		// 		if ($value === null && $metadata->getIsMandatory()) {
-		// 			$this->addFlash('danger', $this->translator->trans('notEmpty.field', ['field' => $metadata->getName()]));
-		// 			return $this->renderForm('ajax/form.html.twig', [
-		// 				'form' => $form,
-		// 			]);
-		// 		}
+			// 	if ($value === null && $metadata->getIsMandatory()) {
+			// 		$this->addFlash('danger', $this->translator->trans('notEmpty.field', ['field' => $metadata->getName()]));
+			// 		return $this->renderForm('ajax/form.html.twig', [
+			// 			'form' => $form,
+			// 		]);
+			// 	}
 				
-		// 		try {
-		// 			$document->setMetadataValue($metadata, $value);
-		// 		} catch (\Error $e) {
-		// 			if ($metadata->getIsMandatory() === true) {
-		// 				$this->addFlash('danger', $e->getMessage());
-		// 				return $this->renderForm('ajax/form.html.twig', [
-		// 					'form' => $form,
-		// 				]);
-		// 			}
-		// 		}
-		// 	}
+			// 	try {
+			// 		$document->setMetadataValue($metadata, $value);
+			// 	} catch (\Error $e) {
+			// 		if ($metadata->getIsMandatory() === true) {
+			// 			$this->addFlash('danger', $e->getMessage());
+			// 			return $this->renderForm('ajax/form.html.twig', [
+			// 				'form' => $form,
+			// 			]);
+			// 		}
+			// 	}
+			// }
 			
-		// 	$entityManager->persist($document);
-		// 	$entityManager->flush();
+			// $entityManager->persist($document);
+			// $entityManager->flush();
 			
-		// 	return $this->redirectToRoute('version_new', [
-		// 		'document' => $document->getId()
-		// 	]);
-		// } else {
-			// return $this->renderForm('ajax/form.html.twig', [
-			// 	'form' => $form,
-			// ]);
-		// }
+			return $this->redirectToRoute('version_new', [
+				'document' => $document->getId()
+			]);
+		} else {
+			return $this->renderForm('pages/engineering/new/_pannel.html.twig', [
+				'form' => $form,
+			]);
+		}
 	}
 	
 	#[Route(path: '/project/serie/document/edit', name: 'document_edit')]
 	public function edit(Request $request) : Response
 	{
-		$documents = $this->documentRepository->getDocumentsByRequest($request);
+		//todo: à remplacer
+		//$documents = $this->documentRepository->getDocumentsByRequest($request);
 		if ($documents == false) {
 			$this->addFlash('danger', $this->translator->trans('None documents selected'));
 			return $this->renderForm('ajax/error.html.twig');
@@ -434,7 +449,8 @@ class DocumentController extends AbstractTurboController
 	#[Route(path: '/project/serie/document/move', name: 'document_move')]
 	public function move(Request $request) : Response
 	{
-		$documents = $this->documentRepository->getDocumentsByRequest($request);
+		//todo: à remplacer
+		//$documents = $this->documentRepository->getDocumentsByRequest($request);
 		if ($documents == false) {
 			$this->addFlash('danger', $this->translator->trans('None documents selected'));
 			return $this->renderForm('ajax/error.html.twig');
@@ -474,7 +490,8 @@ class DocumentController extends AbstractTurboController
 	#[Route(path: '/project/serie/document/delete', name: 'document_delete', methods: ['GET', 'DELETE'])]
 	public function delete(Request $request) : Response
 	{
-		$documents = $this->documentRepository->getDocumentsByRequest($request);
+		//todo: à remplacer
+		//$documents = $this->documentRepository->getDocumentsByRequest($request);
 		if ($documents == false) {
 			$this->addFlash('danger', $this->translator->trans('None documents selected'));
 			return $this->renderForm('ajax/error.html.twig');

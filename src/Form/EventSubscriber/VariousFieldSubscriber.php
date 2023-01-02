@@ -21,11 +21,13 @@ class VariousFieldSubscriber implements EventSubscriberInterface
 
 	public function preSetData(FormEvent $event): void
 	{
+		// dump('VariousFieldSubscriber->preSetData');
+		
 		$data = $event->getData();
 		$form = $event->getForm();
 		
 		if (is_array($data) === true) {
-			if (count(array_unique($data)) > 1) {
+			if ($this->isVarious($data) === true) {
 				$form->add('switch', CheckboxType::class, [
 					'label' => 'Various',
 					'label_attr' => [
@@ -36,6 +38,26 @@ class VariousFieldSubscriber implements EventSubscriberInterface
 				]);
 			}
 		}
+	}
+
+	/**
+	 * Checks if an array contains at most 1 distinct value.
+	 *
+	 * @param array $array
+	 * @return boolean
+	 */
+	private function isVarious(array $array): bool
+	{
+		if (count($array) > 1) {
+			$firstValue = reset($array);
+			foreach ($array as $value) {
+				if ($firstValue !== $value) {
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 }
 

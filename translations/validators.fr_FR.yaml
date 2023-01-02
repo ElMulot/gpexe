@@ -1,4 +1,1 @@
-An user with this email already exist.: Un utilisateur avec cette adresse mail existe déjà.
-A profil with this name already exist.: Un profil avec ce nom existe déjà.
-A company with this name already exist.: Une société avec ce nom existe déjà.
-The password fields must match.: Les mots de passe doivent correspondre.
+#user.mail.not_blank: Un utilisateur avec cette adresse mail existe déjà.

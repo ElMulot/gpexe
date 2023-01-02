@@ -17,6 +17,23 @@ list:
     visa: Visas
     view: Views
 
+info:
+    document: >-
+        {count, plural,
+            one   {# document selected}
+            other {# documents selected}
+        }
+    serie: >-
+        {count, plural,
+            one   {# serie selected}
+            other {# series selected}
+        }
+    version: >-
+        {count, plural,
+            one   {# version selected}
+            other {# versions selected}
+        }
+
 new:
     program: New program
     codification: New codification
@@ -108,6 +125,7 @@ confirm:
     project: Confirm deletion of project
     serie: Confirm deletion of serie
     status: Confirm deletion of status
+    review: Confirm delete of this visa
     user: Confirm deletion of user
     version: Confirm deletion
         {count, plural,

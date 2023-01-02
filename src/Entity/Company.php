@@ -9,9 +9,16 @@ use Doctrine\ORM\Mapping as ORM;
 use Fresh\DoctrineEnumBundle\Validator\Constraints as DoctrineAssert;
 use App\Entity\Enum\CompanyTypeEnum;
 use App\Repository\CompanyRepository;
+use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Constraints\Regex;
 
 #[ORM\Entity(repositoryClass: CompanyRepository::class)]
-#[UniqueEntity(fields: "name", message: "A company with this name already exist.")]
+#[UniqueEntity(
+	fields: 'name'
+)]
+#[UniqueEntity(
+	fields: 'codename'
+)]
 class Company implements \Stringable
 {
 	
@@ -21,9 +28,13 @@ class Company implements \Stringable
 	private ?int $id = null;
 
 	#[ORM\Column(length: 100, unique: true)]
+	#[NotBlank]
+	#[Regex('/^[^$"]+$/')]
 	private ?string $name = null;
 	
 	#[ORM\Column(length: 100)]
+	#[NotBlank]
+	#[Regex('/^\w+$/')]
 	private ?string $codename = null;
 	
 	#[ORM\Column(type: 'company_type_enum')]
@@ -164,22 +175,22 @@ class Company implements \Stringable
 	
 	public function isMainContractor(): bool
 	{
-		return ($this->getType() == CompanyTypeEnum::MAIN_CONTRACTOR);
+		return ($this->getType() === CompanyTypeEnum::MAIN_CONTRACTOR);
 	}
 	
 	public function isSubContractor(): bool
 	{
-		return ($this->getType() == CompanyTypeEnum::SUB_CONTRACTOR);
+		return ($this->getType() === CompanyTypeEnum::SUB_CONTRACTOR);
 	}
 	
 	public function isSupplier(): bool
 	{
-		return ($this->getType() == CompanyTypeEnum::SUPPLIER);
+		return ($this->getType() === CompanyTypeEnum::SUPPLIER);
 	}
 	
 	public function isChecker(): bool
 	{
-		return ($this->getType() == CompanyTypeEnum::CHECKER);
+		return ($this->getType() === CompanyTypeEnum::MAIN_CONTRACTOR || $this->getType() === CompanyTypeEnum::CHECKER);
 	}
 	
 	public function __toString(): string

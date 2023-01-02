@@ -1,6 +1,4 @@
 {% if form is defined %}
-
-	{% form_theme form 'ajax/layout.html.twig' %}
 	
 	{{ form_start(form, { 'attr': {'data-toggle': 'ajax', 'data-url': app.request.uri}}) }}
 	{% for child in form %}

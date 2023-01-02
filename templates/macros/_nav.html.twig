@@ -1,21 +1,3 @@
-<!-- {% macro tabs(items) %}
-	<ul class="nav nav-tabs" data-controller="nav" role="tablist">
-		{% for item in items %}
-			{% set uuid = uuid() %}
-			{% if item.class is defined and 'active' in item.class %}
-				{% set item = item|merge({
-					'aria-selected': 'true'
-				}) %}
-			{% endif %}
-			<li class="nav-item">
-				<a id="{{ uuid }}-tab" data-bs-toggle="tab" data-bs-target="#{{ uuid }}" aria-controls="{{ uuid }}" {{ block('attributes') }}>
-					{{ item.name }}
-				</a>
-			</li>
-		{% endfor %}
-	</ul>
-{% endmacro %} -->
-
 {% macro turbo(id, items, disableCollapse = false) %}
 	<nav class="nav nav-tabs" {{ stimulus_controller('nav', {disableCollapse: disableCollapse}) }}>
 		{% for item in items %}
@@ -23,7 +5,7 @@
 				{% set item = item|merge({'aria-current': 'page'}) %}
 			{% endif %}
 			<a data-turbo-frame="{{ id }}" {{ block('attributes') }}>
-				{{ item.name }}
+				{{ item.name|trans }}
 			</a>
 		{% endfor %}
 	</nav>

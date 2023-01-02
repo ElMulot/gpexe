@@ -11,8 +11,15 @@ use Fresh\DoctrineEnumBundle\Validator\Constraints as DoctrineAssert;
 use App\Entity\Enum\MetadataTypeEnum;
 use App\Entity\Enum\MetadataParentEnum;
 use App\Repository\MetadataRepository;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Constraints\NotEqualTo;
+use Symfony\Component\Validator\Constraints\Regex;
 
 #[ORM\Entity(repositoryClass: MetadataRepository::class)]
+#[UniqueEntity(
+	fields: ['codename', 'project']
+)]
 class Metadata implements \Stringable
 {
 	#[ORM\Id]
@@ -21,9 +28,26 @@ class Metadata implements \Stringable
 	private ?int $id = null;
 
 	#[ORM\Column(length: 100)]
+	#[NotBlank]
+	#[Regex('/^[^$"]+$/')]
 	private ?string $name = null;
 
 	#[ORM\Column(length: 100)]
+	#[NotBlank]
+	#[Regex('/^\w+$/')]
+	#[NotEqualTo('name')]
+	#[NotEqualTo('reference')]
+	#[NotEqualTo('initialScheduleDate')]
+	#[NotEqualTo('scheduleDate')]
+	#[NotEqualTo('deliveryDate')]
+	#[NotEqualTo('date')]
+	#[NotEqualTo('isRequired')]
+	#[NotEqualTo('writer')]
+	#[NotEqualTo('checker')]
+	#[NotEqualTo('approver')]
+	#[NotEqualTo('reference')]
+	#[NotEqualTo('company')]
+	
 	private ?string $codename = null;
 
 	#[ORM\Column(type: 'metadata_type_enum')]
@@ -33,11 +57,17 @@ class Metadata implements \Stringable
 	#[ORM\Column]
 	private ?bool $isMandatory = null;
 
+	#[ORM\Column(length: 255, nullable: true)]
+	private ?string $pattern = null;
+
+	#[ORM\Column(length: 255, nullable: true)]
+	private ?string $default = null;
+
 	#[ORM\Column(type: 'metadata_parent_enum')]
 	#[DoctrineAssert\EnumType(entity: MetadataParentEnum::class)]
 	private ?string $parent = null;
 
-	#[ORM\ManyToOne(inversedBy: 'metadatas', fetch: 'EAGER')]
+	#[ORM\ManyToOne(inversedBy: 'metadatas', cascade:["persist"], fetch: 'EAGER')]
 	private ?Project $project = null;
 
 	#[ORM\OneToMany(targetEntity: MetadataItem::class, mappedBy: 'metadata', orphanRemoval: true)]
@@ -100,16 +130,43 @@ class Metadata implements \Stringable
 
 	public function getIsMandatory(): ?bool
 	{
+		if ($this->type === MetadataTypeEnum::BOOL) {
+			return false;
+		}
 		return $this->isMandatory;
 	}
 
 	public function setIsMandatory(bool $isMandatory): self
 	{
 		if ($this->type === MetadataTypeEnum::BOOL) {
-			$isMandatory = true;
+			$isMandatory = false;
 		}
 		$this->isMandatory = $isMandatory;
 		
+		return $this;
+	}
+
+	public function getPattern(): ?string
+	{
+		return $this->pattern;
+	}
+
+	public function setPattern(string $pattern): self
+	{
+		$this->pattern = $pattern;
+
+		return $this;
+	}
+
+	public function getDefault(): ?string
+	{
+		return $this->default;
+	}
+
+	public function setDefault(string $default): self
+	{
+		$this->default = $default;
+
 		return $this;
 	}
 
@@ -216,6 +273,11 @@ class Metadata implements \Stringable
 	public function isText(): bool
 	{
 		return ($this->getType() == MetadataTypeEnum::TEXT);
+	}
+
+	public function isRegex(): bool
+	{
+		return ($this->getType() == MetadataTypeEnum::REGEX);
 	}
 
 	public function isDate(): bool

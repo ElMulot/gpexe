@@ -3,15 +3,22 @@
 namespace App\Entity;
 
 use App\Entity\Enum\MetadataTypeEnum;
+use App\Exception\InvalidValueException;
+use App\Exception\VersionAlreadyExist;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use App\Helpers\Date;
 use Spatie\Regex\Regex;
 use App\Repository\VersionRepository;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Validator\Constraints\NotBlank;
 
 #[ORM\Entity(repositoryClass: VersionRepository::class)]
-class Version implements \Stringable
+#[UniqueEntity(
+	fields: ['name', 'document']
+)]
+class Version extends AbstractElement
 {
 	#[ORM\Id]
 	#[ORM\GeneratedValue]
@@ -19,6 +26,7 @@ class Version implements \Stringable
 	private ?int $id = null;
 
 	#[ORM\Column(length: 100)]
+	#[NotBlank]
 	private ?string $name = null;
 
 	#[ORM\Column]
@@ -295,134 +303,30 @@ class Version implements \Stringable
 		return $this;
 	}
 
+	/**
+	 * Get Review object from Company object 
+	 *
+	 * @param Company $company
+	 * @return Review|null
+	 */
 	public function getReviewByCompany(Company $company): ?Review
 	{
+		/** @var Review $review */
 		foreach ($this->getReviews()->getValues() as $review) {
-			if ($review->getVisa()->getCompany() == $company) {
+			if ($review->getVisa()->getCompany() === $company) {
 				return $review;
 			}
 		}
 		return null;
 	}
 
-	public function getMetadataValue(Metadata $metadata) {
-		
-		switch ($metadata->getType()) {
-			
-			case MetadataTypeEnum::BOOL:
-			case MetadataTypeEnum::TEXT:
-			case MetadataTypeEnum::DATE:
-			case MetadataTypeEnum::LINK:
-				foreach ($this->getMetadataValues()->getValues() as $metadataValue) {
-					if ($metadataValue->getMetadata() == $metadata) {
-						return $metadataValue;
-					}
-				}
-				break;
-				
-			case MetadataTypeEnum::LIST:
-				foreach ($this->getMetadataItems()->getValues() as $metadataItem) {
-					if ($metadataItem->getMetadata() == $metadata) {
-						return $metadataItem;
-					}
-				}
-				break;
-		}
-		
-	}
-
-	public function setMetadataValue(Metadata $metadata, $value): self
-	{
-		
-		switch ($metadata->getType()) {
-			case MetadataTypeEnum::BOOL:
-				$value = ($value)?true:false;
-				break;
-			case MetadataTypeEnum::DATE:
-				if (is_string($value)) {
-					$date = Date::fromFormat($value);
-					if ($date->isValid() === false) {
-						$value = null;
-					}
-				} elseif ($value instanceof \DateTimeInterface) {
-					$value = $value->format('d-m-Y');
-				} else {
-					$value = null;
-				}
-				break;
-			default:
-				if ($value === '') {
-					$value = null;
-				}
-		}
-		
-		if ($value === null) {
-			if ($metadata->getIsMandatory() === true) {
-				throw new \Error(sprintf('Erreur: la valeur "%s" ne peut être vide', $metadata->getCodename()));
-				return $this;
-			}
-		}
-		
-		switch ($metadata->getType()) {
-			
-			case MetadataTypeEnum::BOOL:
-			case MetadataTypeEnum::TEXT:
-			case MetadataTypeEnum::DATE:
-			case MetadataTypeEnum::LINK:
-				foreach ($this->getMetadataValues()->getValues() as $metadataValue) {
-					if ($metadataValue->getMetadata() == $metadata) {
-						if ($metadataValue->getValue() == $value) {
-							return $this;
-						} else {
-							$this->metadataValues->removeElement($metadataValue);
-						}
-					}
-				}
-				
-				if ($value != '') {
-					foreach ($metadata->getMetadataValues()->getValues() as $metadataValue) {
-						if ($metadataValue->getValue() == $value) {
-							$this->addMetadataValue($metadataValue);
-							return $this;
-						}
-					}
-					$metadataValue = new MetadataValue();
-					$metadataValue->setValue($value);
-					$metadataValue->setMetadata($metadata);
-					$this->addMetadataValue($metadataValue);
-					return $this;
-				}
-				break;
-				
-			case MetadataTypeEnum::LIST:
-				foreach ($this->getMetadataItems()->getValues() as $metadataItem) {
-					if ($metadataItem->getMetadata() == $metadata) {
-						if ($metadataItem->getValue() == $value) {
-							return $this;
-						} else {
-							$this->metadataItems->removeElement($metadataItem);
-						}
-					}
-				}
-				
-				if ($value != '') {
-					foreach ($metadata->getMetadataItems()->getValues() as $metadataItem) {
-						if ($metadataItem->getValue() == $value) {
-							$this->addMetadataItem($metadataItem);
-						}
-					}
-					return $this;
-				}
-				break;
-		}
-		
-		if ($metadata->getType() === MetadataTypeEnum::BOOL) {
-			return $this;
-		}
-		throw new \Error(sprintf('Erreur en écrivant la valeur "%s" dans le champ "%s"', $value, $metadata->getCodename()));
-	}
-
-	public function getPropertyValue(string $codename)
+	/**
+	 * Return any property value based on its full codename
+	 * 
+	 * @param string $codename
+	 * @return mixed
+	 */
+	public function getPropertyValue(string $codename): mixed
 	{
 		
 		switch ($codename) {
@@ -455,6 +359,7 @@ class Version implements \Stringable
 			
 			case 'version.first':
 				$date = $this->getDate();
+				/** @var Version $version */
 				foreach ($this->getDocument()->getVersions()->getValues() as $version) {
 					if ($version->getDate() < $date || ($version->getDate() == $date && $version->getName() < $this->getName())) {
 						return false;
@@ -465,6 +370,7 @@ class Version implements \Stringable
 			case 'version.firstScheduled':
 				if ($this->getIsRequired() === false) return false;
 				$date = $this->getScheduledDate();
+				/** @var Version $version */
 				foreach ($this->getDocument()->getVersions()->getValues() as $version) {
 					if ($version->getIsRequired() && ($version->getScheduledDate() < $date || ($version->getScheduledDate() == $date && $version->getName() < $this->getName()))) {
 						return false;
@@ -484,6 +390,7 @@ class Version implements \Stringable
 			
 			case 'version.last':
 				$date = $this->getDate();
+				/** @var Version $version */
 				foreach ($this->getDocument()->getVersions()->getValues() as $version) {
 					if ($version->getDate() > $date || ($version->getDate() == $date && $version->getName() > $this->getName())) {
 						return false;
@@ -494,6 +401,7 @@ class Version implements \Stringable
 			case 'version.lastScheduled':
 				if ($this->getIsRequired() === false) return false;
 				$date = $this->getScheduledDate();
+				/** @var Version $version */
 				foreach ($this->getDocument()->getVersions()->getValues() as $version) {
 					if ($version->getIsRequired() && ($version->getScheduledDate() > $date || ($version->getScheduledDate() == $date && $version->getName() > $this->getName()))) {
 						return false;
@@ -504,6 +412,7 @@ class Version implements \Stringable
 			case 'version.lastDelivered':
 				if ($this->getIsRequired()) return false;
 				$date = $this->getDeliveryDate();
+				/** @var Version $version */
 				foreach ($this->getDocument()->getVersions()->getValues() as $version) {
 					if ($version->getIsRequired() == false && ($version->getDeliveryDate() > $date || ($version->getDeliveryDate() == $date && $version->getName() > $this->getName()))) {
 						return false;
@@ -513,21 +422,23 @@ class Version implements \Stringable
 								
 			default:
 				
-				if (Regex::match('/version\.\w+/', $codename)->hasMatch()) {
+				if (Regex::match('/version\.\w+/', $codename)->hasMatch() === true) {
+					/** @var Metadata $metadata */
 					foreach ($this->getDocument()->getSerie()->getProject()->getMetadatas()->getValues() as $metadata) {
-						if ($metadata->getFullCodename() == $codename) {
+						if ($metadata->getFullCodename() === $codename) {
 							return $this->getMetadataValue($metadata);
 						}
 					}
 					
-				} elseif (Regex::match('/status\.\w+/', $codename)->hasMatch()) {
+				} elseif (Regex::match('/status\.\w+/', $codename)->hasMatch() === true) {
 					
 					return $this->getStatus()->getPropertyValue($codename);
 					
-				} elseif (($result = Regex::match('/visa\.(\w+)\.(\w+)/', $codename))->hasMatch()) {
+				} elseif (($result = Regex::match('/visa\.(\w+)\.(\w+)/', $codename))->hasMatch() === true) {
 					
+					/** @var Visa $visa */
 					foreach ($this->getDocument()->getSerie()->getProject()->getVisas()->getValues() as $visa) {
-						if ($visa->getCompany()->getCodename() == $result->group(1)) {
+						if ($visa->getCompany()->getCodename() === $result->group(1)) {
 							if ($review = $this->getReviewByCompany($visa->getCompany())) {
 								return match ($result->group(2)) {
 									'value'		=> $review->getVisa(),
@@ -548,167 +459,156 @@ class Version implements \Stringable
 		return null;
 	}
 
-	public function setPropertyValue(string $codename, $value): self
+	/**
+	 * Set value from codename string
+	 *
+	 * @param string $codename
+	 * @param mixed $value
+	 * @return self
+	 */
+	public function setPropertyValue(string $codename, mixed $value): self
 	{
 		
 		switch ($codename) {
 			case 'version.name':
-				if ($value) {
-					foreach ($this->document->getVersions()->getValues() as $version) {
-						if ($version->getName() == $value && $version !== $this) {
-							throw new \Error(sprintf('Erreur: le nom de révision "%s" existe déjà', $value));
-						}
+				foreach ($this->document->getVersions()->getValues() as $version) {
+					if ($version->getName() === (string)$value && $version !== $this) {
+						throw new VersionAlreadyExist($value);
 					}
-					$this->setName($value);
-					return $this;
-				} else {
-					throw new \Error('Erreur: le nom de révision ne peut être vide.');
 				}
-				break;
+				$this->setName($value);
+				return $this;
 			
 			case 'version.date':
-				if ($value instanceof \DateTimeInterface) {
+				if ($value instanceof \DateTimeInterface === true) {
 					if ($value > new Date('today')) {
 						$this->isRequired = true;
 					}
 					$this->setDate($value);
 					return $this;
-				} elseif (($date = Date::fromFormat($value, 'd-m-Y'))->isValid() === true) {
-					if ($date > new Date('today')) {
-						$this->isRequired = true;
-					}
-					$this->setDate($date);
-					return $this;
 				}
 				break;
 				
 			case 'version.isRequired':
-				switch ((string)$value) {
-					case '':
-					case 'false':
-					case 'no':
-						$this->setIsRequired(false);
-						return $this;
-					case '1':
-					case 'true':
-					case 'yes':
-						$this->setIsRequired(true);
-						return $this;
-				}
+				$this->setIsRequired($value || $value === 'true' || $value === 'yes');
 				break;
 				
 			case 'version.writer':
-				if ($value) {
-					foreach ($this->getDocument()->getSerie()->getCompany()->getUsers()->getValues() as $user) {
+				/** @var User $user */
+				foreach ($this->getDocument()->getSerie()->getCompany()->getUsers()->getValues() as $user) {
+					if (Regex::match('/^[\w\-\.]+@[\w\-\.]+\.[a-zA-Z]{2,5}$/', $value)->hasMatch() === true) {
+						if ($user->getEmail() === (string)$value) {
+							$this->setWriter($user);
+							return $this;
+						}
+					} else {
+						if ($user->getName() === (string)$value) {
+							$this->setWriter($user);
+							return $this;
+						}
+					}
+				}
+				$this->setWriter(null);
+				return $this;
+				
+			case 'version.checker':
+				/** @var User $user */
+				foreach ($this->getDocument()->getSerie()->getProject()->getUsers()->getValues() as $user) {
+					if ($user->getCompany()->isChecker() === true) {
 						if (Regex::match('/^[\w\-\.]+@[\w\-\.]+\.[a-zA-Z]{2,5}$/', $value)->hasMatch()) {
-							if ($user->getEmail() == $value) {
-								$this->setWriter($user);
+							if ($user->getEmail() === (string)$value) {
+								$this->setChecker($user);
 								return $this;
 							}
 						} else {
-							if ($user->getName() == $value) {
-								$this->setWriter($user);
+							if ($user->getName() === (string)$value) {
+								$this->setChecker($user);
 								return $this;
 							}
 						}
 					}
-				} else {
-					$this->setWriter(null);
 				}
-				break;
-				
-			case 'version.checker':
-				if ($value) {
-					foreach ($this->getDocument()->getSerie()->getProject()->getUsers()->getValues() as $user) {
-						if ($user->getCompany()->isMainContractor() || $user->getCompany()->isChecker()) {
-							if (Regex::match('/^[\w\-\.]+@[\w\-\.]+\.[a-zA-Z]{2,5}$/', $value)->hasMatch()) {
-								if ($user->getEmail() == $value) {
-									$this->setChecker($user);
-									return $this;
-								}
-							} else {
-								if ($user->getName() == $value) {
-									$this->setChecker($user);
-									return $this;
-								}
-							}
-						}
-					}
-				} else {
-					$this->setChecker(null);
-				}
-				break;
+				$this->setChecker(null);
+				return $this;
 				
 			case 'version.approver':
-				if ($value) {
-					foreach ($this->getDocument()->getSerie()->getProject()->getUsers()->getValues() as $user) {
-						if ($user->getCompany()->isMainContractor() || $user->getCompany()->isChecker()) {
-							if (Regex::match('/^[\w\-\.]+@[\w\-\.]+\.[a-zA-Z]{2,5}$/', $value)->hasMatch()) {
-								if ($user->getEmail() == $value) {
-									$this->setApprover($user);
-									return $this;
-								}
-							} else {
-								if ($user->getName() == $value) {
-									$this->setApprover($user);
-									return $this;
-								}
+				/** @var User $user */
+				foreach ($this->getDocument()->getSerie()->getProject()->getUsers()->getValues() as $user) {
+					if ($user->getCompany()->isChecker() === true) {
+						if (Regex::match('/^[\w\-\.]+@[\w\-\.]+\.[a-zA-Z]{2,5}$/', $value)->hasMatch() === true) {
+							if ($user->getEmail() === (string)$value) {
+								$this->setApprover($user);
+								return $this;
+							}
+						} else {
+							if ($user->getName() === (string)$value) {
+								$this->setApprover($user);
+								return $this;
 							}
 						}
 					}
-				} else {
-					$this->setApprover(null);
 				}
-				break;
+				$this->setApprover(null);
+				return $this;
 				
 			default:
 				
-				if (Regex::match('/version\.\w+/', $codename)->hasMatch()) {
-					
+				if (Regex::match('/version\.\w+/', $codename)->hasMatch() === true) {
+					/** @var Metadata $metadata */
 					foreach ($this->getDocument()->getSerie()->getProject()->getMetadatas()->getValues() as $metadata) {
-						if ($metadata->getFullCodename() == $codename) {
+						if ($metadata->getFullCodename() === $codename) {
 							$this->setMetadataValue($metadata, $value);
 							return $this;
 						}
 					}
 					
-				} elseif (Regex::match('/status\.value/', $codename)->hasMatch()) {
-					
+				} elseif (Regex::match('/status\.value/', $codename)->hasMatch() === true) {
+					/** @var Status $status */
 					foreach ($this->getDocument()->getSerie()->getProject()->getStatuses()->getValues() as $status) {
-						if ($status->getValue() == $value) {
+						if ($status->getValue() === (string)$value) {
 							$this->setStatus($status);
 							return $this;
 						}
 					}
 					
-				} elseif (($result = Regex::match('/visa\.(\w+)\.(\w+)/', $codename))->hasMatch()) {
-					
+				} elseif (($result = Regex::match('/visa\.(\w+)\.(\w+)/', $codename))->hasMatch() === true) {
+					/** @var Visa $visa */
 					foreach ($this->getDocument()->getSerie()->getProject()->getVisas()->getValues() as $visa) {
-						if ($visa->getCompany()->getCodename() == $result->group(1)) {
+						if ($visa->getCompany()->getCodename() === $result->group(1)) {
 							switch ($result->group(2)) {
 								
 								case 'value':
-									if ($visa->getName() == $value) {
+									if ($visa->getName() === (string)$value) {
 										if ($review = $this->getReviewByCompany($visa->getCompany())) {
-											if ($review->getVisa()->getName() != $value) {
-												$review->setVisa($visa);
+											if ($review->getVisa()->getName() === (string)$value) {
+												return $this;
 											}
+											$review->setVisa($visa);
+											return $this;
 										} else {
 											$review = new Review();
-											if ($this->getChecker()) {
-												if ($this->getChecker()->getCompany() == $visa->getCompany()) {
+											if ($this->getChecker() !== null) {
+												//if Review object is created, Checker will be used as Review user
+												if ($this->getChecker()->getCompany() === $visa->getCompany()) {
 													$review->setUser($this->getChecker());
+													break;
 												} else {
+													//if Checker doesn't belong to the Visa Company, the first user will be used
+													/** @var User $user */
 													foreach ($visa->getCompany()->getUsers()->getValues() as $user) {
 														$review->setUser($user);
 														break;
 													}
+													return $this;
 												}
 											} else {
+												//If Checked is not defined, the first user will be used
+												/** @var User $user */
 												foreach ($visa->getCompany()->getUsers()->getValues() as $user) {
 													$review->setUser($user);
 													break;
 												}
+												return $this;
 											}
 											
 											$review->setDate(new Date('today'));
@@ -721,16 +621,17 @@ class Version implements \Stringable
 									
 								case 'username':
 									if ($review = $this->getReviewByCompany($visa->getCompany())) {
-										if ($review->getUser()->getName() != $value) {
-											foreach ($visa->getCompany()->getUsers()->getValues() as $user) {
-												if ($user->getName() == $value) {
-													$review->setUser($user);
-													return $this;
-												}
-											}
-											throw new \Error(sprintf('Erreur en écrivant la valeur "%s" dans le champ "%s" : le nom d\'utilisateur n\'est pas valable', $value, $codename));
+										if ($review->getUser()->getName() === (string)$value) {
+											return $this;
 										}
-										return $this;
+										/** @var User $user */
+										foreach ($visa->getCompany()->getUsers()->getValues() as $user) {
+											if ($user->getName() === (string)$value) {
+												$review->setUser($user);
+												return $this;
+											}
+										}
+										throw new InvalidValueException($value, $codename);
 									}
 									break;
 									
@@ -751,12 +652,10 @@ class Version implements \Stringable
 					return $this;
 				}
 		}
-		
-		throw new \Error(sprintf('Erreur en écrivant la valeur "%s" dans le champ "%s"', $value, $codename));
 	}
 	
 	public function __toString(): string
 	{
-		return (string)$this->getDocument()->__toString() . ' - ' . $this->getName();
+		return $this->getDocument()->__toString() . $this->getDocument()->getSerie()->getProject()->getSplitter() ?? ''. $this->getName() ?? '';
 	}
 }

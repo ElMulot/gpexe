@@ -5,11 +5,14 @@ namespace App\EventListener;
 use App\Entity\Project;
 use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\Event\PreUpdateEventArgs;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Filesystem\Filesystem;
 
 class ProjectListener
 {
-	public function __construct(private $publicDirectory, private $uploadsDirectory)
+	public function __construct(private readonly string $publicDirectory,
+								#[Autowire('%app.uploads_directory%')]
+								private readonly string $uploadsDirectory)
 	{
 	}
 

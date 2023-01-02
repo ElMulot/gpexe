@@ -4,11 +4,13 @@ namespace App\Service;
 
 use Symfony\Component\Yaml\Yaml;
 use Spatie\Regex\Regex;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 class ParseService
 {
 	
-	public function __construct(private readonly string $ressourcesDirectory)
+	public function __construct(#[Autowire('app.ressource_directory')]
+								private readonly string $ressourcesDirectory)
 	{
 	}
 	

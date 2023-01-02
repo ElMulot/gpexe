@@ -1,0 +1,13 @@
+{% block various_widget %}
+	{% if form.switch is defined %}
+		<div class="{{ group_class }}" {{ stimulus_controller('form--various') }}>
+			{{ form_widget(form.input, {'attr': form.input.vars.attr|merge({'data-form--various-target': 'input'})}) }}
+			<div class="input-group-text form-control text-start" {{ stimulus_target('form--various', 'placeholder') }}>{% trans %}Various{% endtrans %}</div>
+			<div class="input-group-text">
+				{{ form_widget(form.switch, {'attr': form.switch.vars.attr|merge({'data-form--various-target': 'switch'})}) }}
+			</div>
+		</div>
+	{% else %}
+		{{ form_widget(form.input) }}
+	{% endif %}
+{% endblock %}

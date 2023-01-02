@@ -67,7 +67,7 @@ class MetadataItemController extends AbstractTurboController
 		}
 	}
 	
-	#[Route(path: '/project/metadata/item/{id}/edit', name: 'metadata_item_edit', requirements: ['id' => '\d+'])]
+	#[Route(path: '/project/metadata/item/{metadata_item}/edit', name: 'metadata_item_edit', requirements: ['metadata_item' => '\d+'])]
 	public function edit(Request $request, MetadataItem $metadataItem) : Response
 	{
 		$project = $metadataItem->getMetadata()->getProject();
@@ -94,7 +94,7 @@ class MetadataItemController extends AbstractTurboController
 		}
 	}
 	
-	#[Route(path: '/project/metadata/item/{id}/delete', name: 'metadata_item_delete', methods: ['GET', 'DELETE'], requirements: ['id' => '\d+'])]
+	#[Route(path: '/project/metadata/item/{metadata_item}/delete', name: 'metadata_item_delete', methods: ['GET', 'DELETE'], requirements: ['metadata_item' => '\d+'])]
 	public function delete(Request $request, MetadataItem $metadataItem) : Response
 	{
 		$project = $metadataItem->getMetadata()->getProject();

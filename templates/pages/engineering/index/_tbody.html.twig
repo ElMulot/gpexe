@@ -3,6 +3,8 @@
 		{% for item in items %}
 			<tr>
 				<td>
+					<input type="checkbox" class="form-check-input m-2" value="" aria-label="Select this line" data-id={{ item.version_id }}
+					{{ stimulus_action('engineering--main', 'lineSelected') }}>
 				</td>
 				{% for field in fields %}
 					{% if field.id in query.display|keys and field.display.thead is same as(true) %}

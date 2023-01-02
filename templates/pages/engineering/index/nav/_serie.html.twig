@@ -1,26 +1,32 @@
-<turbo-frame id="serie_pannel">
-	{% set selected_serie_id = (selected_serie)?selected_serie.id:0 %}
-	<div class="row p-2" {{ stimulus_controller('engineering--serie', (selected_serie)?{'selected': selected_serie.id}:[]) }}>
-		<div class="col px-2">
-			{% for serie in series %}
-				<button type="button" class="btn btn-width" 
-					{{ stimulus_target('engineering--serie', 'button') }} 
-					{{ stimulus_action('engineering--serie', 'update') }} 
-					{{ stimulus_param('engineering--serie', {'id': serie.id}) }}>
-						{{ serie.name }}
-				</button>
-			{% endfor %}
-		</div>
-		{% if series is not empty %}
-			{% if is_granted('ENGINEERING_SHOW', series|first) %}
-				<div class="col-auto">
-					<a class="btn btn-primary" href="{{ path('serie', {'project': project.id, 'id': series|map(v => v.id)}|merge((selected_serie)?{'selected': selected_serie.id}:[])) }}" data-turbo-frame="fs_modal" data-turbo-stream-replace="serie_pannel">
-						{% trans %}Manage series{% endtrans %}
-					</a>
-				</div>
-			{% endif %}
-		{% endif %}
-	</div>
-</turbo-frame>
+{% if app.request.headers.get('Turbo-frame') == 'serie_pannel' %}
 
-{% include('generic/list.html.twig') with {'title': title, 'class': class, 'entities': series} %}
+	<turbo-frame id="serie_pannel">
+		{% set selected_serie_id = (selected_serie)?selected_serie.id:0 %}
+		<div class="row p-2" {{ stimulus_controller('engineering--serie', (selected_serie)?{'selected': selected_serie.id}:[]) }}>
+			<div class="col px-2">
+				{% for serie in series %}
+					<button type="button" class="btn btn-width" 
+						{{ stimulus_target('engineering--serie', 'button') }} 
+						{{ stimulus_action('engineering--serie', 'update') }} 
+						{{ stimulus_param('engineering--serie', {'id': serie.id}) }}>
+							{{ serie.name }}
+					</button>
+				{% endfor %}
+			</div>
+			{% if series is not empty %}
+				{% if is_granted('ENGINEERING_SHOW', series|first) %}
+					<div class="col-auto">
+						<a class="btn btn-primary" href="{{ path('serie', {'project': project.id, 'id': series|map(v => v.id)}|merge((selected_serie)?{'selected': selected_serie.id}:[])) }}" data-turbo-frame="fs_modal" data-turbo-stream-replace="serie_pannel">
+							{% trans %}Manage series{% endtrans %}
+						</a>
+					</div>
+				{% endif %}
+			{% endif %}
+		</div>
+	</turbo-frame>
+
+{% else %}
+	
+	{% include('generic/list.html.twig') with {'title': title, 'class': class, 'entities': series} %}
+
+{% endif %}

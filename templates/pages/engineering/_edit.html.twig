@@ -1,0 +1,61 @@
+{% set title = 'Edit element' %}
+
+{% extends 'modal/xl_modal.html.twig' %}
+{% import "macros/_nav.html.twig" as nav %}
+
+{% set items = [] %}
+
+{% if series|length == 1 %}
+	{% set items = items|merge([
+		{
+			'name': "Serie",
+			'href': path('serie_edit', {'serie': series|first.id }),
+		}
+	]) %}	
+{% endif %}
+
+{% if documents|length > 0 %}
+	{% set document_ids = documents|map(v => v.id) %}
+	{% set items = items|merge([
+		{
+			'name': "Document",
+			'href': path('document_edit', {'id': document_ids}),
+		}
+	]) %}	
+{% endif %}
+
+{% if versions|length > 0 %}
+	{% set version_ids = versions|map(v => v.id) %}
+	{% set items = items|merge([
+		{
+			'name': "Version",
+			'href': path('version_edit', {'id': version_ids}),
+			'class': 'active',
+		}
+	]) %}	
+{% endif %}
+
+{% block modal_body %}
+
+	{% if items|length == 0 %}
+		<div class="row justify-content-center">
+			<p>{% trans %}Select one or more lines first.{% endtrans %}</p>
+		</div>
+	{% else %}
+		{{ nav.turbo('edit_pannel', items|map(item => (item == items|last)?item|merge({'class': 'active'}):item), true) }}
+	{% endif %}
+	
+{% endblock %}
+
+{% block modal_footer %}
+
+	{% if items|length == 0 %}
+		{{ parent() }}
+	{% else %}
+		<button type="button" class="btn btn-secondary btn-width" data-bs-dismiss="modal">{% trans %}Cancel{% endtrans %}</button>
+		<button type="submit" form="form" class="btn btn-primary btn-width">{% trans %}Save{% endtrans %}</button>
+	{% endif %}
+
+{% endblock %}
+
+

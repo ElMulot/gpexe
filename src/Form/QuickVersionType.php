@@ -138,6 +138,7 @@ class QuickVersionType extends AbstractType
 					break;
 					
 				case MetadataTypeEnum::TEXT:
+				case MetadataTypeEnum::REGEX:
 				case MetadataTypeEnum::LINK:
 					$builder->add($field['id'], TextareaType::class, $options + [
 						'mapped' => false,

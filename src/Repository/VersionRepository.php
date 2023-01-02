@@ -158,6 +158,7 @@ class VersionRepository extends RepositoryService
 								
 								case MetadataTypeEnum::BOOL:
 								case MetadataTypeEnum::TEXT:
+								case MetadataTypeEnum::REGEX:
 								case MetadataTypeEnum::LINK:
 									if ($qb->hasAlias($field['id'] . '_') === false) {
 										$qb
@@ -363,6 +364,7 @@ class VersionRepository extends RepositoryService
 									
 									case MetadataTypeEnum::BOOL:
 									case MetadataTypeEnum::TEXT:
+									case MetadataTypeEnum::REGEX:
 									case MetadataTypeEnum::LINK:
 										if ($qb->hasAlias($field['id'] . '_') === false) {
 											$qb
@@ -518,19 +520,16 @@ class VersionRepository extends RepositoryService
 	 * @return Version[]
 	 *
 	 */
-	public function getVersions($request)
+	public function getVersionsByIds(?array $ids = [])
 	{
-		if ($versionIds = $request->query->all('id')) {
-			if (is_array($versionIds)) {
-				$qb = $this->newQB('v');
-				return $qb->andWhere($qb->in('v.id', $versionIds))
-					->getQuery()
-					->getResult()
-				;
-			}
-		}
+		$qb = $this->newQb('v');
+		return $qb
+			->andWhere($qb->in('v.id', $ids))
+			->getQuery()
+			->getResult()
+		;
 	}
-	
+		
 	/**
 	 * @return Version[]
 	 *
@@ -805,6 +804,7 @@ class VersionRepository extends RepositoryService
 								
 								case MetadataTypeEnum::BOOL:
 								case MetadataTypeEnum::TEXT:
+								case MetadataTypeEnum::REGEX:
 								case MetadataTypeEnum::LINK:
 									$qb
 										->leftJoin($field['parent'] . '.metadataValues', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
@@ -841,6 +841,7 @@ class VersionRepository extends RepositoryService
 									break;
 									
 								case MetadataTypeEnum::TEXT:
+								case MetadataTypeEnum::REGEX:
 									$qb->andHaving($qb->like($field['id'] . '_value', $this->likeStatement($value)));
 									break;
 									

@@ -1,5 +1,5 @@
 import { Controller } from '@hotwired/stimulus';
-import { Collapse } from './../helpers/bootstrap_helper';
+import { Collapse } from 'helpers/bootstrap_helper';
 
 export default class extends Controller {
 	

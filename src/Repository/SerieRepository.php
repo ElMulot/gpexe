@@ -26,15 +26,38 @@ class SerieRepository extends RepositoryService
 	}
 	
 	/**
-	 * @return Collection
+	 * Return an array of series from an array of serie.id.
+	 * Used-by : EngineeringController->tbody
+	 * @param array|null $ids
+	 * @return Collection|Serie[]
 	 */
-	public function getSeriesByIds(array $ids)
+	public function getSeriesByIds(?array $ids = []): array
 	{
 		$qb = $this->newQb('s');
 		return $qb
 			->innerJoin('s.company', 'c')
 			->andWhere($qb->in('s.id', $ids))
 			->addOrderBy('c.type, s.name')
+			->getQuery()
+			->getResult()
+		;
+	}
+
+	/**
+	 * Return an array of series from an array of version.id.
+	 * Used-by : EngineeringController->action
+	 * @param array|null $versionsIds
+	 * @return Serie[]
+	 */
+	public function getSeriesByVersionIds(?array $versionsIds = []): array
+	{
+		
+		$qb = $this->newQb('s');
+
+		return $qb
+			->innerJoin('s.documents', 'd')
+			->innerJoin('d.versions', 'v')
+			->andWhere($qb->in('v.id', $versionsIds))
 			->getQuery()
 			->getResult()
 		;

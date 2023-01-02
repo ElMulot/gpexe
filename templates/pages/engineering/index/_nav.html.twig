@@ -9,7 +9,7 @@
 		Progress
 	</button>
 </nav>
-<div class="tab-content" {{ stimulus_target('engineering--main', 'navContainer') }}>
+<div class="tab-content nav-container" {{ stimulus_target('engineering--main', 'navContainer') }}>
 	<turbo-frame class="tab-pane fade show active" id="view_pannel" role="tabpanel" aria-labelledby="view_label" src="{{ path('view', {'project': project.id}) }}">
 		
 	</turbo-frame>

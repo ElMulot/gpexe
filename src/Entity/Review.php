@@ -4,8 +4,12 @@ namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use App\Repository\ReviewRepository;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 #[ORM\Entity(repositoryClass: ReviewRepository::class)]
+#[UniqueEntity(
+	fields: ['visa', 'version']
+)]
 class Review
 {
 	#[ORM\Id]
@@ -20,7 +24,7 @@ class Review
 	private ?\DateTime $date = null;
 
 	#[ORM\ManyToOne]
-	#[ORM\JoinColumn(nullable: true)]
+	// #[ORM\JoinColumn(nullable: true)]
 	private ?Visa $visa = null;
 
 	#[ORM\ManyToOne(inversedBy: 'reviews')]
@@ -82,5 +86,10 @@ class Review
 		$this->version = $version;
 
 		return $this;
+	}
+
+	public function __toString(): string
+	{
+		return $this->getVisa()->getName();
 	}
 }

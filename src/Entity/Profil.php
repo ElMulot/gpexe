@@ -5,9 +5,13 @@ namespace App\Entity;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Doctrine\ORM\Mapping as ORM;
 use App\Repository\ProfilRepository;
+use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Constraints\Regex;
 
 #[ORM\Entity(repositoryClass: ProfilRepository::class)]
-#[UniqueEntity(fields: 'name', message: 'A profil with this name already exist.')]
+#[UniqueEntity(
+	fields: 'name'
+)]
 class Profil implements \Stringable
 {
 	#[ORM\Id]
@@ -16,19 +20,29 @@ class Profil implements \Stringable
 	private ?int $id = null;
 
 	#[ORM\Column(length: 100, unique: true)]
+	#[NotBlank]
+	#[Regex('/^[^$"]+$/')]
 	private ?string $name = null;
-
-	#[ORM\Column]
-	private ?bool $editDocuments = null;
-
-	#[ORM\Column]
-	private ?bool $isController = null;
-
-	#[ORM\Column]
-	private ?bool $isAdmin = null;
-
+	
 	#[ORM\Column]
 	private ?bool $isSuperAdmin = null;
+	
+	#[ORM\Column]
+	private ?bool $isAdmin = null;
+	
+	#[ORM\Column]
+	private ?bool $isController = null;
+	
+	#[ORM\Column]
+	private ?bool $editDocuments = null;
+	
+	public function __construct()
+	{
+		$this->isSuperAdmin = false;
+		$this->isAdmin = false;
+		$this->isController = false;
+		$this->editDocuments = false;
+	}
 	
 	public function getId(): ?int
 	{
@@ -39,26 +53,46 @@ class Profil implements \Stringable
 	{
 		return $this->name;
 	}
-
+	
 	public function setName(string $name): self
 	{
 		$this->name = $name;
-
-		return $this;
-	}
-
-	public function getEditDocuments(): ?bool
-	{
-		return $this->editDocuments;
-	}
-
-	public function setEditDocuments(bool $editDocuments): self
-	{
-		$this->editDocuments = $editDocuments;
 		
 		return $this;
 	}
-
+	
+	public function getIsSuperAdmin(): ?bool
+	{
+		return $this->isSuperAdmin;
+	}
+	
+	public function setIsSuperAdmin(bool $isSuperAdmin): self
+	{
+		$this->isSuperAdmin = $isSuperAdmin;
+		
+		if ($isSuperAdmin === true) {
+			$this->setIsAdmin(true);
+		}
+		
+		return $this;
+	}
+	
+	public function getIsAdmin(): ?bool
+	{
+		return $this->isAdmin;
+	}
+	
+	public function setIsAdmin(bool $isAdmin): self
+	{
+		$this->isAdmin = $isAdmin;
+		
+		if ($isAdmin === true) {
+			$this->setEditDocuments(true);
+			$this->setIsController(true);
+		}
+		return $this;
+	}
+	
 	public function getIsController(): ?bool
 	{
 		return $this->isController;
@@ -71,27 +105,15 @@ class Profil implements \Stringable
 		return $this;
 	}
 
-	public function getIsAdmin(): ?bool
+	public function getEditDocuments(): ?bool
 	{
-		return $this->isAdmin;
+		return $this->editDocuments;
 	}
 
-	public function setIsAdmin(bool $isAdmin): self
+	public function setEditDocuments(bool $editDocuments): self
 	{
-		$this->isAdmin = $isAdmin;
-
-		return $this;
-	}
-
-	public function getIsSuperAdmin(): ?bool
-	{
-		return $this->isSuperAdmin;
-	}
-
-	public function setIsSuperAdmin(bool $isSuperAdmin): self
-	{
-		$this->isSuperAdmin = $isSuperAdmin;
-
+		$this->editDocuments = $editDocuments;
+		
 		return $this;
 	}
 	

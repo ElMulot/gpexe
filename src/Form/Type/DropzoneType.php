@@ -11,9 +11,13 @@ use Symfony\Component\Mime\MimeTypes;
 use Symfony\Component\OptionsResolver\Options;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
+/**
+ * Field type with a dropzone field and a js image cropper.
+ */
+
 class DropzoneType extends AbstractType
 {
-	public function __construct(private $publicDirectory)
+	public function __construct(private readonly string $publicDirectory)
 	{
 	}
     
@@ -29,7 +33,6 @@ class DropzoneType extends AbstractType
     {
         $resolver->setDefaults([
             'mime_type' => '',
-            'multiple' => false,
             'attr' => [
                 'placeholder' => 'Drop image here or click to browse',
             ],
@@ -41,7 +44,6 @@ class DropzoneType extends AbstractType
         ]);
 
         $resolver->setAllowedTypes('mime_type', 'string');
-        $resolver->setAllowedTypes('multiple', 'bool');   
     }
 
     public function getParent(): ?string

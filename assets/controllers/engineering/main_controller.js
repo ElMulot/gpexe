@@ -3,9 +3,8 @@ import UrlParams from 'helpers/url_params_helper';
 
 export default class extends Controller {
 	
-	#viewId = 0;
-	#seriesIds = [];
 	#urlParams;
+	$action;
 	
 	#resize = {
 		$currentHeader: null,
@@ -23,7 +22,7 @@ export default class extends Controller {
 		$helper: null,
 	}
 
-	static targets = ['navContainer', 'tableContainer', 'table', 'thead', 'header', 'tbody', 'navigation', 'lastPageLoaded'];
+	static targets = ['navContainer', 'tableContainer', 'table', 'thead', 'header', 'checkAll', 'tbody', 'navigation', 'lastPageLoaded'];
 
 	static values = {
 		urlHeader: String,
@@ -65,7 +64,9 @@ export default class extends Controller {
 		 */
 		this.element.addEventListener('engineering--view:update', event => {
 			const serieIds = this.#urlParams.get('series');
-			this.lastPageLoadedTarget.value = 0;
+			if (this.hasLastPageLoadedTarget === true) {
+				this.lastPageLoadedTarget.value = 0;
+			}
 			this.#urlParams.deleteAll();
 			this.#urlParams.set('view', event.detail.id);
 			this.#urlParams.set('series', serieIds);
@@ -76,7 +77,9 @@ export default class extends Controller {
 		 * Listener triggered on user change serie.
 		 */
 		this.element.addEventListener('engineering--serie:update', event => {
-			this.lastPageLoadedTarget.value = 0;
+			if (this.hasLastPageLoadedTarget === true) {
+				this.lastPageLoadedTarget.value = 0;
+			}
 			this.#urlParams.delete('page');
 			this.#urlParams.set('series', event.detail.ids);
 			this.setThead();
@@ -104,7 +107,7 @@ export default class extends Controller {
 			if (Array.isArray(event.detail) === false) {
 				return;
 			}
-			console.log(event.detail)
+
 			event.detail.forEach(e => {
 				if (e.value == false) {
 					e.value = null;
@@ -195,7 +198,7 @@ export default class extends Controller {
 		});
 
 		/**
-		 * Listener triggered on Fields_picker selectors click or on col resize
+		 * Listener triggered on Fields_picker selectors click or on col resize.
 		 */
 		this.element.addEventListener('engineering--header:display', event => {
 			
@@ -217,7 +220,7 @@ export default class extends Controller {
 		});
 
 		/**
-		 * Listener triggered on col move
+		 * Listener triggered on col move.
 		 */
 		 this.element.addEventListener('engineering--header:order', event => {
 
@@ -227,14 +230,12 @@ export default class extends Controller {
 			if (currentOrder > newOrder) {
 				this.#urlParams.forEach((v, k) => {
 					if (k.startsWith('order[') === true && v >= newOrder && v <= currentOrder && k !== event.key) {
-						console.log(k + ' : ' + v+1);
 						this.#urlParams.set(k, v+1);
 					}
 				});
 			} else {
 				this.#urlParams.forEach((v, k) => {
 					if (k.startsWith('order[') === true && v >= currentOrder && v <= newOrder && k !== event.key) {
-						console.log(k + ' : ' + v-1);
 						this.#urlParams.set(k, v-1);
 					}
 				});
@@ -245,6 +246,7 @@ export default class extends Controller {
 		});
 
 		this.#urlParams = this.#getUrlParams();
+		this.$action = document.getElementById('action');
 
 		this.dispatch('connected');
 	}
@@ -255,7 +257,7 @@ export default class extends Controller {
 	appendThead() {
 		if (this.#urlParams.has('series') === true && this.#urlParams.has('view') === true || this.#urlParams.has('display') === true) {
 			this.tableContainerTarget.src = this.urlHeaderValue + '?' + this.#urlParams.toString();
-		} 
+		}
 	}
 
 	/**
@@ -269,6 +271,16 @@ export default class extends Controller {
 			this.tableContainerTarget.src = '';
 			this.appendThead();
 		}
+	}
+
+	/**
+	 * CheckAll checkbox actions. 
+	 */
+	checkAllTargetConnected() {
+		this.checkAllTarget.addEventListener('click', event => {
+			this.tbodyTarget.querySelectorAll('input[type="checkbox"]').forEach(e => e.checked = event.target.checked);
+			this.lineSelected();
+		});
 	}
 
 	/**
@@ -294,7 +306,21 @@ export default class extends Controller {
 		this.tableContainerTarget.src = '';
 		this.appendTbody();
 	}
-	
+
+	/**
+	 * Action while tbody is replaced.
+	 */
+	 lastPageLoadedTargetDisconnected() {
+		this.$action.style.display = 'none';
+	}
+
+	/**
+	 * Action when tbody is fully loaded.
+	 */
+	lastPageLoadedTargetConnected() {
+		this.$action.style.removeProperty('display');
+	}
+
 	/**
 	 * Action when moreResults event triggered.
 	 * @param {Object} event 
@@ -304,6 +330,42 @@ export default class extends Controller {
 		this.appendTbody();
 	}
 
+	/**
+	 * Action after each update of tbody to setup the actions when clicked on checkboxes.
+	 */
+	lineSelected() {
+
+		var hasChecked;
+		var hasUnchecked;
+		var ids = [];
+
+
+		this.tbodyTarget.querySelectorAll('input[type="checkbox"]').forEach(e => {
+			if (e.checked === true) {
+				hasChecked = true;
+				ids.push(e.dataset.id);
+			} else {
+				hasUnchecked = true;
+			}
+		});
+
+		if (hasChecked === true && hasUnchecked === true) {
+			this.checkAllTarget.indeterminate = true;
+		} else {
+			this.checkAllTarget.indeterminate = false;
+			this.checkAllTarget.checked = hasChecked;
+		}
+
+		this.$action.parentElement.querySelectorAll('a.dropdown-item').forEach(e => {
+			let urlString;
+			let paramString;
+			[urlString, paramString] = e.href.split('?');
+			
+			const urlParams = new UrlParams(paramString);
+			urlParams.set('id', ids);
+			e.href = urlString + '?' + urlParams.toString();
+		});
+	}
 	
 	#getUrlParams() {
 		
@@ -317,7 +379,7 @@ export default class extends Controller {
 	}
 
 	/**
-	 * Set resizable columns for responsive th
+	 * Set resizable columns for responsive th.
 	 */
 	 #setResizable() {
 		
@@ -376,7 +438,7 @@ export default class extends Controller {
 	}
 
 	/**
-	 * Set movable columns for responsive th
+	 * Set movable columns for responsive th.
 	 */
 	#setMovable() {
 

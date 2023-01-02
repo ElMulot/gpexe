@@ -5,8 +5,13 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use App\Entity\Metadata;
 use App\Repository\MetadataItemRepository;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Validator\Constraints\Regex;
 
 #[ORM\Entity(repositoryClass: MetadataItemRepository::class)]
+#[UniqueEntity(
+	fields: ['value', 'metadata']
+)]
 class MetadataItem implements \Stringable
 {
 	#[ORM\Id]
@@ -15,6 +20,7 @@ class MetadataItem implements \Stringable
 	private ?int $id = null;
 
 	#[ORM\Column(length: 255)]
+	#[Regex('/^[^$"]+$/')]
 	private ?string $value = null;
 
 	#[ORM\ManyToOne(inversedBy: 'metadataItems')]

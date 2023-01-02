@@ -7,13 +7,16 @@ use Symfony\Component\Security\Core\Security;
 use App\Entity\ChangeSet;
 use App\Entity\Enum\LogTypeEnum;
 use App\Entity\Log;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 class LogListener
 {
 
 	private $entityManager;
-		
-	public function __construct(private readonly Security $security, private readonly string $disableLog)
+	
+	public function __construct(private readonly Security $security,
+								#[Autowire('%app.config.disable_log%')]
+								private readonly string $disableLog)
 	{
 	}
 	

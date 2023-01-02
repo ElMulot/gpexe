@@ -41,7 +41,7 @@ class ProgramController extends AbstractTurboController
 								private readonly SerieRepository $serieRepository,
 								private readonly TranslatorInterface $translator,
         						#[Autowire('%app.uploads_directory%')]
-								private string $uploadsDirectory)
+								private readonly string $uploadsDirectory)
 	{
 	}
 	

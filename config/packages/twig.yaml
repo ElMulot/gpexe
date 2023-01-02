@@ -1,10 +1,10 @@
 twig:
     default_path: '%kernel.project_dir%/templates'
     form_themes:
-        #- 'form/layout.html.twig'
-        - 'bootstrap_5_layout.html.twig'
+        - 'bootstrap_5_horizontal_layout.html.twig'
+        - 'form/layout.html.twig'
         - 'form/dropzone.html.twig'
-        - 'form/various_entity.html.twig'
+        - 'form/various.html.twig'
     globals:
         name: '%app.name%'
         webmaster: '%app.webmaster%'

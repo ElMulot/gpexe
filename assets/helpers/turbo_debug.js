@@ -58,6 +58,10 @@ const TurboDebug = class {
             this.executeWithEvent(event);
         });
 
+		document.addEventListener('turbo:fetch-request-error', (event) => {
+            this.executeWithEvent(event);
+        });
+
     }
 
 	executeWithEvent(event) {

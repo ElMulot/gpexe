@@ -5,15 +5,21 @@ namespace App\Entity;
 use App\Entity\Enum\CompanyTypeEnum;
 use App\Entity\Enum\MetadataTypeEnum;
 use App\Entity\Enum\SerieBelongingEnum;
+use App\Exception\InvalidCodenameException;
 use App\Helpers\Date;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Spatie\Regex\Regex;
 use App\Repository\SerieRepository;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Validator\Constraints\NotBlank;
 
 #[ORM\Entity(repositoryClass: SerieRepository::class)]
-class Serie implements \Stringable
+#[UniqueEntity(
+	fields: ['name', 'project']
+)]
+class Serie extends AbstractElement
 {
 	#[ORM\Id]
 	#[ORM\GeneratedValue]
@@ -21,6 +27,8 @@ class Serie implements \Stringable
 	private ?int $id = null;
 
 	#[ORM\Column(length: 100)]
+	#[NotBlank]
+	#[Regex('/^[^$"]+$/')]
 	private ?string $name = null;
 
 	#[ORM\ManyToMany(targetEntity: MetadataItem::class, cascade: ['persist'])]
@@ -192,7 +200,7 @@ class Serie implements \Stringable
 		
 		return $this;
 	}
-
+	
 	public function removeProgress(Progress $progress): self
 	{
 		if ($this->progress->removeElement($progress)) {
@@ -205,6 +213,11 @@ class Serie implements \Stringable
 		return $this;
 	}
 
+	/**
+	 * Undocumented function
+	 * @deprecated version
+	 * @return string|null
+	 */
 	public function getBelonging(): ?string
 	{
 		return match ($this->getCompany()->getType()) {
@@ -213,134 +226,33 @@ class Serie implements \Stringable
 		};
 	}
 
-	public function belongToMDR(): bool
+	/**
+	 * Return true if the serie is part of MDR
+	 *
+	 * @return boolean
+	 */
+	public function isPartOfMDR(): bool
 	{
 		return ($this->getCompany()->getType() == CompanyTypeEnum::MAIN_CONTRACTOR);
 	}
 
-	public function belongToSDR(): bool
+	/**
+	 * Return true if the serie is part of SDR
+	 *
+	 * @return boolean
+	 */
+	public function isPartOfSDR(): bool
 	{
 		return ($this->getCompany()->getType() == CompanyTypeEnum::SUB_CONTRACTOR || $this->getCompany()->getType() == CompanyTypeEnum::SUPPLIER);
 	}
-
-	public function getMetadataValue(Metadata $metadata)
-	{
-		
-		switch ($metadata->getType()) {
-			
-			case MetadataTypeEnum::BOOL:
-			case MetadataTypeEnum::TEXT:
-			case MetadataTypeEnum::DATE:
-			case MetadataTypeEnum::LINK:
-				foreach ($this->getMetadataValues()->getValues() as $metadataValue) {
-					if ($metadataValue->getMetadata() == $metadata) {
-						return $metadataValue;
-					}
-				}
-				break;
-				
-			case MetadataTypeEnum::LIST:
-				foreach ($this->getMetadataItems()->getValues() as $metadataItem) {
-					if ($metadataItem->getMetadata() == $metadata) {
-						return $metadataItem;
-					}
-				}
-				break;
-		}
-		
-	}
-
-	public function setMetadataValue(Metadata $metadata, $value): self
-	{
-		
-		switch ($metadata->getType()) {
-			case MetadataTypeEnum::BOOL:
-				$value = ($value)?true:false;
-				break;
-			case MetadataTypeEnum::DATE:
-				if (is_string($value)) {
-					/** @var Date $date */
-					$date = Date::fromFormat($value);
-					if ($date->isValid() === false) {
-						$value = null;
-					}
-				} elseif ($value instanceof \DateTimeInterface) {
-					$value = $value->format('d-m-Y');
-				} else {
-					$value = null;
-				}
-				break;
-			default:
-				if ($value === '') {
-					$value = null;
-				}
-		}
-		
-		if ($value === null) {
-			if ($metadata->getIsMandatory() === true) {
-				throw new \Error(sprintf('Erreur: la valeur "%s" ne peut être vide', $metadata->getCodename()));
-				return $this;
-			}
-		}
-		
-		
-		switch ($metadata->getType()) {
-			
-			case MetadataTypeEnum::BOOL:
-			case MetadataTypeEnum::TEXT:
-			case MetadataTypeEnum::DATE:
-				foreach ($this->getMetadataValues()->getValues() as $metadataValue) {
-					if ($metadataValue->getMetadata() == $metadata) {
-						if ($metadataValue->getValue() == $value) {
-							return $this;
-						} else {
-							$this->removeMetadataValue($metadataValue);
-						}
-					}
-				}
-				
-				if ($value) {
-					foreach ($metadata->getMetadataValues()->getValues() as $metadataValue) {
-						if ($metadataValue->getValue() == $value) {
-							$this->addMetadataValue($metadataValue);
-							return $this;
-						}
-					}
-					$metadataValue = new MetadataValue();
-					$metadataValue->setValue($value);
-					$metadataValue->setMetadata($metadata);
-					return $this;
-				}
-				
-				break;
-				
-			case MetadataTypeEnum::LIST:
-				foreach ($this->getMetadataItems()->getValues() as $metadataItem) {
-					if ($metadataItem->getMetadata() == $metadata) {
-						if ($metadataItem->getValue() == $value) {
-							return $this;
-						} else {
-							$this->removeMetadataItem($metadataItem);
-						}
-					}
-				}
-				
-				if ($value) {
-					foreach ($metadata->getMetadataItems()->getValues() as $metadataItem) {
-						if ($metadataItem->getValue() == $value) {
-							$this->addMetadataItem($metadataItem);
-						}
-					}
-					return $this;
-				}
-				
-				break;
-		}
-		
-		throw new \Error(sprintf('Erreur en écrivant la valeur "%s" dans le champ "%s"', $value, $metadata->getCodename()));
-	}
-
-	public function getPropertyValue(string $codename)
+	
+	/**
+	 * Return any property value based on its full codename
+	 * 
+	 * @param string $codename
+	 * @return mixed
+	 */
+	public function getPropertyValue(string $codename): mixed
 	{
 		
 		switch ($codename) {
@@ -351,9 +263,10 @@ class Serie implements \Stringable
 				return $this->getCompany()->getName();
 				
 			default:
-				if (Regex::match('/serie\.\w+/', $codename)->hasMatch()) {
+				if (Regex::match('/serie\.\w+/', $codename)->hasMatch() === true) {
+					/** @var Metadata $metadata */
 					foreach ($this->getProject()->getMetadatas()->getValues() as $metadata) {
-						if ($metadata->getFullCodename() == $codename) {
+						if ($metadata->getFullCodename() === $codename) {
 							return $this->getMetadataValue($metadata);
 						}
 					}
@@ -363,14 +276,27 @@ class Serie implements \Stringable
 		return null;
 	}
 
-	public function setPropertyValue(string $codename, $value): self
+	/**
+	 * Set value from codename string
+	 *
+	 * @param string $codename
+	 * @param mixed $value
+	 * @return self
+	 */
+	public function setPropertyValue(string $codename, mixed $value): self
 	{
 		
 		switch ($codename) {
+
+			// case 'serie.name':
+			// 	$this->setName($value);
+			// 	return $this;
+
 			default:
-				if (Regex::match('/serie\.\w+/', $codename)->hasMatch()) {
+				if (Regex::match('/serie\.\w+/', $codename)->hasMatch() === true) {
+					/** @var Metadata $metadata */
 					foreach ($this->getProject()->getMetadatas()->getValues() as $metadata) {
-						if ($metadata->getFullCodename() == $codename) {
+						if ($metadata->getFullCodename() === $codename) {
 							$this->setMetadataValue($metadata, $value);
 							return $this;
 						}
@@ -378,7 +304,7 @@ class Serie implements \Stringable
 				}
 		}
 		
-		throw new \Error(sprintf('Erreur en écrivant la valeur "%s" dans le champ "%s"', $value, $codename));
+		throw new InvalidCodenameException($codename);
 	}
 	
 	public function __toString(): string

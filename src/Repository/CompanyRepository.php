@@ -9,6 +9,7 @@ use App\Entity\Enum\CompanyTypeEnum;
 use App\Entity\Project;
 use App\Entity\User;
 use App\Form\CompanyType;
+use Doctrine\Common\Collections\Collection;
 
 /**
  * @method Company|null find($id, $lockMode = null, $lockVersion = null)
@@ -95,14 +96,17 @@ class CompanyRepository extends RepositoryService
 	}
 
 	/**
+	 * Undocumented function
+	 * Used-by: SerieType->mapDataToForms
+	 * @param array|null $serieIds
 	 * @return Company[]
 	 */
-	public function getCompaniesBySerieIds(array $ids): array
+	public function getCompaniesBySerieIds(?array $serieIds = []): array
 	{
 		$qb = $this->newQb('c');
 		
 		return $qb->innerJoin('c.series', 's')
-			->andWhere($qb->in('s.id', $ids))
+			->andWhere($qb->in('s.id', $serieIds))
 			->addOrderBy('c.name')
 			->getQuery()
 			->getResult()

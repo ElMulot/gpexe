@@ -122,7 +122,7 @@ export default class extends Controller {
 
     getZIndex(e) {
         if (window.getComputedStyle) {
-            return parseInt(document.defaultView.getComputedStyle(e,null).getPropertyValue('z-index')); 
+            return parseInt(document.defaultView.getComputedStyle(e, null).getPropertyValue('z-index')); 
         } else if (e.currentStyle) {
             return parseInt(e.currentStyle['z-index']);
         } else {

@@ -44,18 +44,17 @@ a {
 	}
 }
 
-.form-check-input:checked {
-	background-color: $gray-900;
-	border-color: $gray-900;
-}
-
 // --------------------
 // Navs
 // --------------------
 
+header.sticky-top {
+	z-index: $zindex-fixed;
+}
+
 .nav-tabs {
 	@extend #{'.mt-3', '.mx-3'};
-	margin-bottom: -$nav-tabs-border-width;
+	// margin-bottom: -$nav-tabs-border-width;
 }
 
 .nav-tabs {
@@ -91,6 +90,7 @@ a {
 // --------------------
 
 .btn-width {
+	min-width: 10rem;
 	width: 10rem;
 	&.btn-group > .btn {
 		@extend .text-truncate;
@@ -98,8 +98,8 @@ a {
 }
 
 .btn-dismiss {
-	@extend .btn-secondary;
 	width: 20rem;
+	@extend .btn-secondary;
 }
 
 // --------------------
@@ -167,19 +167,33 @@ a {
 	}
 }
 
-.modal-footer .btn {
 
-	min-width: 10rem;
+.modal-dialog-scrollable > div {
+	height: 100%;
+}
 
-	/*@include media-breakpoint-up(xl) {
-		@include make-col(2);
-	}
-	@include media-breakpoint-between(md, xl) {
-		@include make-col(4);
-	}
-	@include media-breakpoint-down(md) {
-		@include make-col(5);
-	}*/
+.modal-body > ul {
+	position: sticky;
+	top: calc(-1 * map-get($spacers, 3));
+	background-color: $modal-content-bg;
+}
+
+// --------------------
+// Form
+// --------------------
+
+
+legend {
+    color: inherit;
+}
+
+// .col-form-label {
+// 	padding-top: 0 !important;	
+// }
+
+.form-check-input:checked {
+	background-color: $gray-900;
+	border-color: $gray-900;
 }
 
 // --------------------

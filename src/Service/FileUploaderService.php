@@ -2,13 +2,17 @@
 
 namespace App\Service;
 
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\String\Slugger\SluggerInterface;
 
 class FileUploaderService
 {
-    public function __construct(private $targetPath, private readonly SluggerInterface $slugger)
+    public function __construct(private readonly SluggerInterface $slugger,
+                                private readonly string $publicDirectory,
+                                #[Autowire('%app.uploads_directory%/')]
+                                private readonly string $targetPath)
     {
     }
 
@@ -23,7 +27,7 @@ class FileUploaderService
         $fileName = uniqid().'.'.$file->guessExtension();
 
         try {
-            $file->move($this->targetPath, $fileName);
+            $file->move($this->publicDirectory . $this->targetPath, $fileName);
         } catch (FileException) {
             throw new \Exception('Erreur : impossible d\'écrire sur le serveur');
         }

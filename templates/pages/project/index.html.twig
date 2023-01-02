@@ -14,12 +14,12 @@
 <div class="container-lg">
 	{% set items = [
 		{
-			'name': "Companies"|trans,
+			'name': "Companies",
 			'href': path('project_pannel', {'project': project.id, 'belong': 'sdr'}),
 			'class': 'active'
 		},
 		{
-			'name': "Main contractors"|trans,
+			'name': "Main contractors",
 			'href': path('project_pannel', {'project': project.id, 'belong': 'mdr'}),
 		}
 	] %}

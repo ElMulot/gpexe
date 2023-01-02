@@ -346,7 +346,7 @@ class FieldService
 				'type' => $codification->getType(),
 				'parent' => 'codification',
 				'default_width' => 10,
-				'mandatory' => $codification->getIsMandatory(),
+				'mandatory' => true,
 				'display' => [
 					'thead' => $codification->isFixed() === false,
 					'filter' => false,
@@ -713,6 +713,7 @@ class FieldService
 
 				case MetadataTypeEnum::BOOL:
 				case MetadataTypeEnum::TEXT:
+				case MetadataTypeEnum::REGEX:
 				case MetadataTypeEnum::DATE:
 					$element = [
 						'id' 		=> $metadata->getFullId(),

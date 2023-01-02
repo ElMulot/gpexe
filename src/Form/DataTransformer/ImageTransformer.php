@@ -3,6 +3,7 @@
 namespace App\Form\DataTransformer;
 
 use App\Service\FileUploaderService;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Form\DataTransformerInterface;
 use Symfony\Component\Form\Exception\TransformationFailedException;
 use Symfony\Component\HttpFoundation\File\File;
@@ -13,7 +14,10 @@ use Symfony\Component\HttpFoundation\File\Exception\FileNotFoundException;
 class ImageTransformer implements DataTransformerInterface
 {
 
-	public function __construct(private $uploadsDirectory, private readonly FileUploaderService $fileUploadService, private readonly ValidatorInterface $validator)
+	public function __construct(#[Autowire('%app.uploads_directory%')]
+								private readonly string $uploadsDirectory,
+								private readonly FileUploaderService $fileUploadService,
+								private readonly ValidatorInterface $validator)
 	{
 	}
 	

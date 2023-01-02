@@ -9,7 +9,8 @@ parameters:
     app.version: 0.5.8
     app.date: 29-09-2021
     app.uploads_directory: 'uploads'
-    app.config.date_format: d/m/Y
+    app.ressource_directory: '%kernel.project_dir%/config/ressources/'
+    app.config.date_format: d/m/Y   #This is the format used for display. Internally, the app use 'd-m-Y' format.
     app.config.maintenance_mode: false
     app.config.disable_log: true
     app.config.max_results_per_page: 50
@@ -38,14 +39,8 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
-    
-    App\Form\DataTransformer\ImageTransformer:
-        arguments:
-            $uploadsDirectory: '%app.uploads_directory%/'
 
     App\EventListener\LogListener:
-        arguments:
-            $disableLog: '%app.config.disable_log%'
         tags:
             -
                 name: 'doctrine.event_listener'
@@ -70,8 +65,6 @@ services:
                 lazy: true
 
     App\EventListener\ProjectListener:
-        arguments:
-            $uploadsDirectory: '%app.uploads_directory%/'
         tags:
             -
                 name: 'doctrine.orm.entity_listener'
@@ -103,31 +96,7 @@ services:
                 event: 'postRemove'
                 entity: 'App\Entity\Status'
                 lazy: true
-
-
-    App\EventSubscriber\LocaleSubscriber:
-        arguments: ['%kernel.default_locale%']
-
-    App\EventSubscriber\MaintenanceSubscriber:
-        arguments:
-            $maintenanceMode: '%app.config.maintenance_mode%'
- 
-    App\Service\FileUploaderService:
-        arguments:
-            $targetPath: '%kernel.project_dir%/public/%app.uploads_directory%/'
     
-    App\Service\ParseService:
-        arguments:
-            $ressourcesDirectory: '%kernel.project_dir%/config/ressources/'       
-    
-    App\Service\ProgramService:
-        arguments:
-            $targetPath: '%kernel.project_dir%/public/%app.uploads_directory%/'
-
-    App\Service\PropertyService:
-        arguments:
-            $dateFormat: '%app.config.date_format%'
-
     App\Service\QueryBuilderService:
         autowire: false
     

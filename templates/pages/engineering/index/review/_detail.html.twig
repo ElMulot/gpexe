@@ -10,8 +10,8 @@
 			</p>
 			{% if company == app.user.company or is_granted('ROLE_ADMIN') %}
 				<div class="col-12 d-flex justify-content-center">
-					<a class="btn btn-sm btn-success btn-width m-1" data-turbo-frame="review_detail" href="{{ path('review_edit', {'review': review.id}) }}">{% trans %}Edit{% endtrans %}</a>
-					<a class="btn btn-sm btn-danger btn-width m-1" data-turbo-frame="review_detail" href="{{ path('review_delete', {'review': review.id}) }}">{% trans %}Delete{% endtrans %}</a>
+					<a class="btn btn-sm btn-success btn-width m-1" href="{{ path('review_edit', {'review': review.id}) }}">{% trans %}Edit{% endtrans %}</a>
+					<a class="btn btn-sm btn-danger btn-width m-1" href="{{ path('review_delete', {'review': review.id}) }}">{% trans %}Delete{% endtrans %}</a>
 				</div>
 			{% endif %}
 		</div>

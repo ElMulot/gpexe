@@ -59,6 +59,10 @@ class ProjectVoter extends Voter
                 'REVIEW_NEW',
                 'REVIEW_EDIT',
                 'REVIEW_DELETE',
+                'SERIE_EDIT',
+                'SERIE_DELETE',
+                'DOCUMENT_NEW',
+                'VERSION_NEW'
             ])) {
             return false;
         }
@@ -88,15 +92,17 @@ class ProjectVoter extends Voter
         
         return $project->hasUser($user) === true && match($attribute) {
             'PROJECT_SHOW', 'VIEW_SHOW', 'VIEW_NEW' => $this->security->isGranted('ROLE_USER'),
-            'SHOW_ALL' => $this->security->isGranted('ROLE_USER') && ($user->getCompany()->isMainContractor() || $user->getCompany()->isChecker()) && $this->hasNoSerie($project) === false,
-            'SHOW_MDR' => $this->security->isGranted('ROLE_USER') && ($user->getCompany()->isMainContractor() || $user->getCompany()->isChecker()) && $this->hasNoMdrSerie($project) === false,
+            'SHOW_ALL' => $this->security->isGranted('ROLE_USER') && $user->getCompany()->isChecker() && $this->hasNoSerie($project) === false,
+            'SHOW_MDR' => $this->security->isGranted('ROLE_USER') && $user->getCompany()->isChecker() && $this->hasNoMdrSerie($project) === false,
             'SHOW_SDR' => $this->security->isGranted('ROLE_USER') && $this->hasNoSdrSerie($project) === false,
             'PROGRAM_SHOW', 'PROGRAM_NEW', 'PROGRAM_EDIT', 'PROGRAM_DELETE' => $this->security->isGranted('ROLE_CONTROLLER') && $user->getCompany()->isMainContractor(),
             'PROGRAM_PROGRESS_SHOW' => $this->security->isGranted('ROLE_USER') && $user->getCompany()->isMainContractor(),
             'PROJECT_EDIT', 'SERIE_SHOW', 'SERIE_NEW', 'VISA_SHOW', 'VISA_NEW', 'VISA_EDIT', 'VISA_DELETE', 'STATUS_SHOW', 'STATUS_NEW', 'STATUS_EDIT', 'STATUS_DELETE' => $this->security->isGranted('ROLE_CONTROLLER') && $user->getCompany()->isMainContractor(),
             'PROJECT_DELETE' => $this->security->isGranted('ROLE_ADMIN'),
             'DOCUMENT_EDIT', 'DOCUMENT_MOVE', 'DOCUMENT_DELETE' => $this->security->isGranted('CONTROLLER') || $this->security->isGranted('EDITOR'),
-            'REVIEW_NEW', 'REVIEW_EDIT', 'REVIEW_DELETE' => $this->security->isGranted('ROLE_USER') && ($user->getCompany()->isMainContractor() || $user->getCompany()->isChecker() || $this->security->isGranted('ROLE_CONTROLLER') && $user->getCompany()->isMainContractor()),
+            'REVIEW_NEW', 'REVIEW_EDIT', 'REVIEW_DELETE' => $this->security->isGranted('ROLE_USER') && ($user->getCompany()->isChecker() || $this->security->isGranted('ROLE_CONTROLLER') && $user->getCompany()->isMainContractor()),
+            'SERIE_EDIT', 'SERIE_DELETE' => $project->hasUser($user) && $this->security->isGranted('ROLE_CONTROLLER') && $user->getCompany()->isMainContractor(),
+            'DOCUMENT_NEW', 'VERSION_NEW' => $project->hasUser($user) && $this->security->isGranted('ROLE_EDITOR') && $user->getCompany()->isMainContractor(),
             default => throw new \LogicException('logic.codeNotReached'),
         };
     }

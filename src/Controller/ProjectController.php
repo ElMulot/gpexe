@@ -83,7 +83,7 @@ class ProjectController extends AbstractTurboController
 			return $this->redirectToRoute('projects_list');
 		}
 
-		if ($this->getUserCompany()->isMainContractor() || $this->getUserCompany()->isChecker()) {
+		if ($this->getUserCompany()->isChecker() === true) {
 			$user = null;
 		} else {
 			$user = $this->getUser();
@@ -142,7 +142,6 @@ class ProjectController extends AbstractTurboController
 		
 		$form->handleRequest($request);
 		if ($form->isSubmitted() && $form->isValid()) {
-			dump($project);
 			$entityManager = $this->doctrine->getManager();
 			$entityManager->persist($project);
 			$entityManager->flush();

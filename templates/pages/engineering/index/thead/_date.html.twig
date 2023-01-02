@@ -40,7 +40,7 @@
 								{{ stimulus_action('engineering--header--date', 'clear') }}>≥
 						</div>
 						<input type="text" class="form-control" aria-label="Text input with checkbox"
-							{{ stimulus_controller('flatpickr', {'mandatory': true, 'todayBtn': true, 'dateFormat': 'd-m-Y' }) }}
+							{{ stimulus_controller('flatpickr', {'mandatory': true, 'todayButton': true, 'dateFormat': 'd-m-Y' }) }}
 							{{ stimulus_target('engineering--header--date', 'greaterThanTextbox') }}>
 					</div>
 					<div class="input-group input-group-sm m-2">
@@ -50,7 +50,7 @@
 								{{ stimulus_action('engineering--header--date', 'clear') }}>≤
 						</div>
 							<input type="text" class="form-control" aria-label="Text input with checkbox"
-							{{ stimulus_controller('flatpickr', {'mandatory': true, 'todayBtn': true, 'dateFormat': 'd-m-Y' }) }}
+							{{ stimulus_controller('flatpickr', {'mandatory': true, 'todayButton': true, 'dateFormat': 'd-m-Y' }) }}
 							{{ stimulus_target('engineering--header--date', 'lessThanTextbox') }}>
 					</div>
 					<div class="form-check form-switch w-100 mx-2">

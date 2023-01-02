@@ -56,6 +56,12 @@ Logout: Se déconnecter
 
 #Engineering
 Highlight: Surligner
+Action: Action
+Element selection: Selection de l'élément
+Which element type you would like to create ?: Quel type d'élément souhaitez-vous créer ?
+Which element type you would like to edit ?: Quel type d'élément souhaitez-vous modifier ?
+Which element type you would like to delete?: Quel type d'élément souhaitez-vous supprimer ?
+Select one or more lines first: Selectionner une ou plusieurs lignes d'abord
 
 #Account
 Created on: Date de création

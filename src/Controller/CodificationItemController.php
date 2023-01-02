@@ -69,7 +69,7 @@ class CodificationItemController extends AbstractTurboController
 		}
 	}
 	
-	#[Route(path: '/project/codification/item/{id}/edit', name: 'codification_item_edit', requirements: ['id' => '\d+'])]
+	#[Route(path: '/project/codification/item/{codification_item}/edit', name: 'codification_item_edit', requirements: ['codification_item' => '\d+'])]
 	public function edit(Request $request, CodificationItem $codificationItem) : Response
 	{
 		$project = $codificationItem->getCodification()->getProject();
@@ -97,7 +97,7 @@ class CodificationItemController extends AbstractTurboController
 		}
 	}
 	
-	#[Route(path: '/project/codification/item/{id}/delete', name: 'codification_item_delete', methods: ['GET', 'DELETE'], requirements: ['id' => '\d+'])]
+	#[Route(path: '/project/codification/item/{codification_item}/delete', name: 'codification_item_delete', methods: ['GET', 'DELETE'], requirements: ['codification_item' => '\d+'])]
 	public function delete(Request $request, CodificationItem $codificationItem) : Response
 	{
 		$project = $codificationItem->getCodification()->getProject();

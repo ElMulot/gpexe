@@ -9,17 +9,14 @@ use App\Entity\Enum\ProgramTypeEnum;
 use App\Entity\Program;
 use App\Repository\AutomationRepository;
 use App\Repository\StatusRepository;
-use App\Service\ProgramService;
 use App\Helpers\Date;
 
 class ProgramListener
 {
-	
-	private readonly StatusRepository $statusRepository;
-	
-	public function __construct(private readonly EntityManagerInterface $entityManager, AutomationRepository $automationRepository)
+		
+	public function __construct(private readonly EntityManagerInterface $entityManager,
+								private readonly AutomationRepository $automationRepository)
 	{
-		$this->automationRepository = $automationRepository;
 	}
 	
 	public function postPersist(Program $program, LifecycleEventArgs $event)

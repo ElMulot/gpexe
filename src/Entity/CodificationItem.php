@@ -5,8 +5,14 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use App\Entity\Codification;
 use App\Repository\CodificationItemRepository;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Constraints\Regex;
 
 #[ORM\Entity(repositoryClass: CodificationItemRepository::class)]
+#[UniqueEntity(
+	fields: ['value', 'codification']
+)]
 class CodificationItem implements \Stringable
 {
 	#[ORM\Id]
@@ -15,9 +21,12 @@ class CodificationItem implements \Stringable
 	private ?int $id = null;
 
 	#[ORM\Column(length: 255)]
+	#[NotBlank]
+	#[Regex('/^[^$"]+$/')]
 	private ?string $name = null;
 
 	#[ORM\Column(length: 10)]
+	#[Regex('/^[^$"]+$/')]
 	private ?string $value = null;
 
 	#[ORM\ManyToOne(inversedBy: 'codificationItems')]

@@ -1,0 +1,61 @@
+@import "~bootswatch/dist/slate/variables";
+@import "~bootstrap/scss/functions";
+@import "~bootstrap/scss/variables";
+@import "~bootstrap/scss/mixins";
+@import "~bootstrap/scss/maps";
+@import "~bootstrap/scss/utilities";
+@import "~bootstrap/scss/close";
+@import "~bootstrap/scss/utilities/api";
+@import "~cropperjs/dist/cropper";
+@import "~bootstrap-icons";
+
+// --------------------
+// Dropzone
+// --------------------
+
+.dropzone-container {
+    position: relative;
+	@extend #{'.d-flex', '.justify-content-center'};
+	@extend #{'.px-5'};
+    min-height: 100px;
+    border: 2px dashed #bbb;
+}
+
+.dropzone-container > input {
+    position: absolute;
+    display: block;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+    z-index: 1;
+}
+
+.dropzone-preview {
+    @extend #{'.d-flex', '.flex-column', '.justify-content-center', '.mw-100'};
+}
+
+.dropzone-preview > i {
+	@extend .align-self-center;
+    background-size: cover;
+    background-position: 50% 50%;
+    background-repeat: no-repeat;
+	@include border-radius($border-radius);
+    font-size: 2em;
+}
+
+.dropzone-preview > div {
+    word-wrap: anywhere;
+}
+
+.dropzone-preview > button {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 0.25em;
+    height: 0.25em;
+    @extend #{'.btn-close', '.btn-close-white'};
+    @extend .m-1;
+}

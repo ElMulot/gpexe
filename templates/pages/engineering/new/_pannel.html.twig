@@ -1,0 +1,11 @@
+{% if app.request.headers.get('Turbo-frame') == 'new_pannel' %}
+
+	<turbo-frame id="new_pannel">
+		{{ form(form, {'attr': {'id': 'form', 'action': app.request.uri, 'data-turbo-stream-replace': 'tbody' }}) }}
+	</turbo-frame>
+
+{% else %}
+
+	{% include('generic/new.html.twig') %}
+
+{% endif %}

@@ -1,53 +1,34 @@
 {% import "macros/_navbar.html.twig" as navbar %}
 
 <ul class="navbar-nav me-auto">
+	{% set serie_ids = series|map(v => v.id) %}
+	
 	{{ navbar.item('Back', path('project', {'project': project.id})) }}
 
 	{{ navbar.dropdown(
 		{
-			'name': 'Documents',
+			'name': 'Action',
+			'id': 'action',
 			'style': 'display:none',
 		}, [
 			{
 				'name': 'New',
-				'href': path('document_new'),
+				'href': path('engineering_new', {'project': project.id, 'series': serie_ids}),
 				'data-turbo-frame': 'xl_modal',
 			},
 			{
 				'name': 'Edit',
-				'href': path('document_edit'),
+				'href': path('engineering_edit', {'project': project.id}),
 				'data-turbo-frame': 'xl_modal',
 			},
 			{
 				'name': 'Move',
-				'href': path('document_move'),
+				'href': path('document_move', {'project': project.id}),
 				'data-turbo-frame': 'xl_modal',
 			},
 			{
 				'name': 'Delete',
-				'href': path('document_delete'),
-				'data-turbo-frame': 'xl_modal',
-			},
-		])
-	}}
-	{{ navbar.dropdown(
-		{
-			'name': 'Versions',
-			'style': 'display:none',
-		}, [
-			{
-				'name': 'New',
-				'href': path('version_new'),
-				'data-turbo-frame': 'xl_modal',
-			},
-			{
-				'name': 'Edit',
-				'href': path('version_edit'),
-				'data-turbo-frame': 'xl_modal',
-			},
-			{
-				'name': 'Delete',
-				'href': path('version_delete'),
+				'href': path('engineering_delete', {'project': project.id}),
 				'data-turbo-frame': 'xl_modal',
 			},
 		])

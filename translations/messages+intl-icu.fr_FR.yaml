@@ -17,6 +17,23 @@ list:
     visa: Visas
     view: Vues
 
+info:
+    document: >-
+        {count, plural,
+            one   {# document sélectionné}
+            other {# documents sélectionnés}
+        }
+    serie: >-
+        {count, plural,
+            one   {# série sélectionnée}
+            other {# séries sélectionnées}
+        }
+    version: >-
+        {count, plural,
+            one   {# révision sélectionnée}
+            other {# révisions sélectionnées}
+        }
+
 new:
     program: Nouveau programme
     codification: Nouveau code
@@ -108,6 +125,7 @@ confirm:
     project: Confirmer la suppression du projet
     serie: Confirmer la suppression de la série
     status: Confirmer la suppression du statut
+    review: Confirmer la suppression de ce visa
     user: Confirmer la suppression de l'utilisateur
     version: Confirmer la suppression
         {count, plural,
@@ -118,10 +136,10 @@ confirm:
     view: Confirmer la suppression de la vue
 
 delay: >-
-      {count, plural,
-         one   {# jour de retard}
-         other {# jours de retard}
-      }
+    {count, plural,
+        one   {# jour de retard}
+        other {# jours de retard}
+    }
 
 updated:
     version: >-

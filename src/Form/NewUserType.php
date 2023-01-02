@@ -4,6 +4,7 @@ namespace App\Form;
 
 use App\Entity\Project;
 use App\Entity\User;
+use App\Form\Type\BooleanType;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -29,7 +30,7 @@ class NewUserType extends AbstractType
 					'English' => 'en_GB',
 				],
 			])
-			->add('activated')
+			->add('activated', BooleanType::class)
 			->add('profil')
 			->add('company')
 			->add('projects', EntityType::class, [

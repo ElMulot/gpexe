@@ -3,7 +3,10 @@
 {% extends 'modal/xl_modal.html.twig' %}
 
 {% block modal_body %}
-	<form id="form" method="POST" action="{{ app.request.uri }}"{% if app.request.headers.has('Turbo-Stream-Replace') is same as (true) %} data-turbo-stream-replace="{{ app.request.headers.get('Turbo-Stream-Replace') }}"{% endif %}>
+	<form id="form" method="POST" action="{{ app.request.uri }}"
+		{% if app.request.headers.has('Turbo-Stream-Replace') is same as (true) %}
+			data-turbo-stream-replace="{{ app.request.headers.get('Turbo-Stream-Replace') }}"
+		{% endif %}>
 		{% if entities|length == 1 %}
 			<p>{{ ('confirm.' ~ entities|first|short_name)|trans({'count':entities|length}) }} : {{ entities|first }}</p>
 		{% else %}
@@ -19,7 +22,7 @@
 
 {% block modal_footer %}
 	
-	<button type="button" class="btn btn-secondary mw-75" data-bs-dismiss="modal">{% trans %}Cancel{% endtrans %}</button>
-	<button type="submit" form="form" class="btn btn-danger mw-75">{% trans %}Delete{% endtrans %}</button>
+	<button type="button" class="btn btn-secondary btn-width" data-bs-dismiss="modal">{% trans %}Cancel{% endtrans %}</button>
+	<button type="submit" form="form" class="btn btn-danger btn-width">{% trans %}Delete{% endtrans %}</button>
 
 {% endblock %}

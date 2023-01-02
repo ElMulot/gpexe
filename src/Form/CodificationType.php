@@ -20,13 +20,13 @@ class CodificationType extends AbstractType
 			->add('type', ChoiceType::class, [
 				'choices' => CodificationTypeEnum::getChoices(),
 				'expanded' => true,
-				'disabled' => ($builder->getData()->getId() != null),
+				'disabled' => $builder->getData()->getId(),
 			])
 			->add('codename', TextType::class)
-			->add('value', TextType::class, [
+			->add('pattern', TextType::class, [
 				'required' => false
 			])
-			->add('isMandatory', CheckboxType::class, [
+			->add('value', TextType::class, [
 				'required' => false
 			])
 		;

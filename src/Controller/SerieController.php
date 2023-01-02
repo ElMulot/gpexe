@@ -11,6 +11,7 @@ use Symfony\UX\Turbo\TurboBundle;
 use App\Repository\SerieRepository;
 use App\Repository\MetadataRepository;
 use App\Entity\Enum\SerieBelongingEnum;
+use App\Exception\InternalErrorException;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -50,7 +51,7 @@ class SerieController extends AbstractTurboController
 			$selectedSerie = match(count($series)) {
 				0		=>  false,
 				1		=> current($series),
-				default	=> array_reduce($series, fn($carry, $item) => ($item->getId() == $selectedSerieId)?$item:$carry),
+				default	=> array_reduce($series->getValues(), fn($carry, $item) => ($item->getId() == $selectedSerieId)?$item:$carry),
 			};
 		}
 		
@@ -145,24 +146,24 @@ class SerieController extends AbstractTurboController
 	 * Query parameters :
 	 * 	+ array		id				array of serie ids that will be used for company selector in the form
 	 */
-	#[Route(path: '/project/{project}/serie/new/{company?}', name: 'serie_new', requirements: ['project' => '\d+', 'company' => '\d+'])]
-	public function new(Request $request, Project $project, ?Company $company) : Response
+	#[Route(path: '/project/{project}/serie/new', name: 'serie_new', requirements: ['project' => '\d+'])]
+	public function new(Request $request, Project $project) : Response
 	{
 		$this->denyAccessUnlessGranted('SERIE_NEW', $project);
 
 		$serie = new Serie();
 		$serie->setProject($project);
-		$serie->setCompany($company);
 
 		try {
 			$form = $this->createForm(SerieType::class, $serie, [
+				'project' => $project,
 				'ids' => $request->get('id'),
 			]);
-		} catch (InvalidArgumentException $e) {
+		} catch (InternalErrorException $e) {
 			$this->addFlash('warning', $e->getMessage());
 			return $this->renderError($request, 'serie', ['project' => $project->getId(), 'id' => $request->get('id')]);
 		}
-
+		
 		$form->handleRequest($request);
 
 		if ($form->isSubmitted() && $form->isValid()) {
@@ -201,24 +202,30 @@ class SerieController extends AbstractTurboController
 				'selected' => [$serie->getId()]
 			]);
 		} else {
-			return $this->renderForm('generic/new.html.twig', [
+			return $this->renderForm('pages/engineering/new/_pannel.html.twig', [
 				'form' => $form,
 			]);
 		}
 	}
-		
-	/**
-	 * Query parameters :
-	 * 	+ array		id				array of serie ids that could be displayed
-	 * 	+ int		selected		serie id to display
-	 */
+	
 	#[Route(path: '/project/serie/{serie}/edit', name: 'serie_edit', requirements: ['serie' => '\d+'])]
 	public function edit(Request $request, Serie $serie) : Response
 	{
-		$this->denyAccessUnlessGranted('SERIE_EDIT', $serie);
+		$project = $serie->getProject();
+		
+		$this->denyAccessUnlessGranted('SERIE_EDIT', $project);
 
-		$form = $this->createForm(SerieType::class, $serie);
+		try {
+			$form = $this->createForm(SerieType::class, $serie, [
+				'project' => $project
+			]);
+		} catch (InvalidArgumentException $e) {
+			$this->addFlash('warning', $e->getMessage());
+			return $this->renderError($request, 'serie', ['project' => $project->getId(), 'id' => $request->get('id')]);
+		}
+
 		$form->handleRequest($request);
+
 		if ($form->isSubmitted() && $form->isValid()) {
 			
 			$project = $serie->getProject();
@@ -256,8 +263,8 @@ class SerieController extends AbstractTurboController
 
 			return $this->renderSuccess($request, 'serie', ['project' => $project->getId(), 'id' => $request->get('id'), 'selected' => $request->get('selected')]);
 		} else {
-			return $this->renderForm('generic/edit.html.twig', [
-				'form' => $form
+			return $this->renderForm('pages/engineering/edit/_pannel.html.twig', [
+				'form' => $form,
 			]);
 		}
 	}
@@ -269,11 +276,11 @@ class SerieController extends AbstractTurboController
 	#[Route(path: '/project/serie/{serie}/delete', name: 'serie_delete', methods: ['GET', 'DELETE'], requirements: ['serie' => '\d+'])]
 	public function delete(Request $request, Serie $serie) : Response
 	{
-		$this->denyAccessUnlessGranted('SERIE_DELETE', $serie);
+		$project = $serie->getProject();
+		
+		$this->denyAccessUnlessGranted('SERIE_DELETE', $project);
 
 		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
-
-			$project = $serie->getProject();
 
 			$entityManager = $this->doctrine->getManager();
 			$entityManager->remove($serie);

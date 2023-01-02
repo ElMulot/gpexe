@@ -5,6 +5,7 @@
 
 namespace App\EventSubscriber;
 
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
@@ -13,7 +14,9 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class MaintenanceSubscriber implements EventSubscriberInterface
 {
-	public function __construct(private readonly UrlGeneratorInterface $urlGenerator, private readonly bool $maintenanceMode)
+	public function __construct(private readonly UrlGeneratorInterface $urlGenerator,
+								#[Autowire('%app.config.maintenance_mode%')]
+								private readonly bool $maintenanceMode)
 	{
 	}
 

@@ -16,13 +16,13 @@ export default class extends Controller {
 			type: Boolean,
 			default: false,
 		},
-		todayBtn: {
+		todayButton: {
 			type: Boolean,
-			default: true,
+			default: false,
 		},
 		disableWeekend: {
 			type: Boolean,
-			default: true,
+			default: false,
 		},
 		dateFormat: {
 			type: String,
@@ -48,7 +48,7 @@ export default class extends Controller {
 			this.createClearButton();
 		}
 
-		if (this.todayBtnValue === true) {
+		if (this.todayButtonValue === true) {
 			this.createTodayButton();
 		}
 

@@ -10,8 +10,14 @@ use App\Entity\Codification;
 use App\Entity\Metadata;
 use App\Entity\Visa;
 use App\Repository\ProjectRepository;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Constraints\Regex;
 
 #[ORM\Entity(repositoryClass: ProjectRepository::class)]
+#[UniqueEntity(
+	fields: 'name'
+)]
 class Project implements \Stringable
 {
 	#[ORM\Id]
@@ -20,6 +26,8 @@ class Project implements \Stringable
 	private ?int $id = null;
 
 	#[ORM\Column(length: 100)]
+	#[NotBlank]
+	#[Regex('/^[^$"]+$/')]
 	private ?string $name = null;
 
 	#[ORM\Column(length: 255, nullable: true)]

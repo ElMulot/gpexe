@@ -36,6 +36,7 @@ class AccountController extends AbstractTurboController
 	#[Route(path: '/account/edit', name: 'account_edit')]
 	public function edit(Request $request) : Response
 	{
+		/** @var User $user */
 		$user = $this->getUser();
 		$form = $this->createForm(AccountType::class, $user);
 		$form->handleRequest($request);
@@ -67,6 +68,8 @@ class AccountController extends AbstractTurboController
 		if ($form->isSubmitted() && $form->isValid()) {
 			
 			$changePassword = $form->getData();
+
+			/** @var User $user */
 			$user = $this->getUser();
 			$user->setPassword($this->passwordHasher->hashPassword($user, $changePassword['new_password']));
 			$entityManager = $this->doctrine->getManager();

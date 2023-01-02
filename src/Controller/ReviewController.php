@@ -61,7 +61,7 @@ class ReviewController extends AbstractTurboController
 				$review->setVersion($version);
 				$entityManager = $this->doctrine->getManager();
 				$entityManager->persist($review);
-				// $entityManager->flush();
+				$entityManager->flush();
 				
 				// if ($review->getVisa()->getRevisionRequired()) {
 				// 	return $this->redirectToRoute('version_quick_new', [
@@ -71,19 +71,11 @@ class ReviewController extends AbstractTurboController
 				// 	]);
 					
 				// } else {
-					
 
-					return $this->renderForm('pages/engineering/index/review/_new.html.twig', [
-						'company' => $company,
-						'version' => $version,
-						'form' => $form,
+					return $this->renderSuccess($request, 'review_detail', [
+						'version' => $version->getId(),
+						'company' => $company->getId(),
 					]);
-
-
-					// return $this->renderSuccess($request, 'review_detail', [
-					// 	'version' => $version->getId(),
-					// 	'company' => $company->getId(),
-					// ]);
 				// }
 			} else {
 				return $this->renderForm('pages/engineering/index/review/_new.html.twig', [
@@ -93,7 +85,6 @@ class ReviewController extends AbstractTurboController
 				]);
 			}
 		} else {
-			dump('ok');
 			return $this->redirectToRoute('review_detail' ,[
 				'version' => $version->getId(),
 				'company' => $company->getId(),
@@ -104,15 +95,12 @@ class ReviewController extends AbstractTurboController
 	#[Route(path: '/project/serie/document/version/review/{review}/edit', name: 'review_edit', requirements: ['review' => '\d+'])]
 	public function edit(Request $request, Review $review) : Response
 	{
-		$reviews = $this->doctrine->getRepository(Review::class)->findBy(['version' => 2610]);
-
-		$review = $reviews[0];
-		$company = $review->getVisa()->getCompany();
 		$version = $review->getVersion();
+		$company = $review->getVisa()->getCompany();
 		$project = $version->getDocument()->getSerie()->getProject();
 		
 		if ($this->isGranted('REVIEW_EDIT', $project) === true) {
-			$form = $this->createForm(ReviewType::class, $reviews, [
+			$form = $this->createForm(ReviewType::class, $review, [
 				'project' => $project,
 				'company' => $company,
 			]);
@@ -121,25 +109,16 @@ class ReviewController extends AbstractTurboController
 			
 			if ($form->isSubmitted() && $form->isValid()) {
 
-				dump($reviews);
-
 				$review->setUser($this->getUser());
 				$review->setDate(new \DateTime());
 				$entityManager = $this->doctrine->getManager();
+				$entityManager->flush();
 				
-				// $entityManager->flush();
-				
-				// return $this->redirectToRoute('review_detail' ,[
-				// 	'version' => $version->getId(),
-				// 	'company' => $company->getId(),
-				// ]);
-
-
-				return $this->renderForm('pages/engineering/index/review/_new.html.twig', [
-					'company' => $company,
+				return $this->renderForm('pages/engineering/index/review/_detail.html.twig', [
+					'review' => $review,
 					'version' => $version,
-					'form' => $form,
-				]);	
+					'company' => $company,
+				]);
 				
 			} else {
 				return $this->renderForm('pages/engineering/index/review/_edit.html.twig', [
@@ -150,9 +129,10 @@ class ReviewController extends AbstractTurboController
 				]);
 			}
 		} else {
-			return $this->redirectToRoute('review_detail', [
-				'version' => $version->getId(),
-				'company' => $company->getId(),
+			return $this->renderForm('pages/engineering/index/review/_detail.html.twig', [
+				'review' => $review,
+				'version' => $version,
+				'company' => $company,
 			]);
 		}
 	}
@@ -171,22 +151,23 @@ class ReviewController extends AbstractTurboController
 				$entityManager->remove($review);
 				$entityManager->flush();
 				
-				return $this->renderForm('review/index.html.twig', [
+				return $this->renderForm('pages/engineering/index/review/_detail.html.twig', [
 					'review' => null,
-					'company' => $company,
 					'version' => $version,
+					'company' => $company,
 				]);
 			} else {
-				return $this->renderForm('review/delete.html.twig', [
-					'review' => $review,
+				return $this->renderForm('pages/engineering/index/review/_delete.html.twig', [
+					'entities' => [$review],
 					'company' => $company,
 					'version' => $version,
 				]);
 			}
 		} else {
-			return $this->redirectToRoute('review_detail' ,[
-				'version' => $version->getId(),
-				'company' => $company->getId(),
+			return $this->renderForm('pages/engineering/index/review/_detail.html.twig', [
+				'review' => $review,
+				'version' => $version,
+				'company' => $company,
 			]);
 		}
 	}

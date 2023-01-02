@@ -20,9 +20,6 @@ class SerieVoter extends Voter
         if (!in_array($attribute, [
                 'ENGINEERING_SHOW',
                 'REVIEW_SHOW',
-                'SERIE_EDIT',
-                'SERIE_DELETE',
-                'DOCUMENT_NEW'
             ])) {
             return false;
         }
@@ -54,9 +51,7 @@ class SerieVoter extends Voter
         $project = $serie->getProject();
         
         return match($attribute) {
-            'ENGINEERING_SHOW', 'REVIEW_SHOW' => $this->security->isGranted('ROLE_USER') && ($user->getCompany()->isMainContractor() || $user->getCompany()->isChecker() || $serie->getCompany() === $user->getCompany()),
-            'SERIE_EDIT', 'SERIE_DELETE' => $project->hasUser($user) && $this->security->isGranted('ROLE_CONTROLLER') && $user->getCompany()->isMainContractor(),
-            'DOCUMENT_NEW' => $project->hasUser($user) && $this->security->isGranted('ROLE_EDITOR') && $user->getCompany()->isMainContractor(),
+            'ENGINEERING_SHOW', 'REVIEW_SHOW' => $this->security->isGranted('ROLE_USER') && ($user->getCompany()->isChecker() || $serie->getCompany() === $user->getCompany()),
             default => throw new \LogicException('logic.codeNotReached'),
         };
     }
@@ -65,10 +60,10 @@ class SerieVoter extends Voter
 
 // return $this->security->isGranted('ROLE_USER') && $project->hasUser($user) === true && match($attribute) {
 //     'MAIN_CONTRACTOR_USER' => $user->getCompany()->isMainContractor() ,
-//     'CHECKER_USER' => $user->getCompany()->isMainContractor() || $user->getCompany()->isChecker(),
+//     'CHECKER_USER' => $user->getCompany()->isChecker(),
 //     'USER' => true,
 //     default => $user->getCompany() === $serie->getCompany() && match ($attribute) {
-//         'SUB_CONTRACTOR_USER' =>  $user->getCompany()->isMainContractor() || $user->getCompany()->isChecker() || $user->getCompany()->isSubContractor(),
+//         'SUB_CONTRACTOR_USER' =>  $user->getCompany()->isChecker() || $user->getCompany()->isSubContractor(),
 //         'SUPPLIER_USER' => true,
 //         default => false,
 //     }

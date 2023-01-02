@@ -7,15 +7,20 @@ use Symfony\Component\Yaml\Exception\ParseException;
 use Doctrine\ORM\Mapping as ORM;
 use Fresh\DoctrineEnumBundle\Validator\Constraints as DoctrineAssert;
 use App\Entity\Enum\ProgramTypeEnum;
-use App\Form\ProgramType;
 use App\Repository\ProgramRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Fresh\DoctrineEnumBundle\Exception\InvalidArgumentException;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Constraints\Regex;
 
 #[ORM\Entity(repositoryClass: ProgramRepository::class)]
 #[ORM\HasLifecycleCallbacks]
+#[UniqueEntity(
+	fields: ['name', 'project']
+)]
 class Program implements \Stringable
 {
 	#[ORM\Id]
@@ -24,6 +29,8 @@ class Program implements \Stringable
 	private ?int $id = null;
 
 	#[ORM\Column(length: 100)]
+	#[NotBlank]
+	#[Regex('/^[^$"]+$/')]
 	private ?string $name = null;
 
 	#[ORM\Column(type: 'program_type_enum')]

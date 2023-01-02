@@ -16,6 +16,7 @@ use App\Service\Excel\Row;
 use App\Service\Excel\Workbook;
 use Doctrine\ORM\EntityManagerInterface;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
@@ -55,6 +56,8 @@ class ProgramService
 								private readonly PropertyService $propertyService,
 								private readonly Security $security,
 								private readonly RequestStack $requestStack,
+								private readonly string $publicDirectory,
+								#[Autowire('%app.uploads_directory%/')]
 								private readonly string $targetPath)
 	{
 		$this->stopWatch = new Stopwatch();
@@ -107,7 +110,7 @@ class ProgramService
 				//upload file
 				try {
 					//$file = $file->move($this->targetPath, 'GPEXE Import.' . $file->getClientOriginalExtension());
-					$file = $file->move($this->targetPath, 'GPEXE Import.' . $file->guessExtension());
+					$file = $file->move($this->publicDirectory . $this->targetPath, 'GPEXE Import.' . $file->guessExtension());
 				} catch (FileException) {
 					throw new \Exception('Erreur : impossible d\'écrire sur le serveur');
 				}
