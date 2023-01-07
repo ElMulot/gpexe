@@ -40,21 +40,21 @@ class MetadataItemFixtures extends Fixture implements DependentFixtureInterface
 				$metadataItem = new MetadataItem();
 				$metadataItem
 					->setValue("Item serie {$i}{$j}")
-					->setMetadata($this->getReference(constant("MetadataFixtures::PROJECT_{$i}_METADATA_SERIE_LIST")));
+					->setMetadata($this->getReference(constant(MetadataFixtures::class . "::PROJECT_{$i}_METADATA_SERIE_LIST")));
 				$manager->persist($metadataItem);
 				$this->addReference("PROJECT_{$i}_METADATA_ITEM_SERIE_{$j}", $metadataItem);
 
 				$metadataItem = new MetadataItem();
 				$metadataItem
 					->setValue("Item document {$i}{$j}")
-					->setMetadata($this->getReference(constant("MetadataFixtures::PROJECT_{$i}_METADATA_DOCUMENT_LIST")));
+					->setMetadata($this->getReference(constant(MetadataFixtures::class . "::PROJECT_{$i}_METADATA_DOCUMENT_LIST")));
 				$manager->persist($metadataItem);
 				$this->addReference("PROJECT_{$i}_METADATA_ITEM_DOCUMENT_{$j}", $metadataItem);
 
 				$metadataItem = new MetadataItem();
 				$metadataItem
 					->setValue("Item version {$i}{$j}")
-					->setMetadata($this->getReference(constant("MetadataFixtures::PROJECT_{$i}_METADATA_VERSION_LIST")));
+					->setMetadata($this->getReference(constant(MetadataFixtures::class . "::PROJECT_{$i}_METADATA_VERSION_LIST")));
 				$manager->persist($metadataItem);
 				$this->addReference("PROJECT_{$i}_METADATA_ITEM_VERSION_{$j}", $metadataItem);
 			}

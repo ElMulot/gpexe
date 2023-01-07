@@ -2,17 +2,16 @@
 
 namespace App\Entity;
 
-use Symfony\Component\Security\Core\User\UserInterface;
-use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use App\Repository\UserRepository;
-use Symfony\Component\Security\Core\User\EquatableInterface;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Validator\Constraints\Email;
-use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Regex;
+use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[UniqueEntity(
@@ -30,6 +29,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 	private ?string $email = null;
 
 	#[ORM\Column]
+	#[NotBlank]
 	private ?string $password = null;
 
 	#[ORM\Column(length: 100)]
@@ -271,10 +271,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 	public function getRoles(): array
 	{
 		if (empty($this->roles)) {
-			if ($this->getProfil()->getEditDocuments())		$this->roles[] = 'ROLE_EDITOR';
-			if ($this->getProfil()->getIsController())		$this->roles[] = 'ROLE_CONTROLLER';
-			if ($this->getProfil()->getIsAdmin())			$this->roles[] = 'ROLE_ADMIN';
-			if ($this->getProfil()->getIsSuperAdmin())		$this->roles[] = 'ROLE_SUPER_ADMIN';
+			if ($this->getProfil()->isEditor())			$this->roles[] = 'ROLE_EDITOR';
+			if ($this->getProfil()->isController())		$this->roles[] = 'ROLE_CONTROLLER';
+			if ($this->getProfil()->isAdmin())			$this->roles[] = 'ROLE_ADMIN';
+			if ($this->getProfil()->isSuperAdmin())		$this->roles[] = 'ROLE_SUPER_ADMIN';
 		}
 
 		// guarantee every user at least has ROLE_USER

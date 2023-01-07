@@ -66,12 +66,12 @@ class QuickVersionType extends AbstractType
 						if ($metadata->getId() == $result->group(1)) {
 							$options = match ($metadata->getType()) {
 								MetadataTypeEnum::LIST => [
-										'required'	=> $metadata->getIsMandatory(),
+										'required'	=> $metadata->isMandatory(),
 										'class' 	=> MetadataItem::class,
 										'choices' 	=> $metadata->getMetadataItems(),
 									],
 								default => [
-										'required'	=> $metadata->getIsMandatory(),
+										'required'	=> $metadata->isMandatory(),
 									],
 							};
 						}

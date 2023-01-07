@@ -19,28 +19,28 @@ class ProfilFixtures extends Fixture
 		$profil = new Profil();
 		$profil
 			->setName('Super Admin Profil Test')
-			->setIsSuperAdmin(true);
+			->setSuperAdmin(true);
 		$manager->persist($profil);
 		$this->addReference(self::SUPER_ADMIN_PROFIL, $profil);
 
 		$profil = new Profil();
 		$profil
 			->setName('Admin Profil Test')
-			->setIsAdmin(true);
+			->setAdmin(true);
 		$manager->persist($profil);
 		$this->addReference(self::ADMIN_PROFIL, $profil);
 
 		$profil = new Profil();
 		$profil
 			->setName('Controller Profil Test')
-			->setIsController(true);
+			->setController(true);
 		$manager->persist($profil);
 		$this->addReference(self::CONTROLLER_PROFIL, $profil);
 
 		$profil = new Profil();
 		$profil
 			->setName('Edit Documents Profil Test')
-			->setEditDocuments(true);
+			->setEditor(true);
 		$manager->persist($profil);
 		$this->addReference(self::EDIT_DOCUMENTS_PROFIL, $profil);
 

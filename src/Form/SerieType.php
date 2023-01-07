@@ -76,8 +76,8 @@ class SerieType extends AbstractType
 
 			$defaultOptions = [
 				'label'			=> $metadata->getName(),
-				'required'		=> $metadata->getIsMandatory(),
-				// 'constraints'	=> ($metadata->getIsMandatory() === true)?[new NotBlank()]:[],
+				'required'		=> $metadata->isMandatory(),
+				// 'constraints'	=> ($metadata->isMandatory() === true)?[new NotBlank()]:[],
 				'empty_data'	=> $metadata->getDefault(),
 				'getter'		=> function(Serie $serie, FormInterface $form) use ($metadata): mixed
 									{

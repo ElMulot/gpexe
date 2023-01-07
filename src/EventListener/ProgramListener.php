@@ -27,7 +27,7 @@ class ProgramListener
 				$frequency = $program->getParsedCode('frequency') ?? 7;
 				$nextRun = (new Date('now'))->add('P' . $frequency . 'D');
 				$automation = new Automation;
-				$automation->setEnabled($program->getEnabled());
+				$automation->setEnabled($program->isEnabled());
 				$automation->setNextRun($nextRun);
 				$automation->setCommand('app:task');
 				$automation->setArguments(['id' => $program->getId()]);
@@ -40,7 +40,7 @@ class ProgramListener
 				$frequency = $program->getParsedCode('frequency') ?? 7;
 				$nextRun = (new Date('now'))->add('P' . $frequency . 'D');
 				$automation = new Automation;
-				$automation->setEnabled($program->getEnabled());
+				$automation->setEnabled($program->isEnabled());
 				$automation->setNextRun($nextRun);
 				$automation->setCommand('app:progress');
 				$automation->setArguments(['id' => $program->getId()]);
@@ -60,7 +60,7 @@ class ProgramListener
 				$nextRun = (new Date('now'))->add('P' . $frequency . 'D');
 				
 				if ($automation = $this->automationRepository->getAutomationByCommandAndByArguments('app:task', ['id' => $program->getId()])) {
-					$automation->setEnabled($program->getEnabled());
+					$automation->setEnabled($program->isEnabled());
 					$automation->setNextRun($nextRun);
 					$event->getObjectManager()->persist($automation);
 					$event->getObjectManager()->flush();
@@ -74,7 +74,7 @@ class ProgramListener
 				$nextRun = (new Date('now'))->add('P' . $frequency . 'D');
 				
 				if ($automation = $this->automationRepository->getAutomationByCommandAndByArguments('app:progress', ['id' => $program->getId()])) {
-					$automation->setEnabled($program->getEnabled());
+					$automation->setEnabled($program->isEnabled());
 					$automation->setNextRun($nextRun);
 					$event->getObjectManager()->persist($automation);
 					$event->getObjectManager()->flush();

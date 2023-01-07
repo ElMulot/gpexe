@@ -17,14 +17,14 @@ class ReviewFixtures extends Fixture implements DependentFixtureInterface
 				for ($k=0; $k<9; $k++) {
 
 					$date = new \DateTime("05-{$k}-1970");
-					$visas = [$this->getReference(constant("VisaFixtures::PROJECT_{$i}_MAIN_CONTRACTOR_VISA_NO")),
-						$this->getReference(constant("VisaFixtures::PROJECT_{$i}_MAIN_CONTRACTOR_VISA_NO"))];
+					$visas = [$this->getReference(constant(VisaFixtures::class . "::PROJECT_{$i}_MAIN_CONTRACTOR_VISA_NO")),
+						$this->getReference(constant(VisaFixtures::class . "::PROJECT_{$i}_MAIN_CONTRACTOR_VISA_NO"))];
 
 					$review = new Review();
 					$review
 						->setDate($date)
 						->setUser($this->getReference(UserFixtures::EDIT_DOCUMENTS_USER))
-						->setVersion($this->getReference(constant("self::PROJECT_{$i}_SERIE_{$j}_VERSION_") . $k . '0'))
+						->setVersion($this->getReference("PROJECT_{$i}_SERIE_{$j}_VERSION_{$k}0"))
 						->setVisa($visas[array_rand($visas)]);
 					$manager->persist($review);
 				}
@@ -38,6 +38,7 @@ class ReviewFixtures extends Fixture implements DependentFixtureInterface
 		return [
 			VisaFixtures::class,
 			UserFixtures::class,
+			VersionFixtures::class,
 		];
 	}
 }

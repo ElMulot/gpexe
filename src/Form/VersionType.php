@@ -89,7 +89,7 @@ class VersionType extends AbstractType
 		// 	]);
 		// }
 
-		$builder->add('isRequired', BooleanVariousType::class, [
+		$builder->add('required', BooleanVariousType::class, [
 			'data' => [true],
 		]);
 
@@ -122,8 +122,8 @@ class VersionType extends AbstractType
 		// foreach ($metadatas as $metadata) {
 		// 	$defaultOptions = [
 		// 		'label'			=> $metadata->getName(),
-		// 		'required'		=> $metadata->getIsMandatory(),
-		// 		'constraints'	=> ($metadata->getIsMandatory() === true)?[new NotBlank()]:[],
+		// 		'required'		=> $metadata->isMandatory(),
+		// 		'constraints'	=> ($metadata->isMandatory() === true)?[new NotBlank()]:[],
 		// 		'empty_data'	=> $metadata->getDefault(),
 		// 	];
 

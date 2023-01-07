@@ -236,7 +236,7 @@ class Document extends AbstractElement
 		$count = 0;
 		
 		foreach ($this->getVersions()->getValues() as $version) {
-			if ($version->getIsRequired() === false && $version->getStatus()->getIsCancel() === false) {
+			if ($version->isRequired() === false && $version->getStatus()->isCancel() === false) {
 				$count++;
 			}
 		}

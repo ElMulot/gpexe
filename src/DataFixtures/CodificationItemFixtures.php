@@ -26,7 +26,7 @@ class CodificationItemFixtures extends Fixture implements DependentFixtureInterf
 				$codificationItem
 					->setName("Item {$i}{$j}")
 					->setValue("Item_{$i}{$j}")
-					->setCodification($this->getReference(constant("CodificationFixtures::PROJECT_{$i}_CODIFICATION_LIST")));
+					->setCodification($this->getReference(constant(CodificationFixtures::class . "::PROJECT_{$i}_CODIFICATION_LIST")));
 				$manager->persist($codificationItem);
 				$this->addReference("PROJECT_{$i}_CODIFICATION_ITEM_{$j}", $codificationItem);
 			}

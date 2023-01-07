@@ -37,7 +37,6 @@ class UserController extends AbstractTurboController
 		$form->handleRequest($request);
 
 		if ($form->isSubmitted() && $form->isValid()) {
-			$user->setPassword($this->passwordHasher->hashPassword($user, $user->getPassword()));
 			$user->setCreatedOn(new \DateTime());
 			$entityManager = $this->doctrine->getManager();
 			$entityManager->persist($user);
@@ -64,7 +63,7 @@ class UserController extends AbstractTurboController
 
 		if ($form->isSubmitted() && $form->isValid()) {
 			if (!empty($form->get('new_password')->getData())) {
-				$user->setPassword($this->passwordHasher->hashPassword($user, $form->get('new_password')->getData()));
+				$user->setPassword($form->get('new_password')->getData());
 			}
 			$entityManager = $this->doctrine->getManager();
 			$entityManager->flush();

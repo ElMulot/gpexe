@@ -25,23 +25,23 @@ class Profil implements \Stringable
 	private ?string $name = null;
 	
 	#[ORM\Column]
-	private ?bool $isSuperAdmin = null;
+	private ?bool $superAdmin = null;
 	
 	#[ORM\Column]
-	private ?bool $isAdmin = null;
+	private ?bool $admin = null;
 	
 	#[ORM\Column]
-	private ?bool $isController = null;
+	private ?bool $controller = null;
 	
 	#[ORM\Column]
-	private ?bool $editDocuments = null;
+	private ?bool $editor = null;
 	
 	public function __construct()
 	{
-		$this->isSuperAdmin = false;
-		$this->isAdmin = false;
-		$this->isController = false;
-		$this->editDocuments = false;
+		$this->superAdmin = false;
+		$this->admin = false;
+		$this->controller = false;
+		$this->editor = false;
 	}
 	
 	public function getId(): ?int
@@ -61,58 +61,58 @@ class Profil implements \Stringable
 		return $this;
 	}
 	
-	public function getIsSuperAdmin(): ?bool
+	public function isSuperAdmin(): ?bool
 	{
-		return $this->isSuperAdmin;
+		return $this->superAdmin;
 	}
 	
-	public function setIsSuperAdmin(bool $isSuperAdmin): self
+	public function setSuperAdmin(bool $superAdmin): self
 	{
-		$this->isSuperAdmin = $isSuperAdmin;
+		$this->superAdmin = $superAdmin;
 		
-		if ($isSuperAdmin === true) {
-			$this->setIsAdmin(true);
+		if ($superAdmin === true) {
+			$this->setAdmin(true);
 		}
 		
 		return $this;
 	}
 	
-	public function getIsAdmin(): ?bool
+	public function isAdmin(): ?bool
 	{
-		return $this->isAdmin;
+		return $this->admin;
 	}
 	
-	public function setIsAdmin(bool $isAdmin): self
+	public function setAdmin(bool $admin): self
 	{
-		$this->isAdmin = $isAdmin;
+		$this->admin = $admin;
 		
-		if ($isAdmin === true) {
-			$this->setEditDocuments(true);
-			$this->setIsController(true);
+		if ($admin === true) {
+			$this->setEditor(true);
+			$this->setController(true);
 		}
 		return $this;
 	}
 	
-	public function getIsController(): ?bool
+	public function isController(): ?bool
 	{
-		return $this->isController;
+		return $this->controller;
 	}
 
-	public function setIsController(bool $isController): self
+	public function setController(bool $controller): self
 	{
-		$this->isController = $isController;
+		$this->controller = $controller;
 		
 		return $this;
 	}
 
-	public function getEditDocuments(): ?bool
+	public function isEditor(): ?bool
 	{
-		return $this->editDocuments;
+		return $this->editor;
 	}
 
-	public function setEditDocuments(bool $editDocuments): self
+	public function setEditor(bool $editor): self
 	{
-		$this->editDocuments = $editDocuments;
+		$this->editor = $editor;
 		
 		return $this;
 	}

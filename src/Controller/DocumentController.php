@@ -272,7 +272,7 @@ class DocumentController extends AbstractTurboController
 				
 			// 	$value = $form->get($codification->getFullId())->getData();
 				
-			// 	if ($value === null && $codification->getIsMandatory()) {
+			// 	if ($value === null && $codification->isMandatory()) {
 			// 		$this->addFlash('danger', $this->translator->trans('notEmpty.field', ['field' => $codification->getName()]));
 			// 		return $this->renderForm('ajax/form.html.twig', [
 			// 			'form' => $form,
@@ -296,7 +296,7 @@ class DocumentController extends AbstractTurboController
 			// foreach ($this->metadataRepository->getMetadatasForDocument($project) as $metadata) {
 			// 	$value = $form->get($metadata->getFullId())->getData();
 				
-			// 	if ($value === null && $metadata->getIsMandatory()) {
+			// 	if ($value === null && $metadata->isMandatory()) {
 			// 		$this->addFlash('danger', $this->translator->trans('notEmpty.field', ['field' => $metadata->getName()]));
 			// 		return $this->renderForm('ajax/form.html.twig', [
 			// 			'form' => $form,
@@ -306,7 +306,7 @@ class DocumentController extends AbstractTurboController
 			// 	try {
 			// 		$document->setMetadataValue($metadata, $value);
 			// 	} catch (\Error $e) {
-			// 		if ($metadata->getIsMandatory() === true) {
+			// 		if ($metadata->isMandatory() === true) {
 			// 			$this->addFlash('danger', $e->getMessage());
 			// 			return $this->renderForm('ajax/form.html.twig', [
 			// 				'form' => $form,
@@ -368,7 +368,7 @@ class DocumentController extends AbstractTurboController
 						
 						$value = $form->get($codification->getFullId())->getData();
 						
-						if ($value === null && $codification->getIsMandatory()) {
+						if ($value === null && $codification->isMandatory()) {
 							$this->addFlash('danger', $this->translator->trans('notEmpty.field', ['field' => $codification->getName()]));
 							return $this->renderForm('ajax/form.html.twig', [
 								'form' => $form,
@@ -402,7 +402,7 @@ class DocumentController extends AbstractTurboController
 						
 						$value = $form->get($metadata->getFullId())->getData();
 						
-						if ($value === null && $metadata->getIsMandatory()) {
+						if ($value === null && $metadata->isMandatory()) {
 							$this->addFlash('danger', $this->translator->trans('notEmpty.field', ['field' => $metadata->getName()]));
 							return $this->renderForm('ajax/form.html.twig', [
 								'form' => $form,
@@ -412,7 +412,7 @@ class DocumentController extends AbstractTurboController
 						try {
 							$document->setMetadataValue($metadata, $value);
 						} catch (\Error $e) {
-							if ($metadata->getIsMandatory() === true) {
+							if ($metadata->isMandatory() === true) {
 								$this->addFlash('danger', $e->getMessage());
 								return $this->renderForm('ajax/form.html.twig', [
 									'form' => $form,

@@ -13,10 +13,10 @@ class ProfilType extends AbstractType
 	{
 		$builder
 			->add('name')
-			->add('editDocuments')
-			->add('isController')
-			->add('isAdmin')
-			->add('isSuperAdmin')
+			->add('editor')
+			->add('controller')
+			->add('admin')
+			->add('superAdmin')
 		;
 	}
 

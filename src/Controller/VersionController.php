@@ -112,7 +112,7 @@ class VersionController extends AbstractTurboController
 		// 	$version->setChecker($lastVersion->getChecker());
 		// 	$version->setApprover($lastVersion->getApprover());
 		// 	foreach ($this->metadataRepository->getMetadatasForVersion($project) as $metadata) {
-		// 		if ($metadata->isBoolean() || $metadata->isList() || $metadata->getIsMandatory()) {
+		// 		if ($metadata->isBoolean() || $metadata->isList() || $metadata->isMandatory()) {
 		// 			try {
 		// 				$version->setMetadataValue($metadata, $lastVersion->getMetadataValue($metadata));
 		// 			} catch (\Error $e) {
@@ -129,8 +129,8 @@ class VersionController extends AbstractTurboController
 		// $form->handleRequest($request);
 		// if ($form->isSubmitted() && $form->isValid()) {
 			
-		// 	$version->setIsRequired($form->get('isRequired')->getData());
-		// 	if ($version->getIsRequired()) {
+		// 	$version->setRequired($form->get('isRequired')->getData());
+		// 	if ($version->isRequired()) {
 		// 		$version->setScheduledDate($form->get('date')->getData());
 		// 	} else {
 		// 		$version->setDeliveryDate($form->get('date')->getData());
@@ -144,7 +144,7 @@ class VersionController extends AbstractTurboController
 				
 		// 		$value = $form->get($metadata->getFullId())->getData();
 				
-		// 		if ($value === null && $metadata->getIsMandatory()) {
+		// 		if ($value === null && $metadata->isMandatory()) {
 		// 			$this->addFlash('danger', $this->translator->trans('notEmpty.field', ['field' => $metadata->getName()]));
 		// 			return $this->renderForm('ajax/form.html.twig', [
 		// 				'form' => $form,
@@ -154,7 +154,7 @@ class VersionController extends AbstractTurboController
 		// 		try {
 		// 			$version->setMetadataValue($metadata, $value);
 		// 		} catch (\Error $e) {
-		// 			if ($metadata->getIsMandatory() === true) {
+		// 			if ($metadata->isMandatory() === true) {
 		// 				$this->addFlash('danger', $e->getMessage());
 		// 				return $this->renderForm('ajax/form.html.twig', [
 		// 					'form' => $form,
@@ -197,7 +197,7 @@ class VersionController extends AbstractTurboController
 		$versions = $this->versionRepository->getVersions($request);
 		if ($request->query->has('save')) {
 			foreach ($versions as $version) {
-				$version->setIsRequired(false);
+				$version->setRequired(false);
 			}
 		}
 		
@@ -219,11 +219,11 @@ class VersionController extends AbstractTurboController
 				}
 				
 				if ($this->isMultiple($form, 'isRequired') == false) {
-					$version->setIsRequired($form->get('isRequired')->getData());
+					$version->setRequired($form->get('isRequired')->getData());
 				}
 				
 				if ($this->isMultiple($form, 'date') == false) {
-					if ($version->getIsRequired()) {
+					if ($version->isRequired()) {
 						$version->setScheduledDate($form->get('date')->getData());
 					} else {
 						$version->setDeliveryDate($form->get('date')->getData());
@@ -239,7 +239,7 @@ class VersionController extends AbstractTurboController
 					if ($this->isMultiple($form, $metadata->getFullId()) == false) {
 						
 						$value = $form->get($metadata->getFullId())->getData();
-						if ($value === null && $metadata->getIsMandatory()) {
+						if ($value === null && $metadata->isMandatory()) {
 							$this->addFlash('danger', $this->translator->trans('notEmpty.field', ['field' => $metadata->getName()]));
 							return $this->renderForm('ajax/form.html.twig', [
 								'form' => $form,
@@ -249,7 +249,7 @@ class VersionController extends AbstractTurboController
 						try {
 							$version->setMetadataValue($metadata, $value);
 						} catch (\Error $e) {
-							if ($metadata->getIsMandatory() === true) {
+							if ($metadata->isMandatory() === true) {
 								$this->addFlash('danger', $e->getMessage());
 								return $this->renderForm('ajax/form.html.twig', [
 									'form' => $form,
@@ -349,14 +349,14 @@ class VersionController extends AbstractTurboController
 		if ($form->isSubmitted() && $form->isValid()) {
 			
 			$newVersion->setScheduledDate(new \DateTime('now + ' . $project->getNewVersionTime() . ' days'));
-			$newVersion->setIsRequired(true);
+			$newVersion->setRequired(true);
 			$newVersion->setStatus($version->getStatus());
 			$newVersion->setWriter($version->getWriter());
 			$newVersion->setChecker($version->getChecker());
 			$newVersion->setApprover($version->getApprover());
 			
 			foreach ($this->metadataRepository->getMetadatasForVersion($project) as $metadata) {
-				if ($metadata->isBoolean() || $metadata->isList() || $metadata->getIsMandatory()) {
+				if ($metadata->isBoolean() || $metadata->isList() || $metadata->isMandatory()) {
 					try {
 						$newVersion->setMetadataValue($metadata, $version->getMetadataValue($metadata));
 					} catch (\Error $e) {

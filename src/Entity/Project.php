@@ -52,7 +52,7 @@ class Project implements \Stringable
 	private ?int $newVersionTime = null;
 
 	#[ORM\ManyToMany(targetEntity: User::class, inversedBy: 'projects')]
-	#[ORM\JoinColumn(nullable: true)]
+	// #[ORM\JoinColumn(nullable: true)]
     private Collection $users;
 
 	#[ORM\OneToMany(targetEntity: Codification::class, mappedBy: 'project', orphanRemoval: true, fetch: 'EAGER')]

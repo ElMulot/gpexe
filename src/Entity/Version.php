@@ -30,7 +30,7 @@ class Version extends AbstractElement
 	private ?string $name = null;
 
 	#[ORM\Column]
-	private ?bool $isRequired = null;
+	private ?bool $required = null;
 
 	#[ORM\Column(nullable: true)]
 	private ?\DateTime $initialScheduledDate = null;
@@ -72,7 +72,7 @@ class Version extends AbstractElement
 
 	public function __construct()
 	{
-		$this->isRequired = true;
+		$this->required = true;
 		$this->metadataItems = new ArrayCollection();
 		$this->metadataValues = new ArrayCollection();
 	 	$this->reviews = new ArrayCollection();
@@ -95,15 +95,15 @@ class Version extends AbstractElement
 		return $this;
 	}
 
-	public function getIsRequired(): ?bool
+	public function isRequired(): ?bool
 	{
-		return $this->isRequired;
+		return $this->required;
 	}
 
-	public function setIsRequired(bool $isRequired): self
+	public function setRequired(bool $required): self
 	{
-		$this->isRequired = $isRequired;
-		if ($isRequired === true) {
+		$this->required = $required;
+		if ($required === true) {
 			$this->deliveryDate = null;
 		}
 		
@@ -146,12 +146,12 @@ class Version extends AbstractElement
 
 	public function getDate(): ?\DateTimeInterface
 	{
-		return ($this->isRequired === true)?$this->scheduledDate:$this->deliveryDate;
+		return ($this->required === true)?$this->scheduledDate:$this->deliveryDate;
 	}
 
 	public function setDate(?\DateTimeInterface $date): self
 	{
-		if ($this->isRequired === true) {
+		if ($this->required === true) {
 			$this->setScheduledDate($date);
 		} else {
 			$this->setDeliveryDate($date);
@@ -346,7 +346,7 @@ class Version extends AbstractElement
 				return $this->getDate();
 				
 			case 'version.isRequired':
-				return $this->getIsRequired();
+				return $this->isRequired();
 				
 			case 'version.writer':
 				return $this->getWriter();
@@ -368,21 +368,21 @@ class Version extends AbstractElement
 				return true;
 				
 			case 'version.firstScheduled':
-				if ($this->getIsRequired() === false) return false;
+				if ($this->isRequired() === false) return false;
 				$date = $this->getScheduledDate();
 				/** @var Version $version */
 				foreach ($this->getDocument()->getVersions()->getValues() as $version) {
-					if ($version->getIsRequired() && ($version->getScheduledDate() < $date || ($version->getScheduledDate() == $date && $version->getName() < $this->getName()))) {
+					if ($version->isRequired() && ($version->getScheduledDate() < $date || ($version->getScheduledDate() == $date && $version->getName() < $this->getName()))) {
 						return false;
 					}
 				}
 				return true;
 				
 			case 'version.firstDelivered':
-				if ($this->getIsRequired()) return false;
+				if ($this->isRequired()) return false;
 				$date = $this->getDeliveryDate();
 				foreach ($this->getDocument()->getVersions()->getValues() as $version) {
-					if ($version->getIsRequired() == false && ($version->getDeliveryDate() < $date || ($version->getDeliveryDate() == $date && $version->getName() < $this->getName()))) {
+					if ($version->isRequired() == false && ($version->getDeliveryDate() < $date || ($version->getDeliveryDate() == $date && $version->getName() < $this->getName()))) {
 						return false;
 					}
 				}
@@ -399,22 +399,22 @@ class Version extends AbstractElement
 				return true;
 			
 			case 'version.lastScheduled':
-				if ($this->getIsRequired() === false) return false;
+				if ($this->isRequired() === false) return false;
 				$date = $this->getScheduledDate();
 				/** @var Version $version */
 				foreach ($this->getDocument()->getVersions()->getValues() as $version) {
-					if ($version->getIsRequired() && ($version->getScheduledDate() > $date || ($version->getScheduledDate() == $date && $version->getName() > $this->getName()))) {
+					if ($version->isRequired() && ($version->getScheduledDate() > $date || ($version->getScheduledDate() == $date && $version->getName() > $this->getName()))) {
 						return false;
 					}
 				}
 				return true;
 				
 			case 'version.lastDelivered':
-				if ($this->getIsRequired()) return false;
+				if ($this->isRequired()) return false;
 				$date = $this->getDeliveryDate();
 				/** @var Version $version */
 				foreach ($this->getDocument()->getVersions()->getValues() as $version) {
-					if ($version->getIsRequired() == false && ($version->getDeliveryDate() > $date || ($version->getDeliveryDate() == $date && $version->getName() > $this->getName()))) {
+					if ($version->isRequired() == false && ($version->getDeliveryDate() > $date || ($version->getDeliveryDate() == $date && $version->getName() > $this->getName()))) {
 						return false;
 					}
 				}
@@ -490,7 +490,7 @@ class Version extends AbstractElement
 				break;
 				
 			case 'version.isRequired':
-				$this->setIsRequired($value || $value === 'true' || $value === 'yes');
+				$this->setRequired($value || $value === 'true' || $value === 'yes');
 				break;
 				
 			case 'version.writer':

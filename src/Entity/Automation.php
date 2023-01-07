@@ -35,7 +35,7 @@ class Automation
 	{
 		return $this->id;
 	}
-	public function getEnabled(): ?bool
+	public function isEnabled(): ?bool
 	{
 		return $this->enabled;
 	}

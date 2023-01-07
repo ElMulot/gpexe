@@ -22,7 +22,7 @@ class ViewType extends AbstractType
 		$builder
 			->add('name')
 			->add('isShared')
-			->add('isDefault')
+			->add('default')
 		;
 		
 		if ($this->security->isGranted('ROLE_ADMIN')) {

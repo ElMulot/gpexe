@@ -27,7 +27,7 @@ class StatusFixtures extends Fixture implements DependentFixtureInterface
 				->setName('Information')
 				->setValue('INF')
 				->setType(StatusTypeEnum::INFORMATION)
-				->setProject($this->getReference(constant("ProjectFixtures::PROJECT_{$i}")));
+				->setProject($this->getReference(constant(ProjectFixtures::class . "::PROJECT_{$i}")));
 			$manager->persist($status);
 			$this->addReference("PROJECT_{$i}_INFORMATION_STATUS", $status);
 
@@ -36,8 +36,8 @@ class StatusFixtures extends Fixture implements DependentFixtureInterface
 				->setName('Review')
 				->setValue('REV')
 				->setType(StatusTypeEnum::REVIEW)
-				->setIsDefault(true)
-				->setProject($this->getReference(constant("ProjectFixtures::PROJECT_{$i}")));
+				->setDefault(true)
+				->setProject($this->getReference(constant(ProjectFixtures::class . "::PROJECT_{$i}")));
 			$manager->persist($status);
 			$this->addReference("PROJECT_{$i}_REVIEW_STATUS", $status);
 
@@ -46,7 +46,7 @@ class StatusFixtures extends Fixture implements DependentFixtureInterface
 				->setName('CANCEL')
 				->setValue('CNL')
 				->setType(StatusTypeEnum::CANCEL)
-				->setProject($this->getReference(constant("ProjectFixtures::PROJECT_{$i}")));
+				->setProject($this->getReference(constant(ProjectFixtures::class . "::PROJECT_{$i}")));
 			$manager->persist($status);
 			$this->addReference("PROJECT_{$i}_CANCEL_STATUS", $status);
 
@@ -55,7 +55,7 @@ class StatusFixtures extends Fixture implements DependentFixtureInterface
 				->setName('As Built')
 				->setValue('BLT')
 				->setType(StatusTypeEnum::AS_BUILT)
-				->setProject($this->getReference(constant("ProjectFixtures::PROJECT_{$i}")));
+				->setProject($this->getReference(constant(ProjectFixtures::class . "::PROJECT_{$i}")));
 			$manager->persist($status);
 			$this->addReference("PROJECT_{$i}_AS_BUILT_STATUS", $status);
 

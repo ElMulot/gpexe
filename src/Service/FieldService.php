@@ -367,7 +367,7 @@ class FieldService
 				'type' => $metadata->getType(),
 				'parent' => $metadata->getParent(),
 				'default_width' => 10,
-				'mandatory' => $metadata->getIsMandatory(),
+				'mandatory' => $metadata->isMandatory(),
 				'display' => [
 					'thead' => true,
 					'filter' => false,

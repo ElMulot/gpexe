@@ -2,7 +2,6 @@
 
 namespace App\EventListener;
 
-use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\Event\LifecycleEventArgs;
 use App\Entity\Status;
 use App\Repository\StatusRepository;
@@ -10,21 +9,21 @@ use App\Repository\StatusRepository;
 class StatusListener
 {
 	
-	public function __construct(private readonly EntityManagerInterface $entityManager, private readonly StatusRepository $statusRepository)
+	public function __construct(private readonly StatusRepository $statusRepository)
 	{
 	}
 	
-	public function setIsDefault(Status $status, LifecycleEventArgs $event)
+	public function setDefault(Status $status, LifecycleEventArgs $event)
 	{
 		$project = $status->getProject();
 		
 		if ($this->statusRepository->getStatusesCount($project) == 1) {
-			$status->setIsDefault(true);
-		} elseif ($status->getIsDefault()) {
+			$status->setDefault(true);
+		} elseif ($status->isDefault()) {
 			
 			foreach($this->statusRepository->getStatuses($project) as $s) {
-				if ($s->getId() !== $status->getId() && $s->getIsDefault()) {
-					$s->setIsDefault(false);
+				if ($s->getId() !== $status->getId() && $s->isDefault()) {
+					$s->setDefault(false);
 					$event->getObjectManager()->persist($s);
 					$event->getObjectManager()->flush();
 				}
@@ -32,11 +31,11 @@ class StatusListener
 			
 		} else {
 			foreach($this->statusRepository->getStatuses($project) as $s) {
-				if ($s->getIsDefault()) {
+				if ($s->isDefault()) {
 					return;
 				}
 			}
-			$status->setIsDefault(true);
+			$status->isDefault(true);
 		}
 	}
 	
@@ -45,11 +44,11 @@ class StatusListener
 		$project = $status->getProject();
 		
 		foreach($this->statusRepository->getStatuses($project) as $s) {
-			if ($s->getIsDefault()) {
+			if ($s->isDefault()) {
 				return;
 			}
 		}
-		$status->setIsDefault(true);
+		$status->isDefault(true);
 		$event->getObjectManager()->persist($status);
 		$event->getObjectManager()->flush();
 	}

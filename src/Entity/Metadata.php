@@ -55,13 +55,13 @@ class Metadata implements \Stringable
 	private ?string $type = null;
 
 	#[ORM\Column]
-	private ?bool $isMandatory = null;
+	private ?bool $mandatory = null;
 
 	#[ORM\Column(length: 255, nullable: true)]
 	private ?string $pattern = null;
 
 	#[ORM\Column(length: 255, nullable: true)]
-	private ?string $default = null;
+	private ?string $defaultValue = null;
 
 	#[ORM\Column(type: 'metadata_parent_enum')]
 	#[DoctrineAssert\EnumType(entity: MetadataParentEnum::class)]
@@ -121,27 +121,27 @@ class Metadata implements \Stringable
 	{
 		MetadataTypeEnum::assertValidChoice($type);
 		if ($type === MetadataTypeEnum::BOOL) {
-			$this->isMandatory = true;
+			$this->mandatory = true;
 		}
 		$this->type = $type;
 
 		return $this;
 	}
 
-	public function getIsMandatory(): ?bool
+	public function isMandatory(): ?bool
 	{
 		if ($this->type === MetadataTypeEnum::BOOL) {
 			return false;
 		}
-		return $this->isMandatory;
+		return $this->mandatory;
 	}
 
-	public function setIsMandatory(bool $isMandatory): self
+	public function setMandatory(bool $mandatory): self
 	{
 		if ($this->type === MetadataTypeEnum::BOOL) {
-			$isMandatory = false;
+			$mandatory = false;
 		}
-		$this->isMandatory = $isMandatory;
+		$this->mandatory = $mandatory;
 		
 		return $this;
 	}
@@ -158,14 +158,14 @@ class Metadata implements \Stringable
 		return $this;
 	}
 
-	public function getDefault(): ?string
+	public function getDefaultValue(): ?string
 	{
-		return $this->default;
+		return $this->defaultValue;
 	}
 
-	public function setDefault(string $default): self
+	public function setDefaultValue(string $defaultValue): self
 	{
-		$this->default = $default;
+		$this->defaultValue = $defaultValue;
 
 		return $this;
 	}

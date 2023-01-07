@@ -47,7 +47,7 @@ class ViewFixtures extends Fixture implements DependentFixtureInterface
 			$metadataFixturesClass = new \ReflectionClass(MetadataFixtures::class);
 			foreach ($metadataFixturesClass->getConstants() as $name => $constant) {
 				if (str_starts_with($name, "PROJECT_{$i}") === true) {
-					$value['display'] += [('metadata_' . $this->getReference(constant("MetadataFixtures::{$name}"))->getId()) => 6];
+					$value['display'] += [('metadata_' . $this->getReference(constant(MetadataFixtures::class . "::{$name}"))->getId()) => 6];
 				}
 			}
 			
@@ -55,14 +55,14 @@ class ViewFixtures extends Fixture implements DependentFixtureInterface
 			$visaFixturesClass = new \ReflectionClass(VisaFixtures::class);
 			foreach ($visaFixturesClass->getConstants() as $name => $constant) {
 				if (str_starts_with($name, "PROJECT_{$i}") === true) {
-					$value['display'] += [('visa_' . $this->getReference(constant("VisaFixtures::{$name}"))->getId()) => 5];
+					$value['display'] += [('visa_' . $this->getReference(constant(VisaFixtures::class . "::{$name}"))->getId()) => 5];
 				}
 			}
 
 			$statusFixturesClass = new \ReflectionClass(StatusFixtures::class);
 			foreach ($statusFixturesClass->getConstants() as $name => $constant) {
 				if (str_starts_with($name, "PROJECT_{$i}") === true) {
-					$value['filter']['status_value'][] = $this->getReference(constant("StatusFixtures::{$name}"))->getId();
+					$value['filter']['status_value'][] = $this->getReference(constant(StatusFixtures::class . "::{$name}"))->getId();
 				}
 			}
 
@@ -72,9 +72,9 @@ class ViewFixtures extends Fixture implements DependentFixtureInterface
 			$view
 				->setName('Admin shared')
 				->setValue($value)
-				->setIsShared(true)
-				->setIsDefault(false)
-				->setProject($this->getReference(constant("ProjectFixtures::PROJECT_{$i}")))
+				->setShared(true)
+				->setDefault(false)
+				->setProject($this->getReference(constant(ProjectFixtures::class . "::PROJECT_{$i}")))
 				->setUser($this->getReference(UserFixtures::ADMIN_USER));
 			
 			$manager->persist($view);
@@ -101,7 +101,7 @@ class ViewFixtures extends Fixture implements DependentFixtureInterface
 			foreach ($visaFixturesClass->getConstants() as $name => $constant) {
 
 				/**@var Visa $visa */
-				$visa = $this->getReference(constant("VisaFixtures::{$name}"));
+				$visa = $this->getReference(constant(VisaFixtures::class . "::{$name}"));
 
 				if (str_starts_with($name, "PROJECT_{$i}") === true && $visa->getRevisionRequired() === true) {
 					$value['display'] += [('visa_' . $visa->getId()) => 5];
@@ -112,9 +112,9 @@ class ViewFixtures extends Fixture implements DependentFixtureInterface
 			foreach ($statusFixturesClass->getConstants() as $name => $constant) {
 				
 				/**@var Status $status */
-				$status = $this->getReference(constant("StatusFixtures::{$name}"));
+				$status = $this->getReference(constant(StatusFixtures::class . "::{$name}"));
 				
-				if (str_starts_with($name, "PROJECT_{$i}") === true && $status->getIsCancel() === false) {
+				if (str_starts_with($name, "PROJECT_{$i}") === true && $status->isCancel() === false) {
 					$value['filter']['status_value'][] = $status->getId();
 				}
 			}
@@ -125,9 +125,9 @@ class ViewFixtures extends Fixture implements DependentFixtureInterface
 			$view
 				->setName('Admin shared default')
 				->setValue($value)
-				->setIsShared(true)
-				->setIsDefault(true)
-				->setProject($this->getReference(constant("ProjectFixtures::PROJECT_{$i}")))
+				->setShared(true)
+				->setDefault(true)
+				->setProject($this->getReference(constant(ProjectFixtures::class . "::PROJECT_{$i}")))
 				->setUser($this->getReference(UserFixtures::ADMIN_USER));
 			
 			$manager->persist($view);
@@ -154,9 +154,9 @@ class ViewFixtures extends Fixture implements DependentFixtureInterface
 			$view
 				->setName('Admin not shared')
 				->setValue($value)
-				->setIsShared(false)
-				->setIsDefault(false)
-				->setProject($this->getReference(constant("ProjectFixtures::PROJECT_{$i}")))
+				->setShared(false)
+				->setDefault(false)
+				->setProject($this->getReference(constant(ProjectFixtures::class . "::PROJECT_{$i}")))
 				->setUser($this->getReference(UserFixtures::ADMIN_USER));
 			
 			$manager->persist($view);
@@ -178,9 +178,9 @@ class ViewFixtures extends Fixture implements DependentFixtureInterface
 			$view
 				->setName('Read only')
 				->setValue($value)
-				->setIsShared(false)
-				->setIsDefault(false)
-				->setProject($this->getReference(constant("ProjectFixtures::PROJECT_{$i}")))
+				->setShared(false)
+				->setDefault(false)
+				->setProject($this->getReference(constant(ProjectFixtures::class . "::PROJECT_{$i}")))
 				->setUser($this->getReference(UserFixtures::READ_ONLY_USER));
 			
 			$manager->persist($view);
@@ -199,9 +199,9 @@ class ViewFixtures extends Fixture implements DependentFixtureInterface
 			$view
 				->setName('Read only default')
 				->setValue($value)
-				->setIsShared(false)
-				->setIsDefault(false)
-				->setProject($this->getReference(constant("ProjectFixtures::PROJECT_{$i}")))
+				->setShared(false)
+				->setDefault(false)
+				->setProject($this->getReference(constant(ProjectFixtures::class . "::PROJECT_{$i}")))
 				->setUser($this->getReference(UserFixtures::READ_ONLY_USER));
 			
 			$manager->persist($view);

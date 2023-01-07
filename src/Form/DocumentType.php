@@ -102,7 +102,7 @@ class DocumentType extends AbstractType
 			$defaultOptions = [
 				'label'			=> $codification->getName(),
 				'required'		=> true,
-				// 'constraints'	=> ($codification->getIsMandatory() === true)?[new NotBlank()]:[],
+				// 'constraints'	=> ($codification->isMandatory() === true)?[new NotBlank()]:[],
 				'empty_data'	=> $codification->getValue(),
 			];
 
@@ -137,8 +137,8 @@ class DocumentType extends AbstractType
 		foreach ($metadatas as $metadata) {
 			$defaultOptions = [
 				'label'			=> $metadata->getName(),
-				'required'		=> $metadata->getIsMandatory(),
-				'constraints'	=> ($metadata->getIsMandatory() === true)?[new NotBlank()]:[],
+				'required'		=> $metadata->isMandatory(),
+				'constraints'	=> ($metadata->isMandatory() === true)?[new NotBlank()]:[],
 				'empty_data'	=> $metadata->getDefault(),
 			];
 

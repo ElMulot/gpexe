@@ -22,7 +22,7 @@ class StatusType extends AbstractType
 				'expanded' => true,
 				'disabled' => ($builder->getData()->getId() != null),
 			])
-			->add('isDefault', CheckboxType::class, [
+			->add('default', CheckboxType::class, [
 				'required' => false
 			])
 		;

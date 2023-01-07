@@ -171,7 +171,7 @@ class SerieController extends AbstractTurboController
 			foreach ($this->metadataRepository->getMetadatasForSerie($project) as $metadata) {
 				$value = $form->get($metadata->getCodeName())->getData();
 				
-				if ($value === null && $metadata->getIsMandatory()) {
+				if ($value === null && $metadata->isMandatory()) {
 					$this->addFlash('danger', $this->translator->trans('notEmpty.field', ['field' => $metadata->getName()]));
 					return $this->renderForm('generic/new.html.twig', [
 						'form' => $form,
@@ -181,7 +181,7 @@ class SerieController extends AbstractTurboController
 				try {
 					$serie->setMetadataValue($metadata, $value);
 				} catch (\Error $e) {
-					if ($metadata->getIsMandatory() === true) {
+					if ($metadata->isMandatory() === true) {
 						$this->addFlash('danger', $e->getMessage());
 						return $this->renderForm('ajax/form.html.twig', [
 							'form' => $form,
@@ -233,7 +233,7 @@ class SerieController extends AbstractTurboController
 			foreach ($this->metadataRepository->getMetadatasForSerie($project) as $metadata) {
 				$value = $form->get($metadata->getCodeName())->getData();
 				
-				if ($value === null && $metadata->getIsMandatory()) {
+				if ($value === null && $metadata->isMandatory()) {
 					$this->addFlash('danger', $this->translator->trans('notEmpty.field', ['field' => $metadata->getName()]));
 					return $this->renderForm('generic/form.html.twig', [
 						'route_back' =>  $this->generateUrl('document', [
@@ -246,7 +246,7 @@ class SerieController extends AbstractTurboController
 				try {
 					$serie->setMetadataValue($metadata, $value);
 				} catch (\Error $e) {
-					if ($metadata->getIsMandatory() === true) {
+					if ($metadata->isMandatory() === true) {
 						$this->addFlash('danger', $e->getMessage());
 						return $this->renderForm('generic/edit.html.twig', [
 							'form' => $form,

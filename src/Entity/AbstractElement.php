@@ -132,7 +132,7 @@ abstract class AbstractElement implements \Stringable
 		}
 		
 		//check if metadata is mandatory
-		if ($value === null && $metadata->getIsMandatory() === true) {
+		if ($value === null && $metadata->isMandatory() === true) {
 			throw new MandatoryValueException($metadata->getFullCodename());
 		}
 
@@ -142,8 +142,8 @@ abstract class AbstractElement implements \Stringable
 		}
 		
 		//apply default value if empty
-		if ($value === null && $metadata->getDefault()) {
-			$value = $metadata->getDefault();
+		if ($value === null && $metadata->getDefaultValue()) {
+			$value = $metadata->getDefaultValue();
 		}
 
 		//update metadataValue or metadataItem

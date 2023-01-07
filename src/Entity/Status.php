@@ -33,8 +33,8 @@ class Status implements \Stringable
 	#[DoctrineAssert\EnumType(entity: StatusTypeEnum::class)]
 	private ?string $type = null;
 
-	#[ORM\Column]
-	private ?bool $isDefault = null;
+	#[ORM\Column(name: '`default`')]
+	private ?bool $default = null;
 
 	#[ORM\ManyToOne(inversedBy: 'statuses')]
 	private ?Project $project = null;
@@ -42,6 +42,7 @@ class Status implements \Stringable
 	public function __construct()
 	{
 		$this->type = StatusTypeEnum::getDefaultValue();
+		$this->default = false;
 	}
 
 	public function getId(): ?int
@@ -86,34 +87,34 @@ class Status implements \Stringable
 		return $this;
 	}
 
-	public function getIsDefault(): ?bool
+	public function isDefault(): ?bool
 	{
-		return $this->isDefault;
+		return $this->default;
 	}
 
-	public function setIsDefault(bool $isDefault): self
+	public function setDefault(bool $default): self
 	{
-		$this->isDefault = $isDefault;
+		$this->default = $default;
 		
 		return $this;
 	}
 
-	public function getIsInformation(): bool
+	public function isInformation(): bool
 	{
 		return $this->type === StatusTypeEnum::INFORMATION;
 	}
 
-	public function getIsReview(): bool
+	public function isReview(): bool
 	{
 		return $this->type === StatusTypeEnum::REVIEW;
 	}
 
-	public function getIsCancel(): bool
+	public function isCancel(): bool
 	{
 		return $this->type === StatusTypeEnum::CANCEL;
 	}
 
-	public function getIsAsBuilt(): bool
+	public function isAsBuilt(): bool
 	{
 		return $this->type === StatusTypeEnum::AS_BUILT;
 	}
@@ -136,10 +137,10 @@ class Status implements \Stringable
 			'status.name'			=> $this->getName(),
 			'status.value'			=> $this->getValue(),
 			'status.type'			=> $this->getType(),
-			'status.isInformation'	=> $this->getIsInformation(),
-			'status.isReview'		=> $this->getIsReview(),
-			'status.isCancel'		=> $this->getIsCancel(),
-			'status.isAsBuilt'		=> $this->getIsAsBuilt(),
+			'status.isInformation'	=> $this->isInformation(),
+			'status.isReview'		=> $this->isReview(),
+			'status.isCancel'		=> $this->isCancel(),
+			'status.isAsBuilt'		=> $this->isAsBuilt(),
 			default 				=> null,
 		};
 	}

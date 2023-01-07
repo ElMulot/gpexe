@@ -36,7 +36,7 @@ class VisaFixtures extends Fixture implements DependentFixtureInterface
 				->setName('OK')
 				->setCompany($this->getReference(CompanyFixtures::MAIN_CONTRACTOR_COMPANY))
 				->setRevisionRequired(false)
-				->setProject($this->getReference(constant("ProjectFixtures::PROJECT_{$i}")));
+				->setProject($this->getReference(constant(ProjectFixtures::class . "::PROJECT_{$i}")));
 			$manager->persist($visa);
 			$this->addReference("PROJECT_{$i}_MAIN_CONTRACTOR_VISA_OK", $visa);
 
@@ -45,26 +45,26 @@ class VisaFixtures extends Fixture implements DependentFixtureInterface
 				->setName('NO')
 				->setCompany($this->getReference(CompanyFixtures::MAIN_CONTRACTOR_COMPANY))
 				->setRevisionRequired(true)
-				->setProject($this->getReference(constant("ProjectFixtures::PROJECT_{$i}")));
+				->setProject($this->getReference(constant(ProjectFixtures::class . "::PROJECT_{$i}")));
 			$manager->persist($visa);
 			$this->addReference("PROJECT_{$i}_MAIN_CONTRACTOR_VISA_NO", $visa);
 			
-			for ($j=0; $i<3; $j++) {
+			for ($j=0; $j<3; $j++) {
 				$visa = new Visa();
 				$visa
 					->setName('OK')
-					->setCompany(constant(constant("CompanyFixtures::SUPPLIER_COMPANY_{$j}")))
+					->setCompany($this->getReference(constant(CompanyFixtures::class . "::SUPPLIER_COMPANY_{$j}")))
 					->setRevisionRequired(false)
-					->setProject($this->getReference(constant("ProjectFixtures::PROJECT_{$i}")));
+					->setProject($this->getReference(constant(ProjectFixtures::class . "::PROJECT_{$i}")));
 				$manager->persist($visa);
 				$this->addReference("PROJECT_{$i}_CHECKER_{$j}_VISA_OK", $visa);
 
 				$visa = new Visa();
 				$visa
 					->setName('NO')
-					->setCompany(constant(constant("CompanyFixtures::SUPPLIER_COMPANY_{$j}")))
+					->setCompany($this->getReference(constant(CompanyFixtures::class . "::SUPPLIER_COMPANY_{$j}")))
 					->setRevisionRequired(true)
-					->setProject($this->getReference(constant("ProjectFixtures::PROJECT_{$i}")));
+					->setProject($this->getReference(constant(ProjectFixtures::class . "::PROJECT_{$i}")));
 				$manager->persist($visa);
 				$this->addReference("PROJECT_{$i}_CHECKER_{$j}_VISA_NO", $visa);
 			}

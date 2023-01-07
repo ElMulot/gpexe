@@ -52,14 +52,16 @@ class MetadataFixtures extends Fixture implements DependentFixtureInterface
 	public function load(ObjectManager $manager)
 	{
 		for ($i=0; $i<2; $i++) {
+			
 			$metadata = new Metadata();
 			$metadata
 				->setName('Metadata serie bool')
 				->setCodename('metadataSerieBool')
 				->setParent(MetadataParentEnum::SERIE)
 				->setType(MetadataTypeEnum::BOOL)
-				->setIsMandatory(($i === 1)?true:false)
-				->setProject($this->getReference(constant("ProjectFixtures::PROJECT_{$i}")));
+				->setMandatory(($i === 1)?true:false);
+			
+			$metadata->setProject($this->getReference(constant(ProjectFixtures::class . "::PROJECT_{$i}")));
 			$manager->persist($metadata);
 			$this->addReference("PROJECT_{$i}_METADATA_SERIE_BOOL", $metadata);
 
@@ -69,8 +71,8 @@ class MetadataFixtures extends Fixture implements DependentFixtureInterface
 				->setCodename('metadataSerieText')
 				->setParent(MetadataParentEnum::SERIE)
 				->setType(MetadataTypeEnum::TEXT)
-				->setIsMandatory(($i === 1)?true:false)
-				->setProject($this->getReference(constant("ProjectFixtures::PROJECT_{$i}")));
+				->setMandatory(($i === 1)?true:false)
+				->setProject($this->getReference(constant(ProjectFixtures::class . "::PROJECT_{$i}")));
 			$manager->persist($metadata);
 			$this->addReference("PROJECT_{$i}_METADATA_SERIE_TEXT", $metadata);
 
@@ -81,8 +83,8 @@ class MetadataFixtures extends Fixture implements DependentFixtureInterface
 				->setParent(MetadataParentEnum::SERIE)
 				->setType(MetadataTypeEnum::REGEX)
 				->setPattern('^\w\d{2}$')
-				->setIsMandatory(($i === 1)?true:false)
-				->setProject($this->getReference(constant("ProjectFixtures::PROJECT_{$i}")));
+				->setMandatory(($i === 1)?true:false)
+				->setProject($this->getReference(constant(ProjectFixtures::class . "::PROJECT_{$i}")));
 			$manager->persist($metadata);
 			$this->addReference("PROJECT_{$i}_METADATA_SERIE_REGEX", $metadata);
 
@@ -92,8 +94,8 @@ class MetadataFixtures extends Fixture implements DependentFixtureInterface
 				->setCodename('metadataSerieDate')
 				->setParent(MetadataParentEnum::SERIE)
 				->setType(MetadataTypeEnum::DATE)
-				->setIsMandatory(($i === 1)?true:false)
-				->setProject($this->getReference(constant("ProjectFixtures::PROJECT_{$i}")));
+				->setMandatory(($i === 1)?true:false)
+				->setProject($this->getReference(constant(ProjectFixtures::class . "::PROJECT_{$i}")));
 			$manager->persist($metadata);
 			$this->addReference("PROJECT_{$i}_METADATA_SERIE_DATE", $metadata);
 
@@ -103,8 +105,8 @@ class MetadataFixtures extends Fixture implements DependentFixtureInterface
 				->setCodename('metadataSerieLink')
 				->setParent(MetadataParentEnum::SERIE)
 				->setType(MetadataTypeEnum::LINK)
-				->setIsMandatory(($i === 1)?true:false)
-				->setProject($this->getReference(constant("ProjectFixtures::PROJECT_{$i}")));
+				->setMandatory(($i === 1)?true:false)
+				->setProject($this->getReference(constant(ProjectFixtures::class . "::PROJECT_{$i}")));
 			$manager->persist($metadata);
 			$this->addReference("PROJECT_{$i}_METADATA_SERIE_LINK", $metadata);
 
@@ -114,8 +116,8 @@ class MetadataFixtures extends Fixture implements DependentFixtureInterface
 				->setCodename('metadataSerieList')
 				->setParent(MetadataParentEnum::SERIE)
 				->setType(MetadataTypeEnum::LIST)
-				->setIsMandatory(($i === 1)?true:false)
-				->setProject($this->getReference(constant("ProjectFixtures::PROJECT_{$i}")));
+				->setMandatory(($i === 1)?true:false)
+				->setProject($this->getReference(constant(ProjectFixtures::class . "::PROJECT_{$i}")));
 			$manager->persist($metadata);
 			$this->addReference("PROJECT_{$i}_METADATA_SERIE_LIST", $metadata);
 
@@ -125,8 +127,8 @@ class MetadataFixtures extends Fixture implements DependentFixtureInterface
 				->setCodename('metadataDocumentBool')
 				->setParent(MetadataParentEnum::DOCUMENT)
 				->setType(MetadataTypeEnum::BOOL)
-				->setIsMandatory(($i === 1)?true:false)
-				->setProject($this->getReference(constant("ProjectFixtures::PROJECT_{$i}")));
+				->setMandatory(($i === 1)?true:false)
+				->setProject($this->getReference(constant(ProjectFixtures::class . "::PROJECT_{$i}")));
 			$manager->persist($metadata);
 			$this->addReference("PROJECT_{$i}_METADATA_DOCUMENT_BOOL", $metadata);
 
@@ -136,8 +138,8 @@ class MetadataFixtures extends Fixture implements DependentFixtureInterface
 				->setCodename('metadataDocumentText')
 				->setParent(MetadataParentEnum::DOCUMENT)
 				->setType(MetadataTypeEnum::TEXT)
-				->setIsMandatory(($i === 1)?true:false)
-				->setProject($this->getReference(constant("ProjectFixtures::PROJECT_{$i}")));
+				->setMandatory(($i === 1)?true:false)
+				->setProject($this->getReference(constant(ProjectFixtures::class . "::PROJECT_{$i}")));
 			$manager->persist($metadata);
 			$this->addReference("PROJECT_{$i}_METADATA_DOCUMENT_TEXT", $metadata);
 
@@ -148,8 +150,8 @@ class MetadataFixtures extends Fixture implements DependentFixtureInterface
 				->setParent(MetadataParentEnum::DOCUMENT)
 				->setType(MetadataTypeEnum::REGEX)
 				->setPattern('^\w\d{2}$')
-				->setIsMandatory(($i === 1)?true:false)
-				->setProject($this->getReference(constant("ProjectFixtures::PROJECT_{$i}")));
+				->setMandatory(($i === 1)?true:false)
+				->setProject($this->getReference(constant(ProjectFixtures::class . "::PROJECT_{$i}")));
 			$manager->persist($metadata);
 			$this->addReference("PROJECT_{$i}_METADATA_DOCUMENT_REGEX", $metadata);
 
@@ -159,8 +161,8 @@ class MetadataFixtures extends Fixture implements DependentFixtureInterface
 				->setCodename('metadataDocumentDate')
 				->setParent(MetadataParentEnum::DOCUMENT)
 				->setType(MetadataTypeEnum::DATE)
-				->setIsMandatory(($i === 1)?true:false)
-				->setProject($this->getReference(constant("ProjectFixtures::PROJECT_{$i}")));
+				->setMandatory(($i === 1)?true:false)
+				->setProject($this->getReference(constant(ProjectFixtures::class . "::PROJECT_{$i}")));
 			$manager->persist($metadata);
 			$this->addReference("PROJECT_{$i}_METADATA_DOCUMENT_DATE", $metadata);
 
@@ -170,8 +172,8 @@ class MetadataFixtures extends Fixture implements DependentFixtureInterface
 				->setCodename('metadataDocumentLink')
 				->setParent(MetadataParentEnum::DOCUMENT)
 				->setType(MetadataTypeEnum::LINK)
-				->setIsMandatory(($i === 1)?true:false)
-				->setProject($this->getReference(constant("ProjectFixtures::PROJECT_{$i}")));
+				->setMandatory(($i === 1)?true:false)
+				->setProject($this->getReference(constant(ProjectFixtures::class . "::PROJECT_{$i}")));
 			$manager->persist($metadata);
 			$this->addReference("PROJECT_{$i}_METADATA_DOCUMENT_LINK", $metadata);
 
@@ -181,8 +183,8 @@ class MetadataFixtures extends Fixture implements DependentFixtureInterface
 				->setCodename('metadataDocumentList')
 				->setParent(MetadataParentEnum::DOCUMENT)
 				->setType(MetadataTypeEnum::LIST)
-				->setIsMandatory(($i === 1)?true:false)
-				->setProject($this->getReference(constant("ProjectFixtures::PROJECT_{$i}")));
+				->setMandatory(($i === 1)?true:false)
+				->setProject($this->getReference(constant(ProjectFixtures::class . "::PROJECT_{$i}")));
 			$manager->persist($metadata);
 			$this->addReference("PROJECT_{$i}_METADATA_DOCUMENT_LIST", $metadata);
 
@@ -192,9 +194,9 @@ class MetadataFixtures extends Fixture implements DependentFixtureInterface
 				->setCodename('metadataVersionBool')
 				->setParent(MetadataParentEnum::VERSION)
 				->setType(MetadataTypeEnum::BOOL)
-				->setIsMandatory(($i === 1)?true:false)
-				->setDefault(($i === 1)?true:false)
-				->setProject($this->getReference(constant("ProjectFixtures::PROJECT_{$i}")));
+				->setMandatory(($i === 1)?true:false)
+				->setDefaultValue(($i === 1)?true:false)
+				->setProject($this->getReference(constant(ProjectFixtures::class . "::PROJECT_{$i}")));
 			$manager->persist($metadata);
 			$this->addReference("PROJECT_{$i}_METADATA_VERSION_BOOL", $metadata);
 
@@ -204,9 +206,9 @@ class MetadataFixtures extends Fixture implements DependentFixtureInterface
 				->setCodename('metadataVersionText')
 				->setParent(MetadataParentEnum::VERSION)
 				->setType(MetadataTypeEnum::TEXT)
-				->setIsMandatory(($i === 1)?true:false)
-				->setDefault(($i === 1)?'Test':'')
-				->setProject($this->getReference(constant("ProjectFixtures::PROJECT_{$i}")));
+				->setMandatory(($i === 1)?true:false)
+				->setDefaultValue(($i === 1)?'Test':'')
+				->setProject($this->getReference(constant(ProjectFixtures::class . "::PROJECT_{$i}")));
 			$manager->persist($metadata);
 			$this->addReference("PROJECT_{$i}_METADATA_VERSION_TEXT", $metadata);
 
@@ -217,9 +219,9 @@ class MetadataFixtures extends Fixture implements DependentFixtureInterface
 				->setParent(MetadataParentEnum::VERSION)
 				->setType(MetadataTypeEnum::REGEX)
 				->setPattern('^\w\d{2}$')
-				->setIsMandatory(($i === 1)?true:false)
-				->setDefault(($i === 1)?'A12':'')
-				->setProject($this->getReference(constant("ProjectFixtures::PROJECT_{$i}")));
+				->setMandatory(($i === 1)?true:false)
+				->setDefaultValue(($i === 1)?'A12':'')
+				->setProject($this->getReference(constant(ProjectFixtures::class . "::PROJECT_{$i}")));
 			$manager->persist($metadata);
 			$this->addReference("PROJECT_{$i}_METADATA_VERSION_REGEX", $metadata);
 
@@ -229,9 +231,9 @@ class MetadataFixtures extends Fixture implements DependentFixtureInterface
 				->setCodename('metadataVersionDate')
 				->setParent(MetadataParentEnum::VERSION)
 				->setType(MetadataTypeEnum::DATE)
-				->setIsMandatory(($i === 1)?true:false)
-				->setDefault(($i === 1)?'01-01-1970':'')
-				->setProject($this->getReference(constant("ProjectFixtures::PROJECT_{$i}")));
+				->setMandatory(($i === 1)?true:false)
+				->setDefaultValue(($i === 1)?'01-01-1970':'')
+				->setProject($this->getReference(constant(ProjectFixtures::class . "::PROJECT_{$i}")));
 			$manager->persist($metadata);
 			$this->addReference("PROJECT_{$i}_METADATA_VERSION_DATE", $metadata);
 
@@ -241,9 +243,9 @@ class MetadataFixtures extends Fixture implements DependentFixtureInterface
 				->setCodename('metadataVersionLink')
 				->setParent(MetadataParentEnum::VERSION)
 				->setType(MetadataTypeEnum::LINK)
-				->setIsMandatory(($i === 1)?true:false)
-				->setDefault(($i === 1)?'http://example.com/':'')
-				->setProject($this->getReference(constant("ProjectFixtures::PROJECT_{$i}")));
+				->setMandatory(($i === 1)?true:false)
+				->setDefaultValue(($i === 1)?'http://example.com/':'')
+				->setProject($this->getReference(constant(ProjectFixtures::class . "::PROJECT_{$i}")));
 			$manager->persist($metadata);
 			$this->addReference("PROJECT_{$i}_METADATA_VERSION_LINK", $metadata);
 
@@ -253,9 +255,9 @@ class MetadataFixtures extends Fixture implements DependentFixtureInterface
 				->setCodename('metadataVersionList')
 				->setParent(MetadataParentEnum::VERSION)
 				->setType(MetadataTypeEnum::LIST)
-				->setIsMandatory(($i === 1)?true:false)
-				->setDefault(($i === 1)?'Item version {$i}1':'')
-				->setProject($this->getReference(constant("ProjectFixtures::PROJECT_{$i}")));
+				->setMandatory(($i === 1)?true:false)
+				->setDefaultValue(($i === 1)?'Item version {$i}1':'')
+				->setProject($this->getReference(constant(ProjectFixtures::class . "::PROJECT_{$i}")));
 			$manager->persist($metadata);
 			$this->addReference("PROJECT_{$i}_METADATA_VERSION_LIST", $metadata);
 		}

@@ -9,15 +9,6 @@ use Doctrine\Persistence\ObjectManager;
 
 class DocumentFixtures extends Fixture implements DependentFixtureInterface
 {
-	public const PROJECT_0_SERIE_0_DOCUMENT_	= 'PROJECT_0_SERIE_0_DOCUMENT_';
-	public const PROJECT_0_SERIE_1_DOCUMENT_	= 'PROJECT_0_SERIE_1_DOCUMENT_';
-	public const PROJECT_0_SERIE_2_DOCUMENT_	= 'PROJECT_0_SERIE_2_DOCUMENT_';
-	public const PROJECT_0_SERIE_3_DOCUMENT_	= 'PROJECT_0_SERIE_3_DOCUMENT_';
-
-	public const PROJECT_1_SERIE_0_DOCUMENT_	= 'PROJECT_1_SERIE_0_DOCUMENT_';
-	public const PROJECT_1_SERIE_1_DOCUMENT_	= 'PROJECT_1_SERIE_1_DOCUMENT_';
-	public const PROJECT_1_SERIE_2_DOCUMENT_	= 'PROJECT_1_SERIE_2_DOCUMENT_';
-	public const PROJECT_1_SERIE_3_DOCUMENT_	= 'PROJECT_1_SERIE_3_DOCUMENT_';
 
 	public function load(ObjectManager $manager)
 	{
@@ -28,22 +19,21 @@ class DocumentFixtures extends Fixture implements DependentFixtureInterface
 
 					$a = floor($k / 3);
 					$b = $k % 3;
-
 					$document = new Document();
 					$document
 						->setName("Document {$k}")
-						->setSerie($this->getReference(constant("SerieFixtures::PROJECT_{$i}_SERIE_{$j}")))
-						->addCodificationValue($this->getReference(constant("CodificationValueFixtures::PROJECT_{$i}_CODIFICATION_VALUE_TEXT_" . $a)))
-						->addCodificationValue($this->getReference(constant("CodificationValueFixtures::PROJECT_{$i}_CODIFICATION_VALUE_REGEX_" . $b)))
-						->addCodificationItem($this->getReference(constant("CodificationValueFixtures::PROJECT_{$i}_CODIFICATION_ITEM_" . $b)))
-						->addMetadataValue($this->getReference(constant("MetadataValueFixtures::PROJECT_{$i}_METADATA_VALUE_DOCUMENT_BOOL")))
-						->addMetadataValue($this->getReference(constant("MetadataValueFixtures::PROJECT_{$i}_METADATA_VALUE_DOCUMENT_TEXT_" . rand(0, 2))))
-						->addMetadataValue($this->getReference(constant("MetadataValueFixtures::PROJECT_{$i}_METADATA_VALUE_DOCUMENT_REGEX_" . rand(0, 2))))
-						->addMetadataValue($this->getReference(constant("MetadataValueFixtures::PROJECT_{$i}_METADATA_VALUE_DOCUMENT_DATE_" . rand(0, 2))))
-						->addMetadataValue($this->getReference(constant("MetadataValueFixtures::PROJECT_{$i}_METADATA_VALUE_DOCUMENT_LINK_" . rand(0, 2))))
-						->addMetadataItem($this->getReference(constant("MetadataItemFixtures::PROJECT_{$i}_METADATA_ITEM_DOCUMENT_" . rand(0, 2))));
+						->setSerie($this->getReference(constant(SerieFixtures::class. "::PROJECT_{$i}_SERIE_{$j}")))
+						->addCodificationValue($this->getReference(constant(CodificationValueFixtures::class . "::PROJECT_{$i}_CODIFICATION_VALUE_TEXT_" . $a)))
+						->addCodificationValue($this->getReference(constant(CodificationValueFixtures::class . "::PROJECT_{$i}_CODIFICATION_VALUE_REGEX_" . $b)))
+						->addCodificationItem($this->getReference(constant(CodificationItemFixtures::class . "::PROJECT_{$i}_CODIFICATION_ITEM_" . $b)))
+						->addMetadataValue($this->getReference(constant(MetadataValueFixtures::class . "::PROJECT_{$i}_METADATA_VALUE_DOCUMENT_BOOL")))
+						->addMetadataValue($this->getReference(constant(MetadataValueFixtures::class . "::PROJECT_{$i}_METADATA_VALUE_DOCUMENT_TEXT_" . rand(0, 2))))
+						->addMetadataValue($this->getReference(constant(MetadataValueFixtures::class . "::PROJECT_{$i}_METADATA_VALUE_DOCUMENT_REGEX_" . rand(0, 2))))
+						->addMetadataValue($this->getReference(constant(MetadataValueFixtures::class . "::PROJECT_{$i}_METADATA_VALUE_DOCUMENT_DATE_" . rand(0, 2))))
+						->addMetadataValue($this->getReference(constant(MetadataValueFixtures::class . "::PROJECT_{$i}_METADATA_VALUE_DOCUMENT_LINK_" . rand(0, 2))))
+						->addMetadataItem($this->getReference(constant(MetadataItemFixtures::class . "::PROJECT_{$i}_METADATA_ITEM_DOCUMENT_" . rand(0, 2))));
 					$manager->persist($document);
-					$this->addReference(constant("self::PROJECT_{$i}_SERIE_{$j}_DOCUMENT_") . $k, $document);
+					$this->addReference("PROJECT_{$i}_SERIE_{$j}_DOCUMENT_{$k}", $document);
 				}
 			}
 		}

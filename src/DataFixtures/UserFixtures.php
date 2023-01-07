@@ -15,9 +15,9 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
 	public const EDIT_DOCUMENTS_USER	= 'EDIT_DOCUMENTS_USER';
 	public const READ_ONLY_USER			= 'READ_ONLY_USER';
 	public const UNACTIVATED_USER	 	= 'UNACTIVATED_USER';
-	public const CHECKER_0				= 'CHECKER_0';
-	public const CHECKER_1				= 'CHECKER_1';
-	public const CHECKER_2				= 'CHECKER_2';
+	public const CHECKER_USER_0			= 'CHECKER_USER_0';
+	public const CHECKER_USER_1			= 'CHECKER_USER_1';
+	public const CHECKER_USER_2			= 'CHECKER_USER_2';
 	public const SUB_CONTRACTOR_USER_0	= 'SUB_CONTRACTOR_USER_0';
 	public const SUB_CONTRACTOR_USER_1	= 'SUB_CONTRACTOR_USER_1';
 	public const SUB_CONTRACTOR_USER_2	= 'SUB_CONTRACTOR_USER_2';
@@ -31,7 +31,7 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
 		$user
 			->setName('Super Admin User')
 			->setEmail('super-admin@test.com')
-			->setPassword('super admin')
+			->setPassword('super_admin')
 			->setCompany($this->getReference(CompanyFixtures::MAIN_CONTRACTOR_COMPANY))
 			->setProfil($this->getReference(ProfilFixtures::SUPER_ADMIN_PROFIL))
 			->setActivated(true);
@@ -64,7 +64,7 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
 		$user
 			->setName('Edit Documents User')
 			->setEmail('edit-documents@test.com')
-			->setPassword('edit document')
+			->setPassword('edit_document')
 			->setCompany($this->getReference(CompanyFixtures::MAIN_CONTRACTOR_COMPANY))
 			->setProfil($this->getReference(ProfilFixtures::EDIT_DOCUMENTS_PROFIL))
 			->setActivated(true);
@@ -75,7 +75,7 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
 		$user
 			->setName('Read Only User')
 			->setEmail('read-only@test.com')
-			->setPassword('read only')
+			->setPassword('read_only')
 			->setCompany($this->getReference(CompanyFixtures::MAIN_CONTRACTOR_COMPANY))
 			->setProfil($this->getReference(ProfilFixtures::READ_ONLY_PROFIL))
 			->setActivated(true);
@@ -99,11 +99,11 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
 				->setName("Checker User {$i}")
 				->setEmail("checker-{$i}@test.com")
 				->setPassword("checker {$i}")
-				->setCompany($this->getReference(constant("{CompanyFixtures::class}::CHECKER_COMPANY_{$i}")))
+				->setCompany($this->getReference(constant(CompanyFixtures::class . "::CHECKER_COMPANY_{$i}")))
 				->setProfil($this->getReference(ProfilFixtures::READ_ONLY_PROFIL))
 				->setActivated(true);
 			$manager->persist($user);
-			$this->addReference(constant("self::SUB_CONTRACTOR_USER{$i}"), $user);
+			$this->addReference(constant("self::CHECKER_USER_{$i}"), $user);
 		}
 
 		for ($i=0; $i<3; $i++) {
@@ -111,12 +111,12 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
 			$user
 				->setName("Sub Contractor User {$i}")
 				->setEmail("sub-contractor-{$i}@test.com")
-				->setPassword("sub contractor {$i}")
-				->setCompany($this->getReference(constant("{CompanyFixtures::class}::SUB_CONTRACTOR_COMPANY_{$i}")))
+				->setPassword("sub_contractor {$i}")
+				->setCompany($this->getReference(constant(CompanyFixtures::class . "::SUB_CONTRACTOR_COMPANY_{$i}")))
 				->setProfil($this->getReference(ProfilFixtures::READ_ONLY_PROFIL))
 				->setActivated(true);
 			$manager->persist($user);
-			$this->addReference(constant("self::SUB_CONTRACTOR_USER{$i}"), $user);
+			$this->addReference(constant("self::SUB_CONTRACTOR_USER_{$i}"), $user);
 		}
 
 		for ($i=0; $i<3; $i++) {
@@ -125,11 +125,11 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
 				->setName("Supplier User {$i}")
 				->setEmail("supplier-{$i}@test.com")
 				->setPassword("supplier {$i}")
-				->setCompany($this->getReference(constant("{CompanyFixtures::class}::SUPPLIER_COMPANY_{$i}")))
+				->setCompany($this->getReference(constant(CompanyFixtures::class . "::SUPPLIER_COMPANY_{$i}")))
 				->setProfil($this->getReference(ProfilFixtures::READ_ONLY_PROFIL))
 				->setActivated(true);
 			$manager->persist($user);
-			$this->addReference(constant("self::SUPPLIER_USER{$i}"), $user);
+			$this->addReference(constant("self::SUPPLIER_USER_{$i}"), $user);
 		}
 				
 		$manager->flush();

@@ -47,7 +47,7 @@ class Codification implements \Stringable
 	#[ORM\Column(length: 10, nullable: true)]
 	private ?string $value = null;
 
-	#[ORM\ManyToOne(inversedBy: 'codifications', cascade:["persist"], fetch: 'EAGER')]
+	#[ORM\ManyToOne(inversedBy: 'codifications', cascade:['persist'], fetch: 'EAGER')]
 	private ?Project $project = null;
 
 	#[ORM\OneToMany(targetEntity: CodificationItem::class, mappedBy: 'codification', orphanRemoval: true)]
@@ -59,7 +59,6 @@ class Codification implements \Stringable
 	public function __construct()
 	{
 		$this->type = CodificationTypeEnum::getDefaultValue();
-		$this->isMandatory = true;
 		$this->codificationItems = new ArrayCollection();
 		$this->codificationValues = new ArrayCollection();
 	}

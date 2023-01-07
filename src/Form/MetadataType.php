@@ -25,17 +25,17 @@ class MetadataType extends AbstractType
 				'expanded' => true,
 				'disabled' => $builder->getData()->getId(),
 			])
-			->add('isMandatory', CheckboxType::class, [
+			->add('mandatory', CheckboxType::class, [
 				'required' => false,
-				'disabled' => $builder->getData()->getId() && ($builder->getData()->getIsMandatory() === false || $builder->getData()->isBoolean() === true),
+				'disabled' => $builder->getData()->getId() && ($builder->getData()->isMandatory() === false || $builder->getData()->isBoolean() === true),
 			])
 			->add('pattern', TextType::class, [
 				'required' => false,
-				'disabled' => $builder->getData()->getId() && ($builder->getData()->getIsMandatory() === false || $builder->getData()->isBoolean() === true),
+				'disabled' => $builder->getData()->getId() && ($builder->getData()->isMandatory() === false || $builder->getData()->isBoolean() === true),
 			])
-			->add('default', TextType::class, [
+			->add('defaultValue', TextType::class, [
 				'required' => false,
-				'disabled' => $builder->getData()->getId() && ($builder->getData()->getIsMandatory() === false || $builder->getData()->isBoolean() === true),
+				'disabled' => $builder->getData()->getId() && ($builder->getData()->isMandatory() === false || $builder->getData()->isBoolean() === true),
 			])
 			->add('parent', ChoiceType::class, [
 				'choices' => MetadataParentEnum::getChoices(),

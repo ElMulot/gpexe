@@ -20,10 +20,10 @@ class View implements \Stringable
 	private array $value = [];
 
 	#[ORM\Column]
-	private ?bool $isShared = null;
+	private ?bool $shared = null;
 
-	#[ORM\Column]
-	private ?bool $isDefault = null;
+	#[ORM\Column(name: '`default`')]
+	private ?bool $default = null;
 
 	#[ORM\ManyToOne(inversedBy: 'views')]
 	private ?Project $project = null;
@@ -60,26 +60,26 @@ class View implements \Stringable
 		return $this;
 	}
 
-	public function getIsShared(): ?bool
+	public function isShared(): ?bool
 	{
-		return $this->isShared;
+		return $this->shared;
 	}
 
-	public function setIsShared(bool $isShared): self
+	public function setShared(bool $shared): self
 	{
-		$this->isShared = $isShared;
+		$this->shared = $shared;
 
 		return $this;
 	}
 
-	public function getIsDefault(): ?bool
+	public function isDefault(): ?bool
 	{
-		return $this->isDefault;
+		return $this->default;
 	}
 
-	public function setIsDefault(bool $isDefault): self
+	public function setDefault(bool $default): self
 	{
-		$this->isDefault = $isDefault;
+		$this->default = $default;
 		
 		return $this;
 	}

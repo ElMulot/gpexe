@@ -15,6 +15,14 @@ class CodificationValueFixtures extends Fixture implements DependentFixtureInter
 	public const PROJECT_0_CODIFICATION_VALUE_TEXT_1	= 'PROJECT_0_CODIFICATION_VALUE_TEXT_1';
 	public const PROJECT_0_CODIFICATION_VALUE_TEXT_2	= 'PROJECT_0_CODIFICATION_VALUE_TEXT_2';
 
+	public const PROJECT_0_CODIFICATION_VALUE_REGEX_0	= 'PROJECT_0_CODIFICATION_VALUE_REGEX_0';
+	public const PROJECT_0_CODIFICATION_VALUE_REGEX_1	= 'PROJECT_0_CODIFICATION_VALUE_REGEX_1';
+	public const PROJECT_0_CODIFICATION_VALUE_REGEX_2	= 'PROJECT_0_CODIFICATION_VALUE_REGEX_2';
+
+	public const PROJECT_1_CODIFICATION_VALUE_TEXT_0	= 'PROJECT_1_CODIFICATION_VALUE_TEXT_0';
+	public const PROJECT_1_CODIFICATION_VALUE_TEXT_1	= 'PROJECT_1_CODIFICATION_VALUE_TEXT_1';
+	public const PROJECT_1_CODIFICATION_VALUE_TEXT_2	= 'PROJECT_1_CODIFICATION_VALUE_TEXT_2';
+
 	public const PROJECT_1_CODIFICATION_VALUE_REGEX_0	= 'PROJECT_1_CODIFICATION_VALUE_REGEX_0';
 	public const PROJECT_1_CODIFICATION_VALUE_REGEX_1	= 'PROJECT_1_CODIFICATION_VALUE_REGEX_1';
 	public const PROJECT_1_CODIFICATION_VALUE_REGEX_2	= 'PROJECT_1_CODIFICATION_VALUE_REGEX_2';
@@ -26,14 +34,14 @@ class CodificationValueFixtures extends Fixture implements DependentFixtureInter
 				$codificationValue = new CodificationValue();
 				$codificationValue
 					->setValue("Item_{$i}{$j}")
-					->setCodification($this->getReference(constant("CodificationFixtures::CODIFICATION_TEXT_{$i}")));
+					->setCodification($this->getReference(constant(CodificationFixtures::class . "::PROJECT_{$i}_CODIFICATION_TEXT")));
 				$manager->persist($codificationValue);
 				$this->addReference("PROJECT_{$i}_CODIFICATION_VALUE_TEXT_{$j}", $codificationValue);
 
 				$codificationValue = new CodificationValue();
 				$codificationValue
 					->setValue("{$i}{$j}")
-					->setCodification($this->getReference(constant("CodificationFixtures::CODIFICATION_REGEX_{$i}")));
+					->setCodification($this->getReference(constant(CodificationFixtures::class . "::PROJECT_{$i}_CODIFICATION_REGEX")));
 				$manager->persist($codificationValue);
 				$this->addReference("PROJECT_{$i}_CODIFICATION_VALUE_REGEX_{$j}", $codificationValue);
 			}
