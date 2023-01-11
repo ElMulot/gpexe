@@ -27,7 +27,7 @@ class MetadataItemController extends AbstractTurboController
 
 		$this->denyAccessUnlessGranted('PROJECT_EDIT', $project);
 		
-		return $this->renderForm('generic/list.html.twig', [
+		return $this->render('generic/list.html.twig', [
 			'header' => $this->translator->trans('List for the metadata') . ' : ' . $metadata->getName(),
 			'route_back' =>  $this->generateUrl('metadata', [
 				'project' => $metadata->getProject()->getId(),
@@ -58,7 +58,7 @@ class MetadataItemController extends AbstractTurboController
 				'metadata' => $metadata->getId()
 			]);
 		} else {
-			return $this->renderForm('generic/form.html.twig', [
+			return $this->render('generic/form.html.twig', [
 				'route_back' =>  $this->generateUrl('metadata_item', [
 					'metadata' => $metadata->getId(),
 				]),
@@ -85,7 +85,7 @@ class MetadataItemController extends AbstractTurboController
 				'metadata' => $metadataItem->getMetadata()->getId()
 			]);
 		} else {
-			return $this->renderForm('generic/form.html.twig', [
+			return $this->render('generic/form.html.twig', [
 				'route_back' =>  $this->generateUrl('metadata_item', [
 					'metadata' => $metadataItem->getMetadata()->getId(),
 				]),
@@ -111,7 +111,7 @@ class MetadataItemController extends AbstractTurboController
 				'metadata' => $metadataItem->getMetadata()->getId()
 			]);
 		} else {
-			return $this->renderForm('generic/delete.html.twig', [
+			return $this->render('generic/delete.html.twig', [
 				'route_back' =>  $this->generateUrl('metadata_item', [
 					'metadata' => $metadataItem->getMetadata()->getId(),
 				]),

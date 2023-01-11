@@ -18,8 +18,6 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Symfony\Component\Form\Exception\InvalidArgumentException;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 
 class SerieController extends AbstractTurboController
 {
@@ -55,7 +53,7 @@ class SerieController extends AbstractTurboController
 			};
 		}
 		
-		return $this->renderForm('pages/engineering/index/nav/_serie.html.twig', [
+		return $this->render('pages/engineering/index/nav/_serie.html.twig', [
 			'title' => $this->translator->trans('Series for') . ' : ' . $project->getName(),
 			'class' => Serie::class,
 			'series' => $series,
@@ -80,7 +78,7 @@ class SerieController extends AbstractTurboController
 			$this->denyAccessUnlessGranted('ENGINEERING_SHOW', reset($series));
 		}
 
-		return $this->renderForm('pages/engineering/index.html.twig', [
+		return $this->render('pages/engineering/index.html.twig', [
 			'series' => $series,
 			'project' => $project,
 			'company' => $company,
@@ -114,7 +112,7 @@ class SerieController extends AbstractTurboController
 			]);
 		}
 
-		return $this->renderForm('pages/engineering/index.html.twig', [
+		return $this->render('pages/engineering/index.html.twig', [
 			'series' => $series,
 			'project' => $project,
 		]);
@@ -135,7 +133,7 @@ class SerieController extends AbstractTurboController
 			$this->denyAccessUnlessGranted('ENGINEERING_SHOW', $serie);
 		}
 
-		return $this->renderForm('pages/engineering/index/_select.html.twig', [
+		return $this->render('pages/engineering/index/_select.html.twig', [
 			'series' => $series,
 			'project' => $project,
 		]);
@@ -173,7 +171,7 @@ class SerieController extends AbstractTurboController
 				
 				if ($value === null && $metadata->isMandatory()) {
 					$this->addFlash('danger', $this->translator->trans('notEmpty.field', ['field' => $metadata->getName()]));
-					return $this->renderForm('generic/new.html.twig', [
+					return $this->render('generic/new.html.twig', [
 						'form' => $form,
 					]);
 				}
@@ -183,7 +181,7 @@ class SerieController extends AbstractTurboController
 				} catch (\Error $e) {
 					if ($metadata->isMandatory() === true) {
 						$this->addFlash('danger', $e->getMessage());
-						return $this->renderForm('ajax/form.html.twig', [
+						return $this->render('ajax/form.html.twig', [
 							'form' => $form,
 						]);
 					}
@@ -202,7 +200,7 @@ class SerieController extends AbstractTurboController
 				'selected' => [$serie->getId()]
 			]);
 		} else {
-			return $this->renderForm('pages/engineering/new/_pannel.html.twig', [
+			return $this->render('pages/engineering/new/_pannel.html.twig', [
 				'form' => $form,
 			]);
 		}
@@ -235,7 +233,7 @@ class SerieController extends AbstractTurboController
 				
 				if ($value === null && $metadata->isMandatory()) {
 					$this->addFlash('danger', $this->translator->trans('notEmpty.field', ['field' => $metadata->getName()]));
-					return $this->renderForm('generic/form.html.twig', [
+					return $this->render('generic/form.html.twig', [
 						'route_back' =>  $this->generateUrl('document', [
 							'serie' => $serie->getId(),
 						]),
@@ -248,7 +246,7 @@ class SerieController extends AbstractTurboController
 				} catch (\Error $e) {
 					if ($metadata->isMandatory() === true) {
 						$this->addFlash('danger', $e->getMessage());
-						return $this->renderForm('generic/edit.html.twig', [
+						return $this->render('generic/edit.html.twig', [
 							'form' => $form,
 						]);
 					}
@@ -263,7 +261,7 @@ class SerieController extends AbstractTurboController
 
 			return $this->renderSuccess($request, 'serie', ['project' => $project->getId(), 'id' => $request->get('id'), 'selected' => $request->get('selected')]);
 		} else {
-			return $this->renderForm('pages/engineering/edit/_pannel.html.twig', [
+			return $this->render('pages/engineering/edit/_pannel.html.twig', [
 				'form' => $form,
 			]);
 		}
@@ -290,7 +288,7 @@ class SerieController extends AbstractTurboController
 
 			return $this->renderSuccess($request, 'serie', ['project' => $project->getId(), 'id' => $request->get('id')]);
 		} else {
-			return $this->renderForm('generic/delete.html.twig', [
+			return $this->render('generic/delete.html.twig', [
 				'entities' => [$serie],
 			]);
 		}

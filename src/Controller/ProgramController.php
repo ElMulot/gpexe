@@ -50,7 +50,7 @@ class ProgramController extends AbstractTurboController
 	{
 		$this->denyAccessUnlessGranted('PROGRAM_SHOW', $project);
 
-		return $this->renderForm('generic/list.html.twig', [
+		return $this->render('generic/list.html.twig', [
 			'title' => $this->translator->trans('Programs for') . ' : ' . $project->getName(),
 			'class' => Program::class,
 			'entities' => $this->programRepository->getPrograms($project),
@@ -74,7 +74,7 @@ class ProgramController extends AbstractTurboController
 				case ProgramTypeEnum::EXPORT:
 				case ProgramTypeEnum::IMPORT:
 				case ProgramTypeEnum::TASK:
-					return $this->renderForm('program/dashboard.html.twig', [
+					return $this->render('program/dashboard.html.twig', [
 						'program' => $program,
 						'route_back' =>  $this->generateUrl('project', [
 							'project' => $project->getId(),
@@ -82,7 +82,7 @@ class ProgramController extends AbstractTurboController
 					]);
 					
 				case ProgramTypeEnum::PROGRESS:
-					return $this->renderForm('program/progress.html.twig', [
+					return $this->render('program/progress.html.twig', [
 						'program' => $program,
 						'route_back' =>  $this->generateUrl('project', [
 							'project' => $project->getId(),
@@ -119,7 +119,7 @@ class ProgramController extends AbstractTurboController
 					if ($this->programService->getCache()->getOption('ready_to_persist') == true) {	//launch import
 						try {
 							$this->programService->preload($program, $request);
-							return $this->renderForm('program/preload.html.twig', [
+							return $this->render('program/preload.html.twig', [
 								'program' => $program,
 							]);
 						} catch (\Error $e) {
@@ -151,7 +151,7 @@ class ProgramController extends AbstractTurboController
 					
 				default:																	//error
 					$this->addFlash('danger', 'Erreur : programme invalide');
-					return $this->renderForm('program/error.html.twig');
+					return $this->render('program/error.html.twig');
 					
 			}
 		$form->handleRequest($request);
@@ -162,7 +162,7 @@ class ProgramController extends AbstractTurboController
 					case ProgramTypeEnum::EXPORT:													//launch export
 						try {
 							$this->programService->preload($program, $request);
-							return $this->renderForm('program/preload.html.twig', [
+							return $this->render('program/preload.html.twig', [
 								'program' => $program,
 							]);
 						} catch (\Exception $e) {
@@ -176,7 +176,7 @@ class ProgramController extends AbstractTurboController
 						$file = $form->get('file')->getData();
 						try {
 							$this->programService->preload($program, $request, $file);
-							return $this->renderForm('program/preload.html.twig', [
+							return $this->render('program/preload.html.twig', [
 								'program' => $program,
 							]);
 						} catch (\Exception $e) {
@@ -189,7 +189,7 @@ class ProgramController extends AbstractTurboController
 					case ProgramTypeEnum::TASK:														//launch task
 						try {
 							$this->programService->preload($program, $request);
-							return $this->renderForm('program/preload.html.twig', [
+							return $this->render('program/preload.html.twig', [
 								'program' => $program,
 							]);
 						} catch (\Exception $e) {
@@ -200,7 +200,7 @@ class ProgramController extends AbstractTurboController
 						break;
 				}
 			}
-		return $this->renderForm('program/launcher.html.twig', [
+		return $this->render('program/launcher.html.twig', [
 				'form' => $form,
 				'program' => $program,
 			]);
@@ -228,7 +228,7 @@ class ProgramController extends AbstractTurboController
 				case ProgramTypeEnum::EXPORT:																	//launch export
 					try {
 						$this->programService->load($program);
-						return $this->renderForm('program/load.html.twig', [
+						return $this->render('program/load.html.twig', [
 							'program' => $program,
 						]);
 					} catch (\Exception $e) {
@@ -245,7 +245,7 @@ class ProgramController extends AbstractTurboController
 						
 						try {
 							$this->programService->load($program);
-							return $this->renderForm('program/load.html.twig', [
+							return $this->render('program/load.html.twig', [
 								'program' => $program,
 							]);
 						} catch (\Exception $e) {
@@ -260,7 +260,7 @@ class ProgramController extends AbstractTurboController
 						
 						try {
 							$this->programService->load($program);
-							return $this->renderForm('program/load.html.twig', [
+							return $this->render('program/load.html.twig', [
 								'program' => $program,
 							]);
 						} catch (\Exception $e) {
@@ -276,7 +276,7 @@ class ProgramController extends AbstractTurboController
 				case ProgramTypeEnum::TASK:																		//launch task
 					try {
 						$this->programService->load($program);
-						return $this->renderForm('program/load.html.twig', [
+						return $this->render('program/load.html.twig', [
 							'program' => $program,
 						]);
 					} catch (\Exception $e) {
@@ -310,7 +310,7 @@ class ProgramController extends AbstractTurboController
 					} catch (\Exception $e) {
 						$this->addFlash('danger', $e->getMessage());
 						$this->programService->unload();
-						return $this->renderForm('program/error.html.twig');
+						return $this->render('program/error.html.twig');
 					}
 					
 				default:
@@ -339,7 +339,7 @@ class ProgramController extends AbstractTurboController
 					$pathParts = pathinfo($filePath);
 					
 					$this->programService->unload();
-					return $this->renderForm('program/export.html.twig', [
+					return $this->render('program/export.html.twig', [
 						'program' => $program,
 						'file_path' => $this->uploadsDirectory . '/' . $pathParts['basename'],
 					]);
@@ -348,7 +348,7 @@ class ProgramController extends AbstractTurboController
 					if ($this->programService->getCache()->getOption('ready_to_persist')) {					//launch import
 						
 						$this->programService->unload();
-						return $this->renderForm('program/import.html.twig', [
+						return $this->render('program/import.html.twig', [
 							'program' => $program,
 						]);
 						
@@ -358,7 +358,7 @@ class ProgramController extends AbstractTurboController
 						$pathParts = pathinfo($filePath);
 						
 						$this->programService->getCache()->setOption('ready_to_persist', true);
-						return $this->renderForm('program/check.html.twig', [
+						return $this->render('program/check.html.twig', [
 							'program' => $program,
 							'file_path' => $this->uploadsDirectory . '/' . $pathParts['basename'],
 						]);
@@ -369,21 +369,21 @@ class ProgramController extends AbstractTurboController
 					if ($this->programService->getCache()->getOption('ready_to_persist')) {					//launch task
 						
 						$this->programService->unload();
-						return $this->renderForm('program/preload.html.twig', [
+						return $this->render('program/preload.html.twig', [
 							'program' => $program,
 						]);
 						
 					} else {																	//check task
 						
 						$this->programService->getCache()->setOption('ready_to_persist', true);
-						return $this->renderForm('program/check.html.twig', [
+						return $this->render('program/check.html.twig', [
 							'program' => $program,
 						]);
 						
 					}
 					
 					$this->programService->unload();
-					return $this->renderForm('program/preload.html.twig', [
+					return $this->render('program/preload.html.twig', [
 						'program' => $program,
 					]);
 					
@@ -428,7 +428,7 @@ class ProgramController extends AbstractTurboController
 			default:
 				$redirect = ProgramCache::PRELOAD;
 		}
-		return $this->renderForm('program/console.html.twig', [
+		return $this->render('program/console.html.twig', [
 			'program' => $program,
 			'redirect' => $redirect,
 		]);
@@ -464,7 +464,7 @@ class ProgramController extends AbstractTurboController
 							break;
 						default:
 							$form = $this->createForm(ProgramType::class, null);
-							return $this->renderForm('generic/form.html.twig', [
+							return $this->render('generic/form.html.twig', [
 								'form' => $form
 							]);
 					}
@@ -473,7 +473,7 @@ class ProgramController extends AbstractTurboController
 					
 					$fields = $this->fieldService->getFields($project);
 					
-					return $this->renderForm('program/form.html.twig', [
+					return $this->render('program/form.html.twig', [
 						'route_back' =>  $this->generateUrl('program', [
 							'project' => $project->getId(),
 						]),
@@ -518,7 +518,7 @@ class ProgramController extends AbstractTurboController
 				}
 				
 			} else {
-				return $this->renderForm('generic/form.html.twig', [
+				return $this->render('generic/form.html.twig', [
 					'form' => $form
 				]);
 			}
@@ -543,7 +543,7 @@ class ProgramController extends AbstractTurboController
 				$this->addFlash('success', 'Programme mis à jour');
 				
 				if ($request->request->get('submit') == 'save') {
-					return $this->renderForm('program/form.html.twig', [
+					return $this->render('program/form.html.twig', [
 						'route_back' =>  $this->generateUrl('program', [
 							'project' => $project->getId(),
 						]),
@@ -556,7 +556,7 @@ class ProgramController extends AbstractTurboController
 					]);
 				}
 			} else {
-				return $this->renderForm('program/form.html.twig', [
+				return $this->render('program/form.html.twig', [
 					'route_back' =>  $this->generateUrl('program', [
 						'project' => $project->getId(),
 					]),
@@ -583,7 +583,7 @@ class ProgramController extends AbstractTurboController
 				'project' => $project->getId()
 			]);
 		} else {
-			return $this->renderForm('generic/delete.html.twig', [
+			return $this->render('generic/delete.html.twig', [
 				'route_back' =>  $this->generateUrl('program', [
 					'project' => $project->getId(),
 				]),

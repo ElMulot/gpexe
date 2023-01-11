@@ -47,7 +47,7 @@ class ViewController extends AbstractTurboController
 		}
 		
 		// $request->setRequestFormat(TurboBundle::STREAM_FORMAT);
-		return $this->renderForm('pages/engineering/index/nav/_view.html.twig', [
+		return $this->render('pages/engineering/index/nav/_view.html.twig', [
 			'views' => $views,
 			'selected_view' => $selectedView,
 			'project' => $project,
@@ -84,7 +84,7 @@ class ViewController extends AbstractTurboController
 				'selected' => $view->getId()
 			]);
 		} else {
-			return $this->renderForm('generic/new.html.twig', [
+			return $this->render('generic/new.html.twig', [
 				'form' => $form
 			]);
 		}
@@ -107,7 +107,7 @@ class ViewController extends AbstractTurboController
 				'project' => $view->getProject()->getId()
 			]);
 		} else {
-			return $this->renderForm('generic/edit.html.twig', [
+			return $this->render('generic/edit.html.twig', [
 				'form' => $form
 			]);
 		}
@@ -139,7 +139,7 @@ class ViewController extends AbstractTurboController
 				]);
 			}
 		} else {
-			return $this->renderForm('generic/delete.html.twig', [
+			return $this->render('generic/delete.html.twig', [
 				'entities' => [$view],
 			]);
 		}

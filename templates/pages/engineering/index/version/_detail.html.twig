@@ -6,7 +6,7 @@
 		<div class="card-body">
 			<div class="row">
 				<div class="col-4 col-lg-2">
-					{% if version.isRequired %}
+					{% if version.required %}
 						{% trans %}Expected date{% endtrans %} :
 					{% else %}
 						{% trans %}Date of issue{% endtrans %} :
@@ -14,7 +14,7 @@
 				</div>
 				<div class="col-8 col-lg-4">
 					{{ version.date|to_string }}
-					{% if version.isRequired and version.scheduledDate %}
+					{% if version.required and version.scheduledDate %}
 						{% if version.scheduledDate < date('today') %}
 							<span> ({{ 'delay'|trans({'count': version.scheduledDate.diff(date('today')).days}) }})</span>
 						{% endif %}
@@ -70,7 +70,7 @@
 			</div>
 		</div>
 		<div class="col-12 col-lg-6">
-			{% if version.isRequired and (is_granted('ROLE_ADMIN') or (is_granted('ROLE_EDITOR') and app.user.company.isMainContractor)) %}
+			{% if version.required and (is_granted('ROLE_ADMIN') or (is_granted('ROLE_EDITOR') and app.user.company.isMainContractor)) %}
 				<div class="card border border-dark rounded h-100">
 					<div class="card-header">{% trans %}Document recieved{% endtrans %}</div>
 					<div class="card-body">
@@ -79,7 +79,7 @@
 						</div>
 					</div>
 				</div>
-			{% elseif version.isRequired == false %}
+			{% elseif version.required == false %}
 				{% set items = [] %}
 				{% for checker in checkers %}
 					{% set items = items|merge([{
@@ -96,7 +96,7 @@
 		<div class="card-header">{% trans %}Metadatas{% endtrans %}</div>
 		<div class="card-body">
 			<div class="row">
-				{% if version.isRequired and version.initialScheduledDate %}
+				{% if version.required and version.initialScheduledDate %}
 					<div class="col-4">
 						{% trans %}Initial scheduled date{% endtrans %} :
 					</div>
@@ -104,7 +104,7 @@
 						{{ version.initialScheduledDate|to_string }}
 					</div>
 				{% endif %}
-				{% if version.isRequired and version.scheduledDate %}
+				{% if version.required and version.scheduledDate %}
 					<div class="col-4">
 						{% trans %}Scheduled date{% endtrans %} :
 					</div>

@@ -27,7 +27,7 @@ class VisaController extends AbstractTurboController
 	{
 		$this->denyAccessUnlessGranted('VISA_SHOW', $project);
 
-		return $this->renderForm('generic/list.html.twig', [
+		return $this->render('generic/list.html.twig', [
 			'title' => $this->translator->trans('Visas for') . ' : ' . $project->getName(),
 			'class' => Visa::class,
 			'entities' => $this->visaRepository->getVisas($project),
@@ -60,7 +60,7 @@ class VisaController extends AbstractTurboController
 
 		} else {
 
-			return $this->renderForm('generic/new.html.twig', [
+			return $this->render('generic/new.html.twig', [
 				'form' => $form
 			]);
 
@@ -91,7 +91,7 @@ class VisaController extends AbstractTurboController
 
 		} else {
 
-			return $this->renderForm('generic/edit.html.twig', [
+			return $this->render('generic/edit.html.twig', [
 				'form' => $form
 			]);
 
@@ -118,7 +118,7 @@ class VisaController extends AbstractTurboController
 
 		} else {
 
-			return $this->renderForm('generic/delete.html.twig', [
+			return $this->render('generic/delete.html.twig', [
 				'entities' => [$visa],
 			]);
 

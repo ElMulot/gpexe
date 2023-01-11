@@ -23,7 +23,7 @@ class UserController extends AbstractTurboController
 	#[Route(path: '/user', name: 'user')]
 	public function index(UserRepository $userRepository) : Response
 	{
-		return $this->renderForm('pages/user/index.html.twig', [
+		return $this->render('pages/user/index.html.twig', [
 			'class' => User::class,
 			'entities' => $userRepository->findAll(),
 		]);
@@ -48,7 +48,7 @@ class UserController extends AbstractTurboController
 
 		} else {
 
-			return $this->renderForm('generic/new.html.twig', [
+			return $this->render('generic/new.html.twig', [
 				'form' => $form,
 			]);
 
@@ -74,7 +74,7 @@ class UserController extends AbstractTurboController
 
 		} else {
 
-			return $this->renderForm('generic/edit.html.twig', [
+			return $this->render('generic/edit.html.twig', [
 				'form' => $form,
 			]);
 
@@ -95,7 +95,7 @@ class UserController extends AbstractTurboController
 
 		} else {
 
-			return $this->renderForm('generic/delete.html.twig', [
+			return $this->render('generic/delete.html.twig', [
 				'entities' => [$user],
 			]);
 

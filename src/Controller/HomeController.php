@@ -29,7 +29,7 @@ class HomeController extends AbstractTurboController
 	#[Route(path: '/', name: 'home')]
 	public function index() : Response
 	{
-		return $this->renderForm('pages/main/home.html.twig', [
+		return $this->render('pages/main/home.html.twig', [
 			'projects' => $this->projectRepository->getProjects($this->getUser()),
 		]);
 	}
@@ -85,7 +85,7 @@ class HomeController extends AbstractTurboController
 		} else {
 			$checkSettings = [];
 		}
-		return $this->renderForm('pages/main/home/_alert.html.twig', [
+		return $this->render('pages/main/home/_alert.html.twig', [
 			'project' => $project,
 			'prod_alerts' => $this->versionRepository->getProdAlerts($project, $this->getUser()),
 			'check_alerts' => $this->versionRepository->getCheckAlerts($project, $this->getUser()),
@@ -97,7 +97,7 @@ class HomeController extends AbstractTurboController
 	#[Route(path: '/about', name: 'about')]
 	public function about() : Response
 	{
-		return $this->renderForm('pages/main/about.html.twig', [
+		return $this->render('pages/main/about.html.twig', [
 			'items' => Yaml::parseFile($this->kernelProjectDir . '/config/ressources/about.yaml'),
 		]);
 	}

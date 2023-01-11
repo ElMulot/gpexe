@@ -4,7 +4,6 @@ namespace App\Controller;
 use App\Entity\Status;
 use App\Entity\Project;
 use App\Form\StatusType;
-use Symfony\UX\Turbo\TurboBundle;
 use App\Repository\StatusRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\HttpFoundation\Request;
@@ -12,7 +11,6 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
-//todo : à mettre à jour complètement
 class StatusController extends AbstractTurboController
 {
 
@@ -26,7 +24,7 @@ class StatusController extends AbstractTurboController
 	{
 		$this->denyAccessUnlessGranted('STATUS_SHOW', $project);
 
-		return $this->renderForm('generic/list.html.twig', [
+		return $this->render('generic/list.html.twig', [
 			'title' => $this->translator->trans('Statuses for') . ' : ' . $project->getName(),
 			'class' => Status::class,
 			'entities' => $statusRepository->getStatuses($project),
@@ -44,20 +42,17 @@ class StatusController extends AbstractTurboController
 		$form->handleRequest($request);
 
 		if ($form->isSubmitted() && $form->isValid()) {
+
 			$entityManager = $this->doctrine->getManager();
 			$entityManager->persist($status);
 			$entityManager->flush();
 			
 			$this->addFlash('success', 'New entry created');
-			
-			$request->setRequestFormat(TurboBundle::STREAM_FORMAT);
-			return $this->renderForm('generic/success.stream.html.twig', [
-				'redirect' => $this->generateUrl('status', ['project' => $project->getId()]),
-			]);
+			return $this->renderSuccess($request, 'status', ['project' => $project->getId()]);
 
 		} else {
 
-			return $this->renderForm('generic/new.html.twig', [
+			return $this->render('generic/new.html.twig', [
 				'form' => $form
 			]);
 
@@ -76,20 +71,18 @@ class StatusController extends AbstractTurboController
 		$form->handleRequest($request);
 
 		if ($form->isSubmitted() && $form->isValid()) {
+
 			$entityManager = $this->doctrine->getManager();
 			$entityManager->persist($status);
 			$entityManager->flush();
 
 			$this->addFlash('success', 'Datas updated');
 			
-			$request->setRequestFormat(TurboBundle::STREAM_FORMAT);
-			return $this->renderForm('generic/success.stream.html.twig', [
-				'redirect' => $this->generateUrl('status', ['project' => $project->getId()]),
-			]);
+			return $this->renderSuccess($request, 'status', ['project' => $project->getId()]);
 
 		} else {
 
-			return $this->renderForm('generic/edit.html.twig', [
+			return $this->render('generic/edit.html.twig', [
 				'form' => $form
 			]);
 
@@ -104,20 +97,23 @@ class StatusController extends AbstractTurboController
 		$this->denyAccessUnlessGranted('STATUS_DELETE', $project);
 		
 		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
+
 			$entityManager = $this->doctrine->getManager();
-			$entityManager->remove($status);
+			
+			try {
+				$entityManager->remove($status);
+			} catch (\Exception $e) {
+				$this->addFlash('danger', $e->getMessage());
+				return $this->renderError($request, 'status', ['project' => $project->getId()]);
+			}
 			$entityManager->flush();
 
 			$this->addFlash('success', 'Entry deleted');
-
-			$request->setRequestFormat(TurboBundle::STREAM_FORMAT);
-			return $this->renderForm('generic/success.stream.html.twig', [
-				'redirect' => $this->generateUrl('status', ['project' => $project->getId()]),
-			]);
+			return $this->renderSuccess($request, 'status', ['project' => $project->getId()]);
 
 		} else {
 
-			return $this->renderForm('generic/delete.html.twig', [
+			return $this->render('generic/delete.html.twig', [
 				'entities' => [$status],
 			]);
 

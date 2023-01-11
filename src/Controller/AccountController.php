@@ -22,13 +22,13 @@ class AccountController extends AbstractTurboController
 	#[Route(path: '/account', name: 'account')]
 	public function index(Request $request) : Response
 	{
-		return $this->renderForm('pages/main/account.html.twig');
+		return $this->render('pages/main/account.html.twig');
 	}
 
 	#[Route(path: '/account/personal', name: 'personal')]
 	public function personal(Request $request) : Response
 	{
-		return $this->renderForm('pages/main/account/_personal_infos.html.twig', [
+		return $this->render('pages/main/account/_personal_infos.html.twig', [
 			'user' => $this->getUser()
 		]);
 	}
@@ -53,7 +53,7 @@ class AccountController extends AbstractTurboController
 
 		} else {
 
-			return $this->renderForm('generic/edit.html.twig', [
+			return $this->render('generic/edit.html.twig', [
 				'form' => $form
 			]);
 
@@ -80,7 +80,7 @@ class AccountController extends AbstractTurboController
 
 			return $this->redirectToRoute('personal');
 		} else {
-			return $this->renderForm('pages/main/account/_change_password.html.twig', [
+			return $this->render('pages/main/account/_change_password.html.twig', [
 				'form' => $form,
 			]);
 		}

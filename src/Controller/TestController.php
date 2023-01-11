@@ -62,7 +62,7 @@ class TestController extends AbstractController
 
 		// dump($form->get('test')->getNormData());
 
-		return $this->renderForm('test/index.html.twig', [
+		return $this->render('test/index.html.twig', [
 			// 'form' => $form,
 		]);
 	}
@@ -72,7 +72,7 @@ class TestController extends AbstractController
 	{
 		// sleep(2);
 		$request->setRequestFormat(TurboBundle::STREAM_FORMAT);
-		return $this->renderForm('test/f2.html.twig', [
+		return $this->render('test/f2.html.twig', [
 		]);
 	}
 
@@ -80,7 +80,7 @@ class TestController extends AbstractController
 	public function f3() : Response
 	{
 		sleep(2);
-		return $this->renderForm('test/f3.html.twig', [
+		return $this->render('test/f3.html.twig', [
 			
 		]);
 	}

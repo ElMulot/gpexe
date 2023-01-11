@@ -10,18 +10,29 @@ use Doctrine\Persistence\ObjectManager;
 
 class StatusFixtures extends Fixture implements DependentFixtureInterface
 {
-	public const PROJECT_0_INFORMATION_STATUS	= 'PROJECT_0_INFORMATION_STATUS';
 	public const PROJECT_0_REVIEW_STATUS		= 'PROJECT_0_REVIEW_STATUS';
+	public const PROJECT_0_INFORMATION_STATUS	= 'PROJECT_0_INFORMATION_STATUS';
 	public const PROJECT_0_CANCEL_STATUS		= 'PROJECT_0_CANCEL_STATUS';
 	public const PROJECT_0_AS_BUILT_STATUS		= 'PROJECT_0_AS_BUILT_STATUS';
-	public const PROJECT_1_INFORMATION_STATUS	= 'PROJECT_1_INFORMATION_STATUS';
 	public const PROJECT_1_REVIEW_STATUS		= 'PROJECT_1_REVIEW_STATUS';
+	public const PROJECT_1_INFORMATION_STATUS	= 'PROJECT_1_INFORMATION_STATUS';
 	public const PROJECT_1_CANCEL_STATUS		= 'PROJECT_1_CANCEL_STATUS';
 	public const PROJECT_1_AS_BUILT_STATUS		= 'PROJECT_1_AS_BUILT_STATUS';
 
 	public function load(ObjectManager $manager): void
 	{
 		for ($i=0; $i<2; $i++) {
+			
+			$status = new Status();
+			$status
+			->setName('Review')
+			->setValue('REV')
+			->setType(StatusTypeEnum::REVIEW)
+			->setDefault(true)
+			->setProject($this->getReference(constant(ProjectFixtures::class . "::PROJECT_{$i}")));
+			$manager->persist($status);
+			$this->addReference("PROJECT_{$i}_REVIEW_STATUS", $status);
+			
 			$status = new Status();
 			$status
 				->setName('Information')
@@ -33,17 +44,7 @@ class StatusFixtures extends Fixture implements DependentFixtureInterface
 
 			$status = new Status();
 			$status
-				->setName('Review')
-				->setValue('REV')
-				->setType(StatusTypeEnum::REVIEW)
-				->setDefault(true)
-				->setProject($this->getReference(constant(ProjectFixtures::class . "::PROJECT_{$i}")));
-			$manager->persist($status);
-			$this->addReference("PROJECT_{$i}_REVIEW_STATUS", $status);
-
-			$status = new Status();
-			$status
-				->setName('CANCEL')
+				->setName('Cancel')
 				->setValue('CNL')
 				->setType(StatusTypeEnum::CANCEL)
 				->setProject($this->getReference(constant(ProjectFixtures::class . "::PROJECT_{$i}")));

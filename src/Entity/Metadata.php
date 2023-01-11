@@ -41,7 +41,7 @@ class Metadata implements \Stringable
 	#[NotEqualTo('scheduleDate')]
 	#[NotEqualTo('deliveryDate')]
 	#[NotEqualTo('date')]
-	#[NotEqualTo('isRequired')]
+	#[NotEqualTo('required')]
 	#[NotEqualTo('writer')]
 	#[NotEqualTo('checker')]
 	#[NotEqualTo('approver')]

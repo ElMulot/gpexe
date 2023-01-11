@@ -20,7 +20,7 @@ class ProfilController extends AbstractTurboController
 	#[Route(path: '/profil', name: 'profil')]
 	public function index(ProfilRepository $profilRepository) : Response
 	{
-		return $this->renderForm('generic/list.html.twig', [
+		return $this->render('generic/list.html.twig', [
 			'class' => Profil::class,
 			'entities' => $profilRepository->getProfils(),
 		]);
@@ -44,7 +44,7 @@ class ProfilController extends AbstractTurboController
 
 		} else {
 
-			return $this->renderForm('generic/new.html.twig', [
+			return $this->render('generic/new.html.twig', [
 				'form' => $form,
 			]);
 
@@ -66,7 +66,7 @@ class ProfilController extends AbstractTurboController
 
 		} else {
 
-			return $this->renderForm('generic/edit.html.twig', [
+			return $this->render('generic/edit.html.twig', [
 				'form' => $form,
 			]);
 
@@ -93,7 +93,7 @@ class ProfilController extends AbstractTurboController
 			
 		} else {
 
-			return $this->renderForm('generic/delete.html.twig', [
+			return $this->render('generic/delete.html.twig', [
 				'entities' => [$profil],
 			]);
 

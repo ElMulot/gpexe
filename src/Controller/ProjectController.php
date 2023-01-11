@@ -10,7 +10,7 @@ use App\Repository\CompanyRepository;
 use App\Repository\ProgramRepository;
 use App\Repository\ProjectRepository;
 use Doctrine\Persistence\ManagerRegistry;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -39,13 +39,13 @@ class ProjectController extends AbstractTurboController
 			}
 		}
 		
-		return $this->renderForm('pages/main/projects.html.twig', [
+		return $this->render('pages/main/projects.html.twig', [
 			'projects' => $projects
 		]);
 	}
 
 	#[Route(path: '/project/{project}', name: 'project', requirements: ['project' => '\d+'])]
-	public function index(Request $request, Project $project, CompanyRepository $companyRepository) : Response
+	public function index(Project $project) : Response
 	{
 		if ($this->isGranted('PROJECT_SHOW', $project) === false) {
 			return $this->redirectToRoute('projects_list');
@@ -69,7 +69,7 @@ class ProjectController extends AbstractTurboController
 			}
 		}
 		
-		return $this->renderForm('pages/project/index.html.twig', [
+		return $this->render('pages/project/index.html.twig', [
 			'project' => $project,
 			'programs' => $programs,
 			'route_back' => $routeBack,
@@ -92,18 +92,18 @@ class ProjectController extends AbstractTurboController
 		switch ($belong) {
 			case 'mdr':
 				$companies = $companyRepository->getCompaniesByProject($project, [CompanyTypeEnum::MAIN_CONTRACTOR], $user);
-				return $this->renderForm('pages/project/index/_pannel.html.twig', [
+				return $this->render('pages/project/index/_pannel.html.twig', [
 					'project' => $project,
 					'companies' => $companies,
 				]);
 			case 'sdr':
 				$companies = $companyRepository->getCompaniesByProject($project, [CompanyTypeEnum::SUB_CONTRACTOR, CompanyTypeEnum::SUPPLIER], $user);
-				return $this->renderForm('pages/project/index/_pannel.html.twig', [
+				return $this->render('pages/project/index/_pannel.html.twig', [
 					'project' => $project,
 					'companies' => $companies,
 				]);
 			// default:
-			// 	return $this->renderForm('pages/project/index/_pannel_misc.html.twig', [
+			// 	return $this->render('pages/project/index/_pannel_misc.html.twig', [
 			// 		'project' => $project,
 			// 	]);
 		}
@@ -125,7 +125,7 @@ class ProjectController extends AbstractTurboController
 			
 			return $this->renderSuccess($request, 'projects_list');
 		} else {
-			return $this->renderForm('pages/project/new.html.twig', [
+			return $this->render('pages/project/new.html.twig', [
 				'form' => $form
 			]);
 		}
@@ -150,7 +150,7 @@ class ProjectController extends AbstractTurboController
 
 			return $this->renderSuccess($request, 'projects_list');
 		} else {
-			return $this->renderForm('pages/project/edit.html.twig', [
+			return $this->render('pages/project/edit.html.twig', [
 				'form' => $form
 			]);
 		}
@@ -172,7 +172,7 @@ class ProjectController extends AbstractTurboController
 
 			return $this->renderSuccess($request, 'projects_list');
 		} else {
-			return $this->renderForm('generic/delete.html.twig', [
+			return $this->render('generic/delete.html.twig', [
 				'title' => 'Delete project',
 				'entities' => [$project],
 			]);

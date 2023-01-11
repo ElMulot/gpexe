@@ -27,7 +27,7 @@ class CodificationItemController extends AbstractTurboController
 
 		$this->denyAccessUnlessGranted('PROJECT_EDIT', $project);
 
-		return $this->renderForm('generic/list.html.twig', [
+		return $this->render('generic/list.html.twig', [
 			'header' => $this->translator->trans('List for the code') . ' : ' . $codification->getName(),
 			'route_back' =>  $this->generateUrl('codification', [
 				'project' => $codification->getProject()->getId(),
@@ -60,7 +60,7 @@ class CodificationItemController extends AbstractTurboController
 				'codification' => $codification->getId()
 			]);
 		} else {
-			return $this->renderForm('generic/form.html.twig', [
+			return $this->render('generic/form.html.twig', [
 				'route_back' =>  $this->generateUrl('codification_item', [
 					'codification' => $codification->getId(),
 				]),
@@ -88,7 +88,7 @@ class CodificationItemController extends AbstractTurboController
 				'codification' => $codificationItem->getCodification()->getId()
 			]);
 		} else {
-			return $this->renderForm('generic/form.html.twig', [
+			return $this->render('generic/form.html.twig', [
 				'route_back' =>  $this->generateUrl('codification_item', [
 					'codification' => $codificationItem->getCodification()->getId(),
 				]),
@@ -115,7 +115,7 @@ class CodificationItemController extends AbstractTurboController
 				'codification_item' => $codificationItem->getCodification()->getId()
 			]);
 		} else {
-			return $this->renderForm('generic/delete.html.twig', [
+			return $this->render('generic/delete.html.twig', [
 				'route_back' =>  $this->generateUrl('codification_item', [
 					'codification_item' => $codificationItem->getCodification()->getId(),
 				]),

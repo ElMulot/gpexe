@@ -75,7 +75,7 @@ class DocumentController extends AbstractTurboController
 				return $this->redirectToRoute('project');
 			}
 		}
-		return $this->renderForm('document/index.html.twig', [
+		return $this->render('document/index.html.twig', [
 			'project' => $project,
 			'current_serie' => $serie,
 			'type' => $type,
@@ -209,12 +209,12 @@ class DocumentController extends AbstractTurboController
 		} catch (\Exception $e) {
 			$this->addFlash('danger', $e->getMessage());
 			$this->programService->unload();
-			return $this->renderForm('ajax/error.html.twig');
+			return $this->render('ajax/error.html.twig');
 		}
 		$filePath = $this->programService->getCache()->getParameter('file_path');
 		$pathParts = pathinfo($filePath);
 		$this->programService->unload();
-		return $this->renderForm('document/export.html.twig', [
+		return $this->render('document/export.html.twig', [
 			'file_path' => $this->uploadsDirectory . '/' . $pathParts['basename'],
 		]);
 	}
@@ -225,7 +225,7 @@ class DocumentController extends AbstractTurboController
 		$document = $version->getDocument();
 		$this->denyAccessUnlessGranted('DOCUMENT_SHOW_DETAIL', $document);
 
-		return $this->renderForm('pages/engineering/index/document/_detail.html.twig', [
+		return $this->render('pages/engineering/index/document/_detail.html.twig', [
 			'current_version' => $version,
 			'versions' => $this->versionRepository->getVersionsByDocument($document),
 			'document' => $document,
@@ -274,7 +274,7 @@ class DocumentController extends AbstractTurboController
 				
 			// 	if ($value === null && $codification->isMandatory()) {
 			// 		$this->addFlash('danger', $this->translator->trans('notEmpty.field', ['field' => $codification->getName()]));
-			// 		return $this->renderForm('ajax/form.html.twig', [
+			// 		return $this->render('ajax/form.html.twig', [
 			// 			'form' => $form,
 			// 		]);
 			// 	}
@@ -288,7 +288,7 @@ class DocumentController extends AbstractTurboController
 			
 			// if ($this->documentService->validateReference($document) === false) {
 			// 	$this->addFlash('danger', $this->translator->trans('alreadyExist.reference', ['reference' => $document->getReference()]));
-			// 	return $this->renderForm('ajax/form.html.twig', [
+			// 	return $this->render('ajax/form.html.twig', [
 			// 		'form' => $form,
 			// 	]);
 			// }
@@ -298,7 +298,7 @@ class DocumentController extends AbstractTurboController
 				
 			// 	if ($value === null && $metadata->isMandatory()) {
 			// 		$this->addFlash('danger', $this->translator->trans('notEmpty.field', ['field' => $metadata->getName()]));
-			// 		return $this->renderForm('ajax/form.html.twig', [
+			// 		return $this->render('ajax/form.html.twig', [
 			// 			'form' => $form,
 			// 		]);
 			// 	}
@@ -308,7 +308,7 @@ class DocumentController extends AbstractTurboController
 			// 	} catch (\Error $e) {
 			// 		if ($metadata->isMandatory() === true) {
 			// 			$this->addFlash('danger', $e->getMessage());
-			// 			return $this->renderForm('ajax/form.html.twig', [
+			// 			return $this->render('ajax/form.html.twig', [
 			// 				'form' => $form,
 			// 			]);
 			// 		}
@@ -322,7 +322,7 @@ class DocumentController extends AbstractTurboController
 				'document' => $document->getId()
 			]);
 		} else {
-			return $this->renderForm('pages/engineering/new/_pannel.html.twig', [
+			return $this->render('pages/engineering/new/_pannel.html.twig', [
 				'form' => $form,
 			]);
 		}
@@ -335,7 +335,7 @@ class DocumentController extends AbstractTurboController
 		//$documents = $this->documentRepository->getDocumentsByRequest($request);
 		if ($documents == false) {
 			$this->addFlash('danger', $this->translator->trans('None documents selected'));
-			return $this->renderForm('ajax/error.html.twig');
+			return $this->render('ajax/error.html.twig');
 		}
 		
 		$document = reset($documents);
@@ -370,7 +370,7 @@ class DocumentController extends AbstractTurboController
 						
 						if ($value === null && $codification->isMandatory()) {
 							$this->addFlash('danger', $this->translator->trans('notEmpty.field', ['field' => $codification->getName()]));
-							return $this->renderForm('ajax/form.html.twig', [
+							return $this->render('ajax/form.html.twig', [
 								'form' => $form,
 							]);
 						}
@@ -387,7 +387,7 @@ class DocumentController extends AbstractTurboController
 				
 				if ($this->documentService->validateReference($document) === false) {
 					$this->addFlash('danger', $this->translator->trans('alreadyExist.reference', ['reference' => $document->getReference()]));
-					return $this->renderForm('ajax/form.html.twig', [
+					return $this->render('ajax/form.html.twig', [
 						'form' => $form,
 					]);
 				}
@@ -404,7 +404,7 @@ class DocumentController extends AbstractTurboController
 						
 						if ($value === null && $metadata->isMandatory()) {
 							$this->addFlash('danger', $this->translator->trans('notEmpty.field', ['field' => $metadata->getName()]));
-							return $this->renderForm('ajax/form.html.twig', [
+							return $this->render('ajax/form.html.twig', [
 								'form' => $form,
 							]);
 						}
@@ -414,7 +414,7 @@ class DocumentController extends AbstractTurboController
 						} catch (\Error $e) {
 							if ($metadata->isMandatory() === true) {
 								$this->addFlash('danger', $e->getMessage());
-								return $this->renderForm('ajax/form.html.twig', [
+								return $this->render('ajax/form.html.twig', [
 									'form' => $form,
 								]);
 							}
@@ -428,7 +428,7 @@ class DocumentController extends AbstractTurboController
 			//check if any modified documents hasn't the same codification
 			if (array_unique($references) != $references) {
 				$this->addFlash('danger', $this->translator->trans('The same codification has been setting up to more than one document'));
-				return $this->renderForm('ajax/form.html.twig', [
+				return $this->render('ajax/form.html.twig', [
 					'form' => $form,
 				]);
 			}
@@ -440,7 +440,7 @@ class DocumentController extends AbstractTurboController
 			return new Response();
 		} else {
 			$request->query->remove('id');
-			return $this->renderForm('ajax/form.html.twig', [
+			return $this->render('ajax/form.html.twig', [
 				'form' => $form
 			]);
 		}
@@ -453,7 +453,7 @@ class DocumentController extends AbstractTurboController
 		//$documents = $this->documentRepository->getDocumentsByRequest($request);
 		if ($documents == false) {
 			$this->addFlash('danger', $this->translator->trans('None documents selected'));
-			return $this->renderForm('ajax/error.html.twig');
+			return $this->render('ajax/error.html.twig');
 		}
 		$document = reset($documents);
 		$currentSerie = $document->getSerie();
@@ -481,7 +481,7 @@ class DocumentController extends AbstractTurboController
 			return new Response();
 		} else {
 			$request->query->remove('id');
-			return $this->renderForm('ajax/form.html.twig', [
+			return $this->render('ajax/form.html.twig', [
 				'form' => $form
 			]);
 		}
@@ -494,7 +494,7 @@ class DocumentController extends AbstractTurboController
 		//$documents = $this->documentRepository->getDocumentsByRequest($request);
 		if ($documents == false) {
 			$this->addFlash('danger', $this->translator->trans('None documents selected'));
-			return $this->renderForm('ajax/error.html.twig');
+			return $this->render('ajax/error.html.twig');
 		}
 		$document = reset($documents);
 
@@ -511,7 +511,7 @@ class DocumentController extends AbstractTurboController
 			$this->addFlash('success', $this->translator->trans('deleted.document', ['count' => count($documents)]));
 			return new Response();
 		} else {
-			return $this->renderForm('ajax/delete.html.twig', [
+			return $this->render('ajax/delete.html.twig', [
 				'entities' => $documents,
 			]);
 		}
@@ -526,7 +526,7 @@ class DocumentController extends AbstractTurboController
 			'document_name' => $fields['document.name']['default_width'],
 			'version_scheduled_date' => $fields['version.scheduledDate']['default_width'],
 			'version_delivery_date' => $fields['version.deliveryDate']['default_width'],
-			'version_is_required' => $fields['version.isRequired']['default_width'],
+			'version_is_required' => $fields['version.required']['default_width'],
 			'status_value' => $fields['status.value']['default_width'],
 		];
 	}

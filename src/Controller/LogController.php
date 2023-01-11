@@ -17,7 +17,7 @@ class LogController extends AbstractTurboController
 	public function index() : Response
 	{
 		$log = $this->logRepository->getLog();
-		return $this->renderForm('log/index.html.twig', [
+		return $this->render('log/index.html.twig', [
 			'log' => $log,
 		]);
 	}

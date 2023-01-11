@@ -61,7 +61,7 @@ class EngineeringController extends AbstractTurboController
 		
 		$request->query->set('series', $serieIds);
 		$request->setRequestFormat(TurboBundle::STREAM_FORMAT);
-		return $this->renderForm('pages/engineering/index/_thead.html.twig', [
+		return $this->render('pages/engineering/index/_thead.html.twig', [
 			'fields' => $fields,
 			'query' => $request->query->all(),
 		]);
@@ -106,7 +106,7 @@ class EngineeringController extends AbstractTurboController
 
 		$request->setRequestFormat(TurboBundle::STREAM_FORMAT);
 
-		return $this->renderForm('pages/engineering/index/_tbody.html.twig', [
+		return $this->render('pages/engineering/index/_tbody.html.twig', [
 			// 'datas' => $serializer->normalize($versions),
 			'fields' => $fields,
 			'items' => $versions,
@@ -132,7 +132,7 @@ class EngineeringController extends AbstractTurboController
 			$documents = [];
 		}
 		
-		return $this->renderForm('pages/engineering/_new.html.twig', [
+		return $this->render('pages/engineering/_new.html.twig', [
 			'project' => $project,
 			'series' => $series,
 			'documents' => $documents,
@@ -151,7 +151,7 @@ class EngineeringController extends AbstractTurboController
 		$documents = $this->documentRepository->getDocumentsByVersionsId($versionIds);
 		$series = $this->serieRepository->getSeriesByVersionIds($versionIds);
 
-		return $this->renderForm('pages/engineering/_edit.html.twig', [
+		return $this->render('pages/engineering/_edit.html.twig', [
 			'series' => $series,
 			'documents' => $documents,
 			'versions' => $versions,
@@ -169,7 +169,7 @@ class EngineeringController extends AbstractTurboController
 		$versions = $this->versionRepository->getVersionsByIds($versionIds);
 		$documents = $this->documentRepository->getDocumentsByVersionsId($versionIds);
 
-		return $this->renderForm('pages/engineering/_delete.html.twig', [
+		return $this->render('pages/engineering/_delete.html.twig', [
 			'documents' => $documents,
 			'versions' => $versions,
 		]);
@@ -184,7 +184,7 @@ class EngineeringController extends AbstractTurboController
 			'document_name' => $fields['document.name']['default_width'],
 			'version_scheduled_date' => $fields['version.scheduledDate']['default_width'],
 			'version_delivery_date' => $fields['version.deliveryDate']['default_width'],
-			'version_is_required' => $fields['version.isRequired']['default_width'],
+			'version_is_required' => $fields['version.required']['default_width'],
 			'status_value' => $fields['status.value']['default_width'],
 		];
 	}

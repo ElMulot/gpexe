@@ -5,7 +5,8 @@ namespace App\Security;
 use App\Entity\Enum\SerieBelongingEnum;
 use App\Entity\User;
 use App\Entity\Project;
-use Symfony\Component\Security\Core\Security;
+use App\Repository\SerieRepository;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 
@@ -23,7 +24,8 @@ use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 
 class ProjectVoter extends Voter
 {
-    public function __construct(private readonly Security $security)
+    public function __construct(private readonly Security $security,
+                                private readonly SerieRepository $serieRepository)
     {
     }
 

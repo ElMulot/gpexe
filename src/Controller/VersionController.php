@@ -41,7 +41,7 @@ class VersionController extends AbstractTurboController
 
 		$this->denyAccessUnlessGranted('DOCUMENT_SHOW_DETAIL', $document);
 
-		return $this->renderForm('pages/engineering/index/version/_detail.html.twig', [
+		return $this->render('pages/engineering/index/version/_detail.html.twig', [
 			'version' => $version,
 			'document' => $document,
 			'project' => $project,
@@ -80,7 +80,7 @@ class VersionController extends AbstractTurboController
 			// 	'document' => $document->getId()
 			// ]);
 		} else {
-			return $this->renderForm('pages/engineering/new/_pannel.html.twig', [
+			return $this->render('pages/engineering/new/_pannel.html.twig', [
 				'form' => $form,
 			]);
 		}
@@ -90,12 +90,12 @@ class VersionController extends AbstractTurboController
 		// 	$documents = $this->documentRepository->getDocumentsByRequest($request);
 		// 	if ($documents == false) {
 		// 		$this->addFlash('danger', 'None documents selected');
-		// 		return $this->renderForm('ajax/error.html.twig');
+		// 		return $this->render('ajax/error.html.twig');
 		// 	}
 			
 		// 	if (count($documents) > 1) {
 		// 		$this->addFlash('danger', 'Only one reference must be selected');
-		// 		return $this->renderForm('ajax/error.html.twig');
+		// 		return $this->render('ajax/error.html.twig');
 		// 	}
 		// 	$document = reset($documents);
 		// }
@@ -146,7 +146,7 @@ class VersionController extends AbstractTurboController
 				
 		// 		if ($value === null && $metadata->isMandatory()) {
 		// 			$this->addFlash('danger', $this->translator->trans('notEmpty.field', ['field' => $metadata->getName()]));
-		// 			return $this->renderForm('ajax/form.html.twig', [
+		// 			return $this->render('ajax/form.html.twig', [
 		// 				'form' => $form,
 		// 			]);
 		// 		}
@@ -156,7 +156,7 @@ class VersionController extends AbstractTurboController
 		// 		} catch (\Error $e) {
 		// 			if ($metadata->isMandatory() === true) {
 		// 				$this->addFlash('danger', $e->getMessage());
-		// 				return $this->renderForm('ajax/form.html.twig', [
+		// 				return $this->render('ajax/form.html.twig', [
 		// 					'form' => $form,
 		// 				]);
 		// 			}
@@ -175,7 +175,7 @@ class VersionController extends AbstractTurboController
 		// 	}
 			
 		// } else {
-		// 	return $this->renderForm('ajax/form.html.twig', [
+		// 	return $this->render('ajax/form.html.twig', [
 		// 		'form' => $form,
 		// 	]);
 		// }
@@ -187,7 +187,7 @@ class VersionController extends AbstractTurboController
 		$documents = $this->documentRepository->getDocumentsByRequest($request);
 		if ($documents == false) {
 			$this->addFlash('danger', 'None documents selected');
-			return $this->renderForm('ajax/error.html.twig');
+			return $this->render('ajax/error.html.twig');
 		}
 		$document = reset($documents);
 		$serie = $document->getSerie();
@@ -241,7 +241,7 @@ class VersionController extends AbstractTurboController
 						$value = $form->get($metadata->getFullId())->getData();
 						if ($value === null && $metadata->isMandatory()) {
 							$this->addFlash('danger', $this->translator->trans('notEmpty.field', ['field' => $metadata->getName()]));
-							return $this->renderForm('ajax/form.html.twig', [
+							return $this->render('ajax/form.html.twig', [
 								'form' => $form,
 							]);
 						}
@@ -251,7 +251,7 @@ class VersionController extends AbstractTurboController
 						} catch (\Error $e) {
 							if ($metadata->isMandatory() === true) {
 								$this->addFlash('danger', $e->getMessage());
-								return $this->renderForm('ajax/form.html.twig', [
+								return $this->render('ajax/form.html.twig', [
 									'form' => $form,
 								]);
 							}
@@ -284,7 +284,7 @@ class VersionController extends AbstractTurboController
 			}
 			
 		} else {
-			return $this->renderForm('ajax/form.html.twig', [
+			return $this->render('ajax/form.html.twig', [
 				'form' => $form,
 			]);
 		}
@@ -323,7 +323,7 @@ class VersionController extends AbstractTurboController
 			}
 			
 		} else {
-			return $this->renderForm('ajax/delete.html.twig', [
+			return $this->render('ajax/delete.html.twig', [
 				'entities' => $versions,
 			]);
 		}
@@ -371,7 +371,7 @@ class VersionController extends AbstractTurboController
 			
 			return $this->ajaxRedirectService->get($this->generateUrl('document_detail', ['version' => $version->getId()]), '#modal_detail');
 		} else {
-			return $this->renderForm('review/form.html.twig', [
+			return $this->render('review/form.html.twig', [
 				'company' => $company,
 				'version' => $version,
 				'form' => $form,
@@ -413,17 +413,17 @@ class VersionController extends AbstractTurboController
 						$entityManager->persist($version);
 						$entityManager->flush();
 						
-						return $this->renderForm('version/quick_edit.html.twig', [
+						return $this->render('version/quick_edit.html.twig', [
 							'property' => $version->getPropertyValue($field['codename']),
 						]);
 					} else {
-						return $this->renderForm('version/quick_edit.html.twig', [
+						return $this->render('version/quick_edit.html.twig', [
 							'form' => $form,
 						]);
 					}
 					
 				} else {
-					return $this->renderForm('version/quick_edit.html.twig', [
+					return $this->render('version/quick_edit.html.twig', [
 						'property' => $version->getPropertyValue($field['codename']),
 					]);
 				}

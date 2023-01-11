@@ -30,7 +30,7 @@ class AutomationController extends AbstractTurboController
 	{
 		$this->denyAccessUnlessGranted('PROGRAM_SHOW', $project);
 		
-		return $this->renderForm('automation/index.html.twig', [
+		return $this->render('automation/index.html.twig', [
 			'project' => $project,
 			'automations' => $this->automationRepository->getAutomations($project),
 		]);
@@ -58,7 +58,7 @@ class AutomationController extends AbstractTurboController
 
 		} else {
 
-			return $this->renderForm('generic/edit.html.twig', [
+			return $this->render('generic/edit.html.twig', [
 				'form' => $form
 			]);
 

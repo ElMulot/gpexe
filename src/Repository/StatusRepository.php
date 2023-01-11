@@ -52,17 +52,6 @@ class StatusRepository extends RepositoryService
 		;
 	}
 	
-	public function getStatusesCount(Project $project): int
-	{
-		$qb = $this->newQb('s');
-		return (int)$qb
-			->select('count(s.id)')
-			->andWhere($qb->eq('s.project', $project))
-			->getQuery()
-			->getSingleScalarResult()
-		;
-	}
-	
 	/**
 	 * @return Status
 	 *
@@ -72,7 +61,7 @@ class StatusRepository extends RepositoryService
 		$qb = $this->newQb('s');
 		return $qb
 			->andWhere($qb->eq('s.project', $project))
-			->andWhere($qb->eq('s.isDefault', true))
+			->andWhere($qb->eq('s.default', true))
 			->getQuery()
 			->getSingleResult()
 		;

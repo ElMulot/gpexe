@@ -5,7 +5,14 @@ namespace App\EventListener;
 use Doctrine\Persistence\Event\LifecycleEventArgs;
 use App\Entity\Status;
 use App\Repository\StatusRepository;
+use Doctrine\Bundle\DoctrineBundle\Attribute\AsEntityListener;
+use Doctrine\ORM\Events;
+use Exception;
 
+#[AsEntityListener(entity:Status::class, event: Events::postPersist, method: 'setDefault', lazy:true)]
+#[AsEntityListener(entity:Status::class, event: Events::preUpdate, method: 'setDefault', lazy:true)]
+#[AsEntityListener(entity:Status::class, event: Events::preRemove, lazy:true)]
+#[AsEntityListener(entity:Status::class, event: Events::postRemove, lazy:true)]
 class StatusListener
 {
 	
@@ -16,41 +23,67 @@ class StatusListener
 	public function setDefault(Status $status, LifecycleEventArgs $event)
 	{
 		$project = $status->getProject();
-		
-		if ($this->statusRepository->getStatusesCount($project) == 1) {
-			$status->setDefault(true);
-		} elseif ($status->isDefault()) {
+		$statuses = $this->statusRepository->getStatuses($project);
+
+		if (count($statuses) === 0) {
+			return;
+		}
+
+		if ($status->isDefault() === true) {
 			
-			foreach($this->statusRepository->getStatuses($project) as $s) {
-				if ($s->getId() !== $status->getId() && $s->isDefault()) {
+			foreach($statuses as $s) {
+				if ($s !== $status && $s->isDefault() === true) {
 					$s->setDefault(false);
 					$event->getObjectManager()->persist($s);
 					$event->getObjectManager()->flush();
 				}
 			}
-			
+
 		} else {
-			foreach($this->statusRepository->getStatuses($project) as $s) {
-				if ($s->isDefault()) {
+
+			foreach($statuses as $s) {
+				if ($s->isDefault() === true) {
 					return;
 				}
 			}
-			$status->isDefault(true);
+
+			$s = reset($statuses);
+			$s->setDefault(true);
+			$event->getObjectManager()->persist($s);
+			$event->getObjectManager()->flush();
+		}
+		
+	}
+
+	public function preRemove(Status $status, LifecycleEventArgs $event)
+	{
+		$project = $status->getProject();
+		$statuses = $this->statusRepository->getStatuses($project);
+		
+		dump(count($statuses));
+		
+		if (count($statuses) === 1) {
+			
+			throw new Exception('There must be at least one status.');
 		}
 	}
 	
 	public function postRemove(Status $status, LifecycleEventArgs $event)
 	{
 		$project = $status->getProject();
+		$statuses = $this->statusRepository->getStatuses($project);
 		
-		foreach($this->statusRepository->getStatuses($project) as $s) {
-			if ($s->isDefault()) {
+		if (count($statuses) === 0) {
+			return;
+		}
+
+		foreach($statuses as $s) {
+			if ($s->isDefault() === true) {
 				return;
 			}
 		}
-		$status->isDefault(true);
-		$event->getObjectManager()->persist($status);
-		$event->getObjectManager()->flush();
+		
+		$this->setDefault(reset($statuses), $event);
 	}
 }
 

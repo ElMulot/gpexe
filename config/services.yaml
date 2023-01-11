@@ -77,26 +77,6 @@ services:
                 entity: 'App\Entity\Project'
                 lazy: true
 
-    App\EventListener\StatusListener:
-        tags:
-            -
-                name: 'doctrine.orm.entity_listener'
-                event: 'postPersist'
-                entity: 'App\Entity\Status'
-                lazy: true
-                method: setDefault
-            -
-                name: 'doctrine.orm.entity_listener'
-                event: 'preUpdate'
-                entity: 'App\Entity\Status'
-                lazy: true
-                method: setDefault
-            -
-                name: 'doctrine.orm.entity_listener'
-                event: 'postRemove'
-                entity: 'App\Entity\Status'
-                lazy: true
-
     App\EventListener\UserListener:
         tags:
             -

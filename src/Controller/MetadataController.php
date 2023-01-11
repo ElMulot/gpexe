@@ -24,7 +24,7 @@ class MetadataController extends AbstractTurboController
 	{
 		$this->denyAccessUnlessGranted('PROJECT_EDIT', $project);
 
-		return $this->renderForm('generic/list.html.twig', [
+		return $this->render('generic/list.html.twig', [
 			'title' => $this->translator->trans('Metadatas for') . ' : ' . $project->getName(),
 			'class' => Metadata::class,
 			'entities' => $metadataRepository->getMetadatas($project),
@@ -52,7 +52,7 @@ class MetadataController extends AbstractTurboController
 
 		} else {
 
-			return $this->renderForm('generic/new.html.twig', [
+			return $this->render('generic/new.html.twig', [
 				'form' => $form
 			]);
 
@@ -79,7 +79,7 @@ class MetadataController extends AbstractTurboController
 
 		} else {
 
-			return $this->renderForm('generic/edit.html.twig', [
+			return $this->render('generic/edit.html.twig', [
 				'form' => $form
 			]);
 
@@ -104,7 +104,7 @@ class MetadataController extends AbstractTurboController
 
 		} else {
 
-			return $this->renderForm('generic/delete.html.twig', [
+			return $this->render('generic/delete.html.twig', [
 				'entities' => [$metadata],
 			]);
 			

@@ -3,7 +3,7 @@
 namespace App\EventListener;
 
 use Doctrine\ORM\Event\OnFlushEventArgs;
-use Symfony\Component\Security\Core\Security;
+use Symfony\Bundle\SecurityBundle\Security;
 use App\Entity\ChangeSet;
 use App\Entity\Enum\LogTypeEnum;
 use App\Entity\Log;

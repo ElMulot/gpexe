@@ -38,15 +38,15 @@ class ViewRepository extends RepositoryService
 				$qb->orX(
 					$qb->andX(
 						$qb->orX(
-							$qb->eq('p.isSuperAdmin', true),
-							$qb->eq('p.isAdmin', true)
+							$qb->eq('p.superAdmin', true),
+							$qb->eq('p.admin', true)
 						),
-						$qb->eq('v.isShared', true),
+						$qb->eq('v.shared', true),
 					),
 					$qb->eq('v.user', $user)
 				)
 			)
-			->orderBy('p.isSuperAdmin, p.isAdmin, v.name')
+			->orderBy('p.superAdmin, p.admin, v.name')
 			->getQuery()
 			->getResult()
 		;
@@ -81,16 +81,16 @@ class ViewRepository extends RepositoryService
 				$qb->orX(
 					$qb->andX(
 						$qb->orX(
-							$qb->eq('p.isSuperAdmin', true),
-							$qb->eq('p.isAdmin', true)
+							$qb->eq('p.superAdmin', true),
+							$qb->eq('p.admin', true)
 						),
-						$qb->eq('v.isShared', true),
+						$qb->eq('v.shared', true),
 					),
 					$qb->eq('v.user', $user)
 				)
 			)
-			->andWhere($qb->eq('v.isDefault', true))
-			->orderBy('p.isSuperAdmin, p.isAdmin')
+			->andWhere($qb->eq('v.default', true))
+			->orderBy('p.superAdmin, p.admin')
 			->setMaxResults(1)
 			->getQuery()
 			->getOneOrNullResult()

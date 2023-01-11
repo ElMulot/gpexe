@@ -28,7 +28,7 @@ class ReviewController extends AbstractTurboController
 		$this->denyAccessUnlessGranted('REVIEW_SHOW', $serie);
 		
 		$review = $version->getReviewByCompany($company);
-		return $this->renderForm('pages/engineering/index/review/_detail.html.twig', [
+		return $this->render('pages/engineering/index/review/_detail.html.twig', [
 			'review' => $review,
 			'version' => $version,
 			'company' => $company,
@@ -78,7 +78,7 @@ class ReviewController extends AbstractTurboController
 					]);
 				// }
 			} else {
-				return $this->renderForm('pages/engineering/index/review/_new.html.twig', [
+				return $this->render('pages/engineering/index/review/_new.html.twig', [
 					'company' => $company,
 					'version' => $version,
 					'form' => $form,
@@ -114,14 +114,14 @@ class ReviewController extends AbstractTurboController
 				$entityManager = $this->doctrine->getManager();
 				$entityManager->flush();
 				
-				return $this->renderForm('pages/engineering/index/review/_detail.html.twig', [
+				return $this->render('pages/engineering/index/review/_detail.html.twig', [
 					'review' => $review,
 					'version' => $version,
 					'company' => $company,
 				]);
 				
 			} else {
-				return $this->renderForm('pages/engineering/index/review/_edit.html.twig', [
+				return $this->render('pages/engineering/index/review/_edit.html.twig', [
 					'review' => $review,
 					'company' => $company,
 					'version' => $version,
@@ -129,7 +129,7 @@ class ReviewController extends AbstractTurboController
 				]);
 			}
 		} else {
-			return $this->renderForm('pages/engineering/index/review/_detail.html.twig', [
+			return $this->render('pages/engineering/index/review/_detail.html.twig', [
 				'review' => $review,
 				'version' => $version,
 				'company' => $company,
@@ -151,20 +151,20 @@ class ReviewController extends AbstractTurboController
 				$entityManager->remove($review);
 				$entityManager->flush();
 				
-				return $this->renderForm('pages/engineering/index/review/_detail.html.twig', [
+				return $this->render('pages/engineering/index/review/_detail.html.twig', [
 					'review' => null,
 					'version' => $version,
 					'company' => $company,
 				]);
 			} else {
-				return $this->renderForm('pages/engineering/index/review/_delete.html.twig', [
+				return $this->render('pages/engineering/index/review/_delete.html.twig', [
 					'entities' => [$review],
 					'company' => $company,
 					'version' => $version,
 				]);
 			}
 		} else {
-			return $this->renderForm('pages/engineering/index/review/_detail.html.twig', [
+			return $this->render('pages/engineering/index/review/_detail.html.twig', [
 				'review' => $review,
 				'version' => $version,
 				'company' => $company,

@@ -9,13 +9,13 @@ final class StatusTypeEnum extends AbstractEnumType
 	public final const INFORMATION  = 'information';
 	public final const REVIEW		= 'review';
 	public final const CANCEL		= 'cancel';
-	public final const AS_BUILT		= 'as_build';
+	public final const AS_BUILT		= 'as_built';
 	
 	protected static array $choices = [
-		self::INFORMATION			=> 'Checkbox',
-		self::REVIEW				=> 'Text',
-		self::CANCEL				=> 'Date',
-		self::AS_BUILT				=> 'Link',
+		self::INFORMATION			=> 'Information',
+		self::REVIEW				=> 'Review',
+		self::CANCEL				=> 'Cancel',
+		self::AS_BUILT				=> 'As built',
 	];
 
 	public static function getDefaultValue(): ?string

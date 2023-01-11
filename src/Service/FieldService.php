@@ -19,7 +19,7 @@ use App\Repository\MetadataRepository;
 use App\Repository\StatusRepository;
 use App\Repository\UserRepository;
 use App\Repository\VisaRepository;
-use Symfony\Component\Security\Core\Security;
+use Symfony\Bundle\SecurityBundle\Security;
 
 class FieldService
 {
@@ -174,9 +174,9 @@ class FieldService
 					'write' => $permissionWrite,
 				],
 			],
-			'version.isRequired' => [
+			'version.required' => [
 				'id' =>'version_is_required',
-				'codename' => 'version.isRequired',
+				'codename' => 'version.required',
 				'title' => $this->translator->trans('Required'),
 				'type' => MetadataTypeEnum::BOOL,
 				'parent' => 'version',
@@ -628,7 +628,7 @@ class FieldService
 			]
 		];
 		
-		$fields['version.isRequired']['element'] = [
+		$fields['version.required']['element'] = [
 			'id' 		=> 'version_is_required',
 			'title' 	=> $this->translator->trans('Required'),
 			'sort'		=> true,

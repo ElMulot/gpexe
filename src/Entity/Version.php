@@ -345,8 +345,8 @@ class Version extends AbstractElement
 			case 'version.date':
 				return $this->getDate();
 				
-			case 'version.isRequired':
-				return $this->isRequired();
+			case 'version.required':
+				return $this->required();
 				
 			case 'version.writer':
 				return $this->getWriter();
@@ -482,14 +482,14 @@ class Version extends AbstractElement
 			case 'version.date':
 				if ($value instanceof \DateTimeInterface === true) {
 					if ($value > new Date('today')) {
-						$this->isRequired = true;
+						$this->required = true;
 					}
 					$this->setDate($value);
 					return $this;
 				}
 				break;
 				
-			case 'version.isRequired':
+			case 'version.required':
 				$this->setRequired($value || $value === 'true' || $value === 'yes');
 				break;
 				

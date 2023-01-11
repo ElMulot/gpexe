@@ -20,7 +20,7 @@ class CompanyController extends AbstractTurboController
 	#[Route(path: '/company', name: 'company')]
 	public function index(CompanyRepository $companyRepository) : Response
 	{
-		return $this->renderForm('generic/list.html.twig', [
+		return $this->render('generic/list.html.twig', [
 			'class' => Company::class,
 			'entities' => $companyRepository->getCompanies(),
 		]);
@@ -44,7 +44,7 @@ class CompanyController extends AbstractTurboController
 
 		} else {
 
-			return $this->renderForm('generic/new.html.twig', [
+			return $this->render('generic/new.html.twig', [
 				'form' => $form,
 			]);
 
@@ -67,7 +67,7 @@ class CompanyController extends AbstractTurboController
 
 		} else {
 
-			return $this->renderForm('generic/edit.html.twig', [
+			return $this->render('generic/edit.html.twig', [
 				'form' => $form,
 			]);
 
@@ -88,7 +88,7 @@ class CompanyController extends AbstractTurboController
 
 		} else {
 
-			return $this->renderForm('generic/delete.html.twig', [
+			return $this->render('generic/delete.html.twig', [
 				'entities' => [$company],
 			]);
 

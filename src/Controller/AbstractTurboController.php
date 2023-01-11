@@ -39,7 +39,7 @@ class AbstractTurboController extends AbstractController
 	public function renderSuccess(Request $request, string $route, array $parameters = [], int $referenceType = UrlGeneratorInterface::ABSOLUTE_PATH): Response
 	{
 		$request->setRequestFormat(TurboBundle::STREAM_FORMAT);
-		return $this->renderForm('generic/success.stream.html.twig', [
+		return $this->render('generic/success.stream.html.twig', [
 			'redirect' => $this->generateUrl($route, $parameters, $referenceType),
 		]);
 	}
@@ -50,7 +50,7 @@ class AbstractTurboController extends AbstractController
 	public function renderError(Request $request, string $route, array $parameters = [], int $referenceType = UrlGeneratorInterface::ABSOLUTE_PATH): Response
 	{
 		$request->setRequestFormat(TurboBundle::STREAM_FORMAT);
-		return $this->renderForm('generic/error.stream.html.twig', [
+		return $this->render('generic/error.stream.html.twig', [
 			'redirect' => $this->generateUrl($route, $parameters, $referenceType),
 		]);
 	}

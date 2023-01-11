@@ -5,7 +5,7 @@ namespace App\Security;
 use App\Entity\User;
 use App\Entity\View;
 use App\Entity\Project;
-use Symfony\Component\Security\Core\Security;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 

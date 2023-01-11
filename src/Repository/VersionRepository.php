@@ -65,7 +65,7 @@ class VersionRepository extends RepositoryService
 
 		//highlight
 		if ($request->query->has('highlight') && $qb->hasAlias('version_is_required') === false) {
-			$qb->addSelect('version.isRequired AS version_is_required');
+			$qb->addSelect('version.required AS version_required');
 		}
 		
 		if ($request->query->has('sortAsc') || $request->query->has('sortDesc')) {
@@ -94,7 +94,7 @@ class VersionRepository extends RepositoryService
 					
 				case 'version_date':
 					if ($qb->hasAlias('version_date_') === false) {
-						$qb->addSelect("IF(version.isRequired = false, version.deliveryDate, version.scheduledDate) AS HIDDEN version_date_");
+						$qb->addSelect("IF(version.required = false, version.deliveryDate, version.scheduledDate) AS HIDDEN version_date_");
 					}
 					
 					$qb->addOrderBy('version_date_', $order);
@@ -297,12 +297,12 @@ class VersionRepository extends RepositoryService
 						break;
 						
 					case 'version_date':
-						$qb->addSelect("DATE_FORMAT(IF(version.isRequired = false, version.deliveryDate, version.scheduledDate), '%d-%m-%Y') AS version_date");
+						$qb->addSelect("DATE_FORMAT(IF(version.required = false, version.deliveryDate, version.scheduledDate), '%d-%m-%Y') AS version_date");
 						break;
 						
 					case 'version_is_required':
 						if ($qb->hasAlias('version_is_required') === false) {
-							$qb->addSelect('version.isRequired AS version_is_required');
+							$qb->addSelect('version.required AS version_is_required');
 						}
 						break;
 						
@@ -569,21 +569,21 @@ class VersionRepository extends RepositoryService
 		$subQb = $this->newQB('v1');
 		$subQb->select('v1.id')
 			->leftJoin(Version::class, 'v2', Join::WITH,
-				'v1.document = v2.document AND v2.isRequired = true AND (
+				'v1.document = v2.document AND v2.required = true AND (
 					v1.scheduledDate > v2.scheduledDate OR (
 						v1.scheduledDate = v2.scheduledDate AND v1.name > v2.name
 					)
 				)')
 			->innerJoin('v1.status', 's')
 			->where($subQb->isNull('v2.scheduledDate'))
-			->andWhere($subQb->eq('v1.isRequired', true))
+			->andWhere($subQb->eq('v1.required', true))
 			->andWhere($subQb->eq('v1.writer', $user))
 			->andWhere($subQb->neq('s.type', StatusTypeEnum::CANCEL))
 			->addGroupBy('v1.document')
 		;
 		
 		$qb = $this->newQB('v');
-		return $qb->select('s.id AS serieId, s.name AS serieName, c.type AS companyType, v.isRequired, count(v.id) AS count, MIN(DATE_DIFF_WD(v.scheduledDate, CURRENT_DATE())) AS min')
+		return $qb->select('s.id AS serieId, s.name AS serieName, c.type AS companyType, v.required, count(v.id) AS count, MIN(DATE_DIFF_WD(v.scheduledDate, CURRENT_DATE())) AS min')
 			->innerJoin('v.document', 'd')
 			->innerJoin('d.serie', 's')
 			->innerJoin('s.company', 'c')
@@ -601,21 +601,21 @@ class VersionRepository extends RepositoryService
 		$subQb = $this->newQB('v1');
 		$subQb->select('v1.id')
 			->leftJoin(Version::class, 'v2', Join::WITH, 
-				'v1.document = v2.document AND v2.isRequired = false AND (
+				'v1.document = v2.document AND v2.required = false AND (
 					v1.deliveryDate < v2.deliveryDate OR (
 						v1.deliveryDate = v2.deliveryDate AND v1.name < v2.name
 					)
 				)')
 			->innerJoin('v1.status', 's')
 			->where($subQb->isNull('v2.deliveryDate'))
-			->andWhere($subQb->eq('v1.isRequired', false))
+			->andWhere($subQb->eq('v1.required', false))
 			->andWhere($subQb->eq('v1.checker', $user))
 			->andWhere($subQb->neq('s.type', StatusTypeEnum::CANCEL))
 			->addGroupBy('v1.document')
 		;
 		
 		$qb = $this->newQB('v');
-		return $qb->select('s.id AS serieId, s.name AS serieName, c.type AS companyType, v.isRequired, count(d.id) AS count, MAX(DATE_DIFF_WD(CURRENT_DATE(), v.deliveryDate)) AS max')
+		return $qb->select('s.id AS serieId, s.name AS serieName, c.type AS companyType, v.required, count(d.id) AS count, MAX(DATE_DIFF_WD(CURRENT_DATE(), v.deliveryDate)) AS max')
 			->innerJoin('v.document', 'd')
 			->innerJoin('d.serie', 's')
 			->innerJoin('s.company', 'c')
@@ -708,7 +708,7 @@ class VersionRepository extends RepositoryService
 							break;
 							
 						case 'version_date':
-							$qb->addSelect("IF(version.isRequired = false, version.deliveryDate, version.scheduledDate) AS HIDDEN version_date_");
+							$qb->addSelect("IF(version.required = false, version.deliveryDate, version.scheduledDate) AS HIDDEN version_date_");
 							$value = implode(',', $value);
 							if (($result = Regex::match('/>(\d{2}-\d{2}-\d{4})/', $value))->hasMatch()) {
 								$qb->andHaving($qb->gte('version_date_', new \DateTime($result->group(1))));
@@ -719,7 +719,7 @@ class VersionRepository extends RepositoryService
 							break;
 							
 						case 'version_is_required':
-							$qb->andWhere($qb->eq('version.isRequired', ($value == "1")));
+							$qb->andWhere($qb->eq('version.required', ($value == "1")));
 							break;
 							
 						case 'version_writer':
@@ -922,8 +922,8 @@ class VersionRepository extends RepositoryService
 						case 'version_first':
 							$qb->leftJoin(Version::class, 'vf', Join::WITH,
 									'version.document = vf.document AND (
-										IF(version.isRequired = false, version.deliveryDate, version.scheduledDate) > IF(vf.isRequired = false, vf.deliveryDate, vf.scheduledDate) OR (
-											IF(version.isRequired = false, version.deliveryDate, version.scheduledDate) = IF(vf.isRequired = false, vf.deliveryDate, vf.scheduledDate) AND version.name > vf.name
+										IF(version.required = false, version.deliveryDate, version.scheduledDate) > IF(vf.required = false, vf.deliveryDate, vf.scheduledDate) OR (
+											IF(version.required = false, version.deliveryDate, version.scheduledDate) = IF(vf.required = false, vf.deliveryDate, vf.scheduledDate) AND version.name > vf.name
 										)
 									)')
 								->andWhere($qb->andX($qb->isNull('vf.scheduledDate'), $qb->isNull('vf.deliveryDate')))
@@ -932,31 +932,31 @@ class VersionRepository extends RepositoryService
 							
 						case 'version_first_scheduled':
 							$qb->leftJoin(Version::class, 'vfs', Join::WITH,
-									'version.document = vfs.document AND vfs.isRequired = true AND (
+									'version.document = vfs.document AND vfs.required = true AND (
 										version.scheduledDate > vfs.scheduledDate OR (
 											version.scheduledDate = vfs.scheduledDate AND version.name > vfs.name
 										)
 									)')
-								->andWhere($qb->isNull('vfs.scheduledDate'), $qb->eq('version.isRequired', true))
+								->andWhere($qb->isNull('vfs.scheduledDate'), $qb->eq('version.required', true))
 							;
 							break;
 						
 						case 'version_first_delivered':
 							$qb->leftJoin(Version::class, 'vfd', Join::WITH,
-									'version.document = vfd.document AND vfd.isRequired = false AND (
+									'version.document = vfd.document AND vfd.required = false AND (
 										version.deliveryDate > vfd.deliveryDate OR (
 											version.deliveryDate = vfd.deliveryDate AND version.name > vfd.name
 										)
 									)')
-								->andWhere($qb->isNull('vfd.deliveryDate'), $qb->eq('version.isRequired', false))
+								->andWhere($qb->isNull('vfd.deliveryDate'), $qb->eq('version.required', false))
 							;
 							break;
 						
 						case 'version_last':
 							$qb->leftJoin(Version::class, 'vl', Join::WITH,
 									'version.document = vl.document AND (
-										IF(version.isRequired = false, version.deliveryDate, version.scheduledDate) < IF(vl.isRequired = false, vl.deliveryDate, vl.scheduledDate) OR (
-											IF(version.isRequired = false, version.deliveryDate, version.scheduledDate) = IF(vl.isRequired = false, vl.deliveryDate, vl.scheduledDate) AND version.name < vl.name
+										IF(version.required = false, version.deliveryDate, version.scheduledDate) < IF(vl.required = false, vl.deliveryDate, vl.scheduledDate) OR (
+											IF(version.required = false, version.deliveryDate, version.scheduledDate) = IF(vl.required = false, vl.deliveryDate, vl.scheduledDate) AND version.name < vl.name
 										)
 									)')
 								->andWhere($qb->isNull('vl.scheduledDate'), $qb->isNull('vl.deliveryDate'))
@@ -965,23 +965,23 @@ class VersionRepository extends RepositoryService
 						
 						case 'version_last_scheduled':
 							$qb->leftJoin(Version::class, 'vls', Join::WITH,
-									'version.document = vls.document AND vls.isRequired = true AND (
+									'version.document = vls.document AND vls.required = true AND (
 										version.scheduledDate < vls.scheduledDate OR (
 											version.scheduledDate = vls.scheduledDate AND version.name < vls.name
 										)
 									)')
-								->andWhere($qb->isNull('vls.scheduledDate'), $qb->eq('version.isRequired', true))
+								->andWhere($qb->isNull('vls.scheduledDate'), $qb->eq('version.required', true))
 							;
 							break;
 						
 						case 'version_last_delivered':
 							$qb->leftJoin(Version::class, 'vld', Join::WITH,
-									'version.document = vld.document AND vld.isRequired = false AND (
+									'version.document = vld.document AND vld.required = false AND (
 										version.deliveryDate < vld.deliveryDate OR (
 											version.deliveryDate = vld.deliveryDate AND version.name < vld.name
 										)
 									)')
-								->andWhere($qb->isNull('vld.deliveryDate'), $qb->eq('version.isRequired', false))
+								->andWhere($qb->isNull('vld.deliveryDate'), $qb->eq('version.required', false))
 							;
 							break;
 						

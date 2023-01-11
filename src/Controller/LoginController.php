@@ -63,7 +63,7 @@ class LoginController extends AbstractController
 				$logout = true;
 			}
 		}
-		return $this->renderForm('pages/login/index.html.twig', [
+		return $this->render('pages/login/index.html.twig', [
 			'last_username' => $lastUsername, 
 			'error' => $error,
 			'img_name' => 'images/' . $imgName,
