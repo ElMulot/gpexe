@@ -76,7 +76,10 @@ class ProfilController extends AbstractTurboController
 	#[Route(path: '/profil/{profil}/delete', name: 'profil_delete', methods: ['GET', 'DELETE'], requirements: ['profil' => '\d+'])]
 	public function delete(Request $request, Profil $profil, ProfilRepository $profilRepository) : Response
 	{
-		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
+		$form = $this->createDeleteForm($profil);
+		$form->handleRequest($request);
+
+		if ($form->isSubmitted() && $form->isValid()) {
 			$entityManager = $this->doctrine->getManager();
 			$entityManager->remove($profil);
 			$entityManager->flush();
@@ -95,6 +98,7 @@ class ProfilController extends AbstractTurboController
 
 			return $this->render('generic/delete.html.twig', [
 				'entities' => [$profil],
+				'form' => $form,
 			]);
 
 		}

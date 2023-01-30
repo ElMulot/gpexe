@@ -500,7 +500,10 @@ class DocumentController extends AbstractTurboController
 
 		$this->denyAccessUnlessGranted('DOCUMENT_DELETE', $document);
 
-		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
+		$form = $this->createDeleteForm($document);
+		$form->handleRequest($request);
+
+		if ($form->isSubmitted() && $form->isValid()) {
 			$entityManager = $this->doctrine->getManager();
 			
 			foreach ($documents as $document) {
@@ -513,6 +516,7 @@ class DocumentController extends AbstractTurboController
 		} else {
 			return $this->render('ajax/delete.html.twig', [
 				'entities' => $documents,
+				'form' => $form,
 			]);
 		}
 	}

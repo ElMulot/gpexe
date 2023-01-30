@@ -3,21 +3,15 @@
 {% extends 'modal/xl_modal.html.twig' %}
 
 {% block modal_body %}
-	<form id="form" method="POST" action="{{ app.request.uri }}"
-		{% if app.request.headers.has('Turbo-Stream-Replace') is same as (true) %}
-			data-turbo-stream-replace="{{ app.request.headers.get('Turbo-Stream-Replace') }}"
-		{% endif %}>
-		{% if entities|length == 1 %}
-			<p>{{ ('confirm.' ~ entities|first|short_name)|trans({'count':entities|length}) }} : {{ entities|first }}</p>
-		{% else %}
-			<p>{{ ('confirm.' ~ entities|first|short_name)|trans({'count':entities|length}) }} :</p>
-			{% for entity in entities %}
-				<li>{{ entity }}</li>
-			{% endfor %}
-		{% endif %}
-		<input type="hidden" name="_method" value="DELETE">
-		<input type="hidden" name="_token" value="{{ csrf_token('delete') }}">
-	</form>
+	{% if entities|length == 1 %}
+		<p>{{ ('confirm.' ~ entities|first|short_name)|trans({'count':entities|length}) }} : {{ entities|first }}</p>
+	{% else %}
+		<p>{{ ('confirm.' ~ entities|first|short_name)|trans({'count':entities|length}) }} :</p>
+		{% for entity in entities %}
+			<li>{{ entity }}</li>
+		{% endfor %}
+	{% endif %}
+	{{ form(form) }}
 {% endblock %}
 
 {% block modal_footer %}

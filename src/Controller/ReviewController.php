@@ -146,7 +146,10 @@ class ReviewController extends AbstractTurboController
 
 		if ($this->isGranted('REVIEW_DELETE', $project)) {
 		
-			if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
+			$form = $this->createDeleteForm($review);
+			$form->handleRequest($request);
+	
+			if ($form->isSubmitted() && $form->isValid()) {
 				$entityManager = $this->doctrine->getManager();
 				$entityManager->remove($review);
 				$entityManager->flush();
@@ -161,6 +164,7 @@ class ReviewController extends AbstractTurboController
 					'entities' => [$review],
 					'company' => $company,
 					'version' => $version,
+					'form' => $form,
 				]);
 			}
 		} else {

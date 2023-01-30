@@ -104,7 +104,10 @@ class CodificationItemController extends AbstractTurboController
 		
 		$this->denyAccessUnlessGranted('PROJECT_EDIT', $project);
 
-		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
+		$form = $this->createDeleteForm($codificationItem);
+		$form->handleRequest($request);
+
+		if ($form->isSubmitted() && $form->isValid()) {
 			$entityManager = $this->doctrine->getManager();
 			$entityManager->remove($codificationItem);
 			$entityManager->flush();
@@ -116,10 +119,8 @@ class CodificationItemController extends AbstractTurboController
 			]);
 		} else {
 			return $this->render('generic/delete.html.twig', [
-				'route_back' =>  $this->generateUrl('codification_item', [
-					'codification_item' => $codificationItem->getCodification()->getId(),
-				]),
 				'entities' => [$codificationItem],
+				'form' => $form,
 			]);
 		}
 	}

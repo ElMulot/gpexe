@@ -9,7 +9,7 @@ use Symfony\Component\Form\PreloadedExtension;
 use App\Form\DataTransformer\VariousTransformer;
 use App\Form\EventSubscriber\VariousFieldSubscriber;
 
-class TextAreaVariousTypeTest extends TypeTestCase
+class TextareaVariousTypeTest extends TypeTestCase
 {
 	
 	private $suscriber;

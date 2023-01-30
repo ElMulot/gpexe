@@ -4,6 +4,10 @@ namespace App\Controller;
 
 use App\Entity\Serie;
 use App\Entity\Project;
+use App\Entity\User;
+use App\Form\AccountType;
+use App\Form\DeleteType;
+use App\Form\ProjectType;
 use App\Form\Type\ChoiceVariousType;
 use Symfony\UX\Turbo\TurboBundle;
 use Doctrine\Persistence\ManagerRegistry;
@@ -14,20 +18,23 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\Form\CallbackTransformer;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Validator\Validation;
 
-class TestController extends AbstractController
+class TestController extends AbstractTurboController
 {
 	public function __construct(private readonly TranslatorInterface $translator,
 								private readonly ManagerRegistry $doctrine,
+								private readonly UserPasswordHasherInterface $passwordHasher,
                                 private readonly string $publicDirectory,
 								#[Autowire('%app.uploads_directory%')]
                                 private readonly string $uploadsDirectory)
 	{
 	}
 	
-	#[Route(path: '/test', name: 'test', requirements: ['id' => '\d+'])]
+	#[Route(path: '/test', name: 'test', methods:['GET', 'DELETE'])]
 	public function index(Request $request) : Response
 	{
 		
@@ -62,28 +69,161 @@ class TestController extends AbstractController
 
 		// dump($form->get('test')->getNormData());
 
+		$text = $this->passwordHasher->hashPassword($this->getUser(), '');
+
+
 		return $this->render('test/index.html.twig', [
-			// 'form' => $form,
+			'text' => $text,
 		]);
 	}
 
-	#[Route(path: '/f2', name: 'f2')]
-	public function f2(Request $request) : Response
+	#[Route(path: '/test/turbo', name: 'turbo')]
+	public function turbo() : Response
 	{
-		// sleep(2);
-		$request->setRequestFormat(TurboBundle::STREAM_FORMAT);
-		return $this->render('test/f2.html.twig', [
+		
+		return $this->render('test/turbo.html.twig', [
 		]);
 	}
 
-	#[Route(path: '/f3', name: 'f3')]
-	public function f3() : Response
+	#[Route(path: '/test/turbo/index', name: 'turbo_index')]
+	public function turbo_index(Request $request) : Response
 	{
-		sleep(2);
-		return $this->render('test/f3.html.twig', [
+		return $this->render('test/_index.html.twig', [
+			'frameId' => $request->get('frame_id') ?? 'index',
+			'text' => $request->get('text') ?? 'Hello world !',
+		]);
+	}
+
+	#[Route(path: '/test/turbo/pannel', name: 'turbo_pannel')]
+	public function turbo_pannel(Request $request) : Response
+	{
+		return $this->render('test/_pannel.html.twig', [
+			'text' => $request->get('text') ?? 'Hello world !',
+		]);
+	}
+
+
+	#[Route(path: '/test/turbo/no_stream', name: 'turbo_no_stream')]
+	public function turbo_no_stream(Request $request) : Response
+	{
+
+		/**@var User $user */
+		$user = $this->getUser();
+		$form = $this->createForm(AccountType::class, $user);
+		
+		$form->handleRequest($request);
+
+		if ($form->isSubmitted() && $form->isValid()) {
 			
+			if ($user->getLocale() == 'fr_FR') {
+				$this->addFlash('success', 'Data updated');
+				return $this->renderSuccess($request, 'turbo_pannel', ['text' => 'Success']);
+			} else {
+				$this->addFlash('danger', 'Erreur !');
+				return $this->renderError($request, 'turbo_pannel', ['text' => 'Error !']);
+			}
+			
+		} else {
+			return $this->render('test/_new.html.twig', [
+				'form' => $form
+			]);
+		}
+
+	}
+
+	#[Route(path: '/test/turbo/with_stream', name: 'turbo_with_stream')]
+	public function turbo_with_stream(Request $request) : Response
+	{
+		/**@var User $user */
+		$user = $this->getUser();
+		$form = $this->createForm(AccountType::class, $user);
+		
+		$form->handleRequest($request);
+
+		if ($form->isSubmitted() && $form->isValid()) {
+
+			if ($user->getLocale() == 'fr_FR') {
+				$this->addFlash('success', 'Data updated');
+				return $this->renderSuccess($request, 'turbo_index', ['text' => 'Success']);
+			} else {
+				$this->addFlash('danger', 'Erreur !');
+				return $this->renderError($request, 'turbo_index', ['text' => 'Error !']);
+			}
+
+		} else {
+			$request->headers->set('Turbo-Stream-Replace', 'index');
+			return $this->render('test/_new.html.twig', [
+				'form' => $form
+			]);
+		}
+	}
+
+
+	#[Route(path: '/test/turbo/launch_modal', name: 'turbo_launch_modal')]
+	public function turbo_launch_modal() : Response
+	{
+		return $this->render('test/_launch_modal.html.twig');
+	}
+
+	#[Route(path: '/test/turbo/modal', name: 'turbo_modal')]
+	public function turbo_modal(Request $request) : Response
+	{
+		/**@var User $user */
+		$user = $this->getUser();
+		$form = $this->createForm(AccountType::class, $user);
+
+		$form->handleRequest($request);
+
+		if ($form->isSubmitted() && $form->isValid()) {
+
+			if ($user->getLocale() == 'fr_FR') {
+				$this->addFlash('success', 'Data updated');
+				return $this->renderSuccess($request, 'turbo_index', ['text' => 'Success']);
+			} else {
+				$this->addFlash('danger', 'Erreur !');
+				return $this->renderError($request, 'turbo_index', ['text' => 'Error !']);
+			}
+
+		} else {
+			return $this->render('generic/new.html.twig', [
+				'form' => $form
+			]);
+		}
+	}
+
+	#[Route(path: '/test/turbo/modal2', name: 'turbo_modal_2')]
+	public function turbo_modal_2(Request $request) : Response
+	{
+		/**@var User $user */
+		$user = $this->getUser();
+		$form = $this->createForm(AccountType::class, $user);
+
+		$form->handleRequest($request);
+
+		if ($form->isSubmitted() && $form->isValid()) {
+
+			if ($user->getLocale() == 'fr_FR') {
+				$this->addFlash('success', 'Data updated');
+				return $this->renderSuccess($request, 'turbo_modal_3');
+			} else {
+				$this->addFlash('danger', 'Erreur !');
+				return $this->renderError($request, 'turbo_modal_3');
+			}
+
+		} else {
+			return $this->render('generic/new.html.twig', [
+				'form' => $form
+			]);
+		}
+	}
+
+	#[Route(path: '/test/turbo/modal3', name: 'turbo_modal_3')]
+	public function turbo_modal_3(Request $request) : Response
+	{
+		return $this->render('modal/md_modal.html.twig', [
 		]);
 	}
+
 
 	private function clearDuplicateDocuments()
 	{

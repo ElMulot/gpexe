@@ -7,8 +7,11 @@ use Symfony\Bundle\SecurityBundle\Security;
 use App\Entity\ChangeSet;
 use App\Entity\Enum\LogTypeEnum;
 use App\Entity\Log;
+use Doctrine\Bundle\DoctrineBundle\Attribute\AsEntityListener;
+use Doctrine\ORM\Events;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
+#[AsEntityListener(event: Events::onFlush)]
 class LogListener
 {
 
@@ -26,7 +29,7 @@ class LogListener
 		if ($this->disableLog) {
 			return;
 		}
-		
+
 		$this->entityManager = $args->getEntityManager();
 		$uow = $this->entityManager->getUnitOfWork();
 		

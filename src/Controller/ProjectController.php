@@ -133,7 +133,7 @@ class ProjectController extends AbstractTurboController
 
 	#[Route(path: '/project/{project}/edit', name: 'project_edit', requirements: ['project' => '\d+'])]
 	public function edit(Request $request, Project $project) : Response
-	{
+	{	
 		if ($this->isGranted('PROJECT_EDIT', $project) === false) {
 			return $this->redirectToRoute('project');
 		}
@@ -147,7 +147,7 @@ class ProjectController extends AbstractTurboController
 			$entityManager->flush();
 
 			$this->addFlash('success', 'Datas updated');
-
+			
 			return $this->renderSuccess($request, 'projects_list');
 		} else {
 			return $this->render('pages/project/edit.html.twig', [
@@ -163,7 +163,10 @@ class ProjectController extends AbstractTurboController
 			return $this->redirectToRoute('project');
 		}
 		
-		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
+		$form = $this->createDeleteForm($project);
+		$form->handleRequest($request);
+
+		if ($form->isSubmitted() && $form->isValid()) {
 			$entityManager = $this->doctrine->getManager();
 			$entityManager->remove($project);
 			$entityManager->flush();
@@ -175,6 +178,7 @@ class ProjectController extends AbstractTurboController
 			return $this->render('generic/delete.html.twig', [
 				'title' => 'Delete project',
 				'entities' => [$project],
+				'form' => $form,
 			]);
 		}
 	}

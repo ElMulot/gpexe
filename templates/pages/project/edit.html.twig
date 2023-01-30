@@ -15,12 +15,9 @@
 			<a class="nav-link" id="misc_label" data-bs-toggle="tab" data-bs-target="#misc_pannel" type="button" role="tab" aria-controls="misc_pannel" aria-selected="false">{% trans %}Miscellaneous{% endtrans %}</a>
 		</li>
 	</ul>
+
+	{{ form_start(form) }}
 	
-	{% if app.request.headers.has('Turbo-Stream-Replace') is same as (true) %}
-		{{ form_start(form, {'attr': {'data-turbo-stream-replace': app.request.headers.get('Turbo-Stream-Replace') }}) }}
-	{% else %}
-		{{ form_start(form) }}
-	{% endif %}
 		<div class="tab-content">
 			<div class="tab-pane fade show active" id="main_pannel" role="tabpanel" aria-labelledby="main_label">
 				{{ form_row(form.name) }}
@@ -38,13 +35,14 @@
 				{{ form_row(form.newVersionTime) }}
 			</div>
 		</div>
+		
 	{{ form_end(form) }}
 
 {% endblock %}
 
 {% block modal_footer %}
 	
-	<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans %}Cancel{% endtrans %}</button>
-	<button type="submit" form="form" class="btn btn-primary">{% trans %}Save{% endtrans %}</button>
+	<button type="button" class="btn btn-secondary btn-width" data-bs-dismiss="modal">{% trans %}Cancel{% endtrans %}</button>
+	<button type="submit" form="form" class="btn btn-primary btn-width">{% trans %}Save{% endtrans %}</button>
 
 {% endblock %}

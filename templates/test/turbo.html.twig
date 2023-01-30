@@ -1,0 +1,44 @@
+{% extends 'layout.html.twig' %}
+{% import "macros/_nav.html.twig" as nav %}
+
+{% block stylesheets %}
+	{{ encore_entry_link_tags('engineering') }}
+	{{ parent() }}
+{% endblock %}
+
+{% block title %}Turbo tests{% endblock %}
+
+{% block navbar %}
+
+{% endblock %}
+
+{% block main %}
+<div class="container-lg">
+	{% set items = [
+		{
+			'name': "Standard tab",
+			'href': path('turbo_pannel'),
+			
+		},
+		{
+			'name': "Form without turbo-stream",
+			'href': path('turbo_no_stream'),
+			
+		},
+		{
+			'name': "Form with turbo-stream",
+			'href': path('turbo_with_stream'),
+			'class': 'active'
+		},
+		{
+			'name': "Form inside modal",
+			'href': path('turbo_launch_modal'),
+		},
+	] %}
+	{{ nav.turbo('pannel', items, true) }}
+
+	<turbo-frame id="index" src="{{ path('turbo_index') }}">
+	</turbo-frame>
+</div>
+{% endblock %}
+

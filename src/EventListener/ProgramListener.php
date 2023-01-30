@@ -2,20 +2,22 @@
 
 namespace App\EventListener;
 
-use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\Event\LifecycleEventArgs;
 use App\Entity\Automation;
 use App\Entity\Enum\ProgramTypeEnum;
 use App\Entity\Program;
 use App\Repository\AutomationRepository;
-use App\Repository\StatusRepository;
+use Doctrine\Bundle\DoctrineBundle\Attribute\AsEntityListener;
+use Doctrine\ORM\Events;
 use App\Helpers\Date;
 
+#[AsEntityListener(entity:Program::class, event: Events::postPersist, lazy:true)]
+#[AsEntityListener(entity:Program::class, event: Events::postUpdate, lazy:true)]
+#[AsEntityListener(entity:Program::class, event: Events::preRemove, lazy:true)]
 class ProgramListener
 {
 		
-	public function __construct(private readonly EntityManagerInterface $entityManager,
-								private readonly AutomationRepository $automationRepository)
+	public function __construct(private readonly AutomationRepository $automationRepository)
 	{
 	}
 	
@@ -25,8 +27,13 @@ class ProgramListener
 		switch ($program->getType()) {
 			case ProgramTypeEnum::TASK:
 				$frequency = $program->getParsedCode('frequency') ?? 7;
-				$nextRun = (new Date('now'))->add('P' . $frequency . 'D');
-				$automation = new Automation;
+				if ($frequency <= 0) {
+					return;
+				}
+
+				$nextRun = (new Date('today'))->add('P' . $frequency . 'D');
+				
+				$automation = new Automation();
 				$automation->setEnabled($program->isEnabled());
 				$automation->setNextRun($nextRun);
 				$automation->setCommand('app:task');
@@ -38,8 +45,13 @@ class ProgramListener
 				
 			case ProgramTypeEnum::PROGRESS:
 				$frequency = $program->getParsedCode('frequency') ?? 7;
-				$nextRun = (new Date('now'))->add('P' . $frequency . 'D');
-				$automation = new Automation;
+				if ($frequency <= 0) {
+					return;
+				}
+
+				$nextRun = (new Date('today'))->add('P' . $frequency . 'D');
+
+				$automation = new Automation();
 				$automation->setEnabled($program->isEnabled());
 				$automation->setNextRun($nextRun);
 				$automation->setCommand('app:progress');
@@ -57,7 +69,11 @@ class ProgramListener
 		switch ($program->getType()) {
 			case ProgramTypeEnum::TASK:
 				$frequency = $program->getParsedCode('frequency') ?? 7;
-				$nextRun = (new Date('now'))->add('P' . $frequency . 'D');
+				if ($frequency <= 0) {
+					return;
+				}
+
+				$nextRun = (new Date('today'))->add('P' . $frequency . 'D');
 				
 				if ($automation = $this->automationRepository->getAutomationByCommandAndByArguments('app:task', ['id' => $program->getId()])) {
 					$automation->setEnabled($program->isEnabled());
@@ -71,7 +87,11 @@ class ProgramListener
 				
 			case ProgramTypeEnum::PROGRESS:
 				$frequency = $program->getParsedCode('frequency') ?? 7;
-				$nextRun = (new Date('now'))->add('P' . $frequency . 'D');
+				if ($frequency <= 0) {
+					return;
+				}
+
+				$nextRun = (new Date('today'))->add('P' . $frequency . 'D');
 				
 				if ($automation = $this->automationRepository->getAutomationByCommandAndByArguments('app:progress', ['id' => $program->getId()])) {
 					$automation->setEnabled($program->isEnabled());

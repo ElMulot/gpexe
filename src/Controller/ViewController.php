@@ -121,7 +121,10 @@ class ViewController extends AbstractTurboController
 
 		$selectedView = $this->viewRepository->getDefaultViewByProjectAndByUser($view->getProject(), $this->getUser());
 
-		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
+		$form = $this->createDeleteForm($view);
+		$form->handleRequest($request);
+
+		if ($form->isSubmitted() && $form->isValid()) {
 			$entityManager = $this->doctrine->getManager();
 			$entityManager->remove($view);
 			$entityManager->flush();
@@ -141,6 +144,7 @@ class ViewController extends AbstractTurboController
 		} else {
 			return $this->render('generic/delete.html.twig', [
 				'entities' => [$view],
+				'form' => $form,
 			]);
 		}
 	}

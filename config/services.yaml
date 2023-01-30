@@ -8,9 +8,9 @@ parameters:
     app.webmaster: 'Nicolas VEDEL'
     app.version: 0.5.8
     app.date: 29-09-2021
-    app.uploads_directory: 'uploads'
+    app.uploads_directory: 'uploads/'
     app.ressource_directory: '%kernel.project_dir%/config/ressources/'
-    app.config.date_format: d/m/Y   #This is the format used for display. Internally, the app use 'd-m-Y' format.
+    app.config.date_format: d/m/Y   #This is the format used for display. Internally, the app use \DateTimeInterface::ATOM format
     app.config.maintenance_mode: false
     app.config.disable_log: true
     app.config.max_results_per_page: 50
@@ -45,46 +45,6 @@ services:
             -
                 name: 'doctrine.event_listener'
                 event: 'onFlush'
-
-    App\EventListener\ProgramListener:
-        tags:
-            -
-                name: 'doctrine.orm.entity_listener'
-                event: 'postPersist'
-                entity: 'App\Entity\Program'
-                lazy: true
-            -
-                name: 'doctrine.orm.entity_listener'
-                event: 'postUpdate'
-                entity: 'App\Entity\Program'
-                lazy: true
-            -
-                name: 'doctrine.orm.entity_listener'
-                event: 'preRemove'
-                entity: 'App\Entity\Program'
-                lazy: true
-
-    App\EventListener\ProjectListener:
-        tags:
-            -
-                name: 'doctrine.orm.entity_listener'
-                event: 'preUpdate'
-                entity: 'App\Entity\Project'
-                lazy: true
-            -
-                name: 'doctrine.orm.entity_listener'
-                event: 'postRemove'
-                entity: 'App\Entity\Project'
-                lazy: true
-
-    App\EventListener\UserListener:
-        tags:
-            -
-                name: 'doctrine.orm.entity_listener'
-                event: 'prePersist'
-                entity: 'App\Entity\User'
-                lazy: true
-                method: hashPassword
     
     App\Service\QueryBuilderService:
         autowire: false

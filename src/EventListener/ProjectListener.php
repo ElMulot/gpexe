@@ -3,29 +3,31 @@
 namespace App\EventListener;
 
 use App\Entity\Project;
-use Doctrine\ORM\Event\LifecycleEventArgs;
+use Doctrine\ORM\Events;
 use Doctrine\ORM\Event\PreUpdateEventArgs;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Doctrine\Bundle\DoctrineBundle\Attribute\AsEntityListener;
 
+#[AsEntityListener(entity:Project::class, event: Events::preUpdate, lazy:true)]
+#[AsEntityListener(entity:Project::class, event: Events::postRemove, lazy:true)]
 class ProjectListener
 {
 	public function __construct(private readonly string $publicDirectory,
 								#[Autowire('%app.uploads_directory%')]
-								private readonly string $uploadsDirectory)
+								private readonly string $uploadsDirectory,
+								private readonly FileSystem $fileSystem)
 	{
 	}
 
 	public function preUpdate(Project $project, PreUpdateEventArgs $event)
 	{
-		foreach ($event->getEntityChangeSet() as $field => $values) {
-			if ($field === 'image' && $values[0] !== '' && $values[0] !== $values[1]) {
-				$this->deleteImage($values[0]);
-			}
+		if ($event->getOldValue('image') !== '' && $event->getOldValue('image') !== $event->getNewValue('image')) {
+			$this->deleteImage($event->getOldValue('image'));
 		}
 	}
 
-	public function postRemove(Project $project, LifecycleEventArgs $event)
+	public function postRemove(Project $project)
 	{
 		if ($project->getImage() !== '') {
 			$this->deleteImage($project->getImage());
@@ -34,8 +36,7 @@ class ProjectListener
 
 	private function deleteImage(string $imageName)
 	{
-		$fileSystem = new Filesystem();
-		$fileSystem->remove($this->publicDirectory . $this->uploadsDirectory . $imageName);
+		$this->fileSystem->remove($this->publicDirectory . $this->uploadsDirectory . $imageName);
 	}
 }
 ?>

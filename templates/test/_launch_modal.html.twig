@@ -1,0 +1,10 @@
+<turbo-frame id="pannel" class="">
+
+	<p class="text-success">Français = success</p><br/>
+	<p class="text-danger">English = error</p><br/>
+
+	<a class="btn btn-primary" href="{{ path('turbo_modal') }}" data-turbo-frame="xl_modal" data-turbo-stream-replace="index">Launch modal with stream</a>
+
+	<a class="btn btn-primary" href="{{ path('turbo_modal_2') }}" data-turbo-frame="xl_modal" data-turbo-stream-replace="md_modal">Launch modal and then new modal</a>
+
+</turbo-frame>

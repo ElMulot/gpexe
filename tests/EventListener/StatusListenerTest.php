@@ -62,6 +62,7 @@ class StatusListenerTest extends TestCase
 	 */
 	function testSetDefaultIfCurrentStatusSetsToTrue(): void
 	{
+		/**@var Project&MockObject */
 		$project = $this->createMock(Project::class);
 
 		//create 3 statuses
@@ -183,6 +184,34 @@ class StatusListenerTest extends TestCase
 		$statusListener->setDefault($defaultStatus, $this->event);
 	}
 	
+	/**
+	 * @covers StatusListener::preRemove
+	 */
+	function testPreRemoveIfOneStatusRemains(): void
+	{
+		$project = $this->createMock(Project::class);
+
+		//create 1 status
+		/**@var Status&MockObject */
+		$status = $this->createMock(Status::class);
+
+		$status
+			->method('getProject')
+			->willReturn($project);
+
+		$statuses = [$status];
+
+		$statusRepository = $this->createMock(StatusRepository::class);
+		$statusRepository
+			->method('getStatuses')
+			->willReturn($statuses);
+			
+		$statusListener = new StatusListener($statusRepository);
+
+		$this->expectException(\Exception::class);
+		$statusListener->preRemove($status, $this->event);
+	}
+
 	/**
 	 * @covers StatusListener::postRemove
 	 */

@@ -3,13 +3,9 @@
 {% extends 'modal/xl_modal.html.twig' %}
 
 {% block modal_body %}
-
-	{% if app.request.headers.has('Turbo-Stream-Replace') is same as (true) %}
-		{{ form(form, {'attr': {'id': 'form', 'action': app.request.uri, 'data-turbo-stream-replace': app.request.headers.get('Turbo-Stream-Replace') }}) }}
-	{% else %}
-		{{ form(form, {'attr': {'id': 'form', 'action': app.request.uri }}) }}
-	{% endif %}
-
+	
+	{{ form(form) }}
+	
 {% endblock %}
 
 {% block modal_footer %}

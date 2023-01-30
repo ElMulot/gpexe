@@ -278,8 +278,10 @@ class SerieController extends AbstractTurboController
 		
 		$this->denyAccessUnlessGranted('SERIE_DELETE', $project);
 
-		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
+		$form = $this->createDeleteForm($serie);
+		$form->handleRequest($request);
 
+		if ($form->isSubmitted() && $form->isValid()) {
 			$entityManager = $this->doctrine->getManager();
 			$entityManager->remove($serie);
 			$entityManager->flush();
@@ -290,6 +292,7 @@ class SerieController extends AbstractTurboController
 		} else {
 			return $this->render('generic/delete.html.twig', [
 				'entities' => [$serie],
+				'form' => $form,
 			]);
 		}
 	}

@@ -2,7 +2,7 @@
 
 	<div class="row">
 		
-		{{ form(form, {'attr': {'id': 'form', 'action': app.request.uri }}) }}
+		{{ form(form) }}
 
 		<div class="d-flex justify-content-center">
 			<a class="btn btn-sm btn-secondary btn-width m-1" href="{{ path('review_detail', {'version': version.id, 'company': company.id}) }}">{% trans %}Cancel{% endtrans %}</a>

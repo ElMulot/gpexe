@@ -5,33 +5,19 @@
 	{{ parent() }}
 {% endblock %}
 
-{% block title %}Hello TestController!{% endblock %}
+{% block title %}Test{% endblock %}
 
-{% block content %}
+{% block navbar %}
 
-<div>
-	
-	<div class="d-flex justify-content-center align-items-center" style="height: 400px;">
+{% endblock %}
 
-	{# <turbo-frame id="review_detail" src="{{ path('review_detail', {'version': 2610, 'company': 1}) }}"> #}
+{% block main %}
 
-	{# <turbo-frame id="review_detail" src="{{ path('review_edit', {'review': 11177}) }}">
-	
-	</turbo-frame> #}
-
-		<div class="row w-75">
-			{% if form is defined %}
-				{{ form(form, {'attr': {'id': 'form', 'action': app.request.uri, 'data-turbo': 'false' }}) }}
-				<button type="submit" form="form" class="btn btn-primary">{% trans %}Save{% endtrans %}</button>
-			{% endif %}
-			
-			{% if test is defined %}
-				Test: {{ test }}
-			{% endif %}
-		</div>
-	</div>
-
+<div class="d-flex justify-content-center">
+	{{ text }}
 </div>
+
+
 
 
 

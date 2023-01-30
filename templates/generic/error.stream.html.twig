@@ -3,12 +3,19 @@
 		{% include "generic/_footer.html.twig" %}
 	</template>
 </turbo-stream>
-{% if redirect is defined and app.request.headers.has('Turbo-Stream-Replace') is same as(true) %}
-	<turbo-stream action="replace" target="{{ app.request.headers.get('Turbo-Stream-Replace') }}">
+{% if redirect is defined %}
+	
+	{% if app.request.headers.has('Turbo-Stream-Replace') is same as(true) %}
+		{% set frameId = app.request.headers.get('Turbo-Stream-Replace') %}
+	{% elseif app.request.headers.has('Turbo-Frame') is same as(true) %}
+		{% set frameId = app.request.headers.get('Turbo-Frame') %}
+	{% endif %}
+	
+	<turbo-stream action="replace" target="{{ frameId }}">
 		<template>
-			<turbo-frame id="{{ app.request.headers.get('Turbo-Stream-Replace') }}" src="{{ redirect }}">
+			<turbo-frame id="{{ frameId }}" src="{{ redirect }}">
 				{# in case of a refresh of fs_modal, display an empty modal while loading to keep the background hidden #}
-				{% if app.request.headers.get('Turbo-Stream-Replace') == 'fs_modal' %}
+				{% if frameId == 'fs_modal' %}
 					<div class="modal show" tabindex="-1" aria-labelledby="fs_modal_label" style="display: block;" aria-modal="true" role="dialog" {{ stimulus_controller('modal') }}>
 						<div class="modal-dialog modal-fullscreen modal-dialog-scrollable">
 							<div class="modal-content">

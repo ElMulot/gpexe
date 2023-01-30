@@ -16,7 +16,7 @@
 					{{ version.date|to_string }}
 					{% if version.required and version.scheduledDate %}
 						{% if version.scheduledDate < date('today') %}
-							<span> ({{ 'delay'|trans({'count': version.scheduledDate.diff(date('today')).days}) }})</span>
+							<span> ({{ 'delay'|trans({'count': version.scheduledDate.diff().days}) }})</span>
 						{% endif %}
 					{% endif %}
 				</div>

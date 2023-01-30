@@ -7,7 +7,6 @@ use App\Entity\Status;
 use App\Repository\StatusRepository;
 use Doctrine\Bundle\DoctrineBundle\Attribute\AsEntityListener;
 use Doctrine\ORM\Events;
-use Exception;
 
 #[AsEntityListener(entity:Status::class, event: Events::postPersist, method: 'setDefault', lazy:true)]
 #[AsEntityListener(entity:Status::class, event: Events::preUpdate, method: 'setDefault', lazy:true)]
@@ -60,11 +59,8 @@ class StatusListener
 		$project = $status->getProject();
 		$statuses = $this->statusRepository->getStatuses($project);
 		
-		dump(count($statuses));
-		
 		if (count($statuses) === 1) {
-			
-			throw new Exception('There must be at least one status.');
+			throw new \Exception('There must be at least one status.');
 		}
 	}
 	

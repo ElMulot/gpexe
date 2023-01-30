@@ -96,8 +96,10 @@ class StatusController extends AbstractTurboController
 		
 		$this->denyAccessUnlessGranted('STATUS_DELETE', $project);
 		
-		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
+		$form = $this->createDeleteForm($status);
+		$form->handleRequest($request);
 
+		if ($form->isSubmitted() && $form->isValid()) {
 			$entityManager = $this->doctrine->getManager();
 			
 			try {
@@ -115,6 +117,7 @@ class StatusController extends AbstractTurboController
 
 			return $this->render('generic/delete.html.twig', [
 				'entities' => [$status],
+				'form' => $form,
 			]);
 
 		}

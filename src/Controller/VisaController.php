@@ -105,7 +105,10 @@ class VisaController extends AbstractTurboController
 
 		$this->denyAccessUnlessGranted('VISA_DELETE', $project);
 		
-		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
+		$form = $this->createDeleteForm($visa);
+		$form->handleRequest($request);
+
+		if ($form->isSubmitted() && $form->isValid()) {
 			$entityManager = $this->doctrine->getManager();
 			$entityManager->remove($visa);
 			$entityManager->flush();
@@ -120,6 +123,7 @@ class VisaController extends AbstractTurboController
 
 			return $this->render('generic/delete.html.twig', [
 				'entities' => [$visa],
+				'form' => $form,
 			]);
 
 		}

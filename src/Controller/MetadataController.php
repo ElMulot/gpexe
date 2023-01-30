@@ -93,7 +93,10 @@ class MetadataController extends AbstractTurboController
 
 		$this->denyAccessUnlessGranted('PROJECT_EDIT', $project);
 		
-		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
+		$form = $this->createDeleteForm($metadata);
+		$form->handleRequest($request);
+
+		if ($form->isSubmitted() && $form->isValid()) {
 			$entityManager = $this->doctrine->getManager();
 			$entityManager->remove($metadata);
 			$entityManager->flush();
@@ -106,6 +109,7 @@ class MetadataController extends AbstractTurboController
 
 			return $this->render('generic/delete.html.twig', [
 				'entities' => [$metadata],
+				'form' => $form,
 			]);
 			
 		}

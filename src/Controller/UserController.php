@@ -84,7 +84,10 @@ class UserController extends AbstractTurboController
 	#[Route(path: '/user/{user}/delete', name: 'user_delete', methods: ['GET', 'DELETE'], requirements: ['user' => '\d+'])]
 	public function delete(Request $request, User $user) : Response
 	{
-		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
+		$form = $this->createDeleteForm($user);
+		$form->handleRequest($request);
+
+		if ($form->isSubmitted() && $form->isValid()) {
 			$entityManager = $this->doctrine->getManager();
 			$entityManager->remove($user);
 			$entityManager->flush();
@@ -97,6 +100,7 @@ class UserController extends AbstractTurboController
 
 			return $this->render('generic/delete.html.twig', [
 				'entities' => [$user],
+				'form' => $form,
 			]);
 
 		}

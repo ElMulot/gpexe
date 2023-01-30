@@ -77,7 +77,10 @@ class CompanyController extends AbstractTurboController
 	#[Route(path: '/company/{company}/delete', name: 'company_delete', methods: ['GET', 'DELETE'], requirements: ['company' => '\d+'])]
 	public function delete(Request $request, Company $company) : Response
 	{
-		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
+		$form = $this->createDeleteForm($company);
+		$form->handleRequest($request);
+
+		if ($form->isSubmitted() && $form->isValid()) {
 			$entityManager = $this->doctrine->getManager();
 			$entityManager->remove($company);
 			$entityManager->flush();
@@ -90,6 +93,7 @@ class CompanyController extends AbstractTurboController
 
 			return $this->render('generic/delete.html.twig', [
 				'entities' => [$company],
+				'form' => $form,
 			]);
 
 		}

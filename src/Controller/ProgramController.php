@@ -573,7 +573,10 @@ class ProgramController extends AbstractTurboController
 		
 		$this->denyAccessUnlessGranted('PROGRAM_DELETE', $project);
 
-		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
+		$form = $this->createDeleteForm($program);
+		$form->handleRequest($request);
+
+		if ($form->isSubmitted() && $form->isValid()) {
 			$entityManager = $this->doctrine->getManager();
 			$entityManager->remove($program);
 			$entityManager->flush();
@@ -584,10 +587,8 @@ class ProgramController extends AbstractTurboController
 			]);
 		} else {
 			return $this->render('generic/delete.html.twig', [
-				'route_back' =>  $this->generateUrl('program', [
-					'project' => $project->getId(),
-				]),
 				'entities' => [$program],
+				'form' => $form,
 			]);
 		}
 	}

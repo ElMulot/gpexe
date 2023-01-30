@@ -16,11 +16,7 @@
 		</li>
 	</ul>
 	
-	{% if app.request.headers.has('Turbo-Stream-Replace') is same as (true) %}
-		{{ form_start(form, {'attr': {'data-turbo-stream-replace': app.request.headers.get('Turbo-Stream-Replace') }}) }}
-	{% else %}
-		{{ form_start(form) }}
-	{% endif %}
+	{{ form_start(form) }}
 		<div class="tab-content">
 			<div class="tab-pane fade show active" id="main_pannel" role="tabpanel" aria-labelledby="main_tab">
 				{{ form_row(form.name) }}

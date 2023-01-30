@@ -1,0 +1,12 @@
+<turbo-frame id="{{ frameId }}">
+	<div class="container-lg">
+		<div class="card border-primary mb-3" style="max-width: 20rem;">
+			<div class="card-header">Result</div>
+			<div class="card-body">
+				Turbo-Frame: <span class='border p-1'>{{ app.request.headers.get('Turbo-Frame') ?? 'n/a' }}</span><br/>
+				Turbo-Stream-Replace: <span class='border p-1'>{{ app.request.headers.get('Turbo-Stream-Replace') ?? 'n/a' }}</span><br/>
+				Text: <span class='border p-1'>{{ text ?? 'n/a' }}</span>
+			</div>
+		</div>
+	</div>
+</turbo-frame>

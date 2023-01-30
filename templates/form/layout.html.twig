@@ -1,3 +1,23 @@
+{% use 'bootstrap_5_horizontal_layout.html.twig' %}
+
+{%- block form_start -%}
+
+    {% if attr.id is not defined %}
+        {% set attr = attr|merge({'id': 'form'}) %}
+    {% endif %}
+
+    {% if action is empty %}
+        {% set action = app.request.uri %}
+    {% endif %}
+    
+    {% if app.request.headers.has('Turbo-Stream-Replace') is same as (true) %}
+        {% set attr = attr|merge({'data-turbo-stream-replace': app.request.headers.get('Turbo-Stream-Replace')}) %}
+    {% endif %}
+
+    {{ parent() }}
+    
+{%- endblock form_start -%}
+
 {% block form_label_class -%}
     col-3
 {%- endblock %}

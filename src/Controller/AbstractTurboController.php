@@ -9,6 +9,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\FormInterface;
 
 /**
  * Abstract class that integrate some turbo features.
@@ -31,6 +32,17 @@ class AbstractTurboController extends AbstractController
 		} else {
 			return $user->getCompany();
 		}
+	}
+
+	/**
+	 * Generate a delete form.
+	 *
+	 * @param mixed $data
+	 * @return FormInterface
+	 */
+	public function createDeleteForm(mixed $data = null): FormInterface
+	{
+		return $this->createFormBuilder($data, ['method' => 'DELETE'])->getForm();
 	}
 
     /**

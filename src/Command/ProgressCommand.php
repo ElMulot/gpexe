@@ -10,14 +10,15 @@ use App\Repository\ProgressRepository;
 use App\Repository\SerieRepository;
 use App\Service\ProgramService;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
+#[AsCommand(name: 'app:progress')]
 class ProgressCommand extends Command
 {
-	protected static $defaultName = 'app:progress';
 	
 	public function __construct(private readonly EntityManagerInterface $entityManager, private readonly AutomationRepository $automationRepository, private readonly ProgramRepository $programRepository, private readonly ProgressRepository $progressRepository, private readonly SerieRepository $serieRepository, private readonly ProgramService $programService)
 	{

@@ -497,9 +497,9 @@ class VersionRepository extends RepositoryService
 					}
 					if ($date < new Date('today')) {
 						$item['highlight'] = 'FF919180';
-					} elseif (Date::getWorkingDays($date, new Date('today')) <= $project->getProdWarningLimit()) {
+					} elseif ($date->getWorkingDays() <= $project->getProdWarningLimit()) {
 						$item['highlight'] = 'FFE59180';
-					} elseif (Date::getWorkingDays($date, new Date('today')) <= $project->getProdDangerLimit()) {
+					} elseif ($date->getWorkingDays() <= $project->getProdDangerLimit()) {
 						$item['highlight'] = 'FFFF9180';
 					} else {
 						$item['highlight'] = 'CBFF9180';

@@ -101,7 +101,10 @@ class MetadataItemController extends AbstractTurboController
 
 		$this->denyAccessUnlessGranted('PROJECT_EDIT', $project);
 
-		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
+		$form = $this->createDeleteForm($metadataItem);
+		$form->handleRequest($request);
+
+		if ($form->isSubmitted() && $form->isValid()) {
 			$entityManager = $this->doctrine->getManager();
 			$entityManager->remove($metadataItem);
 			$entityManager->flush();
@@ -112,10 +115,8 @@ class MetadataItemController extends AbstractTurboController
 			]);
 		} else {
 			return $this->render('generic/delete.html.twig', [
-				'route_back' =>  $this->generateUrl('metadata_item', [
-					'metadata' => $metadataItem->getMetadata()->getId(),
-				]),
 				'entities' => [$metadataItem],
+				'form' => $form,
 			]);
 		}
 	}

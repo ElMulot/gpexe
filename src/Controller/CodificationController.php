@@ -97,7 +97,10 @@ class CodificationController extends AbstractTurboController
 		
 		$this->denyAccessUnlessGranted('PROJECT_EDIT', $project);
 		
-		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
+		$form = $this->createDeleteForm($codification);
+		$form->handleRequest($request);
+
+		if ($form->isSubmitted() && $form->isValid()) {
 			$entityManager = $this->doctrine->getManager();
 			$entityManager->remove($codification);
 			$entityManager->flush();
@@ -112,6 +115,7 @@ class CodificationController extends AbstractTurboController
 
 			return $this->render('generic/delete.html.twig', [
 				'entities' => [$codification],
+				'form' => $form,
 			]);
 
 		}

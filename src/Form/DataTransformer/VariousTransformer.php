@@ -30,26 +30,6 @@ class VariousTransformer implements DataTransformerInterface
 		// dump('VariousTransformer->reverseTransform', $value);
 		return $value;
 	}
-
-	/**
-	 * Checks if an array contains at most 1 distinct value.
-	 *
-	 * @param array $array
-	 * @return boolean
-	 */
-	private function isVarious(array $array): bool
-	{
-		if (count($array) > 1) {
-			$firstValue = reset($array);
-			foreach ($array as $value) {
-				if ($firstValue !== $value) {
-					return true;
-				}
-			}
-		}
-
-		return false;
-	}
 }
 
 ?>
