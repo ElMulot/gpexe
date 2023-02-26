@@ -5,6 +5,7 @@ twig:
         - 'form/layout.html.twig'
         - 'form/dropzone.html.twig'
         - 'form/various.html.twig'
+        - 'form/combobox.html.twig'
     globals:
         name: '%app.name%'
         webmaster: '%app.webmaster%'

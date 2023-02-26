@@ -86,7 +86,7 @@ class DocumentController extends AbstractTurboController
 		]);
 	}
 	
-	#[Route(path: '/project/{project}/serie/{type}/{serie}/fields', name: 'document_fields', requirements: ['project' => '\d+', 'type' => 'sdr|mdr|all', 'serie' => '\d+'], defaults: ['serie' => 0])]
+	#[Route(path: '/project/{project}/serie/{type}/{serie}/fields', name: 'documentFields', requirements: ['project' => '\d+', 'type' => 'sdr|mdr|all', 'serie' => '\d+'], defaults: ['serie' => 0])]
 	public function fields(Project $project, string $type, Serie $serie = null) : Response
 	{
 		$this->denyAccessUnlessGranted('ROUTE_SERIE', $project);
@@ -108,7 +108,7 @@ class DocumentController extends AbstractTurboController
 		]);
 	}
 	
-	#[Route(path: '/project/{project}/serie/{type}/{serie}/table', name: 'document_table', requirements: ['project' => '\d+', 'type' => 'sdr|mdr|all', 'serie' => '\d+'], defaults: ['serie' => 0])]
+	#[Route(path: '/project/{project}/serie/{type}/{serie}/table', name: 'documentTable', requirements: ['project' => '\d+', 'type' => 'sdr|mdr|all', 'serie' => '\d+'], defaults: ['serie' => 0])]
 	public function table(Request $request, FlashBagInterface $flashBag, Project $project, string $type, Serie $serie = null) : Response
 	{
 		$this->denyAccessUnlessGranted('ROUTE_SERIE', $project);
@@ -168,7 +168,7 @@ class DocumentController extends AbstractTurboController
 		);
 	}
 	
-	#[Route(path: '/project/{project}/serie/{type}/{serie}/export', name: 'document_export', requirements: ['project' => '\d+', 'type' => 'sdr|mdr|all', 'serie' => '\d+'], defaults: ['serie' => 0])]
+	#[Route(path: '/project/{project}/serie/{type}/{serie}/export', name: 'documentExport', requirements: ['project' => '\d+', 'type' => 'sdr|mdr|all', 'serie' => '\d+'], defaults: ['serie' => 0])]
 	public function export(Request $request, Project $project, string $type, Serie $serie = null) : Response
 	{
 		$this->denyAccessUnlessGranted('ROUTE_SERIE', $project);
@@ -219,7 +219,7 @@ class DocumentController extends AbstractTurboController
 		]);
 	}
 	
-	#[Route(path: '/project/serie/document/{version}/detail', name: 'document_detail', requirements: ['version' => '\d+'])]
+	#[Route(path: '/project/serie/document/{version}/detail', name: 'documentDetail', requirements: ['version' => '\d+'])]
 	public function detail(Version $version) : Response
 	{
 		$document = $version->getDocument();
@@ -237,7 +237,7 @@ class DocumentController extends AbstractTurboController
 	 * Query parameters :
 	 * 	+ array		id				array of document ids that will be used for serie selector in the form
 	 */
-	#[Route(path: '/project/{project}/document/new', name: 'document_new', requirements: ['project' => '\d+'])]
+	#[Route(path: '/project/{project}/document/new', name: 'documentNew', requirements: ['project' => '\d+'])]
 	public function new(Request $request, Project $project) : Response
 	{
 		
@@ -247,8 +247,8 @@ class DocumentController extends AbstractTurboController
 		
 		try {
 			$form = $this->createForm(DocumentType::class, [$document], [
-				'project' => $project,
-				'ids' => $request->get('id'),
+				'project'	=> $project,
+				'ids'		=> $request->get('id'),
 			]);
 		} catch (InternalErrorException $e) {
 			$this->addFlash('warning', $e->getMessage());
@@ -318,7 +318,7 @@ class DocumentController extends AbstractTurboController
 			// $entityManager->persist($document);
 			// $entityManager->flush();
 			
-			return $this->redirectToRoute('version_new', [
+			return $this->redirectToRoute('versionNew', [
 				'document' => $document->getId()
 			]);
 		} else {
@@ -328,7 +328,7 @@ class DocumentController extends AbstractTurboController
 		}
 	}
 	
-	#[Route(path: '/project/serie/document/edit', name: 'document_edit')]
+	#[Route(path: '/project/serie/document/edit', name: 'documentEdit')]
 	public function edit(Request $request) : Response
 	{
 		//todo: à remplacer
@@ -446,7 +446,7 @@ class DocumentController extends AbstractTurboController
 		}
 	}
 	
-	#[Route(path: '/project/serie/document/move', name: 'document_move')]
+	#[Route(path: '/project/serie/document/move', name: 'documentMove')]
 	public function move(Request $request) : Response
 	{
 		//todo: à remplacer
@@ -487,7 +487,7 @@ class DocumentController extends AbstractTurboController
 		}
 	}
 	
-	#[Route(path: '/project/serie/document/delete', name: 'document_delete', methods: ['GET', 'DELETE'])]
+	#[Route(path: '/project/serie/document/delete', name: 'documentDelete', methods: ['GET', 'DELETE'])]
 	public function delete(Request $request) : Response
 	{
 		//todo: à remplacer

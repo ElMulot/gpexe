@@ -39,5 +39,7 @@
 	</div>
 	<div id="credits_content">
 		<p class="text-center"><small>v. {{ version }} - {{ date }}</small></p>
+		{% set d = date() %}
+		{{ d|to_string }}
 	</div>
 {% endblock %}

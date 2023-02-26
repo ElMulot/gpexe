@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints\Timezone;
 use App\Repository\UserRepository;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -29,7 +30,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 	private ?string $email = null;
 
 	#[ORM\Column]
-	#[NotBlank]
 	private ?string $password = null;
 
 	#[ORM\Column(length: 100)]
@@ -39,6 +39,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
 	#[ORM\Column(length: 5)]
 	private ?string $locale = null;
+
+    #[ORM\Column(length: 255)]
+	#[Timezone]
+    private ?string $timezone = null;
 
 	#[ORM\Column]
 	private ?bool $activated = null;
@@ -63,9 +67,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 	#[ORM\OneToMany(targetEntity: View::class, mappedBy: 'user', orphanRemoval: true)]
 	private Collection $views;
 
+	private $plainPassword;
+
 	public function __construct()
 	{
-		$this->locale = 'fr_FR';
 		$this->createdOn = new \DateTime();
 		$this->lastConnected = new \DateTime();
 		$this->projects = new ArrayCollection();
@@ -134,6 +139,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 	public function setLocale(string $locale): self
 	{
 		$this->locale = $locale;
+		return $this;
+	}
+
+	public function getTimezone(): ?string
+	{
+		return $this->timezone;
+	}
+
+	public function setTimezone(string $timezone): self
+	{
+		$this->timezone = $timezone;
 		return $this;
 	}
 
@@ -262,7 +278,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 	public function eraseCredentials()
 	{
 		// If you store any temporary, sensitive data on the user, clear it here
-		// $this->plainPassword = null;
+		$this->plainPassword = null;
 	}
 
     /**
@@ -270,7 +286,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */	
 	public function getRoles(): array
 	{
-		if (empty($this->roles)) {
+		if (!$this->roles) {
 			if ($this->getProfil()->isEditor())			$this->roles[] = 'ROLE_EDITOR';
 			if ($this->getProfil()->isController())		$this->roles[] = 'ROLE_CONTROLLER';
 			if ($this->getProfil()->isAdmin())			$this->roles[] = 'ROLE_ADMIN';
@@ -287,6 +303,22 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 	{
 		return $this->activated;
 	}
+
+    public function getPlainPassword(): ?string
+    {
+        return $this->plainPassword;
+    }
+    public function setPlainPassword(string $plainPassword): self
+    {
+        $this->plainPassword = $plainPassword;
+        return $this;
+    }
+
+    #[ORM\PrePersist]
+    public function setCreatedOnValue(): void
+    {
+        $this->createdOn = new \DateTimeImmutable();
+    }
 
 	public function __toString(): string
 	{

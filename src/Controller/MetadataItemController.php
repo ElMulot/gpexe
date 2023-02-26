@@ -20,7 +20,7 @@ class MetadataItemController extends AbstractTurboController
 	{
 	}
 	
-	#[Route(path: '/project/metadata/{metadata}/item', name: 'metadata_item', requirements: ['metadata' => '\d+'])]
+	#[Route(path: '/project/metadata/{metadata}/item', name: 'metadataItem', requirements: ['metadata' => '\d+'])]
 	public function index(MetadataItemRepository $metadataItemRepository, Metadata $metadata) : Response
 	{
 		$project = $metadata->getProject();
@@ -28,16 +28,16 @@ class MetadataItemController extends AbstractTurboController
 		$this->denyAccessUnlessGranted('PROJECT_EDIT', $project);
 		
 		return $this->render('generic/list.html.twig', [
-			'header' => $this->translator->trans('List for the metadata') . ' : ' . $metadata->getName(),
-			'route_back' =>  $this->generateUrl('metadata', [
-				'project' => $metadata->getProject()->getId(),
+			'title'			=> $this->translator->trans('List for the metadata') . ' : ' . $metadata->getName(),
+			'class'			=> MetadataItem::class,
+			'entities'		=> $metadataItemRepository->getMetadataItem($metadata),
+			'route_back'	=> $this->generateUrl('metadata', [
+				'project'	=> $project->getId(),
 			]),
-			'class' => MetadataItem::class,
-			'entities' => $metadataItemRepository->getMetadataItem($metadata),
 		]);
 	}
 
-	#[Route(path: '/project/metadata/{metadata}/item/new', name: 'metadata_item_new', requirements: ['metadata' => '\d+'])]
+	#[Route(path: '/project/metadata/{metadata}/item/new', name: 'metadataItemNew', requirements: ['metadata' => '\d+'])]
 	public function new(Request $request, Metadata $metadata) : Response
 	{
 		$project = $metadata->getProject();
@@ -46,58 +46,63 @@ class MetadataItemController extends AbstractTurboController
 
 		$metadataItem = new MetadataItem();
 		$metadataItem->setMetadata($metadata);
+
 		$form = $this->createForm(MetadataItemType::class, $metadataItem);
 		$form->handleRequest($request);
+
 		if ($form->isSubmitted() && $form->isValid()) {
+
 			$entityManager = $this->doctrine->getManager();
 			$entityManager->persist($metadataItem);
 			$entityManager->flush();
 
 			$this->addFlash('success', 'New entry created');
-			return $this->redirectToRoute('metadata_item', [
+			
+			return $this->renderSuccess($request, 'metadataItem', [
 				'metadata' => $metadata->getId()
 			]);
+			
 		} else {
-			return $this->render('generic/form.html.twig', [
-				'route_back' =>  $this->generateUrl('metadata_item', [
-					'metadata' => $metadata->getId(),
-				]),
+			return $this->render('generic/new.html.twig', [
 				'form' => $form
 			]);
 		}
 	}
 	
-	#[Route(path: '/project/metadata/item/{metadata_item}/edit', name: 'metadata_item_edit', requirements: ['metadata_item' => '\d+'])]
+	#[Route(path: '/project/metadata/item/{metadataItem}/edit', name: 'metadataItemEdit', requirements: ['metadataItem' => '\d+'])]
 	public function edit(Request $request, MetadataItem $metadataItem) : Response
 	{
-		$project = $metadataItem->getMetadata()->getProject();
+		$metadata = $metadataItem->getMetadata();
+		$project = $metadata->getProject();
 
 		$this->denyAccessUnlessGranted('PROJECT_EDIT', $project);
 
 		$form = $this->createForm(MetadataItemType::class, $metadataItem);
 		$form->handleRequest($request);
+
 		if ($form->isSubmitted() && $form->isValid()) {
+
 			$entityManager = $this->doctrine->getManager();
 			$entityManager->flush();
 
 			$this->addFlash('success', 'Datas updated');
-			return $this->redirectToRoute('metadata_item', [
-				'metadata' => $metadataItem->getMetadata()->getId()
+
+			return $this->renderSuccess($request, 'metadataItem', [
+				'metadata' => $metadata->getId()
 			]);
+
 		} else {
-			return $this->render('generic/form.html.twig', [
-				'route_back' =>  $this->generateUrl('metadata_item', [
-					'metadata' => $metadataItem->getMetadata()->getId(),
-				]),
+			return $this->render('generic/edit.html.twig', [
 				'form' => $form
 			]);
 		}
 	}
 	
-	#[Route(path: '/project/metadata/item/{metadata_item}/delete', name: 'metadata_item_delete', methods: ['GET', 'DELETE'], requirements: ['metadata_item' => '\d+'])]
+	#[Route(path: '/project/metadata/item/{metadataItem}/delete', name: 'metadataItemDelete', methods: ['GET', 'DELETE'], requirements: ['metadataItem' => '\d+'])]
 	public function delete(Request $request, MetadataItem $metadataItem) : Response
 	{
-		$project = $metadataItem->getMetadata()->getProject();
+		$metadata = $metadataItem->getMetadata();
+		$project = $metadata->getProject();
 
 		$this->denyAccessUnlessGranted('PROJECT_EDIT', $project);
 
@@ -105,14 +110,17 @@ class MetadataItemController extends AbstractTurboController
 		$form->handleRequest($request);
 
 		if ($form->isSubmitted() && $form->isValid()) {
+
 			$entityManager = $this->doctrine->getManager();
 			$entityManager->remove($metadataItem);
 			$entityManager->flush();
 
 			$this->addFlash('success', 'Entry deleted');
-			return $this->redirectToRoute('metadata_item', [
-				'metadata' => $metadataItem->getMetadata()->getId()
+			
+			return $this->renderSuccess($request, 'metadataItem', [
+				'metadata' => $metadata->getId()
 			]);
+
 		} else {
 			return $this->render('generic/delete.html.twig', [
 				'entities' => [$metadataItem],

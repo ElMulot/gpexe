@@ -9,9 +9,11 @@ class BooleanToStringTransformerTest extends TestCase
 {
 
 	/**
-	 * @dataProvider transformProvider
+	 * @covers BooleanToStringTransformer::transform
+	 * @testWith	[null, "0"]
+	 * 				[false, "0"]
+	 * 				[true, "1"]
 	 */
-
 	public function testTransform($value, $expected): void
 	{
 		$transformer = new BooleanToStringTransformer();
@@ -20,34 +22,17 @@ class BooleanToStringTransformerTest extends TestCase
 	}
 
 	/**
-	 * @dataProvider reverseTransformProvider
+	 * @covers BooleanToStringTransformer::reverseTransform
+	 * @testWith	[null, false]
+	 * 				["", true]
+	 * 				["0", true]
+	 * 				["1", true]
+	 * 				["a", true]
 	 */
-
 	public function testReverseTransform($value, $expected): void
 	{
 		$transformer = new BooleanToStringTransformer();
 		$result = $transformer->reverseTransform($value);
 		$this->assertSame($result, $expected);
 	}
-
-	public function transformProvider()
-	{
-		return [
-			'null'		=> [null, '0'],
-			'false'		=> [false, '0'],
-			'true'		=> [true, '1'],
-		];
-	}
-
-	public function reverseTransformProvider()
-	{
-		return [
-			'null'			=> [null, false],
-			'empty'			=> ['', true],
-			'numeric'		=> ['0', true],
-			'numeric2'		=> ['1', true],
-			'non-numeric'	=> ['a', true],
-		];
-	}
-
 }

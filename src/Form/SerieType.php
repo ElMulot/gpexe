@@ -4,43 +4,33 @@ namespace App\Form;
 
 use App\Entity\Serie;
 use App\Entity\Company;
+use App\Entity\Project;
 use App\Entity\Metadata;
 use App\Entity\MetadataItem;
-use App\Entity\MetadataValue;
-use App\Entity\Enum\MetadataTypeEnum;
-use App\Entity\Project;
-use App\Exception\InternalErrorException;
 use App\Form\Type\BooleanType;
-use App\Form\Type\BooleanVariousType;
-use App\Form\Type\DateVariousType;
-use App\Form\Type\EntityVariousType;
-use App\Form\Type\TextareaVariousType;
-use App\Form\Type\TextVariousType;
+use App\Entity\Enum\MetadataTypeEnum;
 use App\Repository\CompanyRepository;
 use App\Repository\MetadataRepository;
 use Symfony\Component\Form\AbstractType;
+use App\Exception\InternalErrorException;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Validator\Constraints\Url;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
-use Symfony\Component\Form\DataMapperInterface;
-use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Constraints\Regex;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
-use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
-use Symfony\Component\Form\FormInterface;
-use Symfony\Component\Validator\Constraints\Date;
-use Symfony\Component\Validator\Constraints\Regex;
-use Symfony\Component\Validator\Constraints\Url;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 class SerieType extends AbstractType
 {
 	
 	public function __construct(private readonly CompanyRepository $companyRepository,
 								private readonly MetadataRepository $metadataRepository,
-								#[Autowire('%app.config.date_format%')]
-								private readonly string $dateFormat)
+								#[Autowire('%app.config.icu_date_pattern%')]
+								private readonly string $ICUDatePattern)
 	{
 	}
 	
@@ -53,8 +43,12 @@ class SerieType extends AbstractType
 		/** @var Project $project */
 		$project = $options['project'];
 		$metadatas = $this->metadataRepository->getMetadatasForSerie($project);
-		$companies = $this->companyRepository->getCompaniesBySerieIds($options['ids']);
-		
+
+		if ($options['company'] !== null) {
+			$companies = [$options['company']];
+		} else {
+			$companies = $this->companyRepository->getCompaniesBySerieIds($options['ids']);
+		}
 		if (count($companies) === 0) {
 			throw new InternalErrorException();
 		} elseif (count($companies) === 1) {
@@ -77,13 +71,17 @@ class SerieType extends AbstractType
 			$defaultOptions = [
 				'label'			=> $metadata->getName(),
 				'required'		=> $metadata->isMandatory(),
+				// 'default'		=> ($serie->getId() === null)?$metadata->getDefaultValue():'',
 				// 'constraints'	=> ($metadata->isMandatory() === true)?[new NotBlank()]:[],
-				'empty_data'	=> $metadata->getDefault(),
 				'getter'		=> function(Serie $serie, FormInterface $form) use ($metadata): mixed
 									{
-										return $serie->getPropertyValue($metadata->getFullCodename());
+										if ($serie->getId() === null) {
+											return $metadata->getTypedDefaultValue();
+										} else {
+											return $serie->getTypedMetadataValue($metadata);
+										}
 									},
-				'setter'		=> function (Serie &$serie, bool $viewData, FormInterface $form) use ($metadata): void
+				'setter'		=> function (Serie &$serie, $viewData, FormInterface $form) use ($metadata): void
 									{
 										$serie->setPropertyValue($metadata->getFullCodename(), $viewData);
 									},
@@ -116,10 +114,11 @@ class SerieType extends AbstractType
 					break;
 					
 				case MetadataTypeEnum::LIST:
-					
 					$builder->add($metadata->getCodeName(), EntityType::class, $defaultOptions + [
-						'class'			=> MetadataItem::class,
 						'choices'		=> $metadata->getMetadataItems(),
+						'class'			=> MetadataItem::class,
+						// 'choice_value'	=> 'id',
+						// 'choice_label'	=> 'value',
 					]);
 					break;
 			}
@@ -133,12 +132,14 @@ class SerieType extends AbstractType
 			'data_class'	=> Serie::class,
 			'project'		=> null,
 			'ids'			=> [],
+			'company'		=> null,
 		]);
 
 		$resolver->setRequired(['project']);
 
 		$resolver->setAllowedTypes('project', Project::class);
 		$resolver->setAllowedTypes('ids', ['null', 'string[]']);
+		$resolver->setAllowedTypes('company', ['null', Company::class]);
 	}
 
 	//pas utile pour serie car les modifications groupées ne sont pas autorisées.
@@ -158,7 +159,7 @@ class SerieType extends AbstractType
     //     $forms = array(...$forms);
 
 	// 	foreach ($this->metadataRepository->getMetadatasForSerie($forms[0]->getConfig()->getOption('project')) as $metadata) {
-	// 		$data = $viewData->getMetadataValue($metadata);
+	// 		$data = $viewData->getTypedMetadataValue($metadata);
 	// 		$forms[$metadata->getCodeName()]->setData($data);
 	// 	}
     // }

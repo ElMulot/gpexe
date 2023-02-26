@@ -2,19 +2,19 @@
 
 namespace App\Entity;
 
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
-use Doctrine\ORM\Mapping as ORM;
 use App\Entity\Project;
 use App\Entity\MetadataItem;
-use Fresh\DoctrineEnumBundle\Validator\Constraints as DoctrineAssert;
+use Doctrine\ORM\Mapping as ORM;
 use App\Entity\Enum\MetadataTypeEnum;
-use App\Entity\Enum\MetadataParentEnum;
 use App\Repository\MetadataRepository;
-use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use App\Entity\Enum\MetadataParentEnum;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\Validator\Constraints\Regex;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\NotEqualTo;
-use Symfony\Component\Validator\Constraints\Regex;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Fresh\DoctrineEnumBundle\Validator\Constraints as DoctrineAssert;
 
 #[ORM\Entity(repositoryClass: MetadataRepository::class)]
 #[UniqueEntity(
@@ -163,9 +163,9 @@ class Metadata implements \Stringable
 		return $this->defaultValue;
 	}
 
-	public function setDefaultValue(string $defaultValue): self
+	public function setDefaultValue(mixed $defaultValue): self
 	{
-		$this->defaultValue = $defaultValue;
+		$this->defaultValue = (string)$defaultValue;
 
 		return $this;
 	}
@@ -295,6 +295,30 @@ class Metadata implements \Stringable
 		return ($this->getType() == MetadataTypeEnum::LIST);
 	}
 
+	public function getTypedDefaultValue(): null|bool|string|\DateTimeInterface|MetadataItem
+	{
+		if ($this->defaultValue === null) {
+			return null;
+		}
+		
+		switch ($this->type) {
+			case MetadataTypeEnum::BOOL:
+				return (bool)$this->defaultValue;
+			case MetadataTypeEnum::DATE:
+				return new \DateTime($this->defaultValue);
+			case MetadataTypeEnum::LIST:
+				/**@var MetadataItem $metadataItem */
+				foreach ($this->metadataItems as $metadataItem) {
+					if ($metadataItem->getValue() === $this->defaultValue) {
+						return $metadataItem;
+					}
+				}
+				return null;
+			default:
+				return $this->defaultValue;
+		}
+	}
+
 	public function parentIsSerie(): bool
 	{
 		return ($this->getParent() == MetadataParentEnum::SERIE);
@@ -312,7 +336,7 @@ class Metadata implements \Stringable
 
 	public function __toString(): string
 	{
-		return (string)$this->getName();
+		return $this->getName();
 	}
 }
 ?>

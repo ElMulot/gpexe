@@ -21,12 +21,12 @@ class BooleanType extends AbstractType
 		
 		$resolver->setDefaults([
 			'choices' => [
-				'Yes' => true,
-				'No' => false,
+				'Yes'	=> true,
+				'No'	=> false,
 			],
-			'compound' => false,
-			'empty_data' => $emptyData,
-			'false_values' => [null],
+			'compound'		=> false,
+			'empty_data'	=> $emptyData,
+			'false_values'	=> [null],
         ]);
 
 		// $resolver->setAllowedTypes('data', ['null', 'boolean', 'string']);
@@ -42,7 +42,15 @@ class BooleanType extends AbstractType
 
 		$viewTransformer = new BooleanToStringTransformer($options['false_values']);
 		$builder->addViewTransformer($viewTransformer);
+
+		// $options['required'] = true;
+		// parent::buildForm($builder, $options);
     }
+
+	public function buildView(FormView $view, FormInterface $form, array $options)
+	{
+		$view->vars['placeholder'] = null;
+	}
 
 	public function getParent(): string
     {

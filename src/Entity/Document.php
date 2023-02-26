@@ -7,6 +7,7 @@ use App\Entity\Enum\MetadataTypeEnum;
 use App\Exception\InvalidCodenameException;
 use App\Exception\InvalidReferenceException;
 use App\Exception\InvalidValueException;
+use App\Form\CodificationType;
 use App\Helpers\Date;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -275,6 +276,7 @@ class Document extends AbstractElement
 	 */
 	public function getReference(): ?string
 	{
+		
 		if ($this->reference !== null) {
 			return $this->reference;
 		}
@@ -341,6 +343,7 @@ class Document extends AbstractElement
 			
 			case CodificationTypeEnum::FIXED;
 					return $codification->getValue();
+			case CodificationTypeEnum::TEXT:
 			case CodificationTypeEnum::REGEX:
 				/** @var CodificationValue $codificationValue */
 				foreach ($this->getCodificationValues()->getValues() as $codificationValue) {
@@ -464,7 +467,7 @@ class Document extends AbstractElement
 					/** @var Metadata $metadata */
 					foreach ($this->getSerie()->getProject()->getMetadatas()->getValues() as $metadata) {
 						if ($metadata->getFullCodename() === $codename) {
-							return $this->getMetadataValue($metadata);
+							return $this->getTypedMetadataValue($metadata);
 						}
 					}
 				} elseif (Regex::match('/codification\.\w+/', $codename)->hasMatch()) {

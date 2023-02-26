@@ -17,14 +17,14 @@
 							<ul class="dropdown-menu">
 								{% if is_granted('VIEW_EDIT', view) %}
 									<li>
-										<a class="dropdown-item text-success" href="{{ path('view_edit', {'view': view.id}) }}" data-turbo-frame="xl_modal" data-turbo-stream-replace="view_pannel">
+										<a class="dropdown-item text-success" href="{{ path('viewEdit', {'view': view.id}) }}" data-turbo-frame="xl_modal" data-turbo-stream-replace="view_pannel">
 											{% trans %}Edit{% endtrans %}
 										</a>
 									</li>
 								{% endif %}
 								{% if is_granted('VIEW_DELETE', view) %}
 									<li>
-										<a class="dropdown-item text-danger" href="{{ path('view_delete', {'view': view.id}) }}" data-turbo-frame="xl_modal" data-turbo-stream-replace="view_pannel">
+										<a class="dropdown-item text-danger" href="{{ path('viewDelete', {'view': view.id}) }}" data-turbo-frame="xl_modal" data-turbo-stream-replace="view_pannel">
 											{% trans %}Delete{% endtrans %}
 										</a>
 									</li>
@@ -42,7 +42,7 @@
 		</div>
 		{% if is_granted('VIEW_NEW', project) %}
 			<div class="col-auto">
-				<a class="btn btn-primary btn-width" href="{{ path('view_new', {'project': project.id }) }}" data-turbo-frame="xl_modal" data-turbo-stream-replace="view_pannel">
+				<a class="btn btn-primary btn-width" href="{{ path('viewNew', {'project': project.id }) }}" data-turbo-frame="xl_modal" data-turbo-stream-replace="view_pannel">
 					{% trans %}new.view{% endtrans %}
 				</a>
 			</div>

@@ -26,7 +26,7 @@ class CompanyController extends AbstractTurboController
 		]);
 	}
 	
-	#[Route(path: '/company/new', name: 'company_new')]
+	#[Route(path: '/company/new', name: 'companyNew')]
 	public function new(Request $request) : Response
 	{
 		$company = new Company();
@@ -51,7 +51,7 @@ class CompanyController extends AbstractTurboController
 		}
 	}
 
-	#[Route(path: '/company/{company}/edit', name: 'company_edit', requirements: ['company' => '\d+'])]
+	#[Route(path: '/company/{company}/edit', name: 'companyEdit', requirements: ['company' => '\d+'])]
 	public function edit(Request $request, Company $company) : Response
 	{
 		$form = $this->createForm(CompanyType::class, $company);
@@ -74,7 +74,7 @@ class CompanyController extends AbstractTurboController
 		}
 	}
 	
-	#[Route(path: '/company/{company}/delete', name: 'company_delete', methods: ['GET', 'DELETE'], requirements: ['company' => '\d+'])]
+	#[Route(path: '/company/{company}/delete', name: 'companyDelete', methods: ['GET', 'DELETE'], requirements: ['company' => '\d+'])]
 	public function delete(Request $request, Company $company) : Response
 	{
 		$form = $this->createDeleteForm($company);

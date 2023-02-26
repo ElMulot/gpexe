@@ -31,7 +31,7 @@ class StatusController extends AbstractTurboController
 		]);
 	}
 
-	#[Route(path: '/project/{project}/status/new', name: 'status_new', requirements: ['project' => '\d+'])]
+	#[Route(path: '/project/{project}/status/new', name: 'statusNew', requirements: ['project' => '\d+'])]
 	public function new(Request $request, Project $project) : Response
 	{
 		$this->denyAccessUnlessGranted('STATUS_NEW', $project);
@@ -59,7 +59,7 @@ class StatusController extends AbstractTurboController
 		}
 	}
 
-	#[Route(path: '/project/status/{status}/edit', name: 'status_edit', requirements: ['status' => '\d+'])]
+	#[Route(path: '/project/status/{status}/edit', name: 'statusEdit', requirements: ['status' => '\d+'])]
 	public function edit(Request $request, Status $status) : Response
 	{
 		$project = $status->getProject();
@@ -89,7 +89,7 @@ class StatusController extends AbstractTurboController
 		}
 	}
 
-	#[Route(path: '/project/status/{status}/delete', name: 'status_delete', methods: ['GET', 'DELETE'], requirements: ['status' => '\d+'])]
+	#[Route(path: '/project/status/{status}/delete', name: 'statusDelete', methods: ['GET', 'DELETE'], requirements: ['status' => '\d+'])]
 	public function delete(Request $request, Status $status) : Response
 	{
 		$project = $status->getProject();

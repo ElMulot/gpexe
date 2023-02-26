@@ -21,8 +21,8 @@ class MetadataItemRepository extends RepositoryService
 	}
 
 	/**
+	 * @param Metadata $metadata
 	 * @return MetadataItem[]
-	 *
 	 */
 	public function getMetadataItem(Metadata $metadata)
 	{
@@ -33,19 +33,17 @@ class MetadataItemRepository extends RepositoryService
 			->getResult()
 		;
 	}
-	
+
 	/**
-	 * @return MetadataItem[]
-	 *
+	 * @param integer $id
+	 * @return MetadataItem
 	 */
-	public function getMetadataItemAsArray(Metadata $metadata)
+	public function getMetadataItemById(int $id): MetadataItem
 	{
 		$qb = $this->newQb('m');
 		return $qb
-			->select('m.id, m.value')
-			->andWhere($qb->eq('m.metadata', $metadata))
+			->andWhere($qb->eq('id', $id))
 			->getQuery()
-			->getResult()
-		;
+			->getSingleResult();
 	}
 }

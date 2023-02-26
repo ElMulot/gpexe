@@ -14,26 +14,27 @@ use Symfony\Component\HttpFoundation\File\Exception\FileNotFoundException;
 class ImageTransformer implements DataTransformerInterface
 {
 
-	public function __construct(#[Autowire('%app.uploads_directory%')]
+	public function __construct(private readonly string $publicDirectory,
+								#[Autowire('%app.uploads_directory%')]
 								private readonly string $uploadsDirectory,
 								private readonly FileUploaderService $fileUploadService,
 								private readonly ValidatorInterface $validator)
 	{
 	}
 	
-	public function transform($value): ?File
+	public function transform(mixed $value): ?File
 	{
 		if ($value == false) {
 			return null;
 		}
 		try {
-			return new File($this->uploadsDirectory . $value);
+			return new File($this->publicDirectory . $this->uploadsDirectory . $value);
 		} catch (FileNotFoundException $e) {
 			return null;
 		}
 	}
 	
-	public function reverseTransform($value): string
+	public function reverseTransform(mixed $value): string
 	{
 		if ($value === null) {
 			return '';

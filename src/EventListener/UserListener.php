@@ -8,6 +8,7 @@ use Doctrine\Bundle\DoctrineBundle\Attribute\AsEntityListener;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 #[AsEntityListener(entity:User::class, event: Events::prePersist, method: 'hashPassword', lazy:true)]
+#[AsEntityListener(entity:User::class, event: Events::preUpdate, method: 'hashPassword', lazy:true)]
 class UserListener
 {
 	
@@ -17,9 +18,13 @@ class UserListener
 	
 	public function hashPassword(User $user)
 	{
-		$plaintextPassword = $user->getPassword();
-		$hashedPassword = $this->passwordHasher->hashPassword($user, $plaintextPassword);
-		$user->setPassword($hashedPassword);
+		$plainPassword = $user->getPlainPassword();
+		
+		if ($plainPassword) {
+			$hashedPassword = $this->passwordHasher->hashPassword($user, $plainPassword);
+			$user->setPassword($hashedPassword);
+		}
+		
 	}
 }
 

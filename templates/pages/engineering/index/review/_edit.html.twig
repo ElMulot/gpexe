@@ -5,7 +5,7 @@
 		{{ form(form) }}
 
 		<div class="d-flex justify-content-center">
-			<a class="btn btn-sm btn-secondary btn-width m-1" href="{{ path('review_detail', {'version': version.id, 'company': company.id}) }}">{% trans %}Cancel{% endtrans %}</a>
+			<a class="btn btn-sm btn-secondary btn-width m-1" href="{{ path('reviewDetail', {'version': version.id, 'company': company.id}) }}">{% trans %}Cancel{% endtrans %}</a>
 			<button type="submit" form="form" class="btn btn-sm btn-primary btn-width m-1">{% trans %}Modify{% endtrans %}</button>
 		</div>
 	</div>

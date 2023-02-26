@@ -2,7 +2,7 @@
 
 <ul class="navbar-nav me-auto">
 	{{ navbar.item('Home', path('home')) }}
-	{{ navbar.item('Projects', path('projects_list')) }}
+	{{ navbar.item('Projects', path('projectsList')) }}
 
 	{% if is_granted('ROLE_ADMIN') %}
 		{{ navbar.dropdown(
@@ -11,7 +11,7 @@
 			}, [
 				{
 					'name': 'new.project',
-					'href': path('project_new'),
+					'href': path('projectNew'),
 					'data-turbo-frame': 'xl_modal',
 					'data-turbo-stream-replace': 'projects',
 				},

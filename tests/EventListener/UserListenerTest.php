@@ -36,7 +36,7 @@ class UserListenerTest extends TestCase
 		/**@var User&MockObject */
 		$user = $this->createMock(User::class);
 		$user
-			->method('getPassword')
+			->method('getPlainPassword')
 			->willReturn($input);
 		$user
 			->expects($this->once())
@@ -49,6 +49,28 @@ class UserListenerTest extends TestCase
 			->method('hashPassword')
 			->with($user, $input)
 			->willReturn($expected);
+
+		$userListener = new UserListener($userPasswordHasher);
+
+		$userListener->hashPassword($user);
+	}
+
+	/**
+	 * @covers UserListener::hashPassword
+	 */
+	function testHashPasswordWithEmptyString(): void
+	{
+		/**@var User&MockObject */
+		$user = $this->createMock(User::class);
+		$user
+			->method('getPlainPassword')
+			->willReturn('');
+		$user
+			->expects($this->never())
+			->method('setPassword');
+		
+		/**@var UserPasswordHasher&MockObject */
+		$userPasswordHasher = $this->createMock(UserPasswordHasher::class);
 
 		$userListener = new UserListener($userPasswordHasher);
 

@@ -34,7 +34,7 @@ class VisaController extends AbstractTurboController
 		]);
 	}
 
-	#[Route(path: '/project/{project}/visa/new', name: 'visa_new', requirements: ['project' => '\d+'])]
+	#[Route(path: '/project/{project}/visa/new', name: 'visaNew', requirements: ['project' => '\d+'])]
 	public function new(Request $request, Project $project) : Response
 	{
 		$this->denyAccessUnlessGranted('VISA_NEW', $project);
@@ -67,7 +67,7 @@ class VisaController extends AbstractTurboController
 		}
 	}
 
-	#[Route(path: '/project/visa/{visa}/edit', name: 'visa_edit', requirements: ['visa' => '\d+'])]
+	#[Route(path: '/project/visa/{visa}/edit', name: 'visaEdit', requirements: ['visa' => '\d+'])]
 	public function edit(Request $request, Visa $visa) : Response
 	{
 		$project = $visa->getProject();
@@ -98,7 +98,7 @@ class VisaController extends AbstractTurboController
 		}
 	}
 
-	#[Route(path: '/project/visa/{visa}/delete', name: 'visa_delete', methods: ['GET', 'DELETE'], requirements: ['visa' => '\d+'])]
+	#[Route(path: '/project/visa/{visa}/delete', name: 'visaDelete', methods: ['GET', 'DELETE'], requirements: ['visa' => '\d+'])]
 	public function delete(Request $request, Visa $visa) : Response
 	{
 		$project = $visa->getProject();

@@ -57,7 +57,7 @@ class ProgramController extends AbstractTurboController
 		]);
 	}
 	
-	#[Route(path: '/project/program/{program}/dashboard', name: 'program_dashboard', requirements: ['program' => '\d+'])]
+	#[Route(path: '/project/program/{program}/dashboard', name: 'programDashboard', requirements: ['program' => '\d+'])]
 	public function dashboard(Request $request, FlashBagInterface $flashBag, Program $program) : Response
 	{
 		$project = $program->getProject();
@@ -97,7 +97,7 @@ class ProgramController extends AbstractTurboController
 			}
 	}
 	
-	#[Route(path: '/project/program/{program}/preload', name: 'program_preload', requirements: ['program' => '\d+'])]
+	#[Route(path: '/project/program/{program}/preload', name: 'programPreload', requirements: ['program' => '\d+'])]
 	public function preload(Request $request, Program $program) : Response
 	{
 		$form = null;
@@ -212,7 +212,7 @@ class ProgramController extends AbstractTurboController
 	//  ($this->getUserCompany()->isMainContractor() === false &&  $this->isUserAttachedToSeries() === false) || 
 	//  $program->isTypeProgress() === false)) {
 
-	#[Route(path: '/project/program/{program}/load', name: 'program_load', requirements: ['program' => '\d+'])]
+	#[Route(path: '/project/program/{program}/load', name: 'programLoad', requirements: ['program' => '\d+'])]
 	public function load(Request $request, Program $program) : Response
 	{
 		$project = $program->getProject();
@@ -322,7 +322,7 @@ class ProgramController extends AbstractTurboController
 			}
 	}
 	
-	#[Route(path: '/project/program/{program}/completed', name: 'program_completed', requirements: ['program' => '\d+'])]
+	#[Route(path: '/project/program/{program}/completed', name: 'programCompleted', requirements: ['program' => '\d+'])]
 	public function completed(Request $request, Program $program) : Response
 	{
 		$project = $program->getProject();
@@ -396,7 +396,7 @@ class ProgramController extends AbstractTurboController
 			}
 	}
 	
-	#[Route(path: '/project/program/{program}/console', name: 'program_console', requirements: ['program' => '\d+'])]
+	#[Route(path: '/project/program/{program}/console', name: 'programConsole', requirements: ['program' => '\d+'])]
 	public function console(Request $request, Program $program) : Response
 	{
 		$project = $program->getProject();
@@ -434,7 +434,7 @@ class ProgramController extends AbstractTurboController
 		]);
 	}
 	
-	#[Route(path: '/project/{project}/program/new', name: 'program_new', requirements: ['project' => '\d+'])]
+	#[Route(path: '/project/{project}/program/new', name: 'programNew', requirements: ['project' => '\d+'])]
 	public function new(Request $request, Project $project) : Response
 	{
 		$this->denyAccessUnlessGranted('PROGRAM_EDIT', $project);
@@ -508,7 +508,7 @@ class ProgramController extends AbstractTurboController
 				$this->addFlash('success', 'Nouveau programme créé');
 				
 				if ($request->request->get('submit') == 'save') {
-					return $this->redirectToRoute('program_edit', [
+					return $this->redirectToRoute('programEdit', [
 						'program' => $program->getId(),
 					]);
 				} else {
@@ -524,7 +524,7 @@ class ProgramController extends AbstractTurboController
 			}
 	}
 	
-	#[Route(path: '/project/program/{program}/edit', name: 'program_edit', requirements: ['program' => '\d+'])]
+	#[Route(path: '/project/program/{program}/edit', name: 'programEdit', requirements: ['program' => '\d+'])]
 	public function edit(Request $request, Program $program) : Response
 	{
 		$project = $program->getProject();
@@ -566,7 +566,7 @@ class ProgramController extends AbstractTurboController
 			}
 	}
 	
-	#[Route(path: '/project/program/{program}/delete', name: 'program_delete', methods: ['GET', 'DELETE'], requirements: ['program' => '\d+'])]
+	#[Route(path: '/project/program/{program}/delete', name: 'programDelete', methods: ['GET', 'DELETE'], requirements: ['program' => '\d+'])]
 	public function delete(Request $request, Program $program) : Response
 	{
 		$project = $program->getProject();

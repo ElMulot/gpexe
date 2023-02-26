@@ -426,7 +426,7 @@ class Version extends AbstractElement
 					/** @var Metadata $metadata */
 					foreach ($this->getDocument()->getSerie()->getProject()->getMetadatas()->getValues() as $metadata) {
 						if ($metadata->getFullCodename() === $codename) {
-							return $this->getMetadataValue($metadata);
+							return $this->getTypedMetadataValue($metadata);
 						}
 					}
 					

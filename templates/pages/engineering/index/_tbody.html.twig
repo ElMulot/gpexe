@@ -28,7 +28,7 @@
 					{% endif %}
 				{% endfor %}
 				<td>
-					<a class="btn btn-sm btn-success mx-1 w-100" href="{{ path('document_detail', {'version': item.version_id }) }}" data-turbo-frame="fs_modal">{% trans %}Details{% endtrans %}</a>
+					<a class="btn btn-sm btn-success mx-1 w-100" href="{{ path('documentDetail', {'version': item.version_id }) }}" data-turbo-frame="fs_modal">{% trans %}Details{% endtrans %}</a>
 				</td>
 			</tr>
 		{% endfor %}

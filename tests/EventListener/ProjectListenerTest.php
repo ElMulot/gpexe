@@ -16,9 +16,9 @@ class ProjectListenerTest extends TestCase
 
 	public $event;
 
-	public $publicDirectory;
+	public string $publicDirectory;
 
-	public $uploadsDirectory;
+	public string $uploadsDirectory;
 
 	public function setUp(): void
 	{

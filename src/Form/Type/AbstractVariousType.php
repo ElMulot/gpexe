@@ -30,7 +30,6 @@ abstract class AbstractVariousType extends AbstractType
 	public function configureOptions(OptionsResolver $resolver)
 	{
 		$resolver->setDefaults([
-			'compound' => true,
 			'data' => [],
 		]);
 
@@ -41,9 +40,10 @@ abstract class AbstractVariousType extends AbstractType
 	{
 		// dump('AbstractVariousType->buildForm');
 		// $builder->resetModelTransformers();
+		
 		$builder->resetViewTransformers();
-
-		$builder->add('input', $this->getParent(), ['compound' => false] + $options);
+		$builder->setCompound(true);
+		$builder->add('input', $this->getParent(), $options);
 		
 		//add a new field 'switch' if the datas are not all identical
 		$builder->addEventSubscriber($this->subscriber);

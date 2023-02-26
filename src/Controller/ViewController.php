@@ -59,7 +59,7 @@ class ViewController extends AbstractTurboController
 	 * 	+ int		page		page to display
 	 * 	+ int		view		view to display
 	 */
-	#[Route(path: '/project/{project}/view/new', name: 'view_new', requirements: ['project' => '\d+'])]
+	#[Route(path: '/project/{project}/view/new', name: 'viewNew', requirements: ['project' => '\d+'])]
 	public function new(Request $request, Project $project) : Response
 	{
 		$this->denyAccessUnlessGranted('VIEW_NEW', $project);
@@ -90,7 +90,7 @@ class ViewController extends AbstractTurboController
 		}
 	}
 	
-	#[Route(path: '/project/view/{view}/edit', name: 'view_edit', requirements: ['view' => '\d+'])]
+	#[Route(path: '/project/view/{view}/edit', name: 'viewEdit', requirements: ['view' => '\d+'])]
 	public function edit(Request $request, View $view) : Response
 	{
 		$this->denyAccessUnlessGranted('VIEW_EDIT', $view);
@@ -114,7 +114,7 @@ class ViewController extends AbstractTurboController
 	}
 	
 
-	#[Route(path: '/project/view/{view}/delete', name: 'view_delete', methods: ['GET', 'DELETE'], requirements: ['view' => '\d+'])]
+	#[Route(path: '/project/view/{view}/delete', name: 'viewDelete', methods: ['GET', 'DELETE'], requirements: ['view' => '\d+'])]
 	public function delete(Request $request, View $view) : Response
 	{
 		$this->denyAccessUnlessGranted('VIEW_DELETE', $view);

@@ -31,9 +31,11 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
 		$user
 			->setName('Super Admin User')
 			->setEmail('super-admin@test.com')
-			->setPassword('super_admin')
+			->setPlainPassword('super_admin') //hash : $2y$13$EWI/.VflFi/wILWfWT/kUObJzfmOOgorwfaSEirdO4z46IgVHT6ay
 			->setCompany($this->getReference(CompanyFixtures::MAIN_CONTRACTOR_COMPANY))
 			->setProfil($this->getReference(ProfilFixtures::SUPER_ADMIN_PROFIL))
+			->setLocale('fr_FR')
+			->setTimezone('Europe/Paris')
 			->setActivated(true);
 		$manager->persist($user);
 		$this->addReference(self::SUPER_ADMIN_USER, $user);
@@ -42,9 +44,11 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
 		$user
 			->setName('Admin User')
 			->setEmail('admin@test.com')
-			->setPassword('admin')
+			->setPlainPassword('admin')
 			->setCompany($this->getReference(CompanyFixtures::MAIN_CONTRACTOR_COMPANY))
 			->setProfil($this->getReference(ProfilFixtures::ADMIN_PROFIL))
+			->setLocale('fr_FR')
+			->setTimezone('Europe/Paris')
 			->setActivated(true);
 		$manager->persist($user);
 		$this->addReference(self::ADMIN_USER, $user);
@@ -53,9 +57,11 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
 		$user
 			->setName('Controller User')
 			->setEmail('controller@test.com')
-			->setPassword('controller')
+			->setPlainPassword('controller')
 			->setCompany($this->getReference(CompanyFixtures::MAIN_CONTRACTOR_COMPANY))
 			->setProfil($this->getReference(ProfilFixtures::CONTROLLER_PROFIL))
+			->setLocale('fr_FR')
+			->setTimezone('Europe/Paris')
 			->setActivated(true);
 		$manager->persist($user);
 		$this->addReference(self::CONTROLLER_USER, $user);
@@ -64,9 +70,11 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
 		$user
 			->setName('Edit Documents User')
 			->setEmail('edit-documents@test.com')
-			->setPassword('edit_document')
+			->setPlainPassword('edit_document')
 			->setCompany($this->getReference(CompanyFixtures::MAIN_CONTRACTOR_COMPANY))
 			->setProfil($this->getReference(ProfilFixtures::EDIT_DOCUMENTS_PROFIL))
+			->setLocale('fr_FR')
+			->setTimezone('Europe/Paris')
 			->setActivated(true);
 		$manager->persist($user);
 		$this->addReference(self::EDIT_DOCUMENTS_USER, $user);
@@ -75,9 +83,11 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
 		$user
 			->setName('Read Only User')
 			->setEmail('read-only@test.com')
-			->setPassword('read_only')
+			->setPlainPassword('read_only')
 			->setCompany($this->getReference(CompanyFixtures::MAIN_CONTRACTOR_COMPANY))
 			->setProfil($this->getReference(ProfilFixtures::READ_ONLY_PROFIL))
+			->setLocale('fr_FR')
+			->setTimezone('Europe/Paris')
 			->setActivated(true);
 		$manager->persist($user);
 		$this->addReference(self::READ_ONLY_USER, $user);
@@ -86,9 +96,11 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
 		$user
 			->setName('Unactivated User')
 			->setEmail('unactivated@test.com')
-			->setPassword('unactivated')
+			->setPlainPassword('unactivated')
 			->setCompany($this->getReference(CompanyFixtures::MAIN_CONTRACTOR_COMPANY))
 			->setProfil($this->getReference(ProfilFixtures::READ_ONLY_PROFIL))
+			->setLocale('fr_FR')
+			->setTimezone('Europe/Paris')
 			->setActivated(false);
 		$manager->persist($user);
 		$this->addReference(self::UNACTIVATED_USER, $user);
@@ -98,9 +110,11 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
 			$user
 				->setName("Checker User {$i}")
 				->setEmail("checker-{$i}@test.com")
-				->setPassword("checker {$i}")
+				->setPlainPassword("checker {$i}")
 				->setCompany($this->getReference(constant(CompanyFixtures::class . "::CHECKER_COMPANY_{$i}")))
 				->setProfil($this->getReference(ProfilFixtures::READ_ONLY_PROFIL))
+				->setLocale('fr_FR')
+				->setTimezone('Europe/Paris')
 				->setActivated(true);
 			$manager->persist($user);
 			$this->addReference(constant("self::CHECKER_USER_{$i}"), $user);
@@ -111,9 +125,11 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
 			$user
 				->setName("Sub Contractor User {$i}")
 				->setEmail("sub-contractor-{$i}@test.com")
-				->setPassword("sub_contractor {$i}")
+				->setPlainPassword("sub_contractor {$i}")
 				->setCompany($this->getReference(constant(CompanyFixtures::class . "::SUB_CONTRACTOR_COMPANY_{$i}")))
 				->setProfil($this->getReference(ProfilFixtures::READ_ONLY_PROFIL))
+				->setLocale('fr_FR')
+				->setTimezone('Europe/Paris')
 				->setActivated(true);
 			$manager->persist($user);
 			$this->addReference(constant("self::SUB_CONTRACTOR_USER_{$i}"), $user);
@@ -124,9 +140,11 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
 			$user
 				->setName("Supplier User {$i}")
 				->setEmail("supplier-{$i}@test.com")
-				->setPassword("supplier {$i}")
+				->setPlainPassword("supplier {$i}")
 				->setCompany($this->getReference(constant(CompanyFixtures::class . "::SUPPLIER_COMPANY_{$i}")))
 				->setProfil($this->getReference(ProfilFixtures::READ_ONLY_PROFIL))
+				->setLocale('fr_FR')
+				->setTimezone('Europe/Paris')
 				->setActivated(true);
 			$manager->persist($user);
 			$this->addReference(constant("self::SUPPLIER_USER_{$i}"), $user);

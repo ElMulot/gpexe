@@ -10,7 +10,7 @@
 	{% set items = items|merge([
 		{
 			'name': "Serie",
-			'href': path('serie_new', {'project': project.id, 'id': serie_ids }),
+			'href': path('serieNew', {'project': project.id, 'id': serie_ids }),
 		}
 	]) %}
 {% endif %}
@@ -20,7 +20,7 @@
 	{% set items = items|merge([
 		{
 			'name': "Document",
-			'href': path('document_new', {'project': project.id, 'id': serie_ids}),
+			'href': path('documentNew', {'project': project.id, 'id': serie_ids}),
 		}
 	]) %}
 {% endif %}
@@ -30,7 +30,7 @@
 	{% set items = items|merge([
 		{
 			'name': "Version",
-			'href': path('version_new', {'project': project.id, 'id': document_ids}),
+			'href': path('versionNew', {'project': project.id, 'id': document_ids}),
 		}
 	]) %}
 {% endif %}

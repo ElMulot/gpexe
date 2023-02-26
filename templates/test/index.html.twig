@@ -14,8 +14,17 @@
 {% block main %}
 
 <div class="d-flex justify-content-center">
-	{{ text }}
+	{% if form is defined %}
+		{{ form(form) }}
+	{% endif %}
 </div>
+<div class="d-flex justify-content-center">
+	{% if test is defined %}
+		{# {{ test|to_string }} #}
+	{% endif %}
+</div>
+	
+
 
 
 

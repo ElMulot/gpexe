@@ -6,7 +6,6 @@ use App\Entity\Enum\CompanyTypeEnum;
 use App\Entity\Enum\MetadataTypeEnum;
 use App\Entity\Enum\SerieBelongingEnum;
 use App\Exception\InvalidCodenameException;
-use App\Helpers\Date;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -267,7 +266,7 @@ class Serie extends AbstractElement
 					/** @var Metadata $metadata */
 					foreach ($this->getProject()->getMetadatas()->getValues() as $metadata) {
 						if ($metadata->getFullCodename() === $codename) {
-							return $this->getMetadataValue($metadata);
+							return $this->getTypedMetadataValue($metadata);
 						}
 					}
 				}

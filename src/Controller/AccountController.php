@@ -33,7 +33,7 @@ class AccountController extends AbstractTurboController
 		]);
 	}
 	
-	#[Route(path: '/account/edit', name: 'account_edit')]
+	#[Route(path: '/account/edit', name: 'accountEdit')]
 	public function edit(Request $request) : Response
 	{
 		/** @var User $user */
@@ -60,7 +60,7 @@ class AccountController extends AbstractTurboController
 		}
 	}
 	
-	#[Route(path: '/account/change_password', name: 'change_password')]
+	#[Route(path: '/account/change_password', name: 'changePassword')]
 	public function changePassword(Request $request) : Response
 	{
 		$form = $this->createForm(ChangePasswordType::class);
@@ -71,7 +71,7 @@ class AccountController extends AbstractTurboController
 
 			/** @var User $user */
 			$user = $this->getUser();
-			$user->setPassword($this->passwordHasher->hashPassword($user, $changePassword['new_password']));
+			$user->setPlainPassword($changePassword['new_password']);
 			$entityManager = $this->doctrine->getManager();
 			$entityManager->persist($user);
 			$entityManager->flush();

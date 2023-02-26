@@ -2,11 +2,11 @@
 
 namespace App\Form\EventSubscriber;
 
-use Symfony\Bridge\Doctrine\Form\Type\EntityType;
-use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
+use App\Exception\InternalErrorException;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 
 /**
@@ -48,10 +48,25 @@ class VariousFieldSubscriber implements EventSubscriberInterface
 	 */
 	private function isVarious(array $array): bool
 	{
+		array_walk($array, function (&$item) {
+			if ($item === null || is_scalar($item) === true) {
+				return $item;
+			}
+			if (is_array($item)) {
+				throw new InternalErrorException('Array values are not supported in Various type.');
+			}
+			if (is_object($item) && method_exists($item, '__toString')) {
+				return $item->__toString();
+			}
+			if ($item instanceof \DateTimeInterface) {
+				return $item;
+			}
+		});
+		
 		if (count($array) > 1) {
 			$firstValue = reset($array);
 			foreach ($array as $value) {
-				if ($firstValue !== $value) {
+				if ($firstValue != $value) {
 					return true;
 				}
 			}

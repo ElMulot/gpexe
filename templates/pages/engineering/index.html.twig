@@ -13,7 +13,7 @@
 {% endblock %}
 
 {% block main %}
-	<div id="engineering" {{ stimulus_controller('engineering--main', {'urlHeader': path('engineering_thead', {'project': project.id}), 'urlBody': path('engineering_tbody', {'project': project.id})}) }}>
+	<div id="engineering" {{ stimulus_controller('engineering--main', {'urlHeader': path('engineeringThead', {'project': project.id}), 'urlBody': path('engineeringTbody', {'project': project.id})}) }}>
 		<div class="sticky-top">
 			{{ include('pages/engineering/index/_nav.html.twig') }}
 		</div>
@@ -36,9 +36,9 @@
 
 {% block xl_modal %}
 	{% if display_serie_new is same as(true) %}
-		{% include "modal/xl_modal.html.twig" with {'src': path('serie_new', {'project': project.id, 'company': company.id})} %}
+		{% include "modal/xl_modal.html.twig" with {'src': path('serieNew', {'project': project.id, 'company': company.id})} %}
 	{% elseif display_serie_select is same as(true) %}
-		{% include "modal/xl_modal.html.twig" with {'src': path('serie_select', {'project': project.id, 'id': series|map(v => v.id)})} %}
+		{% include "modal/xl_modal.html.twig" with {'src': path('serieSelect', {'project': project.id, 'id': series|map(v => v.id)})} %}
 	{% else %}
 		{{ parent() }}
 	{% endif %}

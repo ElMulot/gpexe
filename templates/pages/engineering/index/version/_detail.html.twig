@@ -75,7 +75,7 @@
 					<div class="card-header">{% trans %}Document recieved{% endtrans %}</div>
 					<div class="card-body">
 						<div class="row justify-content-md-center">
-							<button id="save" class="btn btn-primary w-50" data-toggle="modal ajax" data-target="#modal" data-url="{{ path('version_edit', {'id[]': version.id, 'modal': true, 'save': true}) }}">{% trans %}Save document{% endtrans %}</button>
+							<button id="save" class="btn btn-primary w-50" data-toggle="modal ajax" data-target="#modal" data-url="{{ path('versionEdit', {'id[]': version.id, 'modal': true, 'save': true}) }}">{% trans %}Save document{% endtrans %}</button>
 						</div>
 					</div>
 				</div>
@@ -84,7 +84,7 @@
 				{% for checker in checkers %}
 					{% set items = items|merge([{
 						'name': checker.name,
-						'href': path('review_detail', {'version': version.id, 'company': checker.id}),
+						'href': path('reviewDetail', {'version': version.id, 'company': checker.id}),
 						'class': ((checker == app.user.company) or (app.user.company not in checkers and checker == checkers|first))?"active",
 					}]) %}
 				{% endfor %}

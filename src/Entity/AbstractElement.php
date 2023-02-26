@@ -2,13 +2,12 @@
 
 namespace App\Entity;
 
+use Spatie\Regex\Regex;
 use App\Entity\Enum\MetadataTypeEnum;
-use App\Exception\InvalidCodenameException;
 use App\Exception\InvalidValueException;
 use App\Exception\MandatoryValueException;
-
+use App\Exception\InvalidCodenameException;
 use Doctrine\Common\Collections\Collection;
-use Spatie\Regex\Regex;
 
 abstract class AbstractElement implements \Stringable
 {
@@ -26,6 +25,7 @@ abstract class AbstractElement implements \Stringable
 	abstract protected function removeMetadataValue(MetadataValue $metadataValue): self;
 
 
+	//todo: vraiment utile ?
 	/**
 	 * Return any MetadataValue or MetadataItem from Metadata object
 	 * If MetadataValue or MetadataItem doesn't exist, return null
@@ -72,27 +72,39 @@ abstract class AbstractElement implements \Stringable
 	 * - if MetadataTypeEnum::REGEX : return string
 	 * - if MetadataTypeEnum::DATE : return \DateTime object
 	 * - if MetadataTypeEnum::LINK : return string
-	 * - if MetadataTypeEnum::LIST : return string
+	 * - if MetadataTypeEnum::LIST : return MetadataItem
 	 * 
 	 * @param Metadata $metadata
 	 * @return mixed
 	 */
-	public function getMetadataValue(Metadata $metadata): mixed
+	public function getTypedMetadataValue(Metadata $metadata): mixed
 	{
-		if ($this->getMetadataValueAsObject($metadata) === null) {
-			$value = null;
-		} else {
-			$value = $this->getMetadataValueAsObject($metadata)->getValue();
+		switch ($metadata->getType()) {
+			
+			case MetadataTypeEnum::BOOL:
+			case MetadataTypeEnum::TEXT:
+			case MetadataTypeEnum::REGEX:
+			case MetadataTypeEnum::DATE:
+			case MetadataTypeEnum::LINK:
+				/**@var MetadataValue $metadataValue */
+				foreach ($this->getMetadataValues()->getValues() as $metadataValue) {
+					if ($metadataValue->getMetadata() == $metadata) {
+						return $metadataValue->getTypedValue();
+					}
+				}
+				break;
+				
+			case MetadataTypeEnum::LIST:
+				/**@var MetadataItem $metadataItem */
+				foreach ($this->getMetadataItems()->getValues() as $metadataItem) {
+					if ($metadataItem->getMetadata() == $metadata) {
+						return $metadataItem;
+					}
+				}
+				break;
 		}
-
-		return match($metadata->getType()) {
-			MetadataTypeEnum::BOOL	=>  $value ?? false,
-			MetadataTypeEnum::TEXT	=>  $value ?? '',
-			MetadataTypeEnum::REGEX	=>  $value ?? '',
-			MetadataTypeEnum::DATE	=> new \DateTime($value) ?? null,
-			MetadataTypeEnum::LINK	=>  $value ?? '',
-			MetadataTypeEnum::LIST	=>  $value ?? '',
-		};
+		
+		return null;
 	}
 
 	/**
@@ -205,6 +217,4 @@ abstract class AbstractElement implements \Stringable
 				throw new InvalidCodenameException($metadata->getFullCodename());
 		}
 	}
-
-	abstract function __toString(): string;
 }

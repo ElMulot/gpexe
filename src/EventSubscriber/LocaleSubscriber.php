@@ -2,14 +2,18 @@
 
 namespace App\EventSubscriber;
 
+use Symfony\Component\HttpKernel\KernelEvents;
+use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Security\Http\SecurityEvents;
+use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Symfony\Component\HttpKernel\Event\RequestEvent;
-use Symfony\Component\HttpKernel\KernelEvents;
+use Symfony\Component\Security\Http\Event\InteractiveLoginEvent;
 
 class LocaleSubscriber implements EventSubscriberInterface
 {
-	public function __construct(#[Autowire('%kernel.default_locale%')]
+	public function __construct(private readonly RequestStack $requestStack,
+								#[Autowire('%app.config.default_locale%')]
 								private readonly string $defaultLocale)
 	{
 	}
@@ -30,11 +34,22 @@ class LocaleSubscriber implements EventSubscriberInterface
 		}
 	}
 
+	public function onInteractiveLogin(InteractiveLoginEvent $event)
+	{
+		/** @var User $user */
+		$user = $event->getAuthenticationToken()->getUser();
+		
+		if ($user->getLocale() != null) {
+			$this->requestStack->getSession()->set('_locale', $user->getLocale());
+		}
+	}
+
 	public static function getSubscribedEvents(): array
 	{
 		return [
 			// must be registered before (i.e. with a higher priority than) the default Locale listener
 			KernelEvents::REQUEST => [['onKernelRequest', 20]],
+			SecurityEvents::INTERACTIVE_LOGIN => 'onInteractiveLogin',
 		];
 	}
 }

@@ -44,7 +44,11 @@ class BooleanVariousTypeTest extends TypeTestCase
 	}
 
 	/**
-	 * @dataProvider childrenCreationProvider
+	 * @covers BooleanVariousType
+	 * @testWith	[[], false]
+	 * 				[[true], false]
+	 * 				[[true, true], false]
+	 * 				[[false, true], true]
 	 */	
 	public function testChildrenCreation($value, $expected): void
 	{
@@ -54,17 +58,10 @@ class BooleanVariousTypeTest extends TypeTestCase
 		$this->assertTrue($form->has('input'));
 		$this->assertSame($expected, $form->has('switch'));
 	}
-	
-	public function childrenCreationProvider()
-	{
-		return [
-			'empty'					=> [[], false],
-			'single value array'	=> [[true], false],
-			'same value in array'	=> [[true, true], false],
-			'two different values'	=> [[false, true], true],
-		];
-	}
 
+	/**
+	 * @covers BooleanVariousType
+	 */
 	public function testSubmitVariousSwitchOn(): void
 	{
 		$form = $this->factory->create(BooleanVariousType::class, [false, true]);
@@ -79,7 +76,12 @@ class BooleanVariousTypeTest extends TypeTestCase
 	}
 
 	/**
-	 * @dataProvider submitValidDataProvider
+	 * @covers BooleanVariousType
+	 * @testWith	[null, false]
+	 * 				["", true]
+	 * 				["0", true]
+	 * 				["1", true]
+	 * 				["a", true]
 	 */
 	public function testSubmitValidData($value, $expected): void
 	{
@@ -92,17 +94,6 @@ class BooleanVariousTypeTest extends TypeTestCase
 
 		$this->assertTrue($form->isSynchronized());
 		$this->assertSame($expected, $form->getData());
-	}
-
-	public function submitValidDataProvider()
-	{
-		return [
-			'null'			=> [null, false],
-			'empty'			=> ['', true],
-			'false'			=> ['0', true],
-			'true'			=> ['1', true],
-			'non-numeric'	=> ['a', true],
-		];
 	}
 }
 

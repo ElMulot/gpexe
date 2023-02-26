@@ -1,6 +1,6 @@
 {% set entity_name = class|short_name %}
 {% if title is not defined %}
-	{% set title = 'list.' ~ entities|first|short_name %}
+	{% set title = 'list.' ~ entity_name %}
 {% endif %}
 
 {% if headers is not defined %}
@@ -36,26 +36,19 @@
 				<tr>
 					{% for key, header in headers %}
 						{% set value = attribute(entity, header) %}
-						{% if header|type(class) == 'boolean' %}
-							<td class="col-auto text-center">{{ (value is same as (true)?'True':'False')|trans }}</td>
-						{% elseif header|type(class) == 'integer' %}
-							<td class="col-auto text-center">{{ value }}</td>
-						{% elseif header|type(class) == 'double' %}
-							<td class="col-auto text-right">{{ value }}</td>
-						{% elseif header|type(class) == 'string' %}
+						
+						{% if header|type(class) == 'string' %}
 							<td class="col-auto text-left">{{ value|default('')|truncate }}</td>
-						{% elseif value.timezone is defined and value.nonExistingProperty is not defined %}
-							<td class="col-auto text-center">{{ value|date('d-m-Y') }}</td>
 						{% elseif '_enum' in header|type(class) %}
 							<td class="col-auto text-left">{{ value|readable_enum(header|type(class))|truncate }}</td>
 						{% else %}
-							<td class="col-auto text-left">???</td>
+							<td class="col-auto text-center">{{ value|to_string }}</td>
 						{% endif %}
 					{% endfor %}
 					{% if display_list %}
 						{% if attribute(entity, 'isList') is defined and attribute(entity, 'isList') == "True" %}
 							<td>
-								<a class="btn-secondary btn w-100 text-nowrap" href="{{ path(entity_name ~ '_item', {(entity_name): entity.id}|merge(app.request.query)) }}">
+								<a class="btn-secondary btn w-100 text-nowrap" href="{{ path(entity_name ~ 'Item', {(entity_name): entity.id}|merge(app.request.query)) }}" data-turbo-frame="fs_modal">
 									{% trans %}List{% endtrans %}
 								</a>
 							</td>
@@ -65,12 +58,12 @@
 						{% endif %}
 					{% endif %}
 					<td>
-						<a class="btn-success btn w-100 text-nowrap" href="{{ path(entity_name ~ '_edit', {(entity_name): entity.id}|merge(app.request.query)) }}" data-turbo-frame="xl_modal" data-turbo-stream-replace="fs_modal">
+						<a class="btn-success btn w-100 text-nowrap" href="{{ path(entity_name ~ 'Edit', {(entity_name): entity.id}|merge(app.request.query)) }}" data-turbo-frame="xl_modal" data-turbo-stream-replace="fs_modal">
 							{% trans %}Edit{% endtrans %}
 						</a>
 					</td>
 					<td>
-						<a class="btn-danger btn w-100 text-nowrap" href="{{ path(entity_name ~ '_delete', {(entity_name): entity.id}|merge(app.request.query)) }}" data-turbo-frame="xl_modal" data-turbo-stream-replace="fs_modal">
+						<a class="btn-danger btn w-100 text-nowrap" href="{{ path(entity_name ~ 'Delete', {(entity_name): entity.id}|merge(app.request.query)) }}" data-turbo-frame="xl_modal" data-turbo-stream-replace="fs_modal">
 							{% trans %}Delete{% endtrans %}
 						</a>
 					</td>
@@ -88,10 +81,13 @@
 {% block modal_footer %}
 
 	{% if app.request.headers.has('Turbo-Stream-Replace') is same as(true) %}
-		<a class="btn btn-secondary btn-width" {{ stimulus_target('modal', 'close') }} href="{{ path(entity_name, app.request.attributes.get('_route_params')|merge(app.request.query)) }}" data-turbo-frame="{{ app.request.headers.get('Turbo-Stream-Replace') }}">{% trans %}Close{% endtrans %}</a>
+		<p>todo: évaluer si c'est nécessaire</p>
+		{# <a class="btn btn-secondary btn-width" {{ stimulus_target('modal', 'close') }} href="{{ path(entity_name, app.request.attributes.get('_route_params')|merge(app.request.query)) }}" data-turbo-frame="{{ app.request.headers.get('Turbo-Stream-Replace') }}">{% trans %}Close{% endtrans %}</a> #}
+	{% elseif route_back is defined %}
+		<a class="btn btn-secondary btn-width" href="{{ route_back }}" data-turbo-frame="fs_modal">{% trans %}Close{% endtrans %}</a>
 	{% else %}
 		<button	button type="button" class="btn btn-secondary btn-width" data-bs-dismiss="modal">{% trans %}Close{% endtrans %}</button>
 	{% endif %}
-	<a class="btn btn-primary btn-width" href="{{ path(entity_name ~ '_new', app.request.attributes.get('_route_params')|merge(app.request.query)) }}" data-turbo-frame="xl_modal" data-turbo-stream-replace="fs_modal">{% trans %}New{% endtrans %}</a>
+	<a class="btn btn-primary btn-width" href="{{ path(entity_name ~ 'New', app.request.attributes.get('_route_params')|merge(app.request.query)) }}" data-turbo-frame="xl_modal" data-turbo-stream-replace="fs_modal">{% trans %}New{% endtrans %}</a>
 	
 {% endblock %}

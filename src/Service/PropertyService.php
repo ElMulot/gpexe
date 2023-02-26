@@ -14,12 +14,11 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 class PropertyService
 {
 	public function __construct(private readonly TranslatorInterface $translator,
-								#[Autowire('%app.config.date_format%')]
-								private readonly string $dateFormat)
+								private readonly DateService $dateService)
 	{
 	}
 	
-	public function toString($value)
+	public function toString(mixed $value, ?string $pattern = null, ?string $locale = null, ?string $timezone = null)
 	{
 		switch (gettype($value)) {
 			case 'boolean':
@@ -27,20 +26,9 @@ class PropertyService
 				
 			case 'object':
 				if ($value instanceof \DateTimeInterface) {
-					return $value->format($this->dateFormat);
-				} else if ($value instanceof User) {
-					return $value->getName();
-				} else if ($value instanceof MetadataItem) {
-					return $value->getValue();
+					return $this->dateService->format($value, $pattern, $locale, $timezone);
 				} else if ($value instanceof MetadataValue) {
-					return match($value->getMetadata()->getType()) {
-						MetadataTypeEnum::BOOL		=> $this->translator->trans(($value->getValue())?'Yes':'No'),
-						MetadataTypeEnum::TEXT		=> $value->getValue(),
-						MetadataTypeEnum::REGEX		=> $value->getValue(),
-						MetadataTypeEnum::DATE		=> Date::fromFormat($value->getValue())->format($this->dateFormat),
-						MetadataTypeEnum::LINK		=> $value->getValue(),
-					};
-					
+					return $this->toString($value->getTypedValue());
 				} else {
 					return (string)$value;
 				}

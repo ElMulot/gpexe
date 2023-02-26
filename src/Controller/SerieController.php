@@ -62,7 +62,7 @@ class SerieController extends AbstractTurboController
 		]);
 	}
 
-	#[Route(path: '/project/{project}/series/{company}', name: 'series_list_by_company', requirements: ['project' => '\d+', 'company' => '\d+'])]
+	#[Route(path: '/project/{project}/series/{company}', name: 'seriesListByCompany', requirements: ['project' => '\d+', 'company' => '\d+'])]
 	public function seriesByCompany(Project $project, Company $company) : Response
 	{
 
@@ -85,7 +85,7 @@ class SerieController extends AbstractTurboController
 		]);
 	}
 	
-	#[Route(path: '/project/{project}/series/{belong}', name: 'series_list_by_belonging', requirements: ['project' => '\d+', 'belong' => 'all|mdr|sdr'])]
+	#[Route(path: '/project/{project}/series/{belong}', name: 'seriesListByBelonging', requirements: ['project' => '\d+', 'belong' => 'all|mdr|sdr'])]
 	public function seriesByBelonging(Project $project, string $belong) : Response
 	{	
 		switch ($belong) {
@@ -122,7 +122,7 @@ class SerieController extends AbstractTurboController
 	 * Query parameters :
 	 * 	+ array		id				array of serie ids that could be displayed
 	 */
-	#[Route(path: '/project/{project}/series/select', name: 'serie_select', requirements: ['project' => '\d+'])]
+	#[Route(path: '/project/{project}/series/select', name: 'serieSelect', requirements: ['project' => '\d+'])]
 	public function select(Request $request, Project $project) : Response
 	{
 		$serieIds = $request->get('id');
@@ -142,10 +142,10 @@ class SerieController extends AbstractTurboController
 
 	/**
 	 * Query parameters :
-	 * 	+ array		id				array of serie ids that will be used for company selector in the form
+	 * 	+ int[]		id				array of serie ids that will be used for company selector in the form
 	 */
-	#[Route(path: '/project/{project}/serie/new', name: 'serie_new', requirements: ['project' => '\d+'])]
-	public function new(Request $request, Project $project) : Response
+	#[Route(path: '/project/{project}/serie/new/{company}', name: 'serieNew', requirements: ['project' => '\d+', 'company' => '\d+'])]
+	public function new(Request $request, Project $project, Company $company = null) : Response
 	{
 		$this->denyAccessUnlessGranted('SERIE_NEW', $project);
 
@@ -154,8 +154,9 @@ class SerieController extends AbstractTurboController
 
 		try {
 			$form = $this->createForm(SerieType::class, $serie, [
-				'project' => $project,
-				'ids' => $request->get('id'),
+				'project'	=> $project,
+				'ids'		=> $request->get('id'),
+				'company'	=> $company,
 			]);
 		} catch (InternalErrorException $e) {
 			$this->addFlash('warning', $e->getMessage());
@@ -205,8 +206,12 @@ class SerieController extends AbstractTurboController
 			]);
 		}
 	}
-	
-	#[Route(path: '/project/serie/{serie}/edit', name: 'serie_edit', requirements: ['serie' => '\d+'])]
+
+	/**
+	 * Query parameters :
+	 * 	+ int[]		id				array of serie ids that will be used for company selector in the form
+	 */
+	#[Route(path: '/project/serie/{serie}/edit', name: 'serieEdit', requirements: ['serie' => '\d+'])]
 	public function edit(Request $request, Serie $serie) : Response
 	{
 		$project = $serie->getProject();
@@ -215,9 +220,10 @@ class SerieController extends AbstractTurboController
 
 		try {
 			$form = $this->createForm(SerieType::class, $serie, [
-				'project' => $project
+				'project'	=> $project,
+				'ids'		=> $request->get('id'),
 			]);
-		} catch (InvalidArgumentException $e) {
+		} catch (InternalErrorException $e) {
 			$this->addFlash('warning', $e->getMessage());
 			return $this->renderError($request, 'serie', ['project' => $project->getId(), 'id' => $request->get('id')]);
 		}
@@ -271,7 +277,7 @@ class SerieController extends AbstractTurboController
 	 * Query parameters :
 	 * 	+ array		id				array of serie ids that could be displayed
 	 */
-	#[Route(path: '/project/serie/{serie}/delete', name: 'serie_delete', methods: ['GET', 'DELETE'], requirements: ['serie' => '\d+'])]
+	#[Route(path: '/project/serie/{serie}/delete', name: 'serieDelete', methods: ['GET', 'DELETE'], requirements: ['serie' => '\d+'])]
 	public function delete(Request $request, Serie $serie) : Response
 	{
 		$project = $serie->getProject();

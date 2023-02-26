@@ -20,7 +20,7 @@ class CodificationItemController extends AbstractTurboController
 	{
 	}
 
-	#[Route(path: '/project/codification/{codification}/item', name: 'codification_item', requirements: ['codification' => '\d+'])]
+	#[Route(path: '/project/codification/{codification}/item', name: 'codificationItem', requirements: ['codification' => '\d+'])]
 	public function index(CodificationItemRepository $codificationItemRepository, Codification $codification) : Response
 	{
 		$project = $codification->getProject();
@@ -28,17 +28,13 @@ class CodificationItemController extends AbstractTurboController
 		$this->denyAccessUnlessGranted('PROJECT_EDIT', $project);
 
 		return $this->render('generic/list.html.twig', [
-			'header' => $this->translator->trans('List for the code') . ' : ' . $codification->getName(),
-			'route_back' =>  $this->generateUrl('codification', [
-				'project' => $codification->getProject()->getId(),
-			]),
-			'parent_id' => $codification->getProject()->getId(),
+			'title' => $this->translator->trans('List for the code') . ' : ' . $codification->getName(),
 			'class' => CodificationItem::class,
 			'entities' => $codificationItemRepository->getCodificationItem($codification),
 		]);
 	}
 
-	#[Route(path: '/project/codification/{codification}/item/new', name: 'codification_item_new', requirements: ['codification' => '\d+'])]
+	#[Route(path: '/project/codification/{codification}/item/new', name: 'codificationItemNew', requirements: ['codification' => '\d+'])]
 	public function new(Request $request, Codification $codification) : Response
 	{
 		$project = $codification->getProject();
@@ -47,60 +43,63 @@ class CodificationItemController extends AbstractTurboController
 
 		$codificationItem = new CodificationItem();
 		$codificationItem->setCodification($codification);
+		
 		$form = $this->createForm(CodificationItemType::class, $codificationItem);
 		$form->handleRequest($request);
+		
 		if ($form->isSubmitted() && $form->isValid()) {
+			
 			$entityManager = $this->doctrine->getManager();
 			$entityManager->persist($codificationItem);
 			$entityManager->flush();
 
 			$this->addFlash('success', 'New entry created');
 			
-			return $this->renderSuccess($request, 'codification_item', [
+			return $this->renderSuccess($request, 'codificationItem', [
 				'codification' => $codification->getId()
 			]);
+
 		} else {
 			return $this->render('generic/form.html.twig', [
-				'route_back' =>  $this->generateUrl('codification_item', [
-					'codification' => $codification->getId(),
-				]),
 				'form' => $form
 			]);
 		}
 	}
 	
-	#[Route(path: '/project/codification/item/{codification_item}/edit', name: 'codification_item_edit', requirements: ['codification_item' => '\d+'])]
+	#[Route(path: '/project/codification/item/{codificationItem}/edit', name: 'codificationItemEdit', requirements: ['codificationItem' => '\d+'])]
 	public function edit(Request $request, CodificationItem $codificationItem) : Response
 	{
-		$project = $codificationItem->getCodification()->getProject();
+		$codification = $codificationItem->getCodification();
+		$project = $codification->getProject();
 
 		$this->denyAccessUnlessGranted('PROJECT_EDIT', $project);
 
 		$form = $this->createForm(CodificationItemType::class, $codificationItem);
 		$form->handleRequest($request);
+		
 		if ($form->isSubmitted() && $form->isValid()) {
+			
 			$entityManager = $this->doctrine->getManager();
 			$entityManager->flush();
 			
 			$this->addFlash('success', 'Datas updated');
 
-			return $this->renderSuccess($request, 'codification_item', [
-				'codification' => $codificationItem->getCodification()->getId()
+			return $this->renderSuccess($request, 'codificationItem', [
+				'codification' => $codification->getId()
 			]);
+
 		} else {
-			return $this->render('generic/form.html.twig', [
-				'route_back' =>  $this->generateUrl('codification_item', [
-					'codification' => $codificationItem->getCodification()->getId(),
-				]),
+			return $this->render('generic/new.html.twig', [
 				'form' => $form
 			]);
 		}
 	}
 	
-	#[Route(path: '/project/codification/item/{codification_item}/delete', name: 'codification_item_delete', methods: ['GET', 'DELETE'], requirements: ['codification_item' => '\d+'])]
+	#[Route(path: '/project/codification/item/{codificationItem}/delete', name: 'codificationItemDelete', methods: ['GET', 'DELETE'], requirements: ['codificationItem' => '\d+'])]
 	public function delete(Request $request, CodificationItem $codificationItem) : Response
 	{
-		$project = $codificationItem->getCodification()->getProject();
+		$codification = $codificationItem->getCodification();
+		$project = $codification->getProject();
 		
 		$this->denyAccessUnlessGranted('PROJECT_EDIT', $project);
 
@@ -108,15 +107,17 @@ class CodificationItemController extends AbstractTurboController
 		$form->handleRequest($request);
 
 		if ($form->isSubmitted() && $form->isValid()) {
+			
 			$entityManager = $this->doctrine->getManager();
 			$entityManager->remove($codificationItem);
 			$entityManager->flush();
 
 			$this->addFlash('success', 'Entry deleted');
 
-			return $this->renderSuccess($request, 'codification_item', [
-				'codification_item' => $codificationItem->getCodification()->getId()
+			return $this->renderSuccess($request, 'codificationItem', [
+				'codification' => $codification->getId()
 			]);
+
 		} else {
 			return $this->render('generic/delete.html.twig', [
 				'entities' => [$codificationItem],

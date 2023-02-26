@@ -31,7 +31,8 @@ class FiltersExtension extends AbstractExtension
 	public function getShortName(string|object $class): string
 	{
 		$reflect = new \ReflectionClass($class);
-		return (strtolower(Regex::replace("#([A-Z])#", '_$1', lcfirst($reflect->getShortName()))->result()));
+		return lcfirst($reflect->getShortName());
+		// return (strtolower(Regex::replace("#([A-Z])#", '_$1', lcfirst($reflect->getShortName()))->result()));
 	}
 	
 	public function truncateFilter(Environment $env, string $value, int $length = 30, bool $preserve = false, string $separator = '...'): string
@@ -52,9 +53,9 @@ class FiltersExtension extends AbstractExtension
 		return $value;
 	}
 	
-	public function toString(mixed $value): string
+	public function toString(mixed $value, ?string $pattern = null, ?string $locale = null, ?string $timezone = null): string
 	{
-		return $this->propertyService->toString($value);
+		return $this->propertyService->toString($value, $pattern, $locale, $timezone);
 	}
 
 	public function getTitle(string $header): string

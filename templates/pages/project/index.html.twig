@@ -15,12 +15,12 @@
 	{% set items = [
 		{
 			'name': "Companies",
-			'href': path('project_pannel', {'project': project.id, 'belong': 'sdr'}),
+			'href': path('projectPannel', {'project': project.id, 'belong': 'sdr'}),
 			'class': 'active'
 		},
 		{
 			'name': "Main contractors",
-			'href': path('project_pannel', {'project': project.id, 'belong': 'mdr'}),
+			'href': path('projectPannel', {'project': project.id, 'belong': 'mdr'}),
 		}
 	] %}
 	{{ nav.turbo('project_pannel', items) }}

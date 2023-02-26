@@ -4,9 +4,8 @@ namespace App\Exception;
 
 class InternalErrorException extends \Exception
 {
-    public function __construct()
+    public function __construct(string $message = 'Internal error.')
     {
-        $message = 'Erreur interne';
 		parent::__construct($message);
     }
 }

@@ -30,7 +30,7 @@ class LogListener
 			return;
 		}
 
-		$this->entityManager = $args->getEntityManager();
+		$this->entityManager = $args->getObjectManager();
 		$uow = $this->entityManager->getUnitOfWork();
 		
 		foreach ($uow->getScheduledEntityInsertions() as $entity) {

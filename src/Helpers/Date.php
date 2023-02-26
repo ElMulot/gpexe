@@ -2,7 +2,7 @@
 
 namespace App\Helpers;
 
-use DateTimeInterface;
+use App\Exception\InternalErrorException;
 
 /**
  * An helper class for DateTime
@@ -10,7 +10,7 @@ use DateTimeInterface;
 class Date extends \DateTime implements \DateTimeInterface, \Stringable
 {
 
-	public const ATOM_WITHOUT_TIME = 'Y-m-d';
+	public const ICU_DEFAULT_PATTERN = 'yyyy-MM-dd';
 
 	protected bool $valid = false;
 	
@@ -22,22 +22,10 @@ class Date extends \DateTime implements \DateTimeInterface, \Stringable
 		} catch (\Exception $e) {
 			parent::__construct('today', $timezone);
 		}
+
 		if (!$datetime) {
-			
 			$this->valid = false;
 		}
-	}
-	
-	/**
-	 * Set valid property to true
-	 *
-	 * @param boolean $valid
-	 * @return self
-	 */
-	protected function setValid(bool $valid): self
-	{
-		$this->valid = $valid;
-		return $this;
 	}
 
 	/**
@@ -51,24 +39,38 @@ class Date extends \DateTime implements \DateTimeInterface, \Stringable
 	}
 	
 	/**
+	 * Sets the date based on an Unix timestamp
+	 *
+	 * @param integer $timestamp
+	 * @return self
+	 */
+	public function setTimestamp(int $timestamp): self
+	{
+		parent::setTimestamp($timestamp);
+		$this->valid = true;
+		return $this;
+	}
+
+	/**
 	 * Return Date object formatted according to given format
 	 * If date or format is not valid, return empty string
 	 *
-	 * @param string $format
+	 * @param string $pattern ICU date pattern
 	 * @return string
 	 */
-	public function format(?string $format = null): string
+	public function format(?string $pattern = null): string
 	{
-		if (!$format) {
-			$format = self::ATOM_WITHOUT_TIME;
+		if (!$pattern) {
+			$pattern = self::ICU_DEFAULT_PATTERN;
 		}
-
+		$formatter = new \IntlDateFormatter(locale:null, pattern: $pattern);
+		
 		if ($this->valid === false) {
 			return '';
 		}
 		
 		try {
-			return parent::format($format);
+			return $formatter->format($this);
 		} catch (\Error $e) {
 			return '';
 		}
@@ -124,27 +126,25 @@ class Date extends \DateTime implements \DateTimeInterface, \Stringable
 	 * Parse a string into a new Date object according to the specified format
 	 *
 	 * @param string $expression
-	 * @param string $format
+	 * @param string $pattern ICU date pattern
 	 * @return Date
 	 */
-	public static function fromFormat(string $expression, ?string $format = null): Date
+	public static function fromFormat(string $expression, ?string $pattern = null): Date
 	{
-		if (!$format) {
-			$format = self::ATOM_WITHOUT_TIME;
+		if (!$pattern) {
+			$pattern = self::ICU_DEFAULT_PATTERN;
 		}
+		$formatter = new \IntlDateFormatter(locale:null, pattern: $pattern);
 		
-		/**@var Date $date */
-		$date = parent::createFromFormat('!' . $format, $expression);
+		$timestamp = $formatter->parse($expression);
 		
-		if ($date === false) {
+		if ($timestamp === false) {
 			return new static();
-		}
-
-		$date->valid = true;
-		if ($date->format($format) === $expression) {
-			return $date;
 		} else {
-			return new static();
+			/**@var Date $date */
+			$date = (new static())->setTimestamp($timestamp);
+			$date->valid = true;
+			return $date;
 		}
 	}
 	
@@ -214,6 +214,115 @@ class Date extends \DateTime implements \DateTimeInterface, \Stringable
 			return new \DateInterval("P0D");
 		} else {
 			return parent::diff($targetDate, $absolute);
+		}
+	}
+
+	/**
+	 * Convert a ICU pattern in php date format
+	 *
+	 * @param string $pattern ICU date pattern
+	 * @return string converted php date format
+	 */
+	public static function convertToPhpDateFormat(?string $pattern = null): string
+	{
+		if (!$pattern) {
+			$pattern = self::ICU_DEFAULT_PATTERN;
+		}
+
+		if (preg_match('/[aAhHkKmOsSvVxXzZ]/', $pattern) !== 0) {
+			throw new InternalErrorException(sprintf('The "app.config.date_format" doesn\'t respect ICU pattern. Its current value is "%s".', $pattern));
+		}
+
+		if (preg_match('/[bfijlnoptBCIJNPRT]/', $pattern) !== 0) {
+			throw new InternalErrorException(sprintf('The "app.config.date_format" should not contain time pattern. Its current value is "%s".', $pattern));
+		}
+
+		if (preg_match('/[cgqruFGLQUWY]/', $pattern) !== 0) {
+			throw new InternalErrorException(sprintf('The "app.config.date_format" should not contain the letters "c", "g", "q", "r", "u", "F", "G", "L", "Q", "U", "W" or "Y". Its current value is "%s".', $pattern));
+		}
+
+		$pattern = str_replace('d', 'j', $pattern);
+		$pattern = str_replace('jj', 'd', $pattern);
+
+		$pattern = str_replace('D', 'z', $pattern);
+		$pattern = str_replace('EEEE', 'l', $pattern);
+		$pattern = str_replace('EEE', 'D', $pattern);
+		$pattern = str_replace('w', 'W', $pattern);
+		$pattern = str_replace('e', 'w', $pattern);
+		
+		$pattern = str_replace('M', 'n', $pattern);
+		$pattern = str_replace('nnnn', 'F', $pattern);
+		$pattern = str_replace('nnn', 'M', $pattern);
+		$pattern = str_replace('nn', 'm', $pattern);
+		
+		$pattern = str_replace('yyyy', 'Y', $pattern);
+		$pattern = str_replace('yy', 'y', $pattern);
+
+		return $pattern;
+	}
+
+	/**
+	 * Convert a ICU pattern in flatpickr date format
+	 *
+	 * @param string $pattern ICU date pattern
+	 * @return string converted flatpickr date format
+	 */
+	public static function convertToFlatpickDateFormat(?string $pattern = null): string
+	{
+		if (!$pattern) {
+			$pattern = self::ICU_DEFAULT_PATTERN;
+		}
+
+		if (preg_match('/[aAhHkKmOsSvVxXzZ]/', $pattern) !== 0) {
+			throw new InternalErrorException(sprintf('The "app.config.date_format" doesn\'t respect ICU pattern. Its current value is "%s".', $pattern));
+		}
+
+		if (preg_match('/[bfijlnoptBCIJNPRT]/', $pattern) !== 0) {
+			throw new InternalErrorException(sprintf('The "app.config.date_format" should not contain time pattern. Its current value is "%s".', $pattern));
+		}
+
+		if (preg_match('/[cgqruFGLQUWY]/', $pattern) !== 0) {
+			throw new InternalErrorException(sprintf('The "app.config.date_format" should not contain the letters "c", "g", "q", "r", "u", "F", "G", "L", "Q", "U", "W" or "Y". Its current value is "%s".', $pattern));
+		}
+
+		if (preg_match('/[D]/', $pattern) !== 0) {
+			throw new InternalErrorException(sprintf('The "app.config.date_format" should not contain the letter "D". Its current value is "%s".', $pattern));
+		}
+
+		if (preg_match('/[dMy]/', $pattern) === 0) {
+			throw new InternalErrorException(sprintf('The "app.config.date_format" should contain the letters "y", "M" or "d". Its current value is "%s".', $pattern));
+		}
+
+		$pattern = str_replace('d', 'j', $pattern);
+		$pattern = str_replace('jj', 'd', $pattern);
+
+		$pattern = str_replace('EEEE', 'l', $pattern);
+		$pattern = str_replace('EEE', 'D', $pattern);
+		$pattern = str_replace('w', 'W', $pattern);
+		$pattern = str_replace('e', 'w', $pattern);
+		
+		$pattern = str_replace('M', 'n', $pattern);
+		$pattern = str_replace('nnnn', 'F', $pattern);
+		$pattern = str_replace('nnn', 'M', $pattern);
+		$pattern = str_replace('nn', 'm', $pattern);
+		
+		$pattern = str_replace('yyyy', 'Y', $pattern);
+		$pattern = str_replace('yy', 'y', $pattern);
+
+		return $pattern;
+	}
+
+	/**
+	 * Return Date object as object or null if not valid 
+	 *
+	 * @return string
+	 */
+	public function __toObject(): ?self
+	{
+		if ($this->isValid() === true) {
+			return $this;
+		} else {
+			return null;
 		}
 	}
 	

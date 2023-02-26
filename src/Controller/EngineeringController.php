@@ -31,7 +31,7 @@ class EngineeringController extends AbstractTurboController
 	{
 	}
     
-    #[Route(path: '/project/{project}/thead', name: 'engineering_thead', requirements: ['project' => '\d+'])]
+    #[Route(path: '/project/{project}/thead', name: 'engineeringThead', requirements: ['project' => '\d+'])]
 	public function thead(Request $request, Project $project) : Response
 	{
 		
@@ -67,7 +67,7 @@ class EngineeringController extends AbstractTurboController
 		]);
 	}
 	
-    #[Route(path: '/project/{project}/tbody', name: 'engineering_tbody', requirements: ['project' => '\d+'])]
+    #[Route(path: '/project/{project}/tbody', name: 'engineeringTbody', requirements: ['project' => '\d+'])]
 	public function tbody(Request $request, Project $project) : Response
 	{
 		$serieIds = $request->query->all('series');
@@ -120,7 +120,7 @@ class EngineeringController extends AbstractTurboController
 	 * 	+ array		series			array of serie ids
 	 * 	+ array		id				array of version ids
 	 */
-    #[Route(path: '/project/{project}/engineering/new', name: 'engineering_new', requirements: ['project' => '\d+'])]
+    #[Route(path: '/project/{project}/engineering/new', name: 'engineeringNew', requirements: ['project' => '\d+'])]
 	public function new(Request $request, Project $project) : Response
 	{
 		if ($request->query->has('id')) {		
@@ -143,7 +143,7 @@ class EngineeringController extends AbstractTurboController
 	 * Query parameters :
 	 * 	+ array		id				array of version ids
 	 */
-    #[Route(path: '/project/{project}/engineering/edit', name: 'engineering_edit', requirements: ['project' => '\d+'])]
+    #[Route(path: '/project/{project}/engineering/edit', name: 'engineeringEdit', requirements: ['project' => '\d+'])]
 	public function edit(Request $request, Project $project) : Response
 	{
 		$versionIds = $request->get('id');
@@ -162,7 +162,7 @@ class EngineeringController extends AbstractTurboController
 	 * Query parameters :
 	 * 	+ array		id				array of version ids
 	 */
-    #[Route(path: '/project/{project}/engineering/delete', name: 'engineering_delete', requirements: ['project' => '\d+'])]
+    #[Route(path: '/project/{project}/engineering/delete', name: 'engineeringDelete', requirements: ['project' => '\d+'])]
 	public function delete(Request $request, Project $project) : Response
 	{
 		$versionIds = $request->get('id');

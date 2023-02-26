@@ -10,7 +10,9 @@ parameters:
     app.date: 29-09-2021
     app.uploads_directory: 'uploads/'
     app.ressource_directory: '%kernel.project_dir%/config/ressources/'
-    app.config.date_format: d/m/Y   #This is the format used for display. Internally, the app use \DateTimeInterface::ATOM format
+    app.config.default_locale: 'fr_FR'
+    app.config.default_timezone: 'Europe/Paris'
+    app.config.icu_date_pattern: 'dd/MM/yyyy'   #This is the ICU pattern used for display. Internally, the app use \DateTimeInterface::ICU_DEFAULT_PATTERN format
     app.config.maintenance_mode: false
     app.config.disable_log: true
     app.config.max_results_per_page: 50
@@ -39,12 +41,6 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
-
-    App\EventListener\LogListener:
-        tags:
-            -
-                name: 'doctrine.event_listener'
-                event: 'onFlush'
     
     App\Service\QueryBuilderService:
         autowire: false

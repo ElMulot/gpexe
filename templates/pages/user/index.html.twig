@@ -22,20 +22,13 @@
 				<tr>
 					{% for key, header in headers %}
 						{% set value = attribute(entity, header) %}
-						{% if header|type(class) == 'boolean' %}
-							<td class="col-auto text-center">{{ (value is same as (true)?'True':'False')|trans }}</td>
-						{% elseif header|type(class) == 'integer' %}
-							<td class="col-auto text-center">{{ value }}</td>
-						{% elseif header|type(class) == 'double' %}
-							<td class="col-auto text-right">{{ value }}</td>
-						{% elseif header|type(class) == 'string' %}
+
+						{% if header|type(class) == 'string' %}
 							<td class="col-auto text-left">{{ value|default('')|truncate }}</td>
-						{% elseif value.timezone is defined and value.nonExistingProperty is not defined %}
-							<td class="col-auto text-center">{{ value|date('d-m-Y') }}</td>
 						{% elseif '_enum' in header|type(class) %}
 							<td class="col-auto text-left">{{ value|readable_enum(header|type(class))|truncate }}</td>
 						{% else %}
-							<td class="col-auto text-left">???</td>
+							<td class="col-auto text-center">{{ value|to_string('dd-MM-yyyy HH:mm:ss') }}</td>
 						{% endif %}
 					{% endfor %}
 					<td>
@@ -46,13 +39,13 @@
 						{% endif %}
 					</td>
 					<td>
-						<a class="btn-success btn w-100 text-nowrap" href="{{ path(entity_name ~ '_edit', {(entity_name): entity.id}) }}" data-turbo-frame="xl_modal" data-turbo-stream-replace="fs_modal">
+						<a class="btn-success btn w-100 text-nowrap" href="{{ path(entity_name ~ 'Edit', {(entity_name): entity.id}) }}" data-turbo-frame="xl_modal" data-turbo-stream-replace="fs_modal">
 							{% trans %}Edit{% endtrans %}
 						</a>
 					</td>
 					<td>
 						{% if app.user.id != entity.id %}
-							<a class="btn-danger btn w-100 text-nowrap" href="{{ path(entity_name ~ '_delete', {(entity_name): entity.id}) }}" data-turbo-frame="xl_modal" data-turbo-stream-replace="fs_modal">
+							<a class="btn-danger btn w-100 text-nowrap" href="{{ path(entity_name ~ 'Delete', {(entity_name): entity.id}) }}" data-turbo-frame="xl_modal" data-turbo-stream-replace="fs_modal">
 								{% trans %}Delete{% endtrans %}
 							</a>
 						{% endif %}

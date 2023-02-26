@@ -32,7 +32,7 @@ class VersionController extends AbstractTurboController
 		$this->fieldService = $fieldService;
 	}
 	
-	#[Route(path: '/project/serie/document/version/{version}/detail', name: 'version_detail', requirements: ['version' => '\d+'])]
+	#[Route(path: '/project/serie/document/version/{version}/detail', name: 'versionDetail', requirements: ['version' => '\d+'])]
 	public function detail(Version $version) : Response
 	{
 		$document = $version->getDocument();
@@ -53,7 +53,7 @@ class VersionController extends AbstractTurboController
 	 * Query parameters :
 	 * 	+ array		id				array of version ids that will be used for document selector in the form
 	 */
-	#[Route(path: '/project/{project}/version/new', name: 'version_new', requirements: ['project' => '\d+'])]
+	#[Route(path: '/project/{project}/version/new', name: 'versionNew', requirements: ['project' => '\d+'])]
 	public function new(Request $request, Project $project) : Response
 	{
 		
@@ -76,7 +76,7 @@ class VersionController extends AbstractTurboController
 		
 		if ($form->isSubmitted() && $form->isValid()) {
 
-			// return $this->redirectToRoute('version_new', [
+			// return $this->redirectToRoute('versionNew', [
 			// 	'document' => $document->getId()
 			// ]);
 		} else {
@@ -168,7 +168,7 @@ class VersionController extends AbstractTurboController
 		// 	$entityManager->flush();
 			
 		// 	if ($request->query->has('modal')) {
-		// 		return $this->ajaxRedirectService->get($this->generateUrl('document_detail', ['version' => $version->getId()]), '#modal_detail');
+		// 		return $this->ajaxRedirectService->get($this->generateUrl('documentDetail', ['version' => $version->getId()]), '#modal_detail');
 		// 	} else {
 		// 		$this->addFlash('success', 'New version created');
 		// 		return new Response();
@@ -181,7 +181,7 @@ class VersionController extends AbstractTurboController
 		// }
 	}
 	
-	#[Route(path: '/project/serie/document/version/edit', name: 'version_edit')]
+	#[Route(path: '/project/serie/document/version/edit', name: 'versionEdit')]
 	public function edit(Request $request) : Response
 	{
 		$documents = $this->documentRepository->getDocumentsByRequest($request);
@@ -277,7 +277,7 @@ class VersionController extends AbstractTurboController
 			$entityManager->flush();
 			
 			if ($request->query->has('modal')) {
-				return $this->ajaxRedirectService->get($this->generateUrl('document_detail', ['version' => reset($versions)->getId()]), '#modal_detail');
+				return $this->ajaxRedirectService->get($this->generateUrl('documentDetail', ['version' => reset($versions)->getId()]), '#modal_detail');
 			} else {
 				$this->addFlash('success', $this->translator->trans('updated.version', ['count' => count($versions)]));
 				return new Response();
@@ -290,7 +290,7 @@ class VersionController extends AbstractTurboController
 		}
 	}
 	
-	#[Route(path: '/project/serie/document/version/delete', name: 'version_delete')]
+	#[Route(path: '/project/serie/document/version/delete', name: 'versionDelete')]
 	public function delete(Request $request) : Response
 	{
 		$documents = $this->documentRepository->getDocumentsByRequest($request);
@@ -319,7 +319,7 @@ class VersionController extends AbstractTurboController
 			$entityManager->flush();
 			
 			if ($request->query->has('modal') && $document->getVersions()->count() > 0) {
-				return $this->ajaxRedirectService->get($this->generateUrl('document_detail', ['version' => $document->getLastVersion()->getId()]), '#modal_detail');
+				return $this->ajaxRedirectService->get($this->generateUrl('documentDetail', ['version' => $document->getLastVersion()->getId()]), '#modal_detail');
 			} else {
 				$this->addFlash('success', $this->translator->trans('deleted.version', ['count' => count($versions)]));
 				return new Response();
@@ -333,7 +333,7 @@ class VersionController extends AbstractTurboController
 		}
 	}
 	
-	#[Route(path: '/project/serie/document/{document}/version/{version}/{company}/quick_new', name: 'version_quick_new', requirements: ['document' => '\d+', 'version' => '\d+', 'company' => '\d+'])]
+	#[Route(path: '/project/serie/document/{document}/version/{version}/{company}/quick_new', name: 'versionQuickNew', requirements: ['document' => '\d+', 'version' => '\d+', 'company' => '\d+'])]
 	public function quickNew(Request $request, Document $document, Version $version, Company $company) : Response
 	{
 		$serie = $document->getSerie();
@@ -362,7 +362,7 @@ class VersionController extends AbstractTurboController
 			foreach ($this->metadataRepository->getMetadatasForVersion($project) as $metadata) {
 				if ($metadata->isBoolean() || $metadata->isList() || $metadata->isMandatory()) {
 					try {
-						$newVersion->setMetadataValue($metadata, $version->getMetadataValue($metadata));
+						$newVersion->setMetadataValue($metadata, $version->getTypedMetadataValue($metadata));
 					} catch (\Error $e) {
 						$this->addFlash('danger', $e->getMessage());
 					}
@@ -373,7 +373,7 @@ class VersionController extends AbstractTurboController
 			$entityManager->persist($newVersion);
 			$entityManager->flush();
 			
-			return $this->ajaxRedirectService->get($this->generateUrl('document_detail', ['version' => $version->getId()]), '#modal_detail');
+			return $this->ajaxRedirectService->get($this->generateUrl('documentDetail', ['version' => $version->getId()]), '#modal_detail');
 		} else {
 			return $this->render('review/form.html.twig', [
 				'company' => $company,
@@ -383,7 +383,7 @@ class VersionController extends AbstractTurboController
 		}
 	}
 	
-	#[Route(path: '/project/serie/document/version/{version}/quick_edit/{fieldId}', name: 'version_quick_edit', requirements: ['version' => '\d+', 'fieldId' => '\w+'])]
+	#[Route(path: '/project/serie/document/version/{version}/quick_edit/{fieldId}', name: 'versionQuickEdit', requirements: ['version' => '\d+', 'fieldId' => '\w+'])]
 	public function quickEdit(Request $request, Version $version, string $fieldId) : Response
 	{
 		$document = $version->getDocument();

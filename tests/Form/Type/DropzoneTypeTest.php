@@ -28,6 +28,10 @@ class DropzoneTypeTest extends TypeTestCase
 		];
 	}
 
+
+	/**
+	 * @covers DropzoneType
+	 */
 	public function testSubmitValidData()
 	{
 		$model = $this->createMock(File::class);
@@ -35,6 +39,9 @@ class DropzoneTypeTest extends TypeTestCase
 		$this->assertTrue($form->isSynchronized());
 	}
 
+	/**
+	 * @covers DropzoneType
+	 */
 	public function testMineTypeFormView()
 	{
 		$model = $this->createMock(File::class);
@@ -42,33 +49,6 @@ class DropzoneTypeTest extends TypeTestCase
 		$this->assertArrayHasKey('mime_type', $view->vars);
 		$this->assertIsString('mine_type');
 	}
-
-
-	/**
-	* @dataProvider iconPathProvider
-	*/
-	// public function testIconPath($mimeType, $iconPath)
-	// {
-	//     self::bootKernel();
-
-	// 	$container = static::getContainer();
-	// 	$dropzoneType = $container->get(DropzoneType::class);
-	// 	$result = $dropzoneType->getIconPath($mimeType);
-
-	// 	$this->assertSame($iconPath, $result);
-
-	// }
-
-
-	// public function iconPathProvider()
-	// {
-	// 	return [
-	// 		'Image mime type' => ['image/jpeg', 'icons/file-earmark-image.svg'],
-	// 		'Pdf mime type' => ['application/pdf', 'icons/file-earmark-pdf.svg'],
-	// 		'Invalid mime type' => ['application', 'icons/file-earmark.svg'],
-	// 		'Unexpected mime type' => ['text/html', 'icons/file-earmark.svg'],
-	// 	];
-	// }
 }
 
 ?>

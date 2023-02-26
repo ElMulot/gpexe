@@ -6,7 +6,6 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\ORM\Query\Expr\Join;
 use App\Service\RepositoryService;
-use App\Helpers\Date;
 use App\Service\QueryBuilderService;
 use App\Entity\Codification;
 use App\Entity\Metadata;
@@ -21,6 +20,7 @@ use App\Entity\Status;
 use App\Entity\User;
 use App\Entity\Version;
 use App\Entity\Visa;
+use App\Service\DateService;
 use Symfony\Component\Stopwatch\Stopwatch;
 use Spatie\Regex\Regex;
 
@@ -493,9 +493,9 @@ class VersionRepository extends RepositoryService
 					if ($item[$highlight] instanceof \DateTimeInterface) {
 						$date = $item[$highlight];
 					} else {
-						$date = Date::fromFormat($item[$highlight]);
+						$date = DateService::fromFormat($item[$highlight]);
 					}
-					if ($date < new Date('today')) {
+					if ($date < new \DateTime('today')) {
 						$item['highlight'] = 'FF919180';
 					} elseif ($date->getWorkingDays() <= $project->getProdWarningLimit()) {
 						$item['highlight'] = 'FFE59180';
@@ -507,7 +507,7 @@ class VersionRepository extends RepositoryService
 				}
 				
 			}
-			$item['detailUrl'] = $this->router->generate('document_detail', [
+			$item['detailUrl'] = $this->router->generate('documentDetail', [
 				'version' => $item['version_id']
 			]);
 		});

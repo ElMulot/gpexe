@@ -10,12 +10,12 @@
 				<li class="nav-item dropdown" style="{{ block('nav_item') }}">
 					<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown2" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{% trans %}Project admin{% endtrans %}</a>
 					<div class="dropdown-menu">
-						<a class="dropdown-item" href="{{ path('file_new', app.request.attributes.get('_route_params')) }}">{% trans %}Edit project{% endtrans %}</a>
-						<a class="dropdown-item" href="{{ path('file_edit', app.request.attributes.get('_route_params')) }}">{% trans %}Codification{% endtrans %}</a>
+						<a class="dropdown-item" href="{{ path('fileNew', app.request.attributes.get('_route_params')) }}">{% trans %}Edit project{% endtrans %}</a>
+						<a class="dropdown-item" href="{{ path('fileEdit', app.request.attributes.get('_route_params')) }}">{% trans %}Codification{% endtrans %}</a>
 						{% if is_granted('ROLE_MOVE') %}
 							<a class="dropdown-item" href="{{ path('file_move', app.request.attributes.get('_route_params')) }}">{% trans %}Metadatas{% endtrans %}</a>
 						{% endif %}
-						<a class="dropdown-item" href="{{ path('file_delete', app.request.attributes.get('_route_params')) }}">{% trans %}Visas{% endtrans %}</a>
+						<a class="dropdown-item" href="{{ path('fileDelete', app.request.attributes.get('_route_params')) }}">{% trans %}Visas{% endtrans %}</a>
 					</div>
 				</li>
 			{% endif %}

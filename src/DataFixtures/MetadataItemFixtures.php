@@ -2,6 +2,7 @@
 
 namespace App\DataFixtures;
 
+use App\Entity\Metadata;
 use App\Entity\MetadataItem;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
@@ -60,6 +61,33 @@ class MetadataItemFixtures extends Fixture implements DependentFixtureInterface
 			}
 		}
 		$manager->flush();
+
+		// $i = 1;
+		// $j = 2;
+
+		// /**@var Metadata */
+		// $metadata = $this->getReference(constant(MetadataFixtures::class . "::PROJECT_{$i}_METADATA_SERIE_LIST"));
+		// /**@var MetadataItem */
+		// $metadataItem = $this->getReference("PROJECT_{$i}_METADATA_ITEM_SERIE_{$j}");
+		// $metadata->setDefaultValue($metadataItem->getId());
+		// $manager->persist($metadata);
+		// $manager->flush();
+
+		// /**@var Metadata */
+		// $metadata = $this->getReference(constant(MetadataFixtures::class . "::PROJECT_{$i}_METADATA_DOCUMENT_LIST"));
+		// /**@var MetadataItem */
+		// $metadataItem = $this->getReference("PROJECT_{$i}_METADATA_ITEM_DOCUMENT_{$j}");
+		// $metadata->setDefaultValue($metadataItem->getId());
+		// $manager->persist($metadata);
+		// $manager->flush();
+
+		// /**@var Metadata */
+		// $metadata = $this->getReference(constant(MetadataFixtures::class . "::PROJECT_{$i}_METADATA_VERSION_LIST"));
+		// /**@var MetadataItem */
+		// $metadataItem = $this->getReference("PROJECT_{$i}_METADATA_ITEM_VERSION_{$j}");
+		// $metadata->setDefaultValue($metadataItem->getId());
+		// $manager->persist($metadata);
+		// $manager->flush();
 	}
 
 	public function getDependencies()

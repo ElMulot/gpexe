@@ -1,6 +1,7 @@
 <?php
 namespace App\Controller;
 
+use App\Entity\Enum\MetadataTypeEnum;
 use App\Entity\Project;
 use App\Entity\Metadata;
 use App\Form\MetadataType;
@@ -31,24 +32,35 @@ class MetadataController extends AbstractTurboController
 		]);
 	}
 
-	#[Route(path: '/project/{project}/metadata/new', name: 'metadata_new', requirements: ['project' => '\d+'])]
-	public function new(Request $request, Project $project) : Response
+	#[Route(path: '/project/{project}/metadata/new/{type}', name: 'metadataNew', requirements: ['project' => '\d+', 'type' => 'bool|text|regex|date|link|list'])]
+	public function new(Request $request, Project $project, string $type = null) : Response
 	{
 		$this->denyAccessUnlessGranted('PROJECT_EDIT', $project);
 
+		if ($type === null) {
+			return $this->render('pages/project/metadata/type.html.twig', [
+				'project' => $project,
+			]);
+		}
+
 		$metadata = new Metadata();
 		$metadata->setProject($project);
+		$metadata->setType($type);
+
 		$form = $this->createForm(MetadataType::class, $metadata);
 		$form->handleRequest($request);
 
 		if ($form->isSubmitted() && $form->isValid()) {
+			
 			$entityManager = $this->doctrine->getManager();
 			$entityManager->persist($metadata);
 			$entityManager->flush();
 
 			$this->addFlash('success', 'New entry created');
 
-			return $this->renderSuccess($request, 'metadata', ['project' => $project->getId()]);
+			return $this->renderSuccess($request, 'metadata', [
+				'project' => $project->getId(),
+			]);
 
 		} else {
 
@@ -59,7 +71,7 @@ class MetadataController extends AbstractTurboController
 		}
 	}
 
-	#[Route(path: '/project/metadata/{metadata}/edit', name: 'metadata_edit', requirements: ['metadata' => '\d+'])]
+	#[Route(path: '/project/metadata/{metadata}/edit', name: 'metadataEdit', requirements: ['metadata' => '\d+'])]
 	public function edit(Request $request, Metadata $metadata) : Response
 	{
 		$project = $metadata->getProject();
@@ -71,11 +83,14 @@ class MetadataController extends AbstractTurboController
 
 		if ($form->isSubmitted() && $form->isValid()) {
 			$entityManager = $this->doctrine->getManager();
+			$entityManager->persist($metadata);
 			$entityManager->flush();
-
+			
 			$this->addFlash('success', 'Datas updated');
 
-			return $this->renderSuccess($request, 'metadata', ['project' => $project->getId()]);
+			return $this->renderSuccess($request, 'metadata', [
+				'project' => $project->getId(),
+			]);
 
 		} else {
 
@@ -86,7 +101,7 @@ class MetadataController extends AbstractTurboController
 		}
 	}
 
-	#[Route(path: '/project/metadata/{metadata}/delete', name: 'metadata_delete', methods: ['GET', 'DELETE'], requirements: ['metadata' => '\d+'])]
+	#[Route(path: '/project/metadata/{metadata}/delete', name: 'metadataDelete', methods: ['GET', 'DELETE'], requirements: ['metadata' => '\d+'])]
 	public function delete(Request $request, Metadata $metadata) : Response
 	{
 		$project = $metadata->getProject();
@@ -103,7 +118,9 @@ class MetadataController extends AbstractTurboController
 
 			$this->addFlash('success', 'Entry deleted');
 
-			return $this->renderSuccess($request, 'metadata', ['project' => $project->getId()]);
+			return $this->renderSuccess($request, 'metadata', [
+				'project' => $project->getId(),
+			]);
 
 		} else {
 

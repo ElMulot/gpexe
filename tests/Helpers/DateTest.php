@@ -2,22 +2,9 @@
 
 namespace App\Tests\Helpers;
 
-use App\Entity\Automation;
-use App\Entity\Enum\ProgramTypeEnum;
-use App\Entity\Program;
-use App\Entity\Project;
-use App\EventListener\ProgramListener;
-use PHPUnit\Framework\TestCase;
-use App\EventListener\ProjectListener;
 use App\Helpers\Date;
-use App\Repository\AutomationRepository;
-use Doctrine\ORM\EntityManager;
-use Doctrine\Persistence\ObjectManager;
-use Doctrine\ORM\Event\PreUpdateEventArgs;
-use PHPUnit\Framework\MockObject\MockObject;
-use Symfony\Component\Filesystem\Filesystem;
-use Doctrine\Persistence\Event\LifecycleEventArgs;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use PHPUnit\Framework\TestCase;
+use App\Exception\InternalErrorException;
 
 class DateTest extends TestCase
 {
@@ -44,7 +31,7 @@ class DateTest extends TestCase
 	{
 		$dateObject = new Date($dateString);
 		$this->assertSame($expected, $dateObject->format());
-		$this->assertSame($dateObject->format(Date::ATOM_WITHOUT_TIME), $expected);
+		$this->assertSame($dateObject->format('yyyy-MM-dd'), $expected);
 	}
 
 	/**
@@ -55,7 +42,7 @@ class DateTest extends TestCase
 	function testFormatAswWy(string $dateString, string $expected)
 	{
 		$dateObject = new Date($dateString);
-		$this->assertSame($dateObject->format('w/W/y'), $expected);
+		$this->assertSame($dateObject->format('e/w/yy'), $expected);
 	}
 	
 	/**
@@ -95,8 +82,8 @@ class DateTest extends TestCase
 	/**
 	 * @covers Date::fromFormat
 	 * @testWith	["2000-01-01", "", "2000-01-01"]
-	 * 				["2000-01-01", "Y-m-d", "2000-01-01"]
-	 * 				["01/01/2000", "d/m/Y", "01/01/2000"]
+	 * 				["2000-01-01", "yyyy-MM-dd", "2000-01-01"]
+	 * 				["01/01/2000", "dd/MM/yyyy", "01/01/2000"]
 	 */
 	function testFromFormat(string $dateString, string $format, string $expected)
 	{
@@ -107,12 +94,167 @@ class DateTest extends TestCase
 	}
 
 	/**
+	 * @covers Date::convertToPhpDateFormat
+	 * @testWith	["d-M-yy", "j-n-y"]
+	 * 				["dd/MM/yyyy", "d/m/Y"]
+	 * 				["EEE.EEEE.e.yy", "D.l.w.y"]
+	 * 				["e.D.w.yy", "w.z.W.y"]
+	 */
+	function testConvertToPhpDateFormatSuccess(string $pattern, string $expected)
+	{
+		$flatpickrDateFormat = Date::convertToPhpDateFormat($pattern);
+		$this->assertSame($expected, $flatpickrDateFormat);
+	}
+	
+	/**
+	 * @covers Date::convertToPhpDateFormat
+	 * @testWith	["a"]
+	 * 				["A"]
+	 * 				["b"]
+	 * 				["B"]
+	 * 				["c"]
+	 * 				["C"]
+	 * 				["f"]
+	 * 				["F"]
+	 * 				["g"]
+	 * 				["G"]
+	 * 				["h"]
+	 * 				["H"]
+	 * 				["i"]
+	 * 				["I"]
+	 * 				["j"]
+	 * 				["J"]
+	 * 				["k"]
+	 * 				["K"]
+	 * 				["l"]
+	 * 				["L"]
+	 * 				["m"]
+	 * 				["n"]
+	 * 				["N"]
+	 * 				["o"]
+	 * 				["O"]
+	 * 				["p"]
+	 * 				["P"]
+	 * 				["q"]
+	 * 				["Q"]
+	 * 				["r"]
+	 * 				["R"]
+	 * 				["s"]
+	 * 				["S"]
+	 * 				["t"]
+	 * 				["T"]
+	 * 				["u"]
+	 * 				["U"]
+	 * 				["v"]
+	 * 				["V"]
+	 * 				["W"]
+	 * 				["x"]
+	 * 				["X"]
+	 * 				["Y"]
+	 * 				["z"]
+	 * 				["Z"]
+	 */
+	function testConvertToPhpDateFormatFail(string $pattern)
+	{
+		$this->expectException(InternalErrorException::class);
+		Date::convertToPhpDateFormat($pattern);
+	}
+
+	/**
+	 * @covers Date::convertToFlatpickDateFormat
+	 * @testWith	["d-M-yy", "j-n-y"]
+	 * 				["dd/MM/yyyy", "d/m/Y"]
+	 * 				["EEE.EEEE.e.yy", "D.l.w.y"]
+	 * 				["e.w.yy", "w.W.y"]
+	 */
+	function testConvertToFlatpickDateFormatSuccess(string $pattern, string $expected)
+	{
+		$flatpickrDateFormat = Date::convertToFlatpickDateFormat($pattern);
+		$this->assertSame($expected, $flatpickrDateFormat);
+	}
+
+	/**
+	 * @covers Date::convertToFlatpickDateFormat
+	 * @testWith	["a"]
+	 * 				["A"]
+	 * 				["b"]
+	 * 				["B"]
+	 * 				["c"]
+	 * 				["C"]
+	 * 				["D"]
+	 * 				["f"]
+	 * 				["F"]
+	 * 				["g"]
+	 * 				["G"]
+	 * 				["h"]
+	 * 				["H"]
+	 * 				["i"]
+	 * 				["I"]
+	 * 				["j"]
+	 * 				["J"]
+	 * 				["k"]
+	 * 				["K"]
+	 * 				["l"]
+	 * 				["L"]
+	 * 				["m"]
+	 * 				["n"]
+	 * 				["N"]
+	 * 				["o"]
+	 * 				["O"]
+	 * 				["p"]
+	 * 				["P"]
+	 * 				["q"]
+	 * 				["Q"]
+	 * 				["r"]
+	 * 				["R"]
+	 * 				["s"]
+	 * 				["S"]
+	 * 				["t"]
+	 * 				["T"]
+	 * 				["u"]
+	 * 				["U"]
+	 * 				["v"]
+	 * 				["V"]
+	 * 				["W"]
+	 * 				["x"]
+	 * 				["X"]
+	 * 				["Y"]
+	 * 				["z"]
+	 * 				["Z"]
+	 */
+	function testConvertToFlatpickDateFormatFail(string $pattern)
+	{
+		$this->expectException(InternalErrorException::class);
+		Date::convertToFlatpickDateFormat($pattern);
+	}
+
+	/**
 	 * @covers Date::fromFormat
 	 */
 	function testFromFormatWhithoutStringDate()
 	{
 		$date = Date::fromFormat('');
 		$this->assertFalse($date->isValid());
+	}
+
+
+	/**
+	 * @covers Date::__toObject
+	 */
+	function test__toObject()
+	{
+		$date = new Date('2000-01-01');
+		$expectedDate = new \DateTime('2000-01-01');
+		$this->assertEquals($date->__toObject(), $expectedDate);
+	}
+
+	/**
+	 * @covers Date::__toObject
+	 */
+	function test__toObjectWhithInvalidDate()
+	{
+		$date = new Date('');
+		$this->assertEquals($date->__toObject(), null);
 	}
 
 }

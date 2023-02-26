@@ -3,8 +3,6 @@
 namespace App\Controller;
 
 use App\Entity\Project;
-use App\Entity\User;
-use App\Helpers\Date;
 use App\Service\FieldService;
 use Symfony\Component\Yaml\Yaml;
 use App\Repository\StatusRepository;

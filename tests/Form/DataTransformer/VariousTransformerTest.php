@@ -11,7 +11,12 @@ class VariousTransformerTest extends TestCase
 {
 
 	/**
-	 * @dataProvider transformProvider
+	 * covers VariousTransformer::transform
+	 * @testWith	[null, null]
+	 * 				[[], null]
+	 * 				[["1"], "1"]
+	 * 				[["1", "1"], "1"]
+	 * 				[["1", "2"], "1"]
 	 */
 	public function testTransform($value, $expected): void
 	{
@@ -21,33 +26,15 @@ class VariousTransformerTest extends TestCase
 	}
 
 	/**
-	 * @dataProvider transformExceptionProvider
+	 * covers VariousTransformer::transform
+	 * @testWith	[true]
+	 * 				[1]
+	 * 				["a"]
 	 */
 	public function testTransformException($value): void
 	{
 		$this->expectException(UnexpectedTypeException::class);
 		$transformer = new VariousTransformer();
 		$transformer->transform($value);
-	}
-
-	public function transformProvider()
-	{
-		return [
-			'null'						=> [null, null],
-			'empty array'				=> [[], null],
-			'single value array'		=> [['1'], '1'],
-			'same value in array'		=> [['1', '1'], '1'],
-			'two different values'		=> [['1', '2'], '1'],
-		];
-	}
-
-	public function transformExceptionProvider()
-	{
-		return [
-			'boolean input value'		=> [true],
-			'integer input value'		=> [1],
-			'string input value'		=> ['a'],
-			'object input value'		=> [$this->createMock(stdClass::class)],
-		];
 	}
 }

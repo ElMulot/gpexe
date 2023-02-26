@@ -35,7 +35,7 @@
 					<td class="text-center">{{ automation.lastRun is empty ? '--' : automation.lastRun|date('d-m-Y') }}</td>
 					<td class="text-center">{{ automation.nextRun is empty ? '--' : automation.nextRun|date('d-m-Y') }}</td>
 					<td>
-						<a class="btn-success btn w-100 text-nowrap" href="{{ path('automation_edit', {'automation': automation.id}) }}">
+						<a class="btn-success btn w-100 text-nowrap" href="{{ path('automationEdit', {'automation': automation.id}) }}">
 							{% trans %}Edit{% endtrans %}
 						</a>
 					</td>

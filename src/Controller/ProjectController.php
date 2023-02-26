@@ -25,7 +25,7 @@ class ProjectController extends AbstractTurboController
 	{
 	}
 
-	#[Route(path: '/project/all', name: 'projects_list')]
+	#[Route(path: '/project/all', name: 'projectsList')]
 	public function projects() : Response
 	{
 		if ($this->isGranted('ROLE_ADMIN')) {
@@ -48,7 +48,7 @@ class ProjectController extends AbstractTurboController
 	public function index(Project $project) : Response
 	{
 		if ($this->isGranted('PROJECT_SHOW', $project) === false) {
-			return $this->redirectToRoute('projects_list');
+			return $this->redirectToRoute('projectsList');
 		}
 
 		$programs = [];
@@ -59,13 +59,13 @@ class ProjectController extends AbstractTurboController
 		}
 
 		if ($this->isGranted('ROLE_ADMIN')) {
-			$routeBack = $this->generateUrl('projects_list');
+			$routeBack = $this->generateUrl('projectsList');
 		} else {
 			$projects = $this->projectRepository->getProjects($this->getUser());
 			if (count($projects) == 1) {
 				$routeBack = $this->generateUrl('home');
 			} else {
-				$routeBack = $this->generateUrl('projects_list');
+				$routeBack = $this->generateUrl('projectsList');
 			}
 		}
 		
@@ -76,11 +76,11 @@ class ProjectController extends AbstractTurboController
 		]);
 	}
 
-	#[Route(path: '/project/{project}/{belong}/pannel', name: 'project_pannel', requirements: ['project' => '\d+', 'belong' => 'sdr|mdr'])]
+	#[Route(path: '/project/{project}/{belong}/pannel', name: 'projectPannel', requirements: ['project' => '\d+', 'belong' => 'sdr|mdr'])]
 	public function pannel(Request $request, Project $project, string $belong, CompanyRepository $companyRepository) : Response
 	{
 		if ($this->isGranted('PROJECT_SHOW', $project) === false) {
-			return $this->redirectToRoute('projects_list');
+			return $this->redirectToRoute('projectsList');
 		}
 
 		if ($this->getUserCompany()->isChecker() === true) {
@@ -109,7 +109,7 @@ class ProjectController extends AbstractTurboController
 		}
 	}
 
-	#[Route(path: '/project/new', name: 'project_new')]
+	#[Route(path: '/project/new', name: 'projectNew')]
 	#[IsGranted('ROLE_ADMIN')]
 	public function new(Request $request) : Response
 	{
@@ -123,7 +123,7 @@ class ProjectController extends AbstractTurboController
 
 			$this->addFlash('success', 'New entry created');
 			
-			return $this->renderSuccess($request, 'projects_list');
+			return $this->renderSuccess($request, 'projectsList');
 		} else {
 			return $this->render('pages/project/new.html.twig', [
 				'form' => $form
@@ -131,7 +131,7 @@ class ProjectController extends AbstractTurboController
 		}
 	}
 
-	#[Route(path: '/project/{project}/edit', name: 'project_edit', requirements: ['project' => '\d+'])]
+	#[Route(path: '/project/{project}/edit', name: 'projectEdit', requirements: ['project' => '\d+'])]
 	public function edit(Request $request, Project $project) : Response
 	{	
 		if ($this->isGranted('PROJECT_EDIT', $project) === false) {
@@ -148,7 +148,7 @@ class ProjectController extends AbstractTurboController
 
 			$this->addFlash('success', 'Datas updated');
 			
-			return $this->renderSuccess($request, 'projects_list');
+			return $this->renderSuccess($request, 'projectsList');
 		} else {
 			return $this->render('pages/project/edit.html.twig', [
 				'form' => $form
@@ -156,7 +156,7 @@ class ProjectController extends AbstractTurboController
 		}
 	}
 
-	#[Route(path: '/project/{project}/delete', name: 'project_delete', methods: ['GET', 'DELETE'], requirements: ['project' => '\d+'])]
+	#[Route(path: '/project/{project}/delete', name: 'projectDelete', methods: ['GET', 'DELETE'], requirements: ['project' => '\d+'])]
 	public function delete(Request $request, Project $project) : Response
 	{
 		if ($this->isGranted('PROJECT_DELETE', $project) === false) {
@@ -173,7 +173,7 @@ class ProjectController extends AbstractTurboController
 
 			$this->addFlash('success', 'Entry deleted');
 
-			return $this->renderSuccess($request, 'projects_list');
+			return $this->renderSuccess($request, 'projectList');
 		} else {
 			return $this->render('generic/delete.html.twig', [
 				'title' => 'Delete project',

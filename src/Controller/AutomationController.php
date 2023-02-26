@@ -36,7 +36,7 @@ class AutomationController extends AbstractTurboController
 		]);
 	}
 	
-	#[Route(path: '/project/automation/{automation}/edit', name: 'automation_edit', requirements: ['automation' => '\d+'])]
+	#[Route(path: '/project/automation/{automation}/edit', name: 'automationEdit', requirements: ['automation' => '\d+'])]
 	public function edit(Request $request, Automation $automation) : Response
 	{
 		$this->denyAccessUnlessGranted('PROGRAM_EDIT', $automation->getProject());
@@ -65,7 +65,7 @@ class AutomationController extends AbstractTurboController
 		}
 	}
 	
-	#[Route(path: '/automation/cron', name: 'automation_cron')]
+	#[Route(path: '/automation/cron', name: 'automationCron')]
 	public function cron(KernelInterface $kernel) : Response
 	{
 		$application = new Application($kernel);

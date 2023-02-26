@@ -3,20 +3,24 @@
 namespace App\Controller;
 
 use App\Entity\User;
-use App\Form\NewUserType;
-use App\Form\EditUserType;
+use App\Form\UserType;
 use App\Repository\UserRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class UserController extends AbstractTurboController
 {
 	
 	public function __construct(private readonly ManagerRegistry $doctrine,
-								private readonly UserPasswordHasherInterface $passwordHasher)
+								private readonly UserPasswordHasherInterface $passwordHasher,
+								#[Autowire('%app.config.default_locale%')]
+								private readonly string $defaultLocale,
+								#[Autowire('%app.config.default_timezone%')]
+								private readonly string $defaultTimezone)
 	{
 	}
 	
@@ -29,15 +33,16 @@ class UserController extends AbstractTurboController
 		]);
 	}
 	
-	#[Route(path: '/user/new', name: 'user_new')]
+	#[Route(path: '/user/new', name: 'userNew')]
 	public function new(Request $request) : Response
 	{
 		$user = new User();
-		$form = $this->createForm(NewUserType::class, $user);
+		$user->setLocale($this->defaultLocale);
+		$user->setTimezone($this->defaultTimezone);
+		$form = $this->createForm(UserType::class, $user);
 		$form->handleRequest($request);
 
 		if ($form->isSubmitted() && $form->isValid()) {
-			$user->setCreatedOn(new \DateTime());
 			$entityManager = $this->doctrine->getManager();
 			$entityManager->persist($user);
 			$entityManager->flush();
@@ -55,16 +60,13 @@ class UserController extends AbstractTurboController
 		}
 	}
 	
-	#[Route(path: '/user/{user}/edit', name: 'user_edit', requirements: ['user' => '\d+'])]
+	#[Route(path: '/user/{user}/edit', name: 'userEdit', requirements: ['user' => '\d+'])]
 	public function edit(Request $request, User $user) : Response
 	{
-		$form = $this->createForm(EditUserType::class, $user);
+		$form = $this->createForm(UserType::class, $user);
 		$form->handleRequest($request);
 
 		if ($form->isSubmitted() && $form->isValid()) {
-			if (!empty($form->get('new_password')->getData())) {
-				$user->setPassword($form->get('new_password')->getData());
-			}
 			$entityManager = $this->doctrine->getManager();
 			$entityManager->flush();
 			
@@ -81,7 +83,7 @@ class UserController extends AbstractTurboController
 		}
 	}
 	
-	#[Route(path: '/user/{user}/delete', name: 'user_delete', methods: ['GET', 'DELETE'], requirements: ['user' => '\d+'])]
+	#[Route(path: '/user/{user}/delete', name: 'userDelete', methods: ['GET', 'DELETE'], requirements: ['user' => '\d+'])]
 	public function delete(Request $request, User $user) : Response
 	{
 		$form = $this->createDeleteForm($user);
@@ -94,7 +96,7 @@ class UserController extends AbstractTurboController
 			
 			$this->addFlash('success', 'Entry deleted');
 
-			return $this->renderSuccess($request, 'company');
+			return $this->renderSuccess($request, 'user');
 
 		} else {
 

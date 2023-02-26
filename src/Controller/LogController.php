@@ -22,7 +22,7 @@ class LogController extends AbstractTurboController
 		]);
 	}
 	
-	#[Route(path: '/log/clear', name: 'log_clear')]
+	#[Route(path: '/log/clear', name: 'logClear')]
 	public function clear() : Response
 	{
 		$this->logRepository->clearLog();

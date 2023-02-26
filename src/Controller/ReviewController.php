@@ -21,7 +21,7 @@ class ReviewController extends AbstractTurboController
 	{
 	}
 
-	#[Route(path: '/project/serie/document/version/{version}/{company}/review/detail', name: 'review_detail', requirements: ['version' => '\d+', 'company' => '\d+'])]
+	#[Route(path: '/project/serie/document/version/{version}/{company}/review/detail', name: 'reviewDetail', requirements: ['version' => '\d+', 'company' => '\d+'])]
 	public function detail(Request $request, Version $version, Company $company) : Response
 	{
 		$serie = $version->getDocument()->getSerie();
@@ -35,7 +35,7 @@ class ReviewController extends AbstractTurboController
 		]);
 	}
 	
-	#[Route(path: '/project/serie/document/version/{version}/{company}/review/new', name: 'review_new', requirements: ['version' => '\d+', 'company' => '\d+'])]
+	#[Route(path: '/project/serie/document/version/{version}/{company}/review/new', name: 'reviewNew', requirements: ['version' => '\d+', 'company' => '\d+'])]
 	public function new(Request $request, Version $version, Company $company) : Response
 	{
 		$document = $version->getDocument();
@@ -64,7 +64,7 @@ class ReviewController extends AbstractTurboController
 				$entityManager->flush();
 				
 				// if ($review->getVisa()->getRevisionRequired()) {
-				// 	return $this->redirectToRoute('version_quick_new', [
+				// 	return $this->redirectToRoute('versionQuickNew', [
 				// 		'document' => $document->getId(),
 				// 		'version' => $version->getId(),
 				// 		'company' => $company->getId(),
@@ -72,7 +72,7 @@ class ReviewController extends AbstractTurboController
 					
 				// } else {
 
-					return $this->renderSuccess($request, 'review_detail', [
+					return $this->renderSuccess($request, 'reviewDetail', [
 						'version' => $version->getId(),
 						'company' => $company->getId(),
 					]);
@@ -85,14 +85,14 @@ class ReviewController extends AbstractTurboController
 				]);
 			}
 		} else {
-			return $this->redirectToRoute('review_detail' ,[
+			return $this->redirectToRoute('reviewDetail' ,[
 				'version' => $version->getId(),
 				'company' => $company->getId(),
 			]);
 		}
 	}
 	
-	#[Route(path: '/project/serie/document/version/review/{review}/edit', name: 'review_edit', requirements: ['review' => '\d+'])]
+	#[Route(path: '/project/serie/document/version/review/{review}/edit', name: 'reviewEdit', requirements: ['review' => '\d+'])]
 	public function edit(Request $request, Review $review) : Response
 	{
 		$version = $review->getVersion();
@@ -137,7 +137,7 @@ class ReviewController extends AbstractTurboController
 		}
 	}
 	
-	#[Route(path: '/project/serie/document/version/review/{review}/delete', name: 'review_delete', methods: ['GET', 'DELETE'], requirements: ['review' => '\d+'])]
+	#[Route(path: '/project/serie/document/version/review/{review}/delete', name: 'reviewDelete', methods: ['GET', 'DELETE'], requirements: ['review' => '\d+'])]
 	public function delete(Request $request, Review $review) : Response
 	{
 		$company = $review->getUser()->getCompany();

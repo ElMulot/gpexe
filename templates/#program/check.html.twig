@@ -1,7 +1,7 @@
 {% if program.isTypeImport %}
 	<div class="row justify-content-center">
-		<a type="button" class="btn btn-primary w-25 m-1" href="{{ path('program_dashboard', {'program': program.id}) }}">Selectionner un autre fichier</a>
-		<button type="button" class="btn btn-primary w-25 m-1" data-toggle="ajax" data-url="{{ path('program_load', {'program': program.id}) }}" data-target="#output">Lancer l'import</button>
+		<a type="button" class="btn btn-primary w-25 m-1" href="{{ path('programDashboard', {'program': program.id}) }}">Selectionner un autre fichier</a>
+		<button type="button" class="btn btn-primary w-25 m-1" data-toggle="ajax" data-url="{{ path('programLoad', {'program': program.id}) }}" data-target="#output">Lancer l'import</button>
 	</div>
 	
 	<div class="card mt-5">
@@ -15,6 +15,6 @@
 	</div>
 {% elseif program.isTypeTask %}
 	<div class="row justify-content-center">
-		<button type="button" class="btn btn-primary w-25 m-1" data-toggle="ajax" data-url="{{ path('program_load', {'program': program.id}) }}" data-target="#output">Lancer la tâche</button>
+		<button type="button" class="btn btn-primary w-25 m-1" data-toggle="ajax" data-url="{{ path('programLoad', {'program': program.id}) }}" data-target="#output">Lancer la tâche</button>
 	</div>
 {% endif %}

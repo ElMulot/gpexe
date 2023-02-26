@@ -6,7 +6,7 @@ class CodificationNotDefinedException extends \Exception
 {
     public function __construct()
     {
-        $message = sprintf('Erreur: la codification des documents du projet n\'est pas définie');
+        $message = sprintf('The codification of project documents is not yet defined.');
 		parent::__construct($message);
     }
 }

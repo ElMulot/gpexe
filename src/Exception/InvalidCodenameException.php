@@ -6,7 +6,7 @@ class InvalidCodenameException extends \Exception
 {
     public function __construct(string $codename)
     {
-        $message = sprintf('Le champ "%s" n\'existe pas', $codename);
+        $message = sprintf('The field "%s" doesn\'t exist.', $codename);
 		parent::__construct($message);
     }
 }

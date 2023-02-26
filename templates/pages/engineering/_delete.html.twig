@@ -10,7 +10,7 @@
 	{% set items = items|merge([
 		{
 			'name': "Document",
-			'href': path('document_delete', {'id': document_ids}),
+			'href': path('documentDelete', {'id': document_ids}),
 		}
 	]) %}	
 {% endif %}
@@ -20,7 +20,7 @@
 	{% set items = items|merge([
 		{
 			'name': "Version",
-			'href': path('version_delete', {'id': version_ids}),
+			'href': path('versionDelete', {'id': version_ids}),
 			'class': 'active',
 		}
 	]) %}	

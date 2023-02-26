@@ -31,7 +31,7 @@ class CodificationController extends AbstractTurboController
 		]);
 	}
 
-	#[Route(path: '/project/{project}/codification/new', name: 'codification_new', requirements: ['project' => '\d+'])]
+	#[Route(path: '/project/{project}/codification/new', name: 'codificationNew', requirements: ['project' => '\d+'])]
 	public function new(Request $request, Project $project) : Response
 	{
 		$this->denyAccessUnlessGranted('PROJECT_EDIT', $project);
@@ -61,7 +61,7 @@ class CodificationController extends AbstractTurboController
 		}
 	}
 
-	#[Route(path: '/project/codification/{codification}/edit', name: 'codification_edit', requirements: ['codification' => '\d+'])]
+	#[Route(path: '/project/codification/{codification}/edit', name: 'codificationEdit', requirements: ['codification' => '\d+'])]
 	public function edit(Request $request, Codification $codification) : Response
 	{
 		$project = $codification->getProject();
@@ -90,7 +90,7 @@ class CodificationController extends AbstractTurboController
 		}
 	}
 
-	#[Route(path: '/project/codification/{codification}/delete', name: 'codification_delete', methods: ['GET', 'DELETE'], requirements: ['codification' => '\d+'])]
+	#[Route(path: '/project/codification/{codification}/delete', name: 'codificationDelete', methods: ['GET', 'DELETE'], requirements: ['codification' => '\d+'])]
 	public function delete(Request $request, Codification $codification) : Response
 	{
 		$project = $codification->getProject();
@@ -101,6 +101,7 @@ class CodificationController extends AbstractTurboController
 		$form->handleRequest($request);
 
 		if ($form->isSubmitted() && $form->isValid()) {
+			
 			$entityManager = $this->doctrine->getManager();
 			$entityManager->remove($codification);
 			$entityManager->flush();

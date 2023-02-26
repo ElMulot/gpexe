@@ -7,7 +7,6 @@ use Symfony\Component\Form\Exception\TransformationFailedException;
 use Symfony\Component\Yaml\Exception\ParseException;
 use App\Service\ParseService;
 
-
 class ProgramTransformer implements DataTransformerInterface
 {
 	
@@ -23,7 +22,7 @@ class ProgramTransformer implements DataTransformerInterface
 		return $value;
 	}
 	
-	public function reverseTransform($value): string|TransformationFailedException
+	public function reverseTransform($value): string
 	{
 		try {
 			$validatedCode = $this->parseService->getValidatedCode($value);

@@ -39,18 +39,18 @@
 						{% if current_serie is not null %}
 							<button id="document_new" class="dropdown-item" data-toggle="modal" data-url={{ path('document_new', {'serie': current_serie.id}) }}>{% trans %}New{% endtrans %}</button>
 						{% endif %}
-						<button id="document_edit" class="dropdown-item" data-toggle="modal" data-url="{{ path('document_edit') }}">{% trans %}Edit{% endtrans %}</button>
-						<button id="document_move" class="dropdown-item" data-toggle="modal" data-url="{{ path('document_move') }}">{% trans %}Move{% endtrans %}</button>
-						<button id="document_delete" class="dropdown-item" data-toggle="modal" data-url="{{ path('document_delete') }}">{% trans %}Delete{% endtrans %}</button>
+						<button id="document_edit" class="dropdown-item" data-toggle="modal" data-url="{{ path('documentEdit') }}">{% trans %}Edit{% endtrans %}</button>
+						<button id="document_move" class="dropdown-item" data-toggle="modal" data-url="{{ path('documentMove') }}">{% trans %}Move{% endtrans %}</button>
+						<button id="document_delete" class="dropdown-item" data-toggle="modal" data-url="{{ path('documentDelete') }}">{% trans %}Delete{% endtrans %}</button>
 					</div>
 				</li>
 				
 				<li id="version_menu" class="nav-item dropdown" style="{{ block('nav_item') }}">
 					<a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{% trans %}Versions{% endtrans %}</a>
 					<div class="dropdown-menu" style="{{ block('nav_item') }}">
-						<button id="version_new" class="dropdown-item" data-toggle="modal" data-url="{{ path('version_new') }}">{% trans %}New{% endtrans %}</button>
-						<button id="version_edit" class="dropdown-item" data-toggle="modal" data-url="{{ path('version_edit') }}">{% trans %}Edit{% endtrans %}</button>
-						<button id="version_delete" class="dropdown-item" data-toggle="modal" data-url="{{ path('version_delete') }}">{% trans %}Delete{% endtrans %}</button>
+						<button id="version_new" class="dropdown-item" data-toggle="modal" data-url="{{ path('versionNew') }}">{% trans %}New{% endtrans %}</button>
+						<button id="version_edit" class="dropdown-item" data-toggle="modal" data-url="{{ path('versionEdit') }}">{% trans %}Edit{% endtrans %}</button>
+						<button id="version_delete" class="dropdown-item" data-toggle="modal" data-url="{{ path('versionDelete') }}">{% trans %}Delete{% endtrans %}</button>
 					</div>
 				</li>
 			{% endif %}

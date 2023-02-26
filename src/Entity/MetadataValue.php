@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Enum\MetadataTypeEnum;
 use Doctrine\ORM\Mapping as ORM;
 use App\Repository\MetadataValueRepository;
 use Symfony\Component\Validator\Constraints\Regex;
@@ -32,9 +33,9 @@ class MetadataValue implements \Stringable
 		return $this->value;
 	}
 
-	public function setValue(string $value): self
+	public function setValue(mixed $value): self
 	{
-		$this->value = $value;
+		$this->value = (string)$value;
 
 		return $this;
 	}
@@ -49,6 +50,19 @@ class MetadataValue implements \Stringable
 		$this->metadata = $metadata;
 
 		return $this;
+	}
+
+	public function getTypedValue(): null|bool|string|\DateTimeInterface
+	{
+		if ($this->value === null) {
+			return null;
+		}
+		
+		return match ($this->metadata->getType()) {
+			MetadataTypeEnum::BOOL	=> (bool)$this->value,
+			MetadataTypeEnum::DATE	=> new \DateTime($this->value),
+			default					=> $this->value,
+		};
 	}
 	
 	public function __toString(): string

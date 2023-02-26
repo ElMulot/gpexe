@@ -26,15 +26,19 @@ class TextareaVariousTypeTest extends TypeTestCase
 
 	protected function getExtensions()
 	{
-		$textVariousType = new TextareaVariousType($this->suscriber, $this->modelTransformer, $this->dataMappper);
+		$type = new TextareaVariousType($this->suscriber, $this->modelTransformer, $this->dataMappper);
 
 		return [
-			new PreloadedExtension([$textVariousType], []),
+			new PreloadedExtension([$type], []),
 		];
 	}
 
 	/**
-	 * @dataProvider childrenCreationProvider
+	 * @covers TextareaVariousType
+	 * @testWith	[[], false]
+	 * 				[["a"], false]
+	 * 				[["a", "a"], false]
+	 * 				[["a", "b"], true]
 	 */	
 	public function testChildrenCreation($value, $expected): void
 	{
@@ -44,17 +48,10 @@ class TextareaVariousTypeTest extends TypeTestCase
 		$this->assertTrue($form->has('input'));
 		$this->assertSame($expected, $form->has('switch'));
 	}
-	
-	public function childrenCreationProvider()
-	{
-		return [
-			'empty'					=> [[], false],
-			'single value array'	=> [['a'], false],
-			'same value in array'	=> [['a', 'a'], false],
-			'two different values'	=> [['a', 'b'], true],
-		];
-	}
 
+	/**
+	 * @covers TextareaVariousType
+	 */	
 	public function testSubmitVariousSwitchOn(): void
 	{
 		$form = $this->factory->create(TextareaVariousType::class, ['a', 'b']);
@@ -69,8 +66,12 @@ class TextareaVariousTypeTest extends TypeTestCase
 	}
 
 	/**
-	 * @dataProvider submitValidDataProvider
-	 */
+	 * @covers TextareaVariousType
+	 * @testWith	[null, null]
+	 * 				["", null]
+	 * 				["1", "1"]
+	 * 				["a", "a"]
+	 */	
 	public function testSubmitValidData($value, $expected): void
 	{
 		$form = $this->factory->create(TextareaVariousType::class, ['a', 'b']);
@@ -82,16 +83,6 @@ class TextareaVariousTypeTest extends TypeTestCase
 
 		$this->assertTrue($form->isSynchronized());
 		$this->assertSame($expected, $form->getData());
-	}
-
-	public function submitValidDataProvider()
-	{
-		return [
-			'null'			=> [null, null],
-			'empty'			=> ['', null],
-			'numeric'		=> ['1', '1'],
-			'non-numeric'	=> ['a', 'a'],
-		];
 	}
 }
 

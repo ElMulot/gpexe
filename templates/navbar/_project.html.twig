@@ -9,7 +9,7 @@
 		{% set admin_items = admin_items|merge([
 			{
 				'name': 'edit.project',
-				'href': path('project_edit', {'project': project.id}),
+				'href': path('projectEdit', {'project': project.id}),
 				'data-turbo-frame': 'xl_modal',
 				'data-turbo-stream-replace': 'projects',
 			},
@@ -77,7 +77,7 @@
 		{% set document_items = document_items|merge([
 			{
 				'name': 'All documents',
-				'href': path('series_list_by_belonging', {'project': project.id, 'belong': constant('App\\Entity\\Enum\\SerieBelongingEnum::ALL')}),
+				'href': path('seriesListByBelonging', {'project': project.id, 'belong': constant('App\\Entity\\Enum\\SerieBelongingEnum::ALL')}),
 			}])
 		%}
 	{% endif %}
@@ -86,7 +86,7 @@
 		{% set document_items = document_items|merge([
 			{
 				'name': 'MDR only',
-				'href': path('series_list_by_belonging', {'project': project.id, 'belong': constant('App\\Entity\\Enum\\SerieBelongingEnum::MDR')}),
+				'href': path('seriesListByBelonging', {'project': project.id, 'belong': constant('App\\Entity\\Enum\\SerieBelongingEnum::MDR')}),
 			}])
 		%}
 	{% endif %}
@@ -96,7 +96,7 @@
 		{% set document_items = document_items|merge([
 			{
 				'name': 'SDR only',
-				'href': path('series_list_by_belonging', {'project': project.id, 'belong': constant('App\\Entity\\Enum\\SerieBelongingEnum::SDR')}),
+				'href': path('seriesListByBelonging', {'project': project.id, 'belong': constant('App\\Entity\\Enum\\SerieBelongingEnum::SDR')}),
 			}])
 		%}
 	{% endif %}
@@ -124,7 +124,7 @@
 			{% set menu = menu|merge([
 				{
 					'name': program.name,
-					'href': path('program_dashboard', {'program': program.id}),
+					'href': path('programDashboard', {'program': program.id}),
 				}
 			]) %}
 		{% else %}

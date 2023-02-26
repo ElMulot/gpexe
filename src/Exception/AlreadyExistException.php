@@ -6,7 +6,7 @@ class AlreadyExistException extends \Exception
 {
     public function __construct(mixed $value)
     {
-        $message = sprintf('Erreur: la valeur "%s" est déjà utilisée', is_scalar($value)?:'');
+        $message = sprintf('The value "%s" is already used.', is_scalar($value)?:'');
 		parent::__construct($message);
     }
 }

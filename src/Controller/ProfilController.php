@@ -26,7 +26,7 @@ class ProfilController extends AbstractTurboController
 		]);
 	}
 
-	#[Route(path: '/profil/new', name: 'profil_new')]
+	#[Route(path: '/profil/new', name: 'profilNew')]
 	public function new(Request $request) : Response
 	{
 		$profil = new Profil();
@@ -51,7 +51,7 @@ class ProfilController extends AbstractTurboController
 		}
 	}
 	
-	#[Route(path: '/profil/{profil}/edit', name: 'profil_edit', requirements: ['profil' => '\d+'])]
+	#[Route(path: '/profil/{profil}/edit', name: 'profilEdit', requirements: ['profil' => '\d+'])]
 	public function edit(Request $request, Profil $profil) : Response
 	{
 		$form = $this->createForm(ProfilType::class, $profil);
@@ -73,7 +73,7 @@ class ProfilController extends AbstractTurboController
 		}
 	}
 	
-	#[Route(path: '/profil/{profil}/delete', name: 'profil_delete', methods: ['GET', 'DELETE'], requirements: ['profil' => '\d+'])]
+	#[Route(path: '/profil/{profil}/delete', name: 'profilDelete', methods: ['GET', 'DELETE'], requirements: ['profil' => '\d+'])]
 	public function delete(Request $request, Profil $profil, ProfilRepository $profilRepository) : Response
 	{
 		$form = $this->createDeleteForm($profil);

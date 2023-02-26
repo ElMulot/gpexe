@@ -9,6 +9,10 @@ use App\Form\AccountType;
 use App\Form\DeleteType;
 use App\Form\ProjectType;
 use App\Form\Type\ChoiceVariousType;
+use App\Form\Type\ComboBoxType;
+use App\Form\Type\DateVariousType;
+use App\Helpers\Date;
+use App\Service\DateService;
 use Symfony\UX\Turbo\TurboBundle;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Stopwatch\Stopwatch;
@@ -20,6 +24,8 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Form\CallbackTransformer;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\DateType;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Validator\Validation;
 
@@ -29,12 +35,15 @@ class TestController extends AbstractTurboController
 								private readonly ManagerRegistry $doctrine,
 								private readonly UserPasswordHasherInterface $passwordHasher,
                                 private readonly string $publicDirectory,
+								private readonly DateService $dateService,
 								#[Autowire('%app.uploads_directory%')]
-                                private readonly string $uploadsDirectory)
+                                private readonly string $uploadsDirectory,
+								#[Autowire('%kernel.default_locale%')]
+								private readonly string $defaultLocale)
 	{
 	}
 	
-	#[Route(path: '/test', name: 'test', methods:['GET', 'DELETE'])]
+	#[Route(path: '/test', name: 'test')]
 	public function index(Request $request) : Response
 	{
 		
@@ -51,29 +60,25 @@ class TestController extends AbstractTurboController
 			// }
 		// }
 
-		// $form = $this->createFormBuilder(null, ['csrf_protection' => false])
-		// 	->add('test', ChoiceVariousType::class, [
-		// 		'choices' => [
-		// 			'Zero'	=> 0,
-		// 			'One'	=> 1,
-		// 			'Two'	=> 2,
-		// 		],
-		// 		'data' => [0, 1]
+		// $this->dateService->formatAsDefault(new \DateTime());
+		dump($this->dateService->format(new \DateTime('now'), 'EEE eee HH:m:ss'));
+
+		// $form = $this->createFormBuilder(null, [
+		// 		'csrf_protection' => false, 
+		// 		'attr' => ['id' => 'form_test'],
 		// 	])
-		// 	->getForm();
-
-		// $form->get('test')->submit([
-		// 	'input'		=> 50,
-		// 	'switch'	=> null,
-		// ]);
-
-		// dump($form->get('test')->getNormData());
-
-		$text = $this->passwordHasher->hashPassword($this->getUser(), '');
-
-
+		// 	->add('test', DateVariousType::class, [
+		// 		'data' => [new \DateTime('tomorrow'), new \DateTime('today')],
+		// 	])
+		// 	->add('save', SubmitType::class, ['label' => 'Save'])
+		// 	->getForm();	
+		
+		// if ($form->isSubmitted() && $form->isValid()) {
+		// 	dump($form->getData());
+		// }
 		return $this->render('test/index.html.twig', [
-			'text' => $text,
+			// 'form' => $form,
+			'test' => new \DateTime('now'),
 		]);
 	}
 

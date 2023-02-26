@@ -17,13 +17,11 @@
 	
 	{{ block('fs_modal') }}
 
-	{{ block('fs2_modal') }}
-
 	{{ block('xl_modal') }}
 
 	{{ block('md_modal') }}
 
-	<footer id="footer" class="toast-container position-absolute bottom-0 start-50 translate-middle-x pb-3">
+	<footer id="footer" class="toast-container position-absolute bottom-0 end-0 pb-3 pe-5">
 		{{ block('footer') }}
 	</footer>
 
@@ -44,10 +42,6 @@
 
 {% block fs_modal %}
 	{% include "modal/fs_modal.html.twig" %}
-{% endblock %}
-
-{% block fs2_modal %}
-	{% include "modal/fs2_modal.html.twig" %}
 {% endblock %}
 
 {% block xl_modal %}

@@ -29,15 +29,19 @@ class ChoiceVariousTypeTest extends TypeTestCase
 
 	protected function getExtensions()
 	{
-		$textVariousType = new ChoiceVariousType($this->suscriber, $this->modelTransformer, $this->dataMappper);
+		$type = new ChoiceVariousType($this->suscriber, $this->modelTransformer, $this->dataMappper);
 
 		return [
-			new PreloadedExtension([$textVariousType], []),
+			new PreloadedExtension([$type], []),
 		];
 	}
 
 	/**
-	 * @dataProvider childrenCreationProvider
+	 * @covers ChoiceVariousType
+	 * @testWith	[[], false]
+	 * 				[[0], false]
+	 * 				[[1, 1], false]
+	 * 				[[1, 2], true]
 	 */	
 	public function testChildrenCreation($value, $expected): void
 	{
@@ -53,17 +57,10 @@ class ChoiceVariousTypeTest extends TypeTestCase
 		$this->assertTrue($form->has('input'));
 		$this->assertSame($expected, $form->has('switch'));
 	}
-	
-	public function childrenCreationProvider()
-	{
-		return [
-			'empty'					=> [[], false],
-			'single value array'	=> [[0], false],
-			'same value in array'	=> [[1, 1], false],
-			'two different values'	=> [[1, 2], true],
-		];
-	}
 
+	/**
+	 * @covers ChoiceVariousType
+	 */	
 	public function testSubmitVariousSwitchOn(): void
 	{
 		$form = $this->factory->create(ChoiceVariousType::class, [0, 1], [
@@ -84,8 +81,11 @@ class ChoiceVariousTypeTest extends TypeTestCase
 	}
 
 	/**
-	 * @dataProvider submitValidDataProvider
-	 */
+	 * @covers ChoiceVariousType
+	 * @testWith	["0", 0]
+	 * 				["1", 1]
+	 * 				["2", 2]
+	 */	
 	public function testSubmitValidData($value, $expected): void
 	{
 		$form = $this->factory->create(ChoiceVariousType::class, [0, 1], [
@@ -105,18 +105,14 @@ class ChoiceVariousTypeTest extends TypeTestCase
 		$this->assertSame($expected, $form->getData());
 	}
 
-	public function submitValidDataProvider()
-	{
-		return [
-			'numeric0'		=> ['0', 0],
-			'numeric1'		=> ['1', 1],
-			'numeric2'		=> ['2', 2],
-		];
-	}
-
 	/**
-	 * @dataProvider submitInvalidDataProvider
-	 */
+	 * @covers ChoiceVariousType
+	 * @testWith	[null]
+	 * 				[""]
+	 * 				["3"]
+	 * 				["a"]
+	 * 				["[]"]
+	 */	
 	public function testSubmitInvalidData($value): void
 	{
 		$form = $this->factory->create(ChoiceVariousType::class, [0, 1], [
@@ -134,17 +130,6 @@ class ChoiceVariousTypeTest extends TypeTestCase
 
 		$this->assertTrue($form->isSynchronized());
 		$this->assertNull($form->getData());
-	}
-
-	public function submitInvalidDataProvider()
-	{
-		return [
-			'null'			=> [null],
-			'empty'			=> [''],
-			'numeric'		=> ['3'],
-			'non-numeric'	=> ['a'],
-			'array'			=> ['[]'],
-		];
 	}
 }
 
