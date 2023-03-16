@@ -181,3 +181,8 @@
     date: 14/10/2022
     changes:
         - Correction d'un bug lors de l'import de documents
+- 
+    version: 0.5.17
+    date: 16/03/2023
+    changes:
+        - Mise à jour de sécurité
