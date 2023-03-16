@@ -22,7 +22,7 @@ class FunctionsExtension extends AbstractExtension
 		$this->doctrineExtractor = new DoctrineExtractor($entityManager);
 	}
 	
-	public function getFunctions()
+	public function getFunctions(): array
 	{
 		return [
 			new TwigFunction('headers', [$this, 'getHeaders']),

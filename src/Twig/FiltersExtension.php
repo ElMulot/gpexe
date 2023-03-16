@@ -21,7 +21,7 @@ class FiltersExtension extends AbstractExtension
 		$this->propertyService = $propertyService;
 	}
 	
-	public function getFilters()
+	public function getFilters(): array
 	{
 		return [
 			new TwigFilter('short_name', [$this, 'getShortName']),

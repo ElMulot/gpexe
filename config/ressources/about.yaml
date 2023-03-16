@@ -185,4 +185,5 @@
     version: 0.5.17
     date: 16/03/2023
     changes:
+        - Migration sous Symfony 5.4
         - Mise à jour de sécurité
