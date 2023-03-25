@@ -3,18 +3,17 @@
 namespace App\Entity;
 
 use App\Entity\Project;
-use App\Entity\MetadataItem;
+use App\Entity\MetadataChoice;
 use Doctrine\ORM\Mapping as ORM;
 use App\Entity\Enum\MetadataTypeEnum;
 use App\Repository\MetadataRepository;
 use App\Entity\Enum\MetadataParentEnum;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\ArrayCollection;
-use Symfony\Component\Validator\Constraints\Regex;
-use Symfony\Component\Validator\Constraints\NotBlank;
-use Symfony\Component\Validator\Constraints\NotEqualTo;
+use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
-use Fresh\DoctrineEnumBundle\Validator\Constraints as DoctrineAssert;
+use Spatie\Regex\Regex;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 #[ORM\Entity(repositoryClass: MetadataRepository::class)]
 #[UniqueEntity(
@@ -28,31 +27,30 @@ class Metadata implements \Stringable
 	private ?int $id = null;
 
 	#[ORM\Column(length: 100)]
-	#[NotBlank]
-	#[Regex('/^[^$"]+$/')]
+	#[Assert\NotBlank]
+	#[Assert\Regex('/^[^$"]+$/')]
 	private ?string $name = null;
 
 	#[ORM\Column(length: 100)]
-	#[NotBlank]
-	#[Regex('/^\w+$/')]
-	#[NotEqualTo('name')]
-	#[NotEqualTo('reference')]
-	#[NotEqualTo('initialScheduleDate')]
-	#[NotEqualTo('scheduleDate')]
-	#[NotEqualTo('deliveryDate')]
-	#[NotEqualTo('date')]
-	#[NotEqualTo('required')]
-	#[NotEqualTo('writer')]
-	#[NotEqualTo('checker')]
-	#[NotEqualTo('approver')]
-	#[NotEqualTo('reference')]
-	#[NotEqualTo('company')]
+	#[Assert\NotBlank]
+	#[Assert\Regex('/^\w+$/')]
+	#[Assert\NotEqualTo('name')]
+	#[Assert\NotEqualTo('reference')]
+	#[Assert\NotEqualTo('initialScheduleDate')]
+	#[Assert\NotEqualTo('scheduleDate')]
+	#[Assert\NotEqualTo('deliveryDate')]
+	#[Assert\NotEqualTo('date')]
+	#[Assert\NotEqualTo('required')]
+	#[Assert\NotEqualTo('writer')]
+	#[Assert\NotEqualTo('checker')]
+	#[Assert\NotEqualTo('approver')]
+	#[Assert\NotEqualTo('reference')]
+	#[Assert\NotEqualTo('company')]
 	
 	private ?string $codename = null;
 
-	#[ORM\Column(type: 'metadata_type_enum')]
-	#[DoctrineAssert\EnumType(entity: MetadataTypeEnum::class)]
-	private ?string $type = null;
+	#[ORM\Column(type: 'string', enumType: MetadataTypeEnum::class)]
+	private ?MetadataTypeEnum $type = null;
 
 	#[ORM\Column]
 	private ?bool $mandatory = null;
@@ -61,26 +59,25 @@ class Metadata implements \Stringable
 	private ?string $pattern = null;
 
 	#[ORM\Column(length: 255, nullable: true)]
-	private ?string $defaultValue = null;
+	private ?string $defaultRawValue = null;
 
-	#[ORM\Column(type: 'metadata_parent_enum')]
-	#[DoctrineAssert\EnumType(entity: MetadataParentEnum::class)]
-	private ?string $parent = null;
+	#[ORM\Column(type: 'string', enumType: MetadataParentEnum::class)]
+	private ?MetadataParentEnum $parent = null;
 
 	#[ORM\ManyToOne(inversedBy: 'metadatas', cascade:["persist"], fetch: 'EAGER')]
 	private ?Project $project = null;
 
-	#[ORM\OneToMany(targetEntity: MetadataItem::class, mappedBy: 'metadata', orphanRemoval: true)]
-	private Collection $metadataItems;
+	#[ORM\OneToMany(targetEntity: MetadataChoice::class, mappedBy: 'metadata', orphanRemoval: true)]
+	private Collection $metadataChoices;
 
-	#[ORM\OneToMany(targetEntity: MetadataValue::class, mappedBy: 'metadata', orphanRemoval: true)]
-	private Collection $metadataValues;
+	#[ORM\OneToMany(targetEntity: MetadataElement::class, mappedBy: 'metadata', orphanRemoval: true)]
+	private Collection $metadataElements;
 
 	public function __construct()
 	{
-		$this->type = MetadataTypeEnum::getDefaultValue();
-		$this->metadataItems = new ArrayCollection();
-		$this->metadataValues = new ArrayCollection();
+		$this->type = MetadataTypeEnum::LIST;
+		$this->metadataChoices = new ArrayCollection();
+		$this->metadataElements = new ArrayCollection();
 	}
 
 	public function getId(): ?int
@@ -112,14 +109,13 @@ class Metadata implements \Stringable
 		return $this;
 	}
 
-	public function getType(): string
+	public function getType(): MetadataTypeEnum
 	{
 		return $this->type;
 	}
 
-	public function setType(string $type): self
+	public function setType(MetadataTypeEnum $type): self
 	{
-		MetadataTypeEnum::assertValidChoice($type);
 		if ($type === MetadataTypeEnum::BOOL) {
 			$this->mandatory = true;
 		}
@@ -158,26 +154,25 @@ class Metadata implements \Stringable
 		return $this;
 	}
 
-	public function getDefaultValue(): ?string
+	public function getDefaultRawValue(): ?string
 	{
-		return $this->defaultValue;
+		return $this->defaultRawValue;
 	}
 
-	public function setDefaultValue(mixed $defaultValue): self
+	public function setDefaultRawValue(mixed $defaultRawValue): self
 	{
-		$this->defaultValue = (string)$defaultValue;
+		$this->defaultRawValue = (string)$defaultRawValue;
 
 		return $this;
 	}
 
-	public function getParent(): string
+	public function getParent(): MetadataParentEnum
 	{
 		return $this->parent;
 	}
 
-	public function setParent(string $parent): self
+	public function setParent(MetadataParentEnum $parent): self
 	{
-		MetadataParentEnum::assertValidChoice($parent);
 		$this->parent = $parent;
 
 		return $this;
@@ -196,29 +191,29 @@ class Metadata implements \Stringable
 	}
 
 	/**
-	 * @return Collection|MetadataItem[]
+	 * @return Collection|MetadataChoice[]
 	 */
-	public function getMetadataItems(): Collection
+	public function getMetadataChoices(): Collection
 	{
-		return $this->metadataItems;
+		return $this->metadataChoices;
 	}
 
-	public function addMetadataItem(MetadataItem $metadataItem): self
+	public function addMetadataChoice(MetadataChoice $metadataChoice): self
 	{
-		if (!$this->metadataItems->contains($metadataItem)) {
-			$this->metadataItems[] = $metadataItem;
-			$metadataItem->setMetadata($this);
+		if (!$this->metadataChoices->contains($metadataChoice)) {
+			$this->metadataChoices[] = $metadataChoice;
+			$metadataChoice->setMetadata($this);
 		}
 
 		return $this;
 	}
 
-	public function removeMetadataItem(MetadataItem $metadataItem): self
+	public function removeMetadataChoice(MetadataChoice $metadataChoice): self
 	{
-		if ($this->metadataItems->contains($metadataItem)) {
-			$this->metadataItems->removeElement($metadataItem);
-			if ($metadataItem->getMetadata() === $this) {
-				$metadataItem->setMetadata(null);
+		if ($this->metadataChoices->contains($metadataChoice)) {
+			$this->metadataChoices->removeElement($metadataChoice);
+			if ($metadataChoice->getMetadata() === $this) {
+				$metadataChoice->setMetadata(null);
 			}
 		}
 
@@ -226,29 +221,29 @@ class Metadata implements \Stringable
 	}
 
 	/**
-	 * @return Collection|MetadataValue[]
+	 * @return Collection|MetadataElement[]
 	 */
-	public function getMetadataValues(): Collection
+	public function getMetadataElements(): Collection
 	{
-		return $this->metadataValues;
+		return $this->metadataElements;
 	}
 
-	public function addMetadataValue(MetadataValue $metadataValue): self
+	public function addMetadataElement(MetadataElement $metadataElement): self
 	{
-		if (!$this->metadataValues->contains($metadataValue)) {
-			$this->metadataValues[] = $metadataValue;
-			$metadataValue->setMetadata($this);
+		if (!$this->metadataElements->contains($metadataElement)) {
+			$this->metadataElements[] = $metadataElement;
+			$metadataElement->setMetadata($this);
 		}
 		
 		return $this;
 	}
 
-	public function removeMetadataValue(MetadataValue $metadataValue): self
+	public function removeMetadataElement(MetadataElement $metadataElement): self
 	{
-		if ($this->metadataValues->contains($metadataValue)) {
-			$this->metadataValues->removeElement($metadataValue);
-			if ($metadataValue->getMetadata() === $this) {
-				$metadataValue->setMetadata(null);
+		if ($this->metadataElements->contains($metadataElement)) {
+			$this->metadataElements->removeElement($metadataElement);
+			if ($metadataElement->getMetadata() === $this) {
+				$metadataElement->setMetadata(null);
 			}
 		}
 		
@@ -262,7 +257,7 @@ class Metadata implements \Stringable
 
 	public function getFullCodename(): string
 	{
-		return $this->getParent() . '.' . $this->codename;
+		return $this->getParent()->value . '.' . $this->codename;
 	}
 
 	public function isBoolean(): bool
@@ -295,27 +290,39 @@ class Metadata implements \Stringable
 		return ($this->getType() == MetadataTypeEnum::LIST);
 	}
 
-	public function getTypedDefaultValue(): null|bool|string|\DateTimeInterface|MetadataItem
+	/**
+	 * Get default value
+	 * 
+	 * - if MetadataTypeEnum::BOOL : return bool
+	 * - if MetadataTypeEnum::TEXT : return string
+	 * - if MetadataTypeEnum::REGEX : return string
+	 * - if MetadataTypeEnum::DATE : return \DateTime object
+	 * - if MetadataTypeEnum::LINK : return string
+	 * - if MetadataTypeEnum::LIST : return string
+	 *
+	 * @return null|string
+	 */
+	public function getDefaultValue(): null|bool|string|\DateTimeInterface|MetadataChoice
 	{
-		if ($this->defaultValue === null) {
+		if ($this->defaultRawValue === null) {
 			return null;
 		}
 		
 		switch ($this->type) {
 			case MetadataTypeEnum::BOOL:
-				return (bool)$this->defaultValue;
+				return (bool)$this->defaultRawValue;
 			case MetadataTypeEnum::DATE:
-				return new \DateTime($this->defaultValue);
+				return new \DateTime($this->defaultRawValue);
 			case MetadataTypeEnum::LIST:
-				/**@var MetadataItem $metadataItem */
-				foreach ($this->metadataItems as $metadataItem) {
-					if ($metadataItem->getValue() === $this->defaultValue) {
-						return $metadataItem;
+				/**@var MetadataChoice $metadataChoice */
+				foreach ($this->metadataChoices as $metadataChoice) {
+					if ($metadataChoice->getValue() === $this->defaultRawValue) {
+						return $metadataChoice;
 					}
 				}
 				return null;
 			default:
-				return $this->defaultValue;
+				return $this->defaultRawValue;
 		}
 	}
 

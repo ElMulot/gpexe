@@ -162,7 +162,7 @@ class VersionRepository extends RepositoryService
 								case MetadataTypeEnum::LINK:
 									if ($qb->hasAlias($field['id'] . '_') === false) {
 										$qb
-											->leftJoin($field['parent'] . '.metadataValues', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
+											->leftJoin($field['parent'] . '.metadataElements', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
 											->groupBy('version.id')
 										;
 									}
@@ -172,7 +172,7 @@ class VersionRepository extends RepositoryService
 								case MetadataTypeEnum::DATE:
 									if ($qb->hasAlias($field['id'] . '_') === false) {
 										$qb
-											->leftJoin($field['parent'] . '.metadataValues', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
+											->leftJoin($field['parent'] . '.metadataElements', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
 											->groupBy('version.id')
 											->addSelect($this->dateStatement($field['id']))
 										;
@@ -183,7 +183,7 @@ class VersionRepository extends RepositoryService
 								case MetadataTypeEnum::LIST:
 									if ($qb->hasAlias($field['id'] . '_') === false) {
 										$qb
-											->leftJoin($field['parent'] . '.metadataItems', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
+											->leftJoin($field['parent'] . '.metadataChoices', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
 											->groupBy('version.id')
 										;
 									}
@@ -256,14 +256,14 @@ class VersionRepository extends RepositoryService
 						
 						case CodificationTypeEnum::LIST:
 							if ($qb->hasAlias($field['id'] . '_') === false) {
-								$qb->innerJoin('document.codificationItems', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.codification', $id));
+								$qb->innerJoin('document.codificationChoices', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.codification', $id));
 							}
 							$qb->addSelect(sprintf('%1$s_.value AS %1$s', $field['id']));
 							break;
 							
 						case CodificationTypeEnum::REGEX:
 							if ($qb->hasAlias($field['id']. '_') === false) {
-								$qb->innerJoin('document.codificationValues', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.codification', $id));
+								$qb->innerJoin('document.codificationElements', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.codification', $id));
 							}
 							$qb->addSelect(sprintf('%1$s_.value AS %1$s', $field['id']));
 							break;
@@ -368,7 +368,7 @@ class VersionRepository extends RepositoryService
 									case MetadataTypeEnum::LINK:
 										if ($qb->hasAlias($field['id'] . '_') === false) {
 											$qb
-												->leftJoin($field['parent'] . '.metadataValues', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
+												->leftJoin($field['parent'] . '.metadataElements', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
 												->groupBy('version.id')
 											;
 										}
@@ -378,7 +378,7 @@ class VersionRepository extends RepositoryService
 									case MetadataTypeEnum::DATE:
 										if ($qb->hasAlias($field['id'] . '_') === false) {
 											$qb
-												->leftJoin($field['parent'] . '.metadataValues', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
+												->leftJoin($field['parent'] . '.metadataElements', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
 												->groupBy('version.id')
 											;
 										}
@@ -389,7 +389,7 @@ class VersionRepository extends RepositoryService
 										
 										if ($qb->hasAlias($field['id'] . '_') === false) {
 											$qb
-												->leftJoin($field['parent'] . '.metadataItems', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
+												->leftJoin($field['parent'] . '.metadataChoices', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
 												->groupBy('version.id')
 											;
 										}
@@ -451,7 +451,7 @@ class VersionRepository extends RepositoryService
 					
 					if ($codification->isFixed()) {
 						
-						$references[] = $codification->getValue();
+						$references[] = $codification->getDefaultValue();
 						
 					} elseif (array_key_exists('codification_' . $id, $result)) {
 						
@@ -775,11 +775,11 @@ class VersionRepository extends RepositoryService
 							switch ($field['type']) {
 
 								case CodificationTypeEnum::LIST:
-									$qb->innerJoin('document.codificationItems', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.codification', $id));
+									$qb->innerJoin('document.codificationChoices', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.codification', $id));
 									break;
 									
 								case CodificationTypeEnum::REGEX:
-									$qb->innerJoin('document.codificationValues', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.codification', $id));
+									$qb->innerJoin('document.codificationElements', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.codification', $id));
 									break;
 							}
 							
@@ -807,14 +807,14 @@ class VersionRepository extends RepositoryService
 								case MetadataTypeEnum::REGEX:
 								case MetadataTypeEnum::LINK:
 									$qb
-										->leftJoin($field['parent'] . '.metadataValues', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
+										->leftJoin($field['parent'] . '.metadataElements', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
 										->groupBy('version.id')
 										->addSelect(sprintf('MAX(%1$s_.value) AS HIDDEN %1$s_value', $field['id']))
 									;
 									break;
 								case MetadataTypeEnum::DATE:
 									$qb
-										->leftJoin($field['parent'] . '.metadataValues', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
+										->leftJoin($field['parent'] . '.metadataElements', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
 										->groupBy('version.id')
 										->addSelect($this->dateStatement($field['id']))
 									;
@@ -822,7 +822,7 @@ class VersionRepository extends RepositoryService
 									
 								case MetadataTypeEnum::LIST:
 									$qb
-										->leftJoin($field['parent'] . '.metadataItems', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
+										->leftJoin($field['parent'] . '.metadataChoices', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
 										->groupBy('version.id')
 										->addSelect(sprintf('MAX(%1$s_.id) AS HIDDEN %1$s_id', $field['id']))
 									;

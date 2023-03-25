@@ -3,13 +3,10 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Validator\Constraints\Timezone;
 use App\Repository\UserRepository;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\ArrayCollection;
-use Symfony\Component\Validator\Constraints\Email;
-use Symfony\Component\Validator\Constraints\Regex;
-use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -26,22 +23,22 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 	private ?int $id = null;
 
 	#[ORM\Column(length: 180, unique: true)]
-	#[Email]
+	#[Assert\Email]
 	private ?string $email = null;
 
 	#[ORM\Column]
 	private ?string $password = null;
 
 	#[ORM\Column(length: 100)]
-	#[NotBlank]
-	#[Regex('/^[^$"]+$/')]
+	#[Assert\NotBlank]
+	#[Assert\Regex('/^[^$"]+$/')]
 	private ?string $name = null;
 
 	#[ORM\Column(length: 5)]
 	private ?string $locale = null;
 
     #[ORM\Column(length: 255)]
-	#[Timezone]
+	#[Assert\Timezone]
     private ?string $timezone = null;
 
 	#[ORM\Column]

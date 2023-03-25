@@ -3,14 +3,14 @@
 {% extends 'modal/xl_modal.html.twig' %}
 
 {% block modal_body %}
-	{% for key, value in enum_readable_values('metadata_type_enum') %}
+	{% for case in enum("App\\Entity\\Enum\\MetadataTypeEnum").cases() %}
 		<div class="row justify-content-center">
 			<a class="col-md-6 btn btn-primary btn-lg py-3 mt-3"
-				href="{{ path('metadataNew', {'project': project.id, 'type': key }) }}"
+				href="{{ path('metadataNew', {'project': project.id, 'type': case.value }) }}"
 				data-turbo-frame="xl_modal"
 				data-turbo-stream-replace="fs_modal"
 				{{ stimulus_target('modal', 'close') }}>
-				{{ value }}
+				{{ case|to_string }}
 			</a>
 		</div>
 	{% endfor %}

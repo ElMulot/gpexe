@@ -4,8 +4,8 @@ namespace App\Service\Code;
 
 
 use App\Entity\Metadata;
-use App\Entity\MetadataItem;
-use App\Entity\MetadataValue;
+use App\Entity\MetadataChoice;
+use App\Entity\MetadataElement;
 use App\Entity\User;
 use App\Service\PropertyService;
 

@@ -114,7 +114,7 @@ class VersionController extends AbstractTurboController
 		// 	foreach ($this->metadataRepository->getMetadatasForVersion($project) as $metadata) {
 		// 		if ($metadata->isBoolean() || $metadata->isList() || $metadata->isMandatory()) {
 		// 			try {
-		// 				$version->setMetadataValue($metadata, $lastVersion->getMetadataValue($metadata));
+		// 				$version->setMetadataElement($metadata, $lastVersion->getMetadataElement($metadata));
 		// 			} catch (\Error $e) {
 		// 				continue;
 		// 			}
@@ -152,7 +152,7 @@ class VersionController extends AbstractTurboController
 		// 		}
 				
 		// 		try {
-		// 			$version->setMetadataValue($metadata, $value);
+		// 			$version->setMetadataElement($metadata, $value);
 		// 		} catch (\Error $e) {
 		// 			if ($metadata->isMandatory() === true) {
 		// 				$this->addFlash('danger', $e->getMessage());
@@ -247,7 +247,7 @@ class VersionController extends AbstractTurboController
 						}
 						
 						try {
-							$version->setMetadataValue($metadata, $value);
+							$version->setMetadataElement($metadata, $value);
 						} catch (\Error $e) {
 							if ($metadata->isMandatory() === true) {
 								$this->addFlash('danger', $e->getMessage());
@@ -362,7 +362,7 @@ class VersionController extends AbstractTurboController
 			foreach ($this->metadataRepository->getMetadatasForVersion($project) as $metadata) {
 				if ($metadata->isBoolean() || $metadata->isList() || $metadata->isMandatory()) {
 					try {
-						$newVersion->setMetadataValue($metadata, $version->getTypedMetadataValue($metadata));
+						$newVersion->setMetadataElement($metadata, $version->getTypedMetadataElement($metadata));
 					} catch (\Error $e) {
 						$this->addFlash('danger', $e->getMessage());
 					}

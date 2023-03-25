@@ -7,6 +7,7 @@ use App\Form\Type\BooleanType;
 use App\Form\Type\ComboBoxType;
 use App\Entity\Enum\MetadataTypeEnum;
 use App\Entity\Enum\MetadataParentEnum;
+use App\Service\DateService;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -17,9 +18,14 @@ use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 
 class MetadataType extends AbstractType
 {
+	public function __construct(private readonly DateService $dateService)
+	{
+		
+	}
+	
 	public function buildForm(FormBuilderInterface $builder, array $options)
 	{
-		/**@var Metadata $metadata */
+		/**@var Metadata */
 		$metadata = $builder->getData();
 
 		$builder
@@ -41,33 +47,37 @@ class MetadataType extends AbstractType
 
 		switch ($metadata->getType()) {
 			case MetadataTypeEnum::BOOL:
-				$builder->add('defaultValue', BooleanType::class);
+				$builder->add('defaultRawValue', BooleanType::class, [
+					'label' => 'Default value',
+				]);
 				break;
 			case MetadataTypeEnum::TEXT:
 			case MetadataTypeEnum::REGEX:
 			case MetadataTypeEnum::LINK:
 				$builder->add('defaultValue', TextType::class, [
 					'required'	=> false,
+					'label' => 'Default value',
 				]);
 				break;
 			case MetadataTypeEnum::DATE:
 				$builder->add('defaultValue', DateType::class, [
 					'required'	=> false,
+					'label' => 'Default value',
 					'getter'	=> function(Metadata $metadata, FormInterface $form): mixed
 					{
 						return new \DateTime($metadata->getDefaultValue());
 					},
 					'setter'	=> function(Metadata $metadata, $modelData, FormInterface $form): void
 					{
-						$metadata->setDefaultValue($modelData->format('d-m-Y'));
+						$metadata->setDefaultRawValue($this->dateService->formatAsInternal($modelData));
 					},
 				]);
 				break;
 			case MetadataTypeEnum::LIST:
-				dump($metadata->getMetadataItems()->getValues());
 				$builder->add('defaultValue', ComboBoxType::class, [
 					'required'	=> false,
-					'choices'	=> $metadata->getMetadataItems()->getValues(),
+					'label' => 'Default value',
+					'choices'	=> $metadata->getMetadataChoices()->getValues(),
 					'choice_label'	=> 'value',
 				]);
 				break;
@@ -75,7 +85,7 @@ class MetadataType extends AbstractType
 			
 		$builder
 			->add('parent', ChoiceType::class, [
-				'choices' => MetadataParentEnum::getChoices(),
+				'choices' => MetadataParentEnum::cases(),
 				'expanded' => true,
 				'disabled' => (bool)$metadata->getId(),
 			]);

@@ -5,6 +5,7 @@ namespace App\Form\Type;
 use Symfony\Component\Form\FormView;
 use App\Form\DataMapper\ComboBoxMapper;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\CallbackTransformer;
 use Symfony\Component\Form\ChoiceList\View\ChoiceView;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -30,19 +31,23 @@ class ComboBoxType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
 		$builder->resetViewTransformers();
-		// $builder->resetModelTransformers();
+		// $builder->addViewTransformer(new CallbackTransformer(
+		// 	function (mixed $value) {
+		// 		return $value;
+		// 	},
+		// 	function (mixed $value) use($options) {
+		// 		if (!$value && $options['required'] === true) {
+		// 			throw new 
+		// 		}
+		// 	}
+		// ));
 		
 		$builder->setCompound(true);
 
 		unset($options['custom_option_label']);
 		$builder->add('choice', ChoiceType::class, $options);
 
-		// if ($builder->getData() === null && $options['required'] === true) {
-		// 	$builder->get('choice')->setData(reset($options['choices']));
-		// }
-
 		$builder->add('input', TextType::class, [
-			'compound'	=> false,
 			'required'	=> false,
 		]);
 
@@ -51,9 +56,13 @@ class ComboBoxType extends AbstractType
 
 	public function buildView(FormView $view, FormInterface $form, array $options)
 	{
-		$view->vars['customOptionLabel'] = $options['custom_option_label'];
+		$view->vars['custom_option_label'] = $options['custom_option_label'];
 	}
 
+	// public function finishView(FormView $view, FormInterface $form, array $options)
+	// {
+	// 	$view->children['choice']->vars['choices'][] = new ChoiceView(null, '', 'custom value', ['data-form--combobox-target' => 'custom']);
+	// }
 
 	public function getParent(): string
     {

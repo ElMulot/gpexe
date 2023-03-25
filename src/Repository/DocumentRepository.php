@@ -113,36 +113,36 @@ class DocumentRepository extends RepositoryService
 	 * @return Document[]
 	 *
 	 */
-	public function getDocumentsByReference(Project $project, $codificationItems, $codificationValues)
+	public function getDocumentsByReference(Project $project, $codificationChoices, $codificationElements)
 	{
 		$qb = $this->newQB('d');
 		$qb->innerJoin('d.serie', 's')
 			->andWhere($qb->eq('s.project', $project));
 		
-		foreach ($codificationItems->getValues() as $codificationItem) {
+		foreach ($codificationChoices->getValues() as $codificationChoice) {
 			
-			$id = $codificationItem->getCodification()->getId();
+			$id = $codificationChoice->getCodification()->getId();
 			
 			$subQb = $this->newQB();
 			$subQb->select('d' . $id)
 				->from(Document::class, 'd' . $id)
-				->innerJoin('d' . $id . '.codificationItems', 'i' . $id)
-				->andWhere($subQb->eq('i' . $id . '.value', $codificationItem->getValue()))
+				->innerJoin('d' . $id . '.codificationChoices', 'i' . $id)
+				->andWhere($subQb->eq('i' . $id . '.value', $codificationChoice->getValue()))
 			;
 			
 			$qb->andWhere($qb->in('d.id', $subQb->getQuery()->getArrayResult()));
 			
 		}
 		
-		foreach ($codificationValues->getValues() as $id => $codificationValue) {
+		foreach ($codificationElements->getValues() as $id => $codificationElement) {
 			
-			$id = $codificationValue->getCodification()->getId();
+			$id = $codificationElement->getCodification()->getId();
 			
 			$subQb = $this->newQB();
 			$subQb->select('d' . $id)
 				->from(Document::class, 'd' . $id)
-				->innerJoin('d' . $id . '.codificationValues', 'v' . $id)
-				->andWhere($subQb->eq('v' . $id . '.value', $codificationValue->getValue()))
+				->innerJoin('d' . $id . '.codificationElements', 'v' . $id)
+				->andWhere($subQb->eq('v' . $id . '.value', $codificationElement->getValue()))
 			;
 			
 			$qb->andWhere($qb->in('d.id', $subQb->getQuery()->getArrayResult()));
@@ -183,19 +183,19 @@ class DocumentRepository extends RepositoryService
 		;
 		
 		$this->newQB()
-			->select('PARTIAL serie.{id}, serieMetadataItem, metadata1')
+			->select('PARTIAL serie.{id}, serieMetadataChoice, metadata1')
 			->from(Serie::class, 'serie')
-			->innerJoin('serie.metadataItems', 'serieMetadataItem')
-			->innerJoin('serieMetadataItem.metadata', 'metadata1')
+			->innerJoin('serie.metadataChoices', 'serieMetadataChoice')
+			->innerJoin('serieMetadataChoice.metadata', 'metadata1')
 			->getQuery()
 			->getResult()
 		;
 		
 		$this->newQB()
-			->select('PARTIAL serie.{id}, serieMetadataValue, metadata2')
+			->select('PARTIAL serie.{id}, serieMetadataElement, metadata2')
 			->from(Serie::class, 'serie')
-			->innerJoin('serie.metadataValues', 'serieMetadataValue')
-			->innerJoin('serieMetadataValue.metadata', 'metadata2')
+			->innerJoin('serie.metadataElements', 'serieMetadataElement')
+			->innerJoin('serieMetadataElement.metadata', 'metadata2')
 			->getQuery()
 			->getResult()
 		;
@@ -213,37 +213,37 @@ class DocumentRepository extends RepositoryService
 		;
 		
 		$this->newQB()
-			->select('PARTIAL document.{id}, documentCodificationItem, codification1')
+			->select('PARTIAL document.{id}, documentCodificationChoice, codification1')
 			->from(Document::class, 'document')
-			->innerJoin('document.codificationItems', 'documentCodificationItem')
-			->innerJoin('documentCodificationItem.codification', 'codification1')
+			->innerJoin('document.codificationChoices', 'documentCodificationChoice')
+			->innerJoin('documentCodificationChoice.codification', 'codification1')
 			->getQuery()
 			->getResult()
 		;
 		
 		$this->newQB()
-			->select('PARTIAL document.{id}, documentCodificationValue, codification2')
+			->select('PARTIAL document.{id}, documentCodificationElement, codification2')
 			->from(Document::class, 'document')
-			->innerJoin('document.codificationValues', 'documentCodificationValue')
-			->innerJoin('documentCodificationValue.codification', 'codification2')
+			->innerJoin('document.codificationElements', 'documentCodificationElement')
+			->innerJoin('documentCodificationElement.codification', 'codification2')
 			->getQuery()
 			->getResult()
 		;
 		
 		$this->newQB()
-			->select('PARTIAL document.{id}, documentMetadataItem, metadata3')
+			->select('PARTIAL document.{id}, documentMetadataChoice, metadata3')
 			->from(Document::class, 'document')
-			->innerJoin('document.metadataItems', 'documentMetadataItem')
-			->innerJoin('documentMetadataItem.metadata', 'metadata3')
+			->innerJoin('document.metadataChoices', 'documentMetadataChoice')
+			->innerJoin('documentMetadataChoice.metadata', 'metadata3')
 			->getQuery()
 			->getResult()
 		;
 		
 		$this->newQB()
-			->select('PARTIAL document.{id}, documentMetadataValue, metadata4')
+			->select('PARTIAL document.{id}, documentMetadataElement, metadata4')
 			->from(Document::class, 'document')
-			->innerJoin('document.metadataValues', 'documentMetadataValue')
-			->innerJoin('documentMetadataValue.metadata', 'metadata4')
+			->innerJoin('document.metadataElements', 'documentMetadataElement')
+			->innerJoin('documentMetadataElement.metadata', 'metadata4')
 			->getQuery()
 			->getResult()
 		;
@@ -257,19 +257,19 @@ class DocumentRepository extends RepositoryService
 		;
 		
 		$this->newQB()
-			->select('PARTIAL version.{id}, versionMetadataItem, metadata5')
+			->select('PARTIAL version.{id}, versionMetadataChoice, metadata5')
 			->from(Version::class, 'version')
-			->innerJoin('version.metadataItems', 'versionMetadataItem')
-			->innerJoin('versionMetadataItem.metadata', 'metadata5')
+			->innerJoin('version.metadataChoices', 'versionMetadataChoice')
+			->innerJoin('versionMetadataChoice.metadata', 'metadata5')
 			->getQuery()
 			->getResult()
 		;
 		
 		$this->newQB()
-			->select('PARTIAL version.{id}, versionMetadataValue, metadata6')
+			->select('PARTIAL version.{id}, versionMetadataElement, metadata6')
 			->from(Version::class, 'version')
-			->innerJoin('version.metadataValues', 'versionMetadataValue')
-			->innerJoin('versionMetadataValue.metadata', 'metadata6')
+			->innerJoin('version.metadataElements', 'versionMetadataElement')
+			->innerJoin('versionMetadataElement.metadata', 'metadata6')
 			->getQuery()
 			->getResult()
 		;

@@ -4,15 +4,15 @@ namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use App\Entity\Metadata;
-use App\Repository\MetadataItemRepository;
+use App\Repository\MetadataChoiceRepository;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Validator\Constraints\Regex;
 
-#[ORM\Entity(repositoryClass: MetadataItemRepository::class)]
+#[ORM\Entity(repositoryClass: MetadataChoiceRepository::class)]
 #[UniqueEntity(
 	fields: ['value', 'metadata']
 )]
-class MetadataItem implements \Stringable
+class MetadataChoice implements \Stringable
 {
 	#[ORM\Id]
 	#[ORM\GeneratedValue]
@@ -20,10 +20,10 @@ class MetadataItem implements \Stringable
 	private ?int $id = null;
 
 	#[ORM\Column(length: 255)]
-	#[Regex('/^[^$"]+$/')]
+	#[Assert\Regex('/^[^$"]+$/')]
 	private ?string $value = null;
 
-	#[ORM\ManyToOne(inversedBy: 'metadataItems')]
+	#[ORM\ManyToOne(inversedBy: 'metadataChoices')]
 	private ?Metadata $metadata = null;
 
 	public function getId(): ?int

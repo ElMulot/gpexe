@@ -1,13 +1,13 @@
 list:
     program: Programmes
     codification: Codes
-    codificationItem: Entrées
-    codificationValue: Entrées
+    codificationChoice: Entrées
+    codificationElement: Entrées
     company: Entreprises
     document: Documents
     metadata: Métadonnées
-    metadataItem: Entrées
-    metadataValue: Entrées
+    metadataChoice: Entrées
+    metadataElement: Entrées
     profil: Profils
     project: Projets
     serie: Séries
@@ -37,13 +37,13 @@ info:
 new:
     program: Nouveau programme
     codification: Nouveau code
-    codificationItem: Nouvelle entrée
-    codificationValue: Nouvelle entrée
+    codificationChoice: Nouvelle entrée
+    codificationElement: Nouvelle entrée
     company: Nouvelle entreprise
     document: Nouveau document
     metadata: Nouvelle métadonnée
-    metadataItem: Nouvelle entrée
-    metadataValue: Nouvelle entrée
+    metadataChoice: Nouvelle entrée
+    metadataElement: Nouvelle entrée
     profil: Nouveau profil
     project: Nouveau projet
     serie: Nouvelle série
@@ -56,8 +56,8 @@ new:
 edit:
     program: Editer le programme
     codification: Editer le code
-    codificationItem: Editer l'entrée
-    codificationValue: Editer l'entrée
+    codificationChoice: Editer l'entrée
+    codificationElement: Editer l'entrée
     company: Editer l'entreprise
     document: Editer
         {count, plural,
@@ -65,8 +65,8 @@ edit:
             other {les documents}
         }
     metadata: Editer la métadonnée
-    metadataItem: Editer l'entrée
-    metadataValue: Editer l'entrée
+    metadataChoice: Editer l'entrée
+    metadataElement: Editer l'entrée
     profil: Editer le profil
     project: Editer le projet
     serie: Editer la série
@@ -83,8 +83,8 @@ edit:
 delete:
     program: Supprimer le programme
     codification: Supprimer le code
-    codificationItem: Supprimer l'entrée
-    codificationValue: Supprimer l'entrée
+    codificationChoice: Supprimer l'entrée
+    codificationElement: Supprimer l'entrée
     company: Supprimer l'entreprise
     document: Supprimer
         {count, plural,
@@ -92,8 +92,8 @@ delete:
             other {les documents}
         }
     metadata: Supprimer la métadonnée
-    metadataItem: Supprimer l'entrée
-    metadataValue: Supprimer l'entrée
+    metadataChoice: Supprimer l'entrée
+    metadataElement: Supprimer l'entrée
     profil: Supprimer le profil
     project: Supprimer le projet
     serie: Supprimer la série
@@ -110,8 +110,8 @@ delete:
 confirm:
     program: Confirmer la suppression du programme
     codification: Confirmer la suppression du code
-    codificationItem: Confirmer la suppression de l'entrée
-    codificationValue: Confirmer la suppression de l'entrée
+    codificationChoice: Confirmer la suppression de l'entrée
+    codificationElement: Confirmer la suppression de l'entrée
     company: Confirmer la suppression de l'entreprise
     document: Confirmer la suppression
         {count, plural,
@@ -119,8 +119,8 @@ confirm:
             other {des documents}
         }
     metadata: Confirmer la suppression de la métadonnée
-    metadataItem: Confirmer la suppression de l'entrée
-    metadataValue: Confirmer la suppression de l'entrée
+    metadataChoice: Confirmer la suppression de l'entrée
+    metadataElement: Confirmer la suppression de l'entrée
     profil: Confirmer la suppression du profil
     project: Confirmer la suppression du projet
     serie: Confirmer la suppression de la série

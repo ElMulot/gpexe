@@ -10,6 +10,8 @@ use Symfony\Component\Form\Test\TypeTestCase;
 use Symfony\Component\Form\PreloadedExtension;
 use App\Form\DataTransformer\VariousTransformer;
 use App\Form\EventSubscriber\VariousFieldSubscriber;
+use App\Service\DateService;
+use PHPUnit\Framework\MockObject\MockObject;
 
 class DateVariousTypeTest extends TypeTestCase
 {
@@ -17,12 +19,20 @@ class DateVariousTypeTest extends TypeTestCase
 	private $suscriber;
 	private $modelTransformer;
 	private $dataMappper;
+	private $dateService;
 
 	protected function setUp(): void
 	{
 		$this->suscriber = new VariousFieldSubscriber();
 		$this->modelTransformer = new VariousTransformer();
 		$this->dataMappper = new VariousMapper();
+		
+		/**@var DateService&MockObject */
+		$this->dateService = $this->createMock(DateService::class);
+		$this->dateService
+			->method('getFlatpickrDateFormat')
+			->willReturn('d-m-Y');
+
 		parent::setUp();
 	}
 
@@ -38,7 +48,7 @@ class DateVariousTypeTest extends TypeTestCase
 	protected function getTypeExtensions()
 	{
 		return [
-			new DateTypeExtension('dd/MM/yyyy')
+			new DateTypeExtension($this->dateService, 'dd/MM/yyyy')
 		];
 	}
 
@@ -76,7 +86,7 @@ class DateVariousTypeTest extends TypeTestCase
 		]);
 
 		$this->assertTrue($form->isSynchronized());
-		$this->assertNull($form->getData());
+		$this->assertSame([$date1, $date2], $form->getData());
 	}
 
 	/**
@@ -118,6 +128,26 @@ class DateVariousTypeTest extends TypeTestCase
 		$form->submit([
 			'input'		=> $value,
 			'switch'	=> null,
+		]);
+
+		$this->assertEquals(new \DateTime($expected), $form->getData());
+	}
+
+	/**
+	 * @covers DateVariousType
+	 * @testWith	["02/01/2000", "2000-01-02"]
+	 * 				["03/01/2000", "2000-01-03"]
+	 */	
+	public function testSubmitValidDataWithoutSwitch($value, $expected): void
+	{
+		$date1 = new \DateTime("2000-01-01");
+
+		$form = $this->factory->create(DateVariousType::class, [$date1], [
+			'format' => 'dd/MM/yyyy',
+		]);
+
+		$form->submit([
+			'input'		=> $value
 		]);
 
 		$this->assertEquals(new \DateTime($expected), $form->getData());

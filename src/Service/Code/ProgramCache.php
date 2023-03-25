@@ -149,7 +149,7 @@ class ProgramCache
 		}
 	}
 	
-	public function getType(): int
+	public function getType(): ProgramTypeEnum
 	{
 		return $this->type;
 	}

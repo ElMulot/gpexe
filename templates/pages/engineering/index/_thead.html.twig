@@ -16,15 +16,15 @@
 
 					{% if field.id == 'document_reference' %}
 						{{ include('pages/engineering/index/thead/_document_reference.html.twig') }}
-					{% elseif field.type == 'BOOL'|enum_constant('metadata_type_enum') %}
+					{% elseif field.type == enum('App\\Entity\\Enum\\MetadataTypeEnum::BOOL') %}
 						{{ include('pages/engineering/index/thead/_boolean.html.twig') }}
-					{% elseif field.type == 'TEXT'|enum_constant('metadata_type_enum') %}
+					{% elseif field.type == enum('App\\Entity\\Enum\\MetadataTypeEnum::TEXT') %}
 						{{ include('pages/engineering/index/thead/_text.html.twig') }}
-					{% elseif field.type == 'DATE'|enum_constant('metadata_type_enum') %}
+					{% elseif field.type == enum('App\\Entity\\Enum\\MetadataTypeEnum::DATE') %}
 						{{ include('pages/engineering/index/thead/_date.html.twig') }}
-					{% elseif field.type == 'LINK'|enum_constant('metadata_type_enum') %}
+					{% elseif field.type == enum('App\\Entity\\Enum\\MetadataTypeEnum::LINK') %}
 						{{ include('pages/engineering/index/thead/_link.html.twig') }}
-					{% elseif field.type == 'LIST'|enum_constant('metadata_type_enum') %}
+					{% elseif field.type == enum('App\\Entity\\Enum\\MetadataTypeEnum::LIST') %}
 						{{ include('pages/engineering/index/thead/_list.html.twig') }}
 					{% endif %}
 					

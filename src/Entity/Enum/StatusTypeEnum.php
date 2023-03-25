@@ -2,26 +2,17 @@
 
 namespace App\Entity\Enum;
 
-use Fresh\DoctrineEnumBundle\DBAL\Types\AbstractEnumType;
-
-final class StatusTypeEnum extends AbstractEnumType
+enum StatusTypeEnum: string implements EnumTypeInterface
 {
-	public final const INFORMATION  = 'information';
-	public final const REVIEW		= 'review';
-	public final const CANCEL		= 'cancel';
-	public final const AS_BUILT		= 'as_built';
-	
-	protected static array $choices = [
-		self::INFORMATION			=> 'Information',
-		self::REVIEW				=> 'Review',
-		self::CANCEL				=> 'Cancel',
-		self::AS_BUILT				=> 'As built',
-	];
+	case INFORMATION  = 'information';
+	case REVIEW		= 'review';
+	case CANCEL		= 'cancel';
+	case AS_BUILT		= 'as_built';
 
-	public static function getDefaultValue(): ?string
-    {
-        return self::REVIEW;
-    }
+	public static function getPrefix(): string
+	{
+		return 'status_type';
+	}
 }
 
 ?>

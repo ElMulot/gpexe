@@ -2,26 +2,17 @@
 
 namespace App\Entity\Enum;
 
-use Fresh\DoctrineEnumBundle\DBAL\Types\AbstractEnumType;
-
-final class CompanyTypeEnum extends AbstractEnumType
+enum CompanyTypeEnum: string implements EnumTypeInterface
 {
-	public final const MAIN_CONTRACTOR  = 'main_contractor';
-	public final const SUB_CONTRACTOR	= 'sub_contractor';
-	public final const SUPPLIER			= 'supplier';
-	public final const CHECKER			= 'checker';
-	
-	protected static array $choices = [
-		self::MAIN_CONTRACTOR	=> 'Main contractor',
-		self::SUB_CONTRACTOR	=> 'Sub-contractor',
-		self::SUPPLIER			=> 'Supplier',
-		self::CHECKER			=> 'Checker',
-	];
+	case MAIN_CONTRACTOR	= 'main_contractor';
+	case SUB_CONTRACTOR		= 'sub_contractor';
+	case SUPPLIER			= 'supplier';
+	case CHECKER			= 'checker';
 
-	public static function getDefaultValue(): ?string
-    {
-        return self::SUPPLIER;
-    }
+	public static function getPrefix(): string
+	{
+		return 'company_type';
+	}
 }
 
 ?>

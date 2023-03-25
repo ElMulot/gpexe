@@ -29,7 +29,7 @@ class CodificationFixtures extends Fixture implements DependentFixtureInterface
 				->setName('Codification fixed')
 				->setCodename('codificationFixed')
 				->setType(CodificationTypeEnum::FIXED)
-				->setValue('TEST')
+				->setDefaultRawValue('TEST')
 				->setProject($this->getReference(constant(ProjectFixtures::class . "::PROJECT_{$i}")));
 			$manager->persist($codification);
 			$this->addReference("PROJECT_{$i}_CODIFICATION_FIXED", $codification);

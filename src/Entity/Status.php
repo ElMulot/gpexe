@@ -3,12 +3,10 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-use Fresh\DoctrineEnumBundle\Validator\Constraints as DoctrineAssert;
 use App\Entity\Enum\StatusTypeEnum;
 use App\Repository\StatusRepository;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
-use Symfony\Component\Validator\Constraints\NotBlank;
-use Symfony\Component\Validator\Constraints\Regex;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: StatusRepository::class)]
 #[UniqueEntity(
@@ -22,16 +20,15 @@ class Status implements \Stringable
 	private ?int $id = null;
 
 	#[ORM\Column(length: 100)]
-	#[NotBlank]
-	#[Regex('/^[^$"]+$/')]
+	#[Assert\NotBlank]
+	#[Assert\Regex('/^[^$"]+$/')]
 	private ?string $name = null;
 
 	#[ORM\Column(length: 10)]
 	private ?string $value = null;
 
-	#[ORM\Column(type: 'status_type_enum')]
-	#[DoctrineAssert\EnumType(entity: StatusTypeEnum::class)]
-	private ?string $type = null;
+	#[ORM\Column(type: 'string', enumType: StatusTypeEnum::class)]
+	private ?StatusTypeEnum $type = null;
 
 	#[ORM\Column(name: '`default`')]
 	private ?bool $default = null;
@@ -41,7 +38,7 @@ class Status implements \Stringable
 
 	public function __construct()
 	{
-		$this->type = StatusTypeEnum::getDefaultValue();
+		$this->type = StatusTypeEnum::REVIEW;
 		$this->default = false;
 	}
 
@@ -74,14 +71,13 @@ class Status implements \Stringable
 		return $this;
 	}
 	
-	public function getType(): string
+	public function getType(): StatusTypeEnum
 	{
 		return $this->type;
 	}
 
-	public function setType(string $type): self
+	public function setType(StatusTypeEnum $type): self
 	{
-		StatusTypeEnum::assertValidChoice($type);
 		$this->type = $type;
 
 		return $this;

@@ -14,6 +14,8 @@ class VariousMapper implements DataMapperInterface
 		/** @var FormInterface[] $forms */
 		$forms = array(...$forms);
 		
+		// dump('VariousMapper->mapDataToForms', $viewData);
+
 		if ($viewData === null) {
 			return;
 		}
@@ -31,12 +33,12 @@ class VariousMapper implements DataMapperInterface
 
 		if (array_key_exists('switch', $forms) === true) {
 			// dump($forms['switch']->getData());
-			if ($forms['switch']->getData() === false) {
-				$viewData = $forms['input']->getData();
-			} else {
-				$viewData = null;
+			if ($forms['switch']->getData() === true) {
+				return;
 			}
 		}
+
+		$viewData = $forms['input']->getData();
 	}
 }
 

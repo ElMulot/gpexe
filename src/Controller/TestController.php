@@ -2,15 +2,21 @@
 
 namespace App\Controller;
 
+use App\Entity\CodificationChoice;
+use App\Entity\Document;
+use App\Entity\Enum\CodificationTypeEnum;
+use App\Entity\Metadata;
 use App\Entity\Serie;
 use App\Entity\Project;
 use App\Entity\User;
 use App\Form\AccountType;
+use App\Form\CodificationChoiceType;
 use App\Form\DeleteType;
 use App\Form\ProjectType;
 use App\Form\Type\ChoiceVariousType;
 use App\Form\Type\ComboBoxType;
 use App\Form\Type\DateVariousType;
+use App\Form\Type\TextVariousType;
 use App\Helpers\Date;
 use App\Service\DateService;
 use Symfony\UX\Turbo\TurboBundle;
@@ -24,10 +30,16 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Form\CallbackTransformer;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\CollectionType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
+use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\Validator\Mapping\ClassMetadata;
+use Symfony\Component\Validator\Mapping\PropertyMetadata;
 use Symfony\Component\Validator\Validation;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class TestController extends AbstractTurboController
 {
@@ -39,7 +51,8 @@ class TestController extends AbstractTurboController
 								#[Autowire('%app.uploads_directory%')]
                                 private readonly string $uploadsDirectory,
 								#[Autowire('%kernel.default_locale%')]
-								private readonly string $defaultLocale)
+								private readonly string $defaultLocale,
+								private readonly ValidatorInterface $validatorInterface)
 	{
 	}
 	
@@ -52,6 +65,8 @@ class TestController extends AbstractTurboController
 
 		// $series = $this->doctrine->getRepository(Serie::class)->findBy(['id' => [3, 29]]);
 
+		// $metadata = $this->doctrine->getRepository(Metadata::class)->findOneBy(['type' => 'list']);
+
 		/**@var Serie $serie */
 		// foreach ($series as $serie) {
 			// dump($serie->getDocuments()->getValues());
@@ -61,24 +76,47 @@ class TestController extends AbstractTurboController
 		// }
 
 		// $this->dateService->formatAsDefault(new \DateTime());
-		dump($this->dateService->format(new \DateTime('now'), 'EEE eee HH:m:ss'));
+
+		// $document = $this->doctrine->getRepository(Document::class)->findBy(['id' => [1]]);
+
+		/**@var ClassMetadata */
+		// $metadata = $this->validatorInterface->getMetadataFor(CodificationChoice::class);
+		/**@var PropertyMetadata */
+		// $propertyMetadata = $metadata->getPropertyMetadata('value')[0];
 
 		// $form = $this->createFormBuilder(null, [
-		// 		'csrf_protection' => false, 
-		// 		'attr' => ['id' => 'form_test'],
+		// 		// 'csrf_protection' => false, 
+		// 		// 'attr' => ['id' => 'form_test'],
 		// 	])
-		// 	->add('test', DateVariousType::class, [
-		// 		'data' => [new \DateTime('tomorrow'), new \DateTime('today')],
+		// 	// ->add('test', ComboBoxType::class, [
+		// 	// 	'required'	=> true,
+		// 	// 	'placeholder' => 'test',
+		// 	// 	'choices' => $metadata->getMetadataChoices()->getValues(),
+		// 	// 	'choice_label'	=> 'value',
+		// 	// 	'data' => $metadata->getMetadataChoices()->getValues()[1],
+		// 	// ])
+		// 	->add('test', TextVariousType::class, [
+		// 		'data' => ['test', 'test2'],
+		// 		'required' => false,
 		// 	])
+		// 	// ->add('codification.ItemsValues', TextType::class, [
+		// 		// 'constraints' => $propertyMetadata->getConstraints(),
+		// 	// ])
 		// 	->add('save', SubmitType::class, ['label' => 'Save'])
-		// 	->getForm();	
+		// 	->getForm();
 		
+		// $form->handleRequest($request);		
+		
+		$test = '';
+
+		dump(CodificationTypeEnum::FIXED);
+
 		// if ($form->isSubmitted() && $form->isValid()) {
-		// 	dump($form->getData());
+		// 	$test = $form->getData();
 		// }
 		return $this->render('test/index.html.twig', [
 			// 'form' => $form,
-			'test' => new \DateTime('now'),
+			'test' => $test,
 		]);
 	}
 

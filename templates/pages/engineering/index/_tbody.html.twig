@@ -12,11 +12,11 @@
 							<td style="text-align: center;">
 								{{ (item[field.id] ?? '') }}
 							</td>
-						{% elseif field.type == 'BOOL'|enum_constant('metadata_type_enum') %}
+						{% elseif field.type == enum('App\\Entity\\Enum\\MetadataTypeEnum::BOOL') %}
 							<td style="text-align: center;">
 								{{ ((item[field.id] ?? false) == 1?'Yes':'No')|trans }}
 							</td>
-						{% elseif field.type == 'DATE'|enum_constant('metadata_type_enum') or field.type == 'LIST'|enum_constant('metadata_type_enum') %}
+						{% elseif field.type == enum('App\\Entity\\Enum\\MetadataTypeEnum::DATE') or field.type == enum('App\\Entity\\Enum\\MetadataTypeEnum::LIST') %}
 							<td style="text-align: center;">
 								{{ (item[field.id] ?? '') }}
 							</td>

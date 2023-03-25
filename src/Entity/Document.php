@@ -2,22 +2,21 @@
 
 namespace App\Entity;
 
-use App\Entity\Enum\CodificationTypeEnum;
-use App\Entity\Enum\MetadataTypeEnum;
-use App\Exception\InvalidCodenameException;
-use App\Exception\InvalidReferenceException;
-use App\Exception\InvalidValueException;
-use App\Form\CodificationType;
-use App\Helpers\Date;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
-use Spatie\Regex\Regex;
 use Doctrine\ORM\Mapping as ORM;
 use App\Repository\DocumentRepository;
-use Symfony\Component\Validator\Constraints\NotBlank;
+use App\Exception\InvalidValueException;
+use App\Entity\Enum\CodificationTypeEnum;
+use App\Exception\InvalidCodenameException;
+use Doctrine\Common\Collections\Collection;
+use App\Exception\InvalidReferenceException;
+use App\Validator\DocumentCodificationValidator;
+use Doctrine\Common\Collections\ArrayCollection;
+use Spatie\Regex\Regex;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: DocumentRepository::class)]
-class Document extends AbstractElement
+#[Assert\Callback([DocumentCodificationValidator::class, 'validate'])]
+class Document extends AbstractElement implements \Stringable
 {
 	#[ORM\Id]
 	#[ORM\GeneratedValue]
@@ -25,25 +24,27 @@ class Document extends AbstractElement
 	private ?int $id = null;
 
 	#[ORM\Column(length: 255)]
-	#[NotBlank]
-	#[Regex('/^[^$"]+$/')]
+	#[Assert\NotBlank]
+	#[Assert\Regex('/^[^$"]+$/')]
 	private ?string $name = null;
 
-	#[ORM\ManyToMany(targetEntity: CodificationItem::class, cascade: ['persist'])]
-	#[ORM\JoinTable(name: 'document_codification_item')]
-	private Collection $codificationItems;
+	#[ORM\ManyToMany(targetEntity: CodificationChoice::class, cascade: ['persist'])]
+	#[ORM\JoinTable(name: 'document_codification_choice')]
+	#[Assert\Valid]
+	private Collection $codificationChoices;
 
-	#[ORM\ManyToMany(targetEntity: CodificationValue::class, cascade: ['persist'])]
-	#[ORM\JoinTable(name: 'document_codification_value')]
-	private Collection $codificationValues;
+	#[ORM\ManyToMany(targetEntity: CodificationElement::class, cascade: ['persist'])]
+	#[ORM\JoinTable(name: 'document_codification_element')]
+	#[Assert\Valid]
+	private Collection $codificationElements;
 
-	#[ORM\ManyToMany(targetEntity: MetadataItem::class, cascade: ['persist'])]
-	#[ORM\JoinTable(name: 'document_metadata_item')]
-	private Collection $metadataItems;
+	#[ORM\ManyToMany(targetEntity: MetadataChoice::class, cascade: ['persist'])]
+	#[ORM\JoinTable(name: 'document_metadata_choice')]
+	private Collection $metadataChoices;
 
-	#[ORM\ManyToMany(targetEntity: MetadataValue::class, cascade: ['persist'])]
-	#[ORM\JoinTable(name: 'document_metadata_value')]
-	private Collection $metadataValues;
+	#[ORM\ManyToMany(targetEntity: MetadataElement::class, cascade: ['persist'])]
+	#[ORM\JoinTable(name: 'document_metadata_element')]
+	private Collection $metadataElements;
 
 	#[ORM\OneToMany(targetEntity: Version::class, mappedBy: 'document', cascade: ['persist'], orphanRemoval: true)]
 	private Collection $versions;
@@ -55,10 +56,10 @@ class Document extends AbstractElement
 
 	public function __construct()
 	{
-		$this->codificationItems = new ArrayCollection();
-		$this->codificationValues = new ArrayCollection();
-		$this->metadataItems = new ArrayCollection();
-		$this->metadataValues = new ArrayCollection();
+		$this->codificationChoices = new ArrayCollection();
+		$this->codificationElements = new ArrayCollection();
+		$this->metadataChoices = new ArrayCollection();
+		$this->metadataElements = new ArrayCollection();
 		$this->versions = new ArrayCollection();
 	}
 	public function getId(): ?int
@@ -79,54 +80,54 @@ class Document extends AbstractElement
 	}
 
 	/**
-	 * @return Collection|CodificationItem[]
+	 * @return Collection|CodificationChoice[]
 	 */
-	public function getCodificationItems(): Collection
+	public function getCodificationChoices(): Collection
 	{
-		return $this->codificationItems;
+		return $this->codificationChoices;
 	}
 
-	public function addCodificationItem(CodificationItem $codificationItem): self
+	public function addCodificationChoice(CodificationChoice $codificationChoice): self
 	{
-		if (!$this->codificationItems->contains($codificationItem)) {
-			$this->codificationItems[] = $codificationItem;
+		if (!$this->codificationChoices->contains($codificationChoice)) {
+			$this->codificationChoices[] = $codificationChoice;
 			$this->reference = null;
 		}
 
 		return $this;
 	}
 
-	public function removeCodificationItem(CodificationItem $codificationItem): self
+	public function removeCodificationChoice(CodificationChoice $codificationChoice): self
 	{
-		if ($this->codificationItems->contains($codificationItem)) {
-			$this->codificationItems->removeElement($codificationItem);
+		if ($this->codificationChoices->contains($codificationChoice)) {
+			$this->codificationChoices->removeElement($codificationChoice);
 			$this->reference = null;
 		}
 
 		return $this;
 	}
 	/**
-	 * @return Collection|CodificationValue[]
+	 * @return Collection|CodificationElement[]
 	 */
-	public function getCodificationValues(): Collection
+	public function getCodificationElements(): Collection
 	{
-		return $this->codificationValues;
+		return $this->codificationElements;
 	}
 
-	public function addCodificationValue(CodificationValue $codificationValue): self
+	public function addCodificationElement(CodificationElement $codificationElement): self
 	{
-		if (!$this->codificationValues->contains($codificationValue)) {
-			$this->codificationValues[] = $codificationValue;
+		if (!$this->codificationElements->contains($codificationElement)) {
+			$this->codificationElements[] = $codificationElement;
 			$this->reference = null;
 		}
 		
 		return $this;
 	}
 
-	public function removeCodificationValue(CodificationValue $codificationValue): self
+	public function removeCodificationElement(CodificationElement $codificationElement): self
 	{
-		if ($this->codificationValues->contains($codificationValue)) {
-			$this->codificationValues->removeElement($codificationValue);
+		if ($this->codificationElements->contains($codificationElement)) {
+			$this->codificationElements->removeElement($codificationElement);
 			$this->reference = null;
 		}
 		
@@ -134,52 +135,52 @@ class Document extends AbstractElement
 	}
 
 	/**
-	 * @return Collection|MetadataItem[]
+	 * @return Collection|MetadataChoice[]
 	 */
-	public function getMetadataItems(): Collection
+	public function getMetadataChoices(): Collection
 	{
-		return $this->metadataItems;
+		return $this->metadataChoices;
 	}
 
-	public function addMetadataItem(MetadataItem $metadataItem): self
+	public function addMetadataChoice(MetadataChoice $metadataChoice): self
 	{
-		if (!$this->metadataItems->contains($metadataItem)) {
-			$this->metadataItems[] = $metadataItem;
+		if (!$this->metadataChoices->contains($metadataChoice)) {
+			$this->metadataChoices[] = $metadataChoice;
 		}
 		
 		return $this;
 	}
 
-	public function removeMetadataItem(MetadataItem $metadataItem): self
+	public function removeMetadataChoice(MetadataChoice $metadataChoice): self
 	{
-		if ($this->metadataItems->contains($metadataItem)) {
-			$this->metadataItems->removeElement($metadataItem);
+		if ($this->metadataChoices->contains($metadataChoice)) {
+			$this->metadataChoices->removeElement($metadataChoice);
 		}
 		
 		return $this;
 	}
 
 	/**
-	 * @return Collection|MetadataValue[]
+	 * @return Collection|MetadataElement[]
 	 */
-	public function getMetadataValues(): Collection
+	public function getMetadataElements(): Collection
 	{
-		return $this->metadataValues;
+		return $this->metadataElements;
 	}
 
-	public function addMetadataValue(MetadataValue $metadataValue): self
+	public function addMetadataElement(MetadataElement $metadataElement): self
 	{
-		if (!$this->metadataValues->contains($metadataValue)) {
-			$this->metadataValues[] = $metadataValue;
+		if (!$this->metadataElements->contains($metadataElement)) {
+			$this->metadataElements[] = $metadataElement;
 		}
 		
 		return $this;
 	}
 
-	public function removeMetadataValue(MetadataValue $metadataValue): self
+	public function removeMetadataElement(MetadataElement $metadataElement): self
 	{
-		if ($this->metadataValues->contains($metadataValue)) {
-			$this->metadataValues->removeElement($metadataValue);
+		if ($this->metadataElements->contains($metadataElement)) {
+			$this->metadataElements->removeElement($metadataElement);
 		}
 		
 		return $this;
@@ -281,7 +282,7 @@ class Document extends AbstractElement
 			return $this->reference;
 		}
 		
-		if ($this->getCodificationItems()->count() == 0 && $this->getCodificationValues()->count() == 0) {
+		if ($this->getCodificationChoices()->count() == 0 && $this->getCodificationElements()->count() == 0) {
 			return null;
 		}
 		
@@ -342,22 +343,22 @@ class Document extends AbstractElement
 		switch ($codification->getType()) {
 			
 			case CodificationTypeEnum::FIXED;
-					return $codification->getValue();
+					return $codification->getDefaultValue();
 			case CodificationTypeEnum::TEXT:
 			case CodificationTypeEnum::REGEX:
-				/** @var CodificationValue $codificationValue */
-				foreach ($this->getCodificationValues()->getValues() as $codificationValue) {
-					if ($codificationValue->getCodification() === $codification) {
-						return $codificationValue->getValue();
+				/** @var CodificationElement $codificationElement */
+				foreach ($this->getCodificationElements()->getValues() as $codificationElement) {
+					if ($codificationElement->getCodification() === $codification) {
+						return $codificationElement->getValue();
 					}
 				}
 				break;
 				
 			case CodificationTypeEnum::LIST:
-				/** @var CodificationItem $codificationItem */
-				foreach ($this->getCodificationItems()->getValues() as $codificationItem) {
-					if ($codificationItem->getCodification() === $codification) {
-						return $codificationItem->getValue();
+				/** @var CodificationChoice $codificationChoice */
+				foreach ($this->getCodificationChoices()->getValues() as $codificationChoice) {
+					if ($codificationChoice->getCodification() === $codification) {
+						return $codificationChoice->getValue();
 					}
 				}
 				break;
@@ -377,39 +378,39 @@ class Document extends AbstractElement
 	public function setCodificationValue(Codification $codification, string $value): self
 	{
 		//check regex
-		if ($codification->isRegex() === true && $value !== null && Regex::match('/' . $codification->getPattern() . '/', $value)->hasMatch() === false) {
-			throw new InvalidValueException($value, $codification->getFullCodename());
-		}
+		// if ($codification->isRegex() === true && $value !== null && Regex::match('/' . $codification->getPattern() . '/', $value)->hasMatch() === false) {
+		// 	throw new InvalidValueException($value, $codification->getFullCodename());
+		// }
 
 		//apply default value if empty
-		if ($value === null && $codification->getValue()) {
-			$value = $codification->getValue();
+		if ($value === null && $codification->getDefaultValue()) {
+			$value = $codification->getDefaultValue();
 		}
 
 		//check empty value
-		if ($value === '') {
-			throw new InvalidValueException($value, $codification->getFullCodename());
-		}
+		// if ($value === '') {
+		// 	throw new InvalidValueException($value, $codification->getFullCodename());
+		// }
 
-		//update codificationValue or codificationItem
+		//update codificationElement or codificationChoice
 		switch ($codification->getType()) {
 			case CodificationTypeEnum::FIXED:
 				return $this;
 				
 			case CodificationTypeEnum::LIST:
-				foreach ($this->getCodificationItems()->getValues() as $codificationItem) {
-					if ($codificationItem->getCodification() === $codification) {
-						if ($codificationItem->getValue() === $value) {
+				foreach ($this->getCodificationChoices()->getValues() as $codificationChoice) {
+					if ($codificationChoice->getCodification() === $codification) {
+						if ($codificationChoice->getValue() === $value) {
 							return $this;
 						} else {
-							$this->removeCodificationItem($codificationItem);
+							$this->removeCodificationChoice($codificationChoice);
 						}
 					}
 				}
 				
-				foreach ($codification->getCodificationItems()->getValues() as $codificationItem) {
-					if ($codificationItem->getValue() === $value) {
-						$this->addCodificationItem($codificationItem);
+				foreach ($codification->getCodificationChoices()->getValues() as $codificationChoice) {
+					if ($codificationChoice->getValue() === $value) {
+						$this->addCodificationChoice($codificationChoice);
 						return $this;
 					}
 				}
@@ -418,26 +419,26 @@ class Document extends AbstractElement
 			case CodificationTypeEnum::TEXT:
 			case CodificationTypeEnum::REGEX:
 				
-				foreach ($this->getCodificationValues()->getValues() as $codificationValue) {
-					if ($codificationValue->getCodification() === $codification) {
-						if ($codificationValue->getValue() === $value) {
+				foreach ($this->getCodificationElements()->getValues() as $codificationElement) {
+					if ($codificationElement->getCodification() === $codification) {
+						if ($codificationElement->getValue() === $value) {
 							return $this;
 						} else {
-							$this->removeCodificationValue($codificationValue);
+							$this->removeCodificationElement($codificationElement);
 						}
 					}
 				}
 
-				foreach ($codification->getCodificationValues()->getValues() as $codificationValue) {
-					if ($codificationValue->getValue() === $value) {
-						$this->addCodificationValue($codificationValue);
+				foreach ($codification->getCodificationElements()->getValues() as $codificationElement) {
+					if ($codificationElement->getValue() === $value) {
+						$this->addCodificationElement($codificationElement);
 						return $this;
 					}
 				}
-				$codificationValue = new CodificationValue();
-				$codificationValue->setValue($value);
-				$codificationValue->setCodification($codification);
-				$this->addCodificationValue($codificationValue);
+				$codificationElement = new CodificationElement();
+				$codificationElement->setValue($value);
+				$codificationElement->setCodification($codification);
+				$this->addCodificationElement($codificationElement);
 				return $this;
 		}
 		
@@ -467,7 +468,7 @@ class Document extends AbstractElement
 					/** @var Metadata $metadata */
 					foreach ($this->getSerie()->getProject()->getMetadatas()->getValues() as $metadata) {
 						if ($metadata->getFullCodename() === $codename) {
-							return $this->getTypedMetadataValue($metadata);
+							return $this->getMetadataValue($metadata);
 						}
 					}
 				} elseif (Regex::match('/codification\.\w+/', $codename)->hasMatch()) {

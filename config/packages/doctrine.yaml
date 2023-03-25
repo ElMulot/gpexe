@@ -1,14 +1,6 @@
 doctrine:
     dbal:
         url: '%env(resolve:DATABASE_URL)%'
-        types:
-            codification_type_enum: App\Entity\Enum\CodificationTypeEnum
-            company_type_enum: App\Entity\Enum\CompanyTypeEnum
-            log_type_enum: App\Entity\Enum\LogTypeEnum
-            metadata_parent_enum: App\Entity\Enum\MetadataParentEnum
-            metadata_type_enum: App\Entity\Enum\MetadataTypeEnum
-            program_type_enum: App\Entity\Enum\ProgramTypeEnum
-            status_type_enum: App\Entity\Enum\StatusTypeEnum
         mapping_types:
             enum: string
         # IMPORTANT: You MUST configure your server version,

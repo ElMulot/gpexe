@@ -6,7 +6,7 @@ use App\Entity\Serie;
 use App\Entity\Company;
 use App\Entity\Project;
 use App\Entity\Metadata;
-use App\Entity\MetadataItem;
+use App\Entity\MetadataChoice;
 use App\Form\Type\BooleanType;
 use App\Entity\Enum\MetadataTypeEnum;
 use App\Repository\CompanyRepository;
@@ -15,14 +15,14 @@ use Symfony\Component\Form\AbstractType;
 use App\Exception\InternalErrorException;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormBuilderInterface;
-use Symfony\Component\Validator\Constraints\Url;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
-use Symfony\Component\Validator\Constraints\Regex;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\Validator\Constraints\Regex;
+use Symfony\Component\Validator\Constraints\Url;
 
 class SerieType extends AbstractType
 {
@@ -78,7 +78,7 @@ class SerieType extends AbstractType
 										if ($serie->getId() === null) {
 											return $metadata->getTypedDefaultValue();
 										} else {
-											return $serie->getTypedMetadataValue($metadata);
+											return $serie->getTypedMetadataElement($metadata);
 										}
 									},
 				'setter'		=> function (Serie &$serie, $viewData, FormInterface $form) use ($metadata): void
@@ -115,8 +115,8 @@ class SerieType extends AbstractType
 					
 				case MetadataTypeEnum::LIST:
 					$builder->add($metadata->getCodeName(), EntityType::class, $defaultOptions + [
-						'choices'		=> $metadata->getMetadataItems(),
-						'class'			=> MetadataItem::class,
+						'choices'		=> $metadata->getMetadataChoices(),
+						'class'			=> MetadataChoice::class,
 						// 'choice_value'	=> 'id',
 						// 'choice_label'	=> 'value',
 					]);
@@ -159,7 +159,7 @@ class SerieType extends AbstractType
     //     $forms = array(...$forms);
 
 	// 	foreach ($this->metadataRepository->getMetadatasForSerie($forms[0]->getConfig()->getOption('project')) as $metadata) {
-	// 		$data = $viewData->getTypedMetadataValue($metadata);
+	// 		$data = $viewData->getTypedMetadataElement($metadata);
 	// 		$forms[$metadata->getCodeName()]->setData($data);
 	// 	}
     // }

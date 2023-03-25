@@ -1,5 +1,5 @@
 {%- block combobox_widget -%}
-	<div {{ stimulus_controller('form--combobox', {'customOptionLabel': form.vars.customOptionLabel|trans }) }}>
+	<div {{ stimulus_controller('form--combobox', {'customOptionLabel': form.vars.custom_option_label|trans }) }}>
 		{{ form_widget(form.choice, {'attr': form.choice.vars.attr|merge({'data-form--combobox-target': 'choice'})}) }}
 		{{ form_widget(form.input, {'attr': form.input.vars.attr|merge({'data-form--combobox-target': 'input'})}) }}
 	</div>

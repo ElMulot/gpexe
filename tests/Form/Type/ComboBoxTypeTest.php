@@ -42,13 +42,19 @@ class ComboBoxTypeTest extends TypeTestCase
 		$form = $this->factory->create(ComboBoxType::class, null, [
 			'choices' => $choices,
 			'custom_option_label' => '[type a custom value]',
-			'custom_option_value' => -1,
 		]);
 		$this->assertTrue($form->isSynchronized());
 
 		$this->assertTrue($form->has('choice'));
-		$this->assertSame($form->get('choice')->getConfig()->getOption('choices'), $choices + ['[type a custom value]' => -1]);
+		$this->assertTrue($form->get('choice')->getConfig()->hasOption('choices'));
+		$this->assertSame($choices, $form->get('choice')->getConfig()->getOption('choices'));
+		
 		$this->assertTrue($form->has('input'));
+		$this->assertFalse($form->get('input')->getConfig()->getOption('required'));
+
+		$view = $form->createView();
+		$this->assertArrayHasKey('custom_option_label', $view->vars);
+		$this->assertSame('[type a custom value]', $view->vars['custom_option_label']);
 	}
 
 	/**
@@ -64,8 +70,6 @@ class ComboBoxTypeTest extends TypeTestCase
 		
 		$form = $this->factory->create(ComboBoxType::class, null, [
 			'choices' => $choices,
-			'custom_option_label' => '[type a custom value]',
-			'custom_option_value' => -1,
 		]);
 
 		$form->submit([
@@ -90,8 +94,6 @@ class ComboBoxTypeTest extends TypeTestCase
 		
 		$form = $this->factory->create(ComboBoxType::class, null, [
 			'choices' => $choices,
-			'custom_option_label' => '[type a custom value]',
-			'custom_option_value' => -1,
 		]);
 
 		$form->submit([
@@ -101,6 +103,30 @@ class ComboBoxTypeTest extends TypeTestCase
 
 		$this->assertTrue($form->isSynchronized());
 		$this->assertSame('3', $form->getData());
+	}
+
+	/**
+	 * @covers ComboBoxType
+	 */	
+	public function testSubmitNullValue(): void
+	{
+		$choices = [
+			'Zero'	=> 0,
+			'One'	=> 1,
+			'Two'	=> 2,
+		];
+		
+		$form = $this->factory->create(ComboBoxType::class, null, [
+			'choices' => $choices,
+		]);
+
+		$form->submit([
+			'choice'	=> null,
+			'input'		=> null,
+		]);
+
+		$this->assertTrue($form->isSynchronized());
+		$this->assertSame(null, $form->getData());
 	}
 }
 

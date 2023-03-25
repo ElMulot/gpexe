@@ -36,12 +36,12 @@ class VersionFixtures extends Fixture implements DependentFixtureInterface
 							->setApprover($this->getReference(UserFixtures::CONTROLLER_USER))
 							->setDate($date)
 							->setStatus($status)
-							->addMetadataValue($this->getReference(constant(MetadataValueFixtures::class . "::PROJECT_{$i}_METADATA_VALUE_VERSION_BOOL")))
-							->addMetadataValue($this->getReference(constant(MetadataValueFixtures::class . "::PROJECT_{$i}_METADATA_VALUE_VERSION_TEXT_" . rand(0, 2))))
-							->addMetadataValue($this->getReference(constant(MetadataValueFixtures::class . "::PROJECT_{$i}_METADATA_VALUE_VERSION_REGEX_" . rand(0, 2))))
-							->addMetadataValue($this->getReference(constant(MetadataValueFixtures::class . "::PROJECT_{$i}_METADATA_VALUE_VERSION_DATE_" . rand(0, 2))))
-							->addMetadataValue($this->getReference(constant(MetadataValueFixtures::class . "::PROJECT_{$i}_METADATA_VALUE_VERSION_LINK_" . rand(0, 2))))
-							->addMetadataItem($this->getReference(constant(MetadataItemFixtures::class . "::PROJECT_{$i}_METADATA_ITEM_VERSION_" . rand(0, 2))));
+							->addMetadataElement($this->getReference(constant(MetadataElementFixtures::class . "::PROJECT_{$i}_METADATA_ELEMENT_VERSION_BOOL")))
+							->addMetadataElement($this->getReference(constant(MetadataElementFixtures::class . "::PROJECT_{$i}_METADATA_ELEMENT_VERSION_TEXT_" . rand(0, 2))))
+							->addMetadataElement($this->getReference(constant(MetadataElementFixtures::class . "::PROJECT_{$i}_METADATA_ELEMENT_VERSION_REGEX_" . rand(0, 2))))
+							->addMetadataElement($this->getReference(constant(MetadataElementFixtures::class . "::PROJECT_{$i}_METADATA_ELEMENT_VERSION_DATE_" . rand(0, 2))))
+							->addMetadataElement($this->getReference(constant(MetadataElementFixtures::class . "::PROJECT_{$i}_METADATA_ELEMENT_VERSION_LINK_" . rand(0, 2))))
+							->addMetadataChoice($this->getReference(constant(MetadataChoiceFixtures::class . "::PROJECT_{$i}_METADATA_CHOICE_VERSION_" . rand(0, 2))));
 						$manager->persist($version);
 						$this->addReference("PROJECT_{$i}_SERIE_{$j}_VERSION_{$k}{$n}", $version);
 					}
@@ -57,8 +57,8 @@ class VersionFixtures extends Fixture implements DependentFixtureInterface
 			DocumentFixtures::class,
 			UserFixtures::class,
 			StatusFixtures::class,
-			MetadataValueFixtures::class,
-			MetadataItemFixtures::class,
+			MetadataElementFixtures::class,
+			MetadataChoiceFixtures::class,
 		];
 	}
 }

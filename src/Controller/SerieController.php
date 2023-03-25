@@ -18,6 +18,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Symfony\Component\Form\Exception\InvalidArgumentException;
+use Symfony\Component\Routing\Requirement\EnumRequirement;
 
 class SerieController extends AbstractTurboController
 {
@@ -85,7 +86,7 @@ class SerieController extends AbstractTurboController
 		]);
 	}
 	
-	#[Route(path: '/project/{project}/series/{belong}', name: 'seriesListByBelonging', requirements: ['project' => '\d+', 'belong' => 'all|mdr|sdr'])]
+	#[Route(path: '/project/{project}/series/{belong}', name: 'seriesListByBelonging', requirements: ['project' => '\d+', 'belong' => new EnumRequirement(SerieBelongingEnum::class)])]
 	public function seriesByBelonging(Project $project, string $belong) : Response
 	{	
 		switch ($belong) {
@@ -178,7 +179,7 @@ class SerieController extends AbstractTurboController
 				}
 				
 				try {
-					$serie->setMetadataValue($metadata, $value);
+					$serie->setMetadataElement($metadata, $value);
 				} catch (\Error $e) {
 					if ($metadata->isMandatory() === true) {
 						$this->addFlash('danger', $e->getMessage());
@@ -248,7 +249,7 @@ class SerieController extends AbstractTurboController
 				}
 				
 				try {
-					$serie->setMetadataValue($metadata, $value);
+					$serie->setMetadataElement($metadata, $value);
 				} catch (\Error $e) {
 					if ($metadata->isMandatory() === true) {
 						$this->addFlash('danger', $e->getMessage());

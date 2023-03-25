@@ -2,16 +2,18 @@
 namespace App\Form;
 
 use App\Entity\Codification;
-use App\Entity\CodificationItem;
+use App\Entity\CodificationChoice;
+use App\Entity\CodificationElement;
 use App\Entity\Document;
 use App\Entity\Enum\CodificationTypeEnum;
 use App\Entity\Enum\MetadataTypeEnum;
 use App\Entity\Metadata;
-use App\Entity\MetadataItem;
-use App\Entity\MetadataValue;
+use App\Entity\MetadataChoice;
+use App\Entity\MetadataElement;
 use App\Entity\Project;
 use App\Entity\Serie;
 use App\Exception\InternalErrorException;
+use App\Form\DataMapper\DocumentMapper;
 use App\Form\EventSubscriber\DefaultValueSubscriber;
 use App\Form\Type\BooleanType;
 use App\Form\Type\BooleanVariousType;
@@ -23,6 +25,7 @@ use App\Repository\CodificationRepository;
 use App\Repository\MetadataRepository;
 use App\Repository\SerieRepository;
 use App\Service\PropertyService;
+use App\Validator\CodificationElementValidator;
 use PhpParser\Node\Expr\Instanceof_;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
@@ -38,22 +41,22 @@ use Symfony\Component\Form\FormEvents;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormView;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Validator\Constraints\Regex;
-use Symfony\Component\Validator\Constraints\Url;
+use Symfony\Component\Validator\Constraints\Callback;
 use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Constraints\Regex;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Symfony\Component\Validator\Mapping\ClassMetadata;
+use Symfony\Component\Validator\Mapping\PropertyMetadata;
 
 class DocumentType extends AbstractType
 {
 
-	private string $mode;
-
-	public final const NEW	= 'new';
-	public final const EDIT	= 'edit';
-
 	public function __construct(private readonly PropertyService $propertyService,
 								private readonly CodificationRepository $codificationRepository,
 								private readonly MetadataRepository $metadataRepository,
-								private readonly SerieRepository $serieRepository)
+								private readonly SerieRepository $serieRepository,
+								private readonly ValidatorInterface $validatorInterface)
 	{
 		
 	}
@@ -64,18 +67,20 @@ class DocumentType extends AbstractType
 		/** @var Document[] $documents */
 		$documents = $builder->getData();
 
-		/** @var Project $project */
-		$project = $options['project'];
-		$codifications = $this->codificationRepository->getCodifications($project);
-		$metadatas = $this->metadataRepository->getMetadatasForDocument($project);
-		$series = $this->serieRepository->getSeriesByVersionIds($options['ids']);
-
-		//define if new or edit
 		if (count($documents) === 0) {
 			throw new InternalErrorException();
 		}
+
+		/**@var Document $document */
 		$document = reset($documents);
-		$this->mode = ($document->getId() === null)?self::NEW:self::EDIT;
+		
+		$isNew = $document->getId() === null;
+
+		/** @var Project $project */
+		$project = $options['project'];
+		$codifications = [$this->codificationRepository->getCodifications($project)[2]];
+		$metadatas = $this->metadataRepository->getMetadatasForDocument($project);
+		$series = $this->serieRepository->getSeriesByVersionIds($options['ids']);
 
 		if (count($series) === 0) {
 			throw new InternalErrorException();
@@ -90,10 +95,10 @@ class DocumentType extends AbstractType
 				'choices' => $series,
 			]);
 		}
-
+		
 		if (count($documents) === 1) {
 			$builder->add('name', TextType::class, [
-				'data' => $document->getName(),
+				'constraints' => new Regex('/^[^$"]+$/'),
 			]);
 		}
 
@@ -102,89 +107,88 @@ class DocumentType extends AbstractType
 			$defaultOptions = [
 				'label'			=> $codification->getName(),
 				'required'		=> true,
-				// 'constraints'	=> ($codification->isMandatory() === true)?[new NotBlank()]:[],
-				'empty_data'	=> $codification->getValue(),
+				// 'constraints'	=> $propertyMetadatas[0]->getConstraints(),
+				// 'empty_data'	=> $codification->getDefaultValue(),
 			];
 
 			switch ($codification->getType()) {
 
 				case CodificationTypeEnum::TEXT:
-					$builder->add($codification->getCodename(), TextVariousType::class, $defaultOptions + [
-						'data'			=> ($this->mode === self::NEW)?$codification->getValue():null,
-					]);
-					break;
-
 				case CodificationTypeEnum::REGEX:
-					$builder->add($codification->getCodename(), TextVariousType::class, $defaultOptions + [
-						'constraints'	=> [new Regex(['pattern' => '/' . $codification->getValue() . '/'])],
-						'data'			=> ($this->mode === self::NEW)?$codification->getValue():null,
+
+					$builder->add($codification->getFullId(), TextVariousType::class, $defaultOptions + [
+						'constraints' => new Callback(
+							callback: [CodificationElementValidator::class, 'validateAsForm'],
+							payload: ['splitter' => $project->getSplitter(), 'pattern' => $codification->getPattern()]
+						)
 					]);
+
 					break;
 
 				case CodificationTypeEnum::LIST:
-					$defaultValue = $codification->getCodificationItems()->filter(fn(CodificationItem $ci) => $ci->getValue() === $codification->getValue())->toArray();
-					$builder->add($codification->getCodename(), EntityVariousType::class, $defaultOptions + [
-						'class'			=> CodificationItem::class,
-						'choices' 		=> $codification->getCodificationItems(),
-						'choice_label'	=> fn(CodificationItem $codificationItem) => $codificationItem->getValue() . ' - ' . $codificationItem->getName(),
-						'data'			=> ($this->mode === self::NEW && empty($defaultValue) === false)?$defaultValue:null,
+					$defaultValue = $codification->getCodificationChoices()->filter(fn(CodificationChoice $ci) => $ci->getValue() === $codification->getDefaultValue())->toArray();
+					$builder->add($codification->getFullId(), EntityVariousType::class, $defaultOptions + [
+						'class'			=> CodificationChoice::class,
+						'choices' 		=> $codification->getCodificationChoices(),
+						'choice_label'	=> fn(CodificationChoice $codificationChoice) => $codificationChoice->getValue() . ' - ' . $codificationChoice->getName(),
+						'choice_value'	=> 'value',
 					]);
 					break;
 			}
 		}
 		
-		
-		foreach ($metadatas as $metadata) {
-			$defaultOptions = [
-				'label'			=> $metadata->getName(),
-				'required'		=> $metadata->isMandatory(),
-				'constraints'	=> ($metadata->isMandatory() === true)?[new NotBlank()]:[],
-				'empty_data'	=> $metadata->getDefault(),
-			];
+		// foreach ($metadatas as $metadata) {
+		// 	$defaultOptions = [
+		// 		'label'			=> $metadata->getName(),
+		// 		'required'		=> $metadata->isMandatory(),
+		// 		'constraints'	=> ($metadata->isMandatory() === true)?[new NotBlank()]:[],
+		// 		'empty_data'	=> $metadata->getDefaultValue(),
+		// 	];
 
-			switch ($metadata->getType()) {
+		// 	switch ($metadata->getType()) {
 				
-				case MetadataTypeEnum::BOOL:
-					$builder->add($metadata->getCodeName(), BooleanVariousType::class, $defaultOptions + [
-						'data'			=> ($this->mode === self::NEW)?$metadata->getDefault():null,
-					]);
-					break;
+		// 		case MetadataTypeEnum::BOOL:
+		// 			$builder->add($metadata->getFullId(), BooleanVariousType::class, $defaultOptions + [
+		// 				'constraints'			=> [],
+		// 			]);
+		// 			break;
 					
-				case MetadataTypeEnum::DATE:
-					$builder->add($metadata->getCodeName(), DateVariousType::class, $defaultOptions + [
-						'data'			=> ($this->mode === self::NEW)?$metadata->getDefault():null,
-					]);
-					break;
+		// 		case MetadataTypeEnum::DATE:
+		// 			$builder->add($metadata->getFullId(), DateVariousType::class, $defaultOptions + [
+		// 				'constraints'			=> [],
+		// 			]);
+		// 			break;
 					
-				case MetadataTypeEnum::TEXT:
-					$builder->add($metadata->getCodeName(), TextareaVariousType::class, $defaultOptions + [
-						'data'			=> ($this->mode === self::NEW)?$metadata->getDefault():null,
-					]);
-					break;
+		// 		case MetadataTypeEnum::TEXT:
+		// 			$builder->add($metadata->getFullId(), TextareaVariousType::class, $defaultOptions + [
+		// 				'constraints'			=> [],
+		// 			]);
+		// 			break;
 				
-				case MetadataTypeEnum::REGEX:
-					$builder->add($metadata->getCodeName(), TextVariousType::class, $defaultOptions + [
-						'constraints'	=> [new Regex('/' . $metadata->getPattern() . '/')],
-						'data'			=> ($this->mode === self::NEW)?$metadata->getDefault():null,
-					]);
-					break;
-				case MetadataTypeEnum::LINK:
-					$builder->add($metadata->getCodeName(), TextVariousType::class, $defaultOptions + [
-						'constraints'	=> [new Url()],
-						'data'			=> ($this->mode === self::NEW)?$metadata->getDefault():null,
-					]);
-					break;
+		// 		case MetadataTypeEnum::REGEX:
+		// 			$builder->add($metadata->getFullId(), TextVariousType::class, $defaultOptions + [
+		// 				'constraints'	=> [],
+		// 			]);
+		// 			break;
+		// 		case MetadataTypeEnum::LINK:
+		// 			$builder->add($metadata->getFullId(), TextVariousType::class, $defaultOptions + [
+		// 				'constraints'	=> [],
+		// 			]);
+		// 			break;
 					
-				case MetadataTypeEnum::LIST:
-					$defaultValue = $metadata->getMetadataItems()->filter(fn(MetadataItem $mi) => $mi->getValue() === $metadata->getDefault())->toArray();
-					$builder->add($metadata->getCodeName(), EntityVariousType::class, $defaultOptions + [
-						'class'			=> MetadataItem::class,
-						'choices'		=> $metadata->getMetadataItems(),
-						'data'			=> ($this->mode === self::NEW && empty($defaultValue) === false)?$defaultValue:null,
-					]);
-					break;
-			}
-		}
+		// 		case MetadataTypeEnum::LIST:
+		// 			$builder->add($metadata->getFullId(), EntityVariousType::class, $defaultOptions + [
+		// 				'class'			=> MetadataChoice::class,
+		// 				'choices'		=> $metadata->getMetadataChoices(),
+		// 				'choice_label'	=> 'value',
+		// 				'choice_value'	=> 'value',
+
+		// 			]);
+		// 			break;
+		// 	}
+		// }
+
+		$builder->setDataMapper(new DocumentMapper($project, $document, $isNew, $codifications, $metadatas));
 	}
 
     public function finishView(FormView $view, FormInterface $form, array $options)
@@ -192,9 +196,9 @@ class DocumentType extends AbstractType
 		
 		foreach ($view->children as $name => $child) {
 			if ($form->has($name) === true) {				
-				if ($form->get($name)->getConfig()->getType()->getInnerType() instanceof TextVariousType === true) {
-					$child->children['input']->vars['attr']['placeholder'] = $form->get($name)->getConfig()->getEmptyData();
-				} elseif ($form->get($name)->getConfig()->getType()->getInnerType() instanceof EntityVariousType === true) {
+				// if ($form->get($name)->getConfig()->getType()->getInnerType() instanceof TextVariousType === true) {
+				// 	$child->children['input']->vars['attr']['placeholder'] = $form->get($name)->getConfig()->getEmptyData();
+				// } elseif ($form->get($name)->getConfig()->getType()->getInnerType() instanceof EntityVariousType === true) {
 					// if ($form->get($name)->getData() === null) {
 					// 	foreach ($form->get($name)->getConfig()->getOption('choices') as $value) {
 					// 		if ($value->getValue() === $form->get($name)->getConfig()->getEmptyData()) {
@@ -203,7 +207,7 @@ class DocumentType extends AbstractType
 					// 		}
 					// 	}
 					// }
-				}
+				// }
 
 			}
 

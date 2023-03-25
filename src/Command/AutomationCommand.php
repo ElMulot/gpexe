@@ -3,8 +3,8 @@
 namespace App\Command;
 
 use App\Repository\AutomationRepository;
-use App\Repository\CodificationValueRepository;
-use App\Repository\MetadataValueRepository;
+use App\Repository\CodificationElementRepository;
+use App\Repository\MetadataElementRepository;
 use App\Repository\ProgramRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -20,8 +20,8 @@ class AutomationCommand extends Command
 	public function __construct(private readonly EntityManagerInterface $entityManager,
 								private readonly KernelInterface $kernel,
 								private readonly AutomationRepository $automationRepository,
-								private readonly CodificationValueRepository $codificationValueRepository,
-								private readonly MetadataValueRepository $metadataValueRepository,
+								private readonly CodificationElementRepository $codificationElementRepository,
+								private readonly MetadataElementRepository $metadataElementRepository,
 								private readonly ProgramRepository $programRepository)
 	{
 		parent::__construct();
@@ -36,8 +36,8 @@ class AutomationCommand extends Command
 	{
 		$result = Command::FAILURE;
 
-		$this->codificationValueRepository->deleteCodificationValueOrphans();
-		$this->metadataValueRepository->deleteMetadataValueOrphans();
+		$this->codificationElementRepository->deleteCodificationElementOrphans();
+		$this->metadataElementRepository->deleteMetadataElementOrphans();
 		$automations = $this->automationRepository->getAutomationsToRun();
 
 		foreach ($automations as $automation) {

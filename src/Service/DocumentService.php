@@ -23,7 +23,7 @@ class DocumentService
 	
 	public function validateReference(Document $document): bool
 	{
-		$documents = $this->documentRepository->getDocumentsByReference($document->getSerie()->getProject(), $document->getCodificationItems(), $document->getCodificationValues());
+		$documents = $this->documentRepository->getDocumentsByReference($document->getSerie()->getProject(), $document->getCodificationChoices(), $document->getCodificationElements());
 		
 		if (empty($documents)) {
 			return true;

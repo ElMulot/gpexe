@@ -95,10 +95,10 @@ class VariousMapperTest extends TestCase
 			'switch'	=> $formSwitch,
 			'input'		=> $formInput,
 		]);
-		$viewData = '';
+		$viewData = ['test1', 'test2'];
 
 		$mapper = new VariousMapper();
 		$mapper->mapFormsToData($forms, $viewData);
-		$this->assertSame(null, $viewData);
+		$this->assertSame(['test1', 'test2'], $viewData);
 	}
 }

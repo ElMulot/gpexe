@@ -18,7 +18,7 @@ class StatusType extends AbstractType
 			->add('name')
 			->add('value')
 			->add('type', ChoiceType::class, [
-				'choices' => StatusTypeEnum::getChoices(),
+				'choices' => StatusTypeEnum::cases(),
 				'expanded' => true,
 				'disabled' => ($builder->getData()->getId() != null),
 			])

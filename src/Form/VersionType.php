@@ -1,39 +1,17 @@
 <?php
 namespace App\Form;
 
-use App\Entity\Document;
-use App\Entity\Enum\MetadataTypeEnum;
-use App\Entity\Metadata;
-use App\Entity\MetadataItem;
-use App\Entity\MetadataValue;
 use App\Entity\Project;
-use App\Entity\Serie;
-use App\Entity\Status;
-use App\Entity\User;
 use App\Entity\Version;
 use App\Exception\InternalErrorException;
-use App\Form\Type\BooleanType;
 use App\Form\Type\BooleanVariousType;
-use App\Form\Type\DateVariousType;
-use App\Form\Type\EntityVariousType;
-use App\Form\Type\TextVariousType;
-use App\Repository\CompanyRepository;
 use App\Repository\DocumentRepository;
 use App\Repository\MetadataRepository;
 use App\Repository\UserRepository;
 use App\Service\PropertyService;
-use Spatie\Regex\Regex;
-use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
-use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
-use Symfony\Component\Form\Extension\Core\Type\DateType;
-use Symfony\Component\Form\Extension\Core\Type\HiddenType;
-use Symfony\Component\Form\Extension\Core\Type\TextType;
-use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Validator\Constraints\NotBlank;
-use Symfony\Component\Validator\Constraints\Url;
 
 class VersionType extends AbstractType
 {
@@ -124,47 +102,47 @@ class VersionType extends AbstractType
 		// 		'label'			=> $metadata->getName(),
 		// 		'required'		=> $metadata->isMandatory(),
 		// 		'constraints'	=> ($metadata->isMandatory() === true)?[new NotBlank()]:[],
-		// 		'empty_data'	=> $metadata->getDefault(),
+		// 		'empty_data'	=> $metadata->getDefaultValue(),
 		// 	];
 
 		// 	switch ($metadata->getType()) {
 				
 		// 		case MetadataTypeEnum::BOOL:
 		// 			$builder->add($metadata->getCodeName(), BooleanVariousType::class, $defaultOptions + [
-		// 				'data'			=> ($this->mode === self::NEW)?$metadata->getDefault():null,
+		// 				'data'			=> ($this->mode === self::NEW)?$metadata->getDefaultValue():null,
 		// 			]);
 		// 			break;
 					
 		// 		case MetadataTypeEnum::DATE:
 		// 			$builder->add($metadata->getCodeName(), DateVariousType::class, $defaultOptions + [
-		// 				'data'			=> ($this->mode === self::NEW)?$metadata->getDefault():null,
+		// 				'data'			=> ($this->mode === self::NEW)?$metadata->getDefaultValue():null,
 		// 			]);
 		// 			break;
 					
 		// 		case MetadataTypeEnum::TEXT:
 		// 			$builder->add($metadata->getCodeName(), TextareaVariousType::class, $defaultOptions + [
-		// 				'data'			=> ($this->mode === self::NEW)?$metadata->getDefault():null,
+		// 				'data'			=> ($this->mode === self::NEW)?$metadata->getDefaultValue():null,
 		// 			]);
 		// 			break;
 				
 		// 		case MetadataTypeEnum::REGEX:
 		// 			$builder->add($metadata->getCodeName(), TextVariousType::class, $defaultOptions + [
 		// 				'constraints'	=> [new Regex('/' . $metadata->getPattern() . '/')],
-		// 				'data'			=> ($this->mode === self::NEW)?$metadata->getDefault():null,
+		// 				'data'			=> ($this->mode === self::NEW)?$metadata->getDefaultValue():null,
 		// 			]);
 		// 			break;
 		// 		case MetadataTypeEnum::LINK:
 		// 			$builder->add($metadata->getCodeName(), TextVariousType::class, $defaultOptions + [
 		// 				'constraints'	=> [new Url()],
-		// 				'data'			=> ($this->mode === self::NEW)?$metadata->getDefault():null,
+		// 				'data'			=> ($this->mode === self::NEW)?$metadata->getDefaultValue():null,
 		// 			]);
 		// 			break;
 					
 		// 		case MetadataTypeEnum::LIST:
-		// 			$defaultValue = $metadata->getMetadataItems()->filter(fn(MetadataItem $mi) => $mi->getValue() === $metadata->getDefault())->toArray();
+		// 			$defaultValue = $metadata->getMetadataChoices()->filter(fn(MetadataChoice $mi) => $mi->getValue() === $metadata->getDefaultValue())->toArray();
 		// 			$builder->add($metadata->getCodeName(), EntityVariousType::class, $defaultOptions + [
-		// 				'class'			=> MetadataItem::class,
-		// 				'choices'		=> $metadata->getMetadataItems(),
+		// 				'class'			=> MetadataChoice::class,
+		// 				'choices'		=> $metadata->getMetadataChoices(),
 		// 				'data'			=> ($this->mode === self::NEW && empty($defaultValue) === false)?$defaultValue:null,
 		// 			]);
 		// 			break;

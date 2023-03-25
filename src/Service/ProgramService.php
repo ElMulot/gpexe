@@ -476,16 +476,16 @@ class ProgramService
 								->setApprover($lastVersion->getApprover())
 							;
 							
-							foreach ($lastVersion->getMetadataItems() as $metadataItem) {
+							foreach ($lastVersion->getMetadataChoices() as $metadataChoice) {
 								try {
-									$currentVersion->setMetadataValue($metadataItem->getMetadata(), $metadataItem->getValue());
+									$currentVersion->setMetadataElement($metadataChoice->getMetadata(), $metadataChoice->getValue());
 								} catch (\Error $e) {
 									$this->addComment('warning', $e->getMessage());
 								}
 							}
-							foreach ($lastVersion->getMetadataValues() as $metadataValue) {
+							foreach ($lastVersion->getMetadataElements() as $metadataElement) {
 								try {
-									$currentVersion->setMetadataValue($metadataValue->getMetadata(), $metadataValue->getValue());
+									$currentVersion->setMetadataElement($metadataElement->getMetadata(), $metadataElement->getValue());
 								} catch (\Error $e) {
 									$this->addComment('warning', $e->getMessage());
 								}

@@ -3,15 +3,15 @@
 namespace App\Tests\EventListener;
 
 use App\Entity\Metadata;
-use App\Entity\MetadataItem;
+use App\Entity\MetadataChoice;
 use PHPUnit\Framework\TestCase;
 use Doctrine\Persistence\ObjectManager;
-use App\EventListener\MetadataItemListener;
+use App\EventListener\MetadataChoiceListener;
 use PHPUnit\Framework\MockObject\MockObject;
 use Doctrine\Persistence\Event\LifecycleEventArgs;
 
 
-class MetadataItemListenerTest extends TestCase
+class MetadataChoiceListenerTest extends TestCase
 {
 	
 	private $event;
@@ -31,9 +31,9 @@ class MetadataItemListenerTest extends TestCase
 	}
 
 	/**
-	 * @covers MetadataItemListener::postRemove
+	 * @covers MetadataChoiceListener::postRemove
 	 */
-	function testPreRemoveIfMetadataItemIsDefaultValue(): void
+	function testPreRemoveIfMetadataChoiceIsDefaultValue(): void
 	{
 		/**@var Metadata&MockObject */
 		$metadata = $this->createMock(Metadata::class);
@@ -43,16 +43,16 @@ class MetadataItemListenerTest extends TestCase
 
 		$metadata
 			->expects($this->once())
-			->method('setDefaultValue')
+			->method('setDefaultRawValue')
 			->with(null);
 
-		/**@var MetadataItem&MockObject */
-		$metadataItem = $this->createMock(MetadataItem::class);
-		$metadataItem
+		/**@var MetadataChoice&MockObject */
+		$metadataChoice = $this->createMock(MetadataChoice::class);
+		$metadataChoice
 			->method('getValue')
 			->willReturn('test');
 
-		$metadataItem
+		$metadataChoice
 			->method('getMetadata')
 			->willReturn($metadata);
 
@@ -65,15 +65,15 @@ class MetadataItemListenerTest extends TestCase
 			->expects($this->once())
 			->method('flush');
 
-		$metadataItemListener = new MetadataItemListener();
+		$metadataChoiceListener = new MetadataChoiceListener();
 
-		$metadataItemListener->postRemove($metadataItem, $this->event);
+		$metadataChoiceListener->postRemove($metadataChoice, $this->event);
 	}
 
 	/**
-	 * @covers MetadataItemListener::postRemove
+	 * @covers MetadataChoiceListener::postRemove
 	 */
-	function testPreRemoveIfMetadataItemIsNotDefaultValue(): void
+	function testPreRemoveIfMetadataChoiceIsNotDefaultValue(): void
 	{
 		/**@var Metadata&MockObject */
 		$metadata = $this->createMock(Metadata::class);
@@ -83,15 +83,15 @@ class MetadataItemListenerTest extends TestCase
 
 		$metadata
 			->expects($this->never())
-			->method('setDefaultValue');
+			->method('setDefaultRawValue');
 
-		/**@var MetadataItem&MockObject */
-		$metadataItem = $this->createMock(MetadataItem::class);
-		$metadataItem
+		/**@var MetadataChoice&MockObject */
+		$metadataChoice = $this->createMock(MetadataChoice::class);
+		$metadataChoice
 			->method('getValue')
 			->willReturn('test1');
 
-		$metadataItem
+		$metadataChoice
 			->method('getMetadata')
 			->willReturn($metadata);
 
@@ -103,9 +103,9 @@ class MetadataItemListenerTest extends TestCase
 			->expects($this->never())
 			->method('flush');
 
-		$metadataItemListener = new MetadataItemListener();
+		$metadataChoiceListener = new MetadataChoiceListener();
 
-		$metadataItemListener->postRemove($metadataItem, $this->event);
+		$metadataChoiceListener->postRemove($metadataChoice, $this->event);
 	}
 }
 

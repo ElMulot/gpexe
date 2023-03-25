@@ -2,25 +2,22 @@
 
 namespace App\Form;
 
-use App\Entity\CodificationItem;
+use App\Entity\MetadataChoice;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
-class CodificationItemType extends AbstractType
+class MetadataChoiceType extends AbstractType
 {
 	public function buildForm(FormBuilderInterface $builder, array $options)
 	{
-		$builder
-			->add('name')
-			->add('value')
-		;
+		$builder->add('value');
 	}
 
 	public function configureOptions(OptionsResolver $resolver)
 	{
 		$resolver->setDefaults([
-			'data_class' => CodificationItem::class,
+			'data_class' => MetadataChoice::class,
 		]);
 	}
 }

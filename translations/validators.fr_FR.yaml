@@ -1,1 +1,2 @@
 #user.mail.not_blank: Un utilisateur avec cette adresse mail existe déjà.
+codification.no_splitter: The {{value}}

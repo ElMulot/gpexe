@@ -12,7 +12,7 @@ export default class extends Controller {
 
 	connect() {
 
-		this.#customOptionTarget = `<option>${this.customOptionLabelValue}</option>`.toElement();
+		this.#customOptionTarget = `<option value="">${this.customOptionLabelValue}</option>`.toElement();
 		this.choiceTarget.appendChild(this.#customOptionTarget);
 
 		this.choiceTarget.addEventListener('change', () => this.onSelectChange());
@@ -27,6 +27,7 @@ export default class extends Controller {
 		if (this.choiceTarget.selectedOptions[0] === this.#customOptionTarget) {
 			this.choiceTarget.style.display = 'none';
 			this.inputTarget.style.removeProperty('display');
+			this.inputTarget.required = this.choiceTarget.required;
 		} else {
 			this.choiceTarget.style.removeProperty('display');
 			this.inputTarget.style.display = 'none';

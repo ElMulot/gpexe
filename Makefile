@@ -162,7 +162,7 @@ load-fixtures: ## Build the DB, control the schema validity, load fixtures and c
 	@$(SYMFONY) doctrine:database:create --if-not-exists
 	@$(SYMFONY) doctrine:schema:drop --force
 	@$(SYMFONY) doctrine:schema:create
-##	@$(SYMFONY) doctrine:schema:validate
+	@$(SYMFONY) doctrine:schema:validate
 	@$(SYMFONY) doctrine:fixtures:load -n
 
 init-snippet: ## Initialize a new snippet

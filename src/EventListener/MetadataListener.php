@@ -4,7 +4,7 @@ namespace App\EventListener;
 
 use Doctrine\Persistence\Event\LifecycleEventArgs;
 use App\Entity\Metadata;
-use App\Entity\MetadataItem;
+use App\Entity\MetadataChoice;
 use Doctrine\Bundle\DoctrineBundle\Attribute\AsEntityListener;
 use Doctrine\ORM\Events;
 
@@ -12,7 +12,6 @@ use Doctrine\ORM\Events;
 #[AsEntityListener(entity:Metadata::class, event: Events::postUpdate, lazy:true)]
 class MetadataListener
 {
-	
 	public function postPersist(Metadata $metadata, LifecycleEventArgs $event)
 	{
 		if (!$metadata->getDefaultValue()) {
@@ -23,18 +22,18 @@ class MetadataListener
 			return;
 		}
 		
-		/**@var MetadataItem $metadataItem */
-		foreach ($metadata->getMetadataItems() as $metadataItem) {
-			if ($metadataItem->getValue() === $metadata->getDefaultValue()) {
+		/**@var MetadataChoice $metadataChoice */
+		foreach ($metadata->getMetadataChoices() as $metadataChoice) {
+			if ($metadataChoice->getValue() === $metadata->getDefaultValue()) {
 				return;
 			}
 		}
 		
-		$metadataItem = new MetadataItem();
-		$metadataItem
+		$metadataChoice = new MetadataChoice();
+		$metadataChoice
 			->setMetadata($metadata)
 			->setValue($metadata->getDefaultValue());
-		$event->getObjectManager()->persist($metadataItem);
+		$event->getObjectManager()->persist($metadataChoice);
 		$event->getObjectManager()->flush();
 	}
 	

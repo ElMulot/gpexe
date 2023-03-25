@@ -28,12 +28,12 @@ class SerieFixtures extends Fixture implements DependentFixtureInterface
 					->setName("Serie {$j}")
 					->setProject($this->getReference(constant(ProjectFixtures::class . "::PROJECT_{$i}")))
 					->setCompany($this->getReference(CompanyFixtures::SUB_CONTRACTOR_COMPANY_0))
-					->addMetadataValue($this->getReference(constant(MetadataValueFixtures::class . "::PROJECT_{$i}_METADATA_VALUE_SERIE_BOOL")))
-					->addMetadataValue($this->getReference(constant(MetadataValueFixtures::class . "::PROJECT_{$i}_METADATA_VALUE_SERIE_TEXT_" . rand(0, 2))))
-					->addMetadataValue($this->getReference(constant(MetadataValueFixtures::class . "::PROJECT_{$i}_METADATA_VALUE_SERIE_REGEX_" . rand(0, 2))))
-					->addMetadataValue($this->getReference(constant(MetadataValueFixtures::class . "::PROJECT_{$i}_METADATA_VALUE_SERIE_DATE_" . rand(0, 2))))
-					->addMetadataValue($this->getReference(constant(MetadataValueFixtures::class . "::PROJECT_{$i}_METADATA_VALUE_SERIE_LINK_" . rand(0, 2))))
-					->addMetadataItem($this->getReference(constant(MetadataItemFixtures::class . "::PROJECT_{$i}_METADATA_ITEM_SERIE_" . rand(0, 2))));
+					->addMetadataElement($this->getReference(constant(MetadataElementFixtures::class . "::PROJECT_{$i}_METADATA_ELEMENT_SERIE_BOOL")))
+					->addMetadataElement($this->getReference(constant(MetadataElementFixtures::class . "::PROJECT_{$i}_METADATA_ELEMENT_SERIE_TEXT_" . rand(0, 2))))
+					->addMetadataElement($this->getReference(constant(MetadataElementFixtures::class . "::PROJECT_{$i}_METADATA_ELEMENT_SERIE_REGEX_" . rand(0, 2))))
+					->addMetadataElement($this->getReference(constant(MetadataElementFixtures::class . "::PROJECT_{$i}_METADATA_ELEMENT_SERIE_DATE_" . rand(0, 2))))
+					->addMetadataElement($this->getReference(constant(MetadataElementFixtures::class . "::PROJECT_{$i}_METADATA_ELEMENT_SERIE_LINK_" . rand(0, 2))))
+					->addMetadataChoice($this->getReference(constant(MetadataChoiceFixtures::class . "::PROJECT_{$i}_METADATA_CHOICE_SERIE_" . rand(0, 2))));
 				$manager->persist($serie);
 				$this->addReference("PROJECT_{$i}_SERIE_{$j}", $serie);
 			}
@@ -54,8 +54,8 @@ class SerieFixtures extends Fixture implements DependentFixtureInterface
 		return [
 			ProjectFixtures::class,
 			CompanyFixtures::class,
-			MetadataValueFixtures::class,
-			MetadataItemFixtures::class,
+			MetadataElementFixtures::class,
+			MetadataChoiceFixtures::class,
 		];
 	}
 }

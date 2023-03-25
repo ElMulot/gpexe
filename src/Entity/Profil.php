@@ -5,8 +5,7 @@ namespace App\Entity;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Doctrine\ORM\Mapping as ORM;
 use App\Repository\ProfilRepository;
-use Symfony\Component\Validator\Constraints\NotBlank;
-use Symfony\Component\Validator\Constraints\Regex;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ProfilRepository::class)]
 #[UniqueEntity(
@@ -20,8 +19,8 @@ class Profil implements \Stringable
 	private ?int $id = null;
 
 	#[ORM\Column(length: 100, unique: true)]
-	#[NotBlank]
-	#[Regex('/^[^$"]+$/')]
+	#[Assert\NotBlank]
+	#[Assert\Regex('/^[^$"]+$/')]
 	private ?string $name = null;
 	
 	#[ORM\Column]

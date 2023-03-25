@@ -102,7 +102,7 @@ class ParseService
 		} else {
 			
 			if (is_array($parsedCode)) {
-				$parsedCode = $this->setDefaultValue($structure);
+				$parsedCode = $this->setDefaultRawValue($structure);
 			} else {
 				$parsedCode = $this->checkRegex($structure, $parsedCode);
 			}
@@ -135,7 +135,7 @@ class ParseService
 		}
 	}
 	
-	private function setDefaultValue(array $structure)
+	private function setDefaultRawValue(array $structure)
 	{
 		if (array_key_exists('default', $structure)) {
 			return $structure['default'];
@@ -157,7 +157,7 @@ class ParseService
 				return (is_numeric($result->group(0)))?+$result->group(0):$result->group(0);
 			}
 		}
-		return $this->setDefaultValue($structure);
+		return $this->setDefaultRawValue($structure);
 	}
 	
 }

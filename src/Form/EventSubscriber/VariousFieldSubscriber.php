@@ -21,7 +21,7 @@ class VariousFieldSubscriber implements EventSubscriberInterface
 
 	public function preSetData(FormEvent $event): void
 	{
-		// dump('VariousFieldSubscriber->preSetData');
+		// dump('VariousFieldSubscriber->preSetData', $event->getData());
 		
 		$data = $event->getData();
 		$form = $event->getForm();

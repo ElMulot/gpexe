@@ -36,8 +36,8 @@ class DateTypeExtension extends AbstractTypeExtension
 			'html5'				=> false,
 			'today_button'		=> true,
 			'disable_weekend'	=> true,
-			'required'			=> false,
-			'input_format'		=> DateService::PHP_DEFAULT_DATE_FORMAT,
+			// 'required'			=> false,
+			'input_format'		=> DateService::PHP_INTERNAL_DATE_FORMAT,
 			'format'			=> $this->ICUDatePattern,
 		]);
 	}

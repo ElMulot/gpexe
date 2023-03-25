@@ -12,13 +12,13 @@ use Doctrine\ORM\Mapping as ORM;
 use Spatie\Regex\Regex;
 use App\Repository\SerieRepository;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
-use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: SerieRepository::class)]
 #[UniqueEntity(
 	fields: ['name', 'project']
 )]
-class Serie extends AbstractElement
+class Serie extends AbstractElement implements \Stringable
 {
 	#[ORM\Id]
 	#[ORM\GeneratedValue]
@@ -26,17 +26,17 @@ class Serie extends AbstractElement
 	private ?int $id = null;
 
 	#[ORM\Column(length: 100)]
-	#[NotBlank]
-	#[Regex('/^[^$"]+$/')]
+	#[Assert\NotBlank]
+	#[Assert\Regex('/^[^$"]+$/')]
 	private ?string $name = null;
 
-	#[ORM\ManyToMany(targetEntity: MetadataItem::class, cascade: ['persist'])]
-	#[ORM\JoinTable(name: 'serie_metadata_item')]
-	private Collection $metadataItems;
+	#[ORM\ManyToMany(targetEntity: MetadataChoice::class, cascade: ['persist'])]
+	#[ORM\JoinTable(name: 'serie_metadata_choice')]
+	private Collection $metadataChoices;
 
-	#[ORM\ManyToMany(targetEntity: MetadataValue::class, cascade: ['persist'])]
-	#[ORM\JoinTable(name: 'serie_metadata_value')]
-	private Collection $metadataValues;
+	#[ORM\ManyToMany(targetEntity: MetadataElement::class, cascade: ['persist'])]
+	#[ORM\JoinTable(name: 'serie_metadata_element')]
+	private Collection $metadataElements;
 
 	#[ORM\ManyToOne(inversedBy: 'series')]
 	private ?Company $company = null;
@@ -52,8 +52,8 @@ class Serie extends AbstractElement
 
 	public function __construct()
 	{
-		$this->metadataItems = new ArrayCollection();
-		$this->metadataValues = new ArrayCollection();
+		$this->metadataChoices = new ArrayCollection();
+		$this->metadataElements = new ArrayCollection();
 		$this->documents = new ArrayCollection();
 	 	$this->progress = new ArrayCollection();
 	}
@@ -76,52 +76,52 @@ class Serie extends AbstractElement
 	}
 
 	/**
-	 * @return Collection|MetadataItem[]
+	 * @return Collection|MetadataChoice[]
 	 */
-	public function getMetadataItems(): Collection
+	public function getMetadataChoices(): Collection
 	{
-		return $this->metadataItems;
+		return $this->metadataChoices;
 	}
 
-	public function addMetadataItem(MetadataItem $metadataItem): self
+	public function addMetadataChoice(MetadataChoice $metadataChoice): self
 	{
-		if (!$this->metadataItems->contains($metadataItem)) {
-			$this->metadataItems[] = $metadataItem;
+		if (!$this->metadataChoices->contains($metadataChoice)) {
+			$this->metadataChoices[] = $metadataChoice;
 		}
 		
 		return $this;
 	}
 
-	public function removeMetadataItem(MetadataItem $metadataItem): self
+	public function removeMetadataChoice(MetadataChoice $metadataChoice): self
 	{
-		if ($this->metadataItems->contains($metadataItem)) {
-			$this->metadataItems->removeElement($metadataItem);
+		if ($this->metadataChoices->contains($metadataChoice)) {
+			$this->metadataChoices->removeElement($metadataChoice);
 		}
 		
 		return $this;
 	}
 
 	/**
-	 * @return Collection|MetadataValue[]
+	 * @return Collection|MetadataElement[]
 	 */
-	public function getMetadataValues(): Collection
+	public function getMetadataElements(): Collection
 	{
-		return $this->metadataValues;
+		return $this->metadataElements;
 	}
 
-	public function addMetadataValue(MetadataValue $metadataValue): self
+	public function addMetadataElement(MetadataElement $metadataElement): self
 	{
-		if (!$this->metadataValues->contains($metadataValue)) {
-			$this->metadataValues[] = $metadataValue;
+		if (!$this->metadataElements->contains($metadataElement)) {
+			$this->metadataElements[] = $metadataElement;
 		}
 		
 		return $this;
 	}
 
-	public function removeMetadataValue(MetadataValue $metadataValue): self
+	public function removeMetadataElement(MetadataElement $metadataElement): self
 	{
-		if ($this->metadataValues->contains($metadataValue)) {
-			$this->metadataValues->removeElement($metadataValue);
+		if ($this->metadataElements->contains($metadataElement)) {
+			$this->metadataElements->removeElement($metadataElement);
 		}
 		
 		return $this;
@@ -217,7 +217,7 @@ class Serie extends AbstractElement
 	 * @deprecated version
 	 * @return string|null
 	 */
-	public function getBelonging(): ?string
+	public function getBelonging(): SerieBelongingEnum
 	{
 		return match ($this->getCompany()->getType()) {
 			CompanyTypeEnum::MAIN_CONTRACTOR							=> SerieBelongingEnum::MDR,
@@ -266,7 +266,7 @@ class Serie extends AbstractElement
 					/** @var Metadata $metadata */
 					foreach ($this->getProject()->getMetadatas()->getValues() as $metadata) {
 						if ($metadata->getFullCodename() === $codename) {
-							return $this->getTypedMetadataValue($metadata);
+							return $this->getTypedMetadataElement($metadata);
 						}
 					}
 				}
@@ -296,7 +296,7 @@ class Serie extends AbstractElement
 					/** @var Metadata $metadata */
 					foreach ($this->getProject()->getMetadatas()->getValues() as $metadata) {
 						if ($metadata->getFullCodename() === $codename) {
-							$this->setMetadataValue($metadata, $value);
+							$this->setMetadataElement($metadata, $value);
 							return $this;
 						}
 					}

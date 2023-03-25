@@ -62,7 +62,7 @@ class TextareaVariousTypeTest extends TypeTestCase
 		]);
 
 		$this->assertTrue($form->isSynchronized());
-		$this->assertNull($form->getData());
+		$this->assertSame(['a', 'b'], $form->getData());
 	}
 
 	/**
@@ -79,6 +79,25 @@ class TextareaVariousTypeTest extends TypeTestCase
 		$form->submit([
 			'input'		=> $value,
 			'switch'	=> null,
+		]);
+
+		$this->assertTrue($form->isSynchronized());
+		$this->assertSame($expected, $form->getData());
+	}
+
+	/**
+	 * @covers TextareaVariousType
+	 * @testWith	[null, null]
+	 * 				["", null]
+	 * 				["1", "1"]
+	 * 				["a", "a"]
+	 */	
+	public function testSubmitValidDataWithoutSwitch($value, $expected): void
+	{
+		$form = $this->factory->create(TextareaVariousType::class, ['a']);
+
+		$form->submit([
+			'input'		=> $value
 		]);
 
 		$this->assertTrue($form->isSynchronized());

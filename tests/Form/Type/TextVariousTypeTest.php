@@ -62,7 +62,7 @@ class TextVariousTypeTest extends TypeTestCase
 		]);
 
 		$this->assertTrue($form->isSynchronized());
-		$this->assertNull($form->getData());
+		$this->assertSame(['a', 'b'], $form->getData());
 	}
 
 	/**
@@ -79,6 +79,25 @@ class TextVariousTypeTest extends TypeTestCase
 		$form->submit([
 			'input'		=> $value,
 			'switch'	=> null,
+		]);
+
+		$this->assertTrue($form->isSynchronized());
+		$this->assertSame($expected, $form->getData());
+	}
+
+	/**
+	 * @covers TextVariousType
+	 * @testWith	[null, null]
+	 * 				["", null]
+	 * 				["1", "1"]
+	 * 				["a", "a"]
+	 */	
+	public function testSubmitValidDataWithoutSwitch($value, $expected): void
+	{
+		$form = $this->factory->create(TextVariousType::class, ['a']);
+
+		$form->submit([
+			'input'		=> $value
 		]);
 
 		$this->assertTrue($form->isSynchronized());

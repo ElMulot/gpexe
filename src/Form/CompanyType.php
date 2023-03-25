@@ -18,7 +18,7 @@ class CompanyType extends AbstractType
 			->add('name')
 			->add('codename')
 			->add('type', ChoiceType::class, [
-				'choices' => CompanyTypeEnum::getChoices(),
+				'choices' => CompanyTypeEnum::cases(),
 				'expanded' => true,
 			])
 			->add('priority', NumberType::class, [

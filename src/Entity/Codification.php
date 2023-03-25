@@ -2,24 +2,22 @@
 
 namespace App\Entity;
 
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
-use Doctrine\ORM\Mapping as ORM;
 use App\Entity\Project;
-use App\Entity\CodificationItem;
-use Fresh\DoctrineEnumBundle\Validator\Constraints as DoctrineAssert;
+use App\Entity\CodificationChoice;
+use Doctrine\ORM\Mapping as ORM;
+use App\Validator\CodificationValidator;
 use App\Entity\Enum\CodificationTypeEnum;
 use App\Repository\CodificationRepository;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
-use App\Validator\CodificationWithoutSplitter;
-use Symfony\Component\Validator\Constraints\NotBlank;
-use Symfony\Component\Validator\Constraints\Regex;
 
 #[ORM\Entity(repositoryClass: CodificationRepository::class)]
 #[UniqueEntity(
 	fields: ['codename', 'project']
 )]
-#[CodificationWithoutSplitter]
+#[Assert\Callback([CodificationValidator::class, 'validate'])]
 class Codification implements \Stringable
 {
 	#[ORM\Id]
@@ -28,39 +26,39 @@ class Codification implements \Stringable
 	private ?int $id = null;
 
 	#[ORM\Column(length: 100)]
-	#[NotBlank]
-	#[Regex('/^[^$"]+$/')]
+	#[Assert\NotBlank]
+	#[Assert\Regex('/^[^$"]+$/')]
 	private ?string $name = null;
 
 	#[ORM\Column(length: 100)]
-	#[NotBlank]
-	#[Regex('/^\w+$/')]
+	#[Assert\NotBlank]
+	#[Assert\Regex('/^\w+$/')]
 	private ?string $codename = null;
 
-	#[ORM\Column(type: 'codification_type_enum')]
-	#[DoctrineAssert\EnumType(entity: CodificationTypeEnum::class)]
-	private ?string $type = null;
+	#[ORM\Column(type: 'string', enumType: CodificationTypeEnum::class)]
+	private ?CodificationTypeEnum $type = null;
 	
 	#[ORM\Column(length: 10, nullable: true)]
 	private ?string $pattern = null;
 
 	#[ORM\Column(length: 10, nullable: true)]
-	private ?string $value = null;
+	#[Assert\Regex('/^[^$"]+$/')]
+	private ?string $defaultRawValue = null;
 
 	#[ORM\ManyToOne(inversedBy: 'codifications', cascade:['persist'], fetch: 'EAGER')]
 	private ?Project $project = null;
 
-	#[ORM\OneToMany(targetEntity: CodificationItem::class, mappedBy: 'codification', orphanRemoval: true)]
-	private Collection $codificationItems;
+	#[ORM\OneToMany(targetEntity: CodificationChoice::class, mappedBy: 'codification', orphanRemoval: true)]
+	private Collection $codificationChoices;
 
-	#[ORM\OneToMany(targetEntity: CodificationValue::class, mappedBy: 'codification', orphanRemoval: true)]
-	private Collection $codificationValues;
+	#[ORM\OneToMany(targetEntity: CodificationElement::class, mappedBy: 'codification', orphanRemoval: true)]
+	private Collection $codificationElements;
 
 	public function __construct()
 	{
-		$this->type = CodificationTypeEnum::getDefaultValue();
-		$this->codificationItems = new ArrayCollection();
-		$this->codificationValues = new ArrayCollection();
+		$this->type = CodificationTypeEnum::LIST;
+		$this->codificationChoices = new ArrayCollection();
+		$this->codificationElements = new ArrayCollection();
 	}
 
 	public function getId(): ?int
@@ -92,14 +90,13 @@ class Codification implements \Stringable
 		return $this;
 	}
 
-	public function getType(): string
+	public function getType(): CodificationTypeEnum
 	{
 		return $this->type;
 	}
 
-	public function setType(string $type): self
+	public function setType(CodificationTypeEnum $type): self
 	{
-		CodificationTypeEnum::assertValidChoice($type);
 		$this->type = $type;
 
 		return $this;
@@ -107,7 +104,7 @@ class Codification implements \Stringable
 
 	public function getPattern(): ?string
 	{
-		return $this->pattern;
+		return ($this->isRegex() === true)?$this->pattern:null;
 	}
 
 	public function setPattern(string $pattern): self
@@ -117,14 +114,14 @@ class Codification implements \Stringable
 		return $this;
 	}
 	
-	public function getValue(): ?string
+	public function getDefaultRawValue(): ?string
 	{
-		return $this->value;
+		return $this->defaultRawValue;
 	}
 
-	public function setValue(string $value): self
+	public function setDefaultRawValue(mixed $defaultRawValue): self
 	{
-		$this->value = $value;
+		$this->defaultRawValue = (string)$defaultRawValue;
 
 		return $this;
 	}
@@ -142,29 +139,29 @@ class Codification implements \Stringable
 	}
 
 	/**
-	 * @return Collection|CodificationItem[]
+	 * @return Collection|CodificationChoice[]
 	 */
-	public function getCodificationItems(): Collection
+	public function getCodificationChoices(): Collection
 	{
-		return $this->codificationItems;
+		return $this->codificationChoices;
 	}
 
-	public function addCodificationItem(CodificationItem $codificationItem): self
+	public function addCodificationChoice(CodificationChoice $codificationChoice): self
 	{
-		if (!$this->codificationItems->contains($codificationItem)) {
-			$this->codificationItems[] = $codificationItem;
-			$codificationItem->setCodification($this);
+		if (!$this->codificationChoices->contains($codificationChoice)) {
+			$this->codificationChoices[] = $codificationChoice;
+			$codificationChoice->setCodification($this);
 		}
 
 		return $this;
 	}
 
-	public function removeCodificationItem(CodificationItem $codificationItem): self
+	public function removeCodificationChoice(CodificationChoice $codificationChoice): self
 	{
-		if ($this->codificationItems->contains($codificationItem)) {
-			$this->codificationItems->removeElement($codificationItem);
-			if ($codificationItem->getCodification() === $this) {
-				$codificationItem->setCodification(null);
+		if ($this->codificationChoices->contains($codificationChoice)) {
+			$this->codificationChoices->removeElement($codificationChoice);
+			if ($codificationChoice->getCodification() === $this) {
+				$codificationChoice->setCodification(null);
 			}
 		}
 
@@ -172,29 +169,29 @@ class Codification implements \Stringable
 	}
 
 	/**
-	 * @return Collection|CodificationValue[]
+	 * @return Collection|CodificationElement[]
 	 */
-	public function getCodificationValues(): Collection
+	public function getCodificationElements(): Collection
 	{
-		return $this->codificationValues;
+		return $this->codificationElements;
 	}
 
-	public function addCodificationValue(CodificationValue $codificationValue): self
+	public function addCodificationElement(CodificationElement $codificationElement): self
 	{
-		if (!$this->codificationValues->contains($codificationValue)) {
-			$this->codificationValues[] = $codificationValue;
-			$codificationValue->setCodification($this);
+		if (!$this->codificationElements->contains($codificationElement)) {
+			$this->codificationElements[] = $codificationElement;
+			$codificationElement->setCodification($this);
 		}
 		
 		return $this;
 	}
 
-	public function removeCodificationValue(CodificationValue $codificationValue): self
+	public function removeCodificationElement(CodificationElement $codificationElement): self
 	{
-		if ($this->codificationValues->contains($codificationValue)) {
-			$this->codificationValues->removeElement($codificationValue);
-			if ($codificationValue->getCodification() === $this) {
-				$codificationValue->setCodification(null);
+		if ($this->codificationElements->contains($codificationElement)) {
+			$this->codificationElements->removeElement($codificationElement);
+			if ($codificationElement->getCodification() === $this) {
+				$codificationElement->setCodification(null);
 			}
 		}
 		
@@ -216,14 +213,44 @@ class Codification implements \Stringable
 		return $this->type === CodificationTypeEnum::FIXED;
 	}
 
+	public function isText(): bool
+	{
+		return $this->type === CodificationTypeEnum::TEXT;
+	}
+	
+	public function isRegex(): bool
+	{
+		return $this->type === CodificationTypeEnum::REGEX;
+	}
+	
 	public function isList(): bool
 	{
 		return $this->type === CodificationTypeEnum::LIST;
 	}
 
-	public function isRegex(): bool
+	/**
+	 * Gets default value as string
+	 *
+	 * @return null|string
+	 */
+	public function getDefaultValue(): null|string
 	{
-		return $this->type === CodificationTypeEnum::REGEX;
+		if ($this->defaultRawValue === null) {
+			return null;
+		}
+		
+		switch ($this->type) {
+			case CodificationTypeEnum::LIST:
+				/**@var CodificationChoice $codificationChoice */
+				foreach ($this->codificationChoices as $codificationChoice) {
+					if ($codificationChoice->getValue() === $this->defaultRawValue) {
+						return $codificationChoice;
+					}
+				}
+				return null;
+			default:
+				return $this->defaultRawValue;
+		}
 	}
 
 	public function __toString(): string

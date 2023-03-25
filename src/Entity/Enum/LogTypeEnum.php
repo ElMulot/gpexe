@@ -2,19 +2,16 @@
 
 namespace App\Entity\Enum;
 
-use Fresh\DoctrineEnumBundle\DBAL\Types\AbstractEnumType;
-
-final class LogTypeEnum extends AbstractEnumType
+enum LogTypeEnum: string implements EnumTypeInterface
 {
-	public final const INSERT  	= 'insert';
-	public final const UPDATE	= 'update';
-	public final const DELETE	= 'delete';
+	case INSERT	= 'insert';
+	case UPDATE	= 'update';
+	case DELETE	= 'delete';
 
-	protected static array $choices = [
-		self::INSERT			=> 'Insert',
-		self::UPDATE			=> 'Update',
-		self::DELETE			=> 'Delete',
-	];
+	public static function getPrefix(): string
+	{
+		return 'log_type';
+	}
 }
 
 ?>

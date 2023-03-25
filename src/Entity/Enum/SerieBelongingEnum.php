@@ -2,19 +2,17 @@
 
 namespace App\Entity\Enum;
 
-use Fresh\DoctrineEnumBundle\DBAL\Types\AbstractEnumType;
-
-final class SerieBelongingEnum extends AbstractEnumType
+enum SerieBelongingEnum: string implements EnumTypeInterface
 {
-	public final const ALL  = 'all';
-	public final const MDR  = 'mdr';
-	public final const SDR	= 'sdr';
-	
-	protected static array $choices = [
-		self::ALL			=> 'All documents',
-		self::MDR			=> 'MDR only',
-		self::SDR			=> 'SDR only',
-	];
+	case ALL	= 'all';
+	case MDR	= 'mdr';
+	case SDR	= 'sdr';
+
+	public static function getPrefix(): string
+	{
+		return 'serie_belonging';
+	}
 }
+
 
 ?>

@@ -77,7 +77,7 @@ class ChoiceVariousTypeTest extends TypeTestCase
 		]);
 
 		$this->assertTrue($form->isSynchronized());
-		$this->assertNull($form->getData());
+		$this->assertSame([0, 1], $form->getData());
 	}
 
 	/**
@@ -126,6 +126,32 @@ class ChoiceVariousTypeTest extends TypeTestCase
 		$form->submit([
 			'input'		=> $value,
 			'switch'	=> null,
+		]);
+
+		$this->assertTrue($form->isSynchronized());
+		$this->assertNull($form->getData());
+	}
+
+	/**
+	 * @covers ChoiceVariousType
+	 * @testWith	[null]
+	 * 				[""]
+	 * 				["3"]
+	 * 				["a"]
+	 * 				["[]"]
+	 */	
+	public function testSubmitInvalidDataWithoutSwitch($value): void
+	{
+		$form = $this->factory->create(ChoiceVariousType::class, [0], [
+			'choices' => [
+				'Zero'	=> 0,
+				'One'	=> 1,
+				'Two'	=> 2,
+			]
+		]);
+
+		$form->submit([
+			'input'		=> $value
 		]);
 
 		$this->assertTrue($form->isSynchronized());

@@ -2,7 +2,7 @@
 
 namespace App\Repository;
 
-use App\Entity\CodificationValue;
+use App\Entity\CodificationElement;
 use App\Service\RepositoryService;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -12,24 +12,24 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method CodificationData[]	findAll()
  * @method CodificationData[]	findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class CodificationValueRepository extends RepositoryService
+class CodificationElementRepository extends RepositoryService
 {
 	public function __construct(ManagerRegistry $registry)
 	{
-		parent::__construct($registry, CodificationValue::class);
+		parent::__construct($registry, CodificationElement::class);
 	}
 	
-	public function deleteCodificationValueOrphans()
+	public function deleteCodificationElementOrphans()
 	{
 		$this
 			->getEntityManager()
 			->getConnection()
 			->executeStatement(
-				'DELETE codification_value.* FROM
-					codification_value
-				LEFT JOIN document_codification_value ON document_codification_value.codification_value_id = codification_value.id
+				'DELETE codification_element.* FROM
+					codification_element
+				LEFT JOIN document_codification_element ON document_codification_element.codification_element_id = codification_element.id
 				WHERE
-					document_codification_value.document_id IS NULL'
+					document_codification_element.document_id IS NULL'
 			)
 		;
 	}

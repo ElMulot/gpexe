@@ -2,19 +2,16 @@
 
 namespace App\Entity\Enum;
 
-use Fresh\DoctrineEnumBundle\DBAL\Types\AbstractEnumType;
-
-final class MetadataParentEnum extends AbstractEnumType
+enum MetadataParentEnum: string implements EnumTypeInterface
 {
-	public final const SERIE  	= 'serie';
-	public final const DOCUMENT	= 'document';
-	public final const VERSION	= 'version';
-	
-	protected static array $choices = [
-		self::SERIE				=> 'Serie',
-		self::DOCUMENT			=> 'Document',
-		self::VERSION			=> 'Version',
-	];
+	case SERIE		= 'serie';
+	case DOCUMENT	= 'document';
+	case VERSION	= 'version';
+
+	public static function getPrefix(): string
+	{
+		return 'metadata_parent';
+	}
 }
 
 ?>

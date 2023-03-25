@@ -4,7 +4,7 @@ namespace App\Form;
 
 use App\Entity\Enum\MetadataTypeEnum;
 use App\Entity\Metadata;
-use App\Entity\MetadataItem;
+use App\Entity\MetadataChoice;
 use App\Entity\Status;
 use App\Entity\User;
 use App\Entity\Version;
@@ -67,8 +67,8 @@ class QuickVersionType extends AbstractType
 							$options = match ($metadata->getType()) {
 								MetadataTypeEnum::LIST => [
 										'required'	=> $metadata->isMandatory(),
-										'class' 	=> MetadataItem::class,
-										'choices' 	=> $metadata->getMetadataItems(),
+										'class' 	=> MetadataChoice::class,
+										'choices' 	=> $metadata->getMetadataChoices(),
 									],
 								default => [
 										'required'	=> $metadata->isMandatory(),

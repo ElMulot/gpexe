@@ -23,15 +23,15 @@ class DocumentFixtures extends Fixture implements DependentFixtureInterface
 					$document
 						->setName("Document {$k}")
 						->setSerie($this->getReference(constant(SerieFixtures::class. "::PROJECT_{$i}_SERIE_{$j}")))
-						->addCodificationValue($this->getReference(constant(CodificationValueFixtures::class . "::PROJECT_{$i}_CODIFICATION_VALUE_TEXT_" . $a)))
-						->addCodificationValue($this->getReference(constant(CodificationValueFixtures::class . "::PROJECT_{$i}_CODIFICATION_VALUE_REGEX_" . $b)))
-						->addCodificationItem($this->getReference(constant(CodificationItemFixtures::class . "::PROJECT_{$i}_CODIFICATION_ITEM_" . $b)))
-						->addMetadataValue($this->getReference(constant(MetadataValueFixtures::class . "::PROJECT_{$i}_METADATA_VALUE_DOCUMENT_BOOL")))
-						->addMetadataValue($this->getReference(constant(MetadataValueFixtures::class . "::PROJECT_{$i}_METADATA_VALUE_DOCUMENT_TEXT_" . rand(0, 2))))
-						->addMetadataValue($this->getReference(constant(MetadataValueFixtures::class . "::PROJECT_{$i}_METADATA_VALUE_DOCUMENT_REGEX_" . rand(0, 2))))
-						->addMetadataValue($this->getReference(constant(MetadataValueFixtures::class . "::PROJECT_{$i}_METADATA_VALUE_DOCUMENT_DATE_" . rand(0, 2))))
-						->addMetadataValue($this->getReference(constant(MetadataValueFixtures::class . "::PROJECT_{$i}_METADATA_VALUE_DOCUMENT_LINK_" . rand(0, 2))))
-						->addMetadataItem($this->getReference(constant(MetadataItemFixtures::class . "::PROJECT_{$i}_METADATA_ITEM_DOCUMENT_" . rand(0, 2))));
+						->addCodificationElement($this->getReference(constant(CodificationElementFixtures::class . "::PROJECT_{$i}_CODIFICATION_ELEMENT_TEXT_" . $a)))
+						->addCodificationElement($this->getReference(constant(CodificationElementFixtures::class . "::PROJECT_{$i}_CODIFICATION_ELEMENT_REGEX_" . $b)))
+						->addCodificationChoice($this->getReference(constant(CodificationChoiceFixtures::class . "::PROJECT_{$i}_CODIFICATION_CHOICE_" . $b)))
+						->addMetadataElement($this->getReference(constant(MetadataElementFixtures::class . "::PROJECT_{$i}_METADATA_ELEMENT_DOCUMENT_BOOL")))
+						->addMetadataElement($this->getReference(constant(MetadataElementFixtures::class . "::PROJECT_{$i}_METADATA_ELEMENT_DOCUMENT_TEXT_" . rand(0, 2))))
+						->addMetadataElement($this->getReference(constant(MetadataElementFixtures::class . "::PROJECT_{$i}_METADATA_ELEMENT_DOCUMENT_REGEX_" . rand(0, 2))))
+						->addMetadataElement($this->getReference(constant(MetadataElementFixtures::class . "::PROJECT_{$i}_METADATA_ELEMENT_DOCUMENT_DATE_" . rand(0, 2))))
+						->addMetadataElement($this->getReference(constant(MetadataElementFixtures::class . "::PROJECT_{$i}_METADATA_ELEMENT_DOCUMENT_LINK_" . rand(0, 2))))
+						->addMetadataChoice($this->getReference(constant(MetadataChoiceFixtures::class . "::PROJECT_{$i}_METADATA_CHOICE_DOCUMENT_" . rand(0, 2))));
 					$manager->persist($document);
 					$this->addReference("PROJECT_{$i}_SERIE_{$j}_DOCUMENT_{$k}", $document);
 				}
@@ -45,8 +45,8 @@ class DocumentFixtures extends Fixture implements DependentFixtureInterface
 		return [
 			ProjectFixtures::class,
 			CompanyFixtures::class,
-			MetadataValueFixtures::class,
-			MetadataItemFixtures::class,
+			MetadataElementFixtures::class,
+			MetadataChoiceFixtures::class,
 		];
 	}
 }

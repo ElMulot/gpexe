@@ -3,12 +3,14 @@ namespace App\Controller;
 
 use App\Entity\Project;
 use App\Entity\Codification;
+use App\Entity\Enum\CodificationTypeEnum;
 use App\Form\CodificationType;
 use Doctrine\Persistence\ManagerRegistry;
 use App\Repository\CodificationRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Requirement\EnumRequirement;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 class CodificationController extends AbstractTurboController
@@ -31,17 +33,26 @@ class CodificationController extends AbstractTurboController
 		]);
 	}
 
-	#[Route(path: '/project/{project}/codification/new', name: 'codificationNew', requirements: ['project' => '\d+'])]
-	public function new(Request $request, Project $project) : Response
+	#[Route(path: '/project/{project}/codification/new/{type}', name: 'codificationNew', requirements: ['project' => '\d+', 'type' => new EnumRequirement(CodificationTypeEnum::class)])]
+	public function new(Request $request, Project $project, CodificationTypeEnum $type = null) : Response
 	{
 		$this->denyAccessUnlessGranted('PROJECT_EDIT', $project);
+		
+		if ($type === null) {
+			return $this->render('pages/project/codification/type.html.twig', [
+				'project' => $project,
+			]);
+		}
 
 		$codification = new Codification();
 		$codification->setProject($project);
+		$codification->setType($type);
+
 		$form = $this->createForm(CodificationType::class, $codification);
 		$form->handleRequest($request);
 
 		if ($form->isSubmitted() && $form->isValid()) {
+
 			$entityManager = $this->doctrine->getManager();
 			$entityManager->persist($codification);
 			$entityManager->flush();
@@ -72,6 +83,7 @@ class CodificationController extends AbstractTurboController
 		$form->handleRequest($request);
 
 		if ($form->isSubmitted() && $form->isValid()) {
+
 			$entityManager = $this->doctrine->getManager();
 			$entityManager->flush();
 

@@ -2,26 +2,17 @@
 
 namespace App\Entity\Enum;
 
-use Fresh\DoctrineEnumBundle\DBAL\Types\AbstractEnumType;
-
-final class CodificationTypeEnum extends AbstractEnumType
+enum CodificationTypeEnum: string implements EnumTypeInterface
 {
-	public final const FIXED  	= 'fixed';
-	public final const TEXT  	= 'text';
-	public final const REGEX	= 'regex';
-	public final const LIST		= 'list';
-	
-	protected static array $choices = [
-		self::FIXED				=> 'Fixed',
-		self::TEXT				=> 'Text',
-		self::REGEX				=> 'Regex',
-		self::LIST				=> 'List',
-	];
+	case FIXED  = 'fixed';
+	case TEXT  	= 'text';
+	case REGEX	= 'regex';
+	case LIST	= 'list';
 
-	public static function getDefaultValue(): ?string
-    {
-        return self::LIST;
-    }
+	public static function getPrefix(): string
+	{
+		return 'codification_type';
+	}
 }
 
 ?>

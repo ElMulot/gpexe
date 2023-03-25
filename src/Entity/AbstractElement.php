@@ -9,31 +9,31 @@ use App\Exception\MandatoryValueException;
 use App\Exception\InvalidCodenameException;
 use Doctrine\Common\Collections\Collection;
 
-abstract class AbstractElement implements \Stringable
+abstract class AbstractElement
 {
 
-	abstract protected function getMetadataItems(): Collection;
+	abstract protected function getMetadataChoices(): Collection;
 
-	abstract protected function addMetadataItem(MetadataItem $metadataItem): self;
+	abstract protected function addMetadataChoice(MetadataChoice $metadataChoice): self;
 
-	abstract protected function removeMetadataItem(MetadataItem $metadataItem): self;
+	abstract protected function removeMetadataChoice(MetadataChoice $metadataChoice): self;
 
-	abstract protected function getMetadataValues(): Collection;
+	abstract protected function getMetadataElements(): Collection;
 
-	abstract protected function addMetadataValue(MetadataValue $metadataValue): self;
+	abstract protected function addMetadataElement(MetadataElement $metadataElement): self;
 
-	abstract protected function removeMetadataValue(MetadataValue $metadataValue): self;
+	abstract protected function removeMetadataElement(MetadataElement $metadataElement): self;
 
 
 	//todo: vraiment utile ?
 	/**
-	 * Return any MetadataValue or MetadataItem from Metadata object
-	 * If MetadataValue or MetadataItem doesn't exist, return null
+	 * Return any MetadataElement or MetadataChoice from Metadata object
+	 * If MetadataElement or MetadataChoice doesn't exist, return null
 	 * 
 	 * @param Metadata $metadata
-	 * @return null|MetadataValue|MetadataItem
+	 * @return null|MetadataElement|MetadataChoice
 	 */
-	public function getMetadataValueAsObject(Metadata $metadata): null|MetadataValue|MetadataItem
+	public function getMetadataValueAsObject(Metadata $metadata): null|MetadataElement|MetadataChoice
 	{
 		
 		switch ($metadata->getType()) {
@@ -43,17 +43,17 @@ abstract class AbstractElement implements \Stringable
 			case MetadataTypeEnum::REGEX:
 			case MetadataTypeEnum::DATE:
 			case MetadataTypeEnum::LINK:
-				foreach ($this->getMetadataValues()->getValues() as $metadataValue) {
-					if ($metadataValue->getMetadata() == $metadata) {
-						return $metadataValue;
+				foreach ($this->getMetadataElements()->getValues() as $metadataElement) {
+					if ($metadataElement->getMetadata() == $metadata) {
+						return $metadataElement;
 					}
 				}
 				break;
 				
 			case MetadataTypeEnum::LIST:
-				foreach ($this->getMetadataItems()->getValues() as $metadataItem) {
-					if ($metadataItem->getMetadata() == $metadata) {
-						return $metadataItem;
+				foreach ($this->getMetadataChoices()->getValues() as $metadataChoice) {
+					if ($metadataChoice->getMetadata() == $metadata) {
+						return $metadataChoice;
 					}
 				}
 				break;
@@ -72,12 +72,12 @@ abstract class AbstractElement implements \Stringable
 	 * - if MetadataTypeEnum::REGEX : return string
 	 * - if MetadataTypeEnum::DATE : return \DateTime object
 	 * - if MetadataTypeEnum::LINK : return string
-	 * - if MetadataTypeEnum::LIST : return MetadataItem
+	 * - if MetadataTypeEnum::LIST : return string
 	 * 
 	 * @param Metadata $metadata
 	 * @return mixed
 	 */
-	public function getTypedMetadataValue(Metadata $metadata): mixed
+	public function getMetadataValue(Metadata $metadata): mixed
 	{
 		switch ($metadata->getType()) {
 			
@@ -86,19 +86,19 @@ abstract class AbstractElement implements \Stringable
 			case MetadataTypeEnum::REGEX:
 			case MetadataTypeEnum::DATE:
 			case MetadataTypeEnum::LINK:
-				/**@var MetadataValue $metadataValue */
-				foreach ($this->getMetadataValues()->getValues() as $metadataValue) {
-					if ($metadataValue->getMetadata() == $metadata) {
-						return $metadataValue->getTypedValue();
+				/**@var MetadataElement $metadataElement */
+				foreach ($this->getMetadataElements()->getValues() as $metadataElement) {
+					if ($metadataElement->getMetadata() == $metadata) {
+						return $metadataElement->getValue();
 					}
 				}
 				break;
 				
 			case MetadataTypeEnum::LIST:
-				/**@var MetadataItem $metadataItem */
-				foreach ($this->getMetadataItems()->getValues() as $metadataItem) {
-					if ($metadataItem->getMetadata() == $metadata) {
-						return $metadataItem;
+				/**@var MetadataChoice $metadataChoice */
+				foreach ($this->getMetadataChoices()->getValues() as $metadataChoice) {
+					if ($metadataChoice->getMetadata() == $metadata) {
+						return $metadataChoice->getValue();
 					}
 				}
 				break;
@@ -117,7 +117,7 @@ abstract class AbstractElement implements \Stringable
 	public function setMetadataValue(Metadata $metadata, mixed $value): self
 	{
 		//check and format input value
-		//a null value means that no MetadataValue or MetadataItem should be created
+		//a null value means that no MetadataElement or MetadataChoice should be created
 		switch ($metadata->getType()) {
 			case MetadataTypeEnum::BOOL:
 				if (is_scalar($value) === false) {
@@ -158,19 +158,19 @@ abstract class AbstractElement implements \Stringable
 			$value = $metadata->getDefaultValue();
 		}
 
-		//update metadataValue or metadataItem
+		//update metadataElement or metadataChoice
 		switch ($metadata->getType()) {
 			
 			case MetadataTypeEnum::BOOL:
 			case MetadataTypeEnum::TEXT:
 			case MetadataTypeEnum::REGEX:
 			case MetadataTypeEnum::DATE:
-				foreach ($this->getMetadataValues()->getValues() as $metadataValue) {
-					if ($metadataValue->getMetadata() === $metadata) {
-						if ($metadataValue->getValue() === $value) {
+				foreach ($this->getMetadataElements()->getValues() as $metadataElement) {
+					if ($metadataElement->getMetadata() === $metadata) {
+						if ($metadataElement->getValue() === $value) {
 							return $this;
 						} else {
-							$this->removeMetadataValue($metadataValue);
+							$this->removeMetadataElement($metadataElement);
 						}
 					}
 				}
@@ -179,24 +179,24 @@ abstract class AbstractElement implements \Stringable
 					return $this;
 				}
 
-				foreach ($metadata->getMetadataValues()->getValues() as $metadataValue) {
-					if ($metadataValue->getValue() === $value) {
-						$this->addMetadataValue($metadataValue);
+				foreach ($metadata->getMetadataElements()->getValues() as $metadataElement) {
+					if ($metadataElement->getValue() === $value) {
+						$this->addMetadataElement($metadataElement);
 						return $this;
 					}
 				}
-				$metadataValue = new MetadataValue();
-				$metadataValue->setValue($value);
-				$metadataValue->setMetadata($metadata);
+				$metadataElement = new MetadataElement();
+				$metadataElement->setRawValue($value);
+				$metadataElement->setMetadata($metadata);
 				return $this;
 				
 			case MetadataTypeEnum::LIST:
-				foreach ($this->getMetadataItems()->getValues() as $metadataItem) {
-					if ($metadataItem->getMetadata() === $metadata) {
-						if ($metadataItem->getValue() === $value) {
+				foreach ($this->getMetadataChoices()->getValues() as $metadataChoice) {
+					if ($metadataChoice->getMetadata() === $metadata) {
+						if ($metadataChoice->getValue() === $value) {
 							return $this;
 						} else {
-							$this->removeMetadataItem($metadataItem);
+							$this->removeMetadataChoice($metadataChoice);
 						}
 					}
 				}
@@ -205,9 +205,9 @@ abstract class AbstractElement implements \Stringable
 					return $this;
 				}
 
-				foreach ($metadata->getMetadataItems()->getValues() as $metadataItem) {
-					if ($metadataItem->getValue() === $value) {
-						$this->addMetadataItem($metadataItem);
+				foreach ($metadata->getMetadataChoices()->getValues() as $metadataChoice) {
+					if ($metadataChoice->getValue() === $value) {
+						$this->addMetadataChoice($metadataChoice);
 						return $this;
 					}
 				}

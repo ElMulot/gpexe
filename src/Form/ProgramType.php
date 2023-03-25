@@ -25,7 +25,7 @@ class ProgramType extends AbstractType
 		if ($builder->getData() === null) {
 			$builder
 				->add('type', ChoiceType::class, [
-					'choices' => ProgramTypeEnum::getChoices(),
+					'choices' => ProgramTypeEnum::cases(),
 					'expanded' => true,
 					'mapped' => false,
 				])

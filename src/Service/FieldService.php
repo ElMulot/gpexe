@@ -11,10 +11,10 @@ use App\Entity\Metadata;
 use App\Entity\Project;
 use App\Entity\Status;
 use App\Entity\User;
-use App\Repository\CodificationItemRepository;
+use App\Repository\CodificationChoiceRepository;
 use App\Repository\CompanyRepository;
 use App\Repository\CodificationRepository;
-use App\Repository\MetadataItemRepository;
+use App\Repository\MetadataChoiceRepository;
 use App\Repository\MetadataRepository;
 use App\Repository\StatusRepository;
 use App\Repository\UserRepository;
@@ -24,7 +24,7 @@ use Symfony\Bundle\SecurityBundle\Security;
 class FieldService
 {
 	
-	public function __construct(private readonly TranslatorInterface $translator, private readonly Security $security, private readonly CompanyRepository $companyRepository, private readonly CodificationRepository $codificationRepository, private readonly CodificationItemRepository $codificationItemRepository, private readonly MetadataRepository $metadataRepository, private readonly MetadataItemRepository $metadataItemRepository, private readonly StatusRepository $statusRepository, private readonly UserRepository $userRepository, private readonly VisaRepository $visaRepository)
+	public function __construct(private readonly TranslatorInterface $translator, private readonly Security $security, private readonly CompanyRepository $companyRepository, private readonly CodificationRepository $codificationRepository, private readonly CodificationChoiceRepository $codificationChoiceRepository, private readonly MetadataRepository $metadataRepository, private readonly MetadataChoiceRepository $metadataChoiceRepository, private readonly StatusRepository $statusRepository, private readonly UserRepository $userRepository, private readonly VisaRepository $visaRepository)
 	{
 	}
 	
@@ -365,7 +365,7 @@ class FieldService
 				'codename' => $metadata->getFullCodename(),
 				'title' => $metadata->getName(),
 				'type' => $metadata->getType(),
-				'parent' => $metadata->getParent(),
+				'parent' => $metadata->getParent()->value,
 				'default_width' => 10,
 				'mandatory' => $metadata->isMandatory(),
 				'display' => [
@@ -556,10 +556,10 @@ class FieldService
 				
 				case CodificationTypeEnum::LIST:
 					$choices = [];
-					foreach ($this->codificationItemRepository->getCodificationItem($codification) as $codificationItem) {
+					foreach ($this->codificationChoiceRepository->getCodificationChoice($codification) as $codificationChoice) {
 						$choices[] = [
-							'id' => $codificationItem->getId(),
-							'name' => $codificationItem->getValue(),
+							'id' => $codificationChoice->getId(),
+							'name' => $codificationChoice->getValue(),
 						];
 					}
 					$element['filter'] = [
@@ -703,7 +703,7 @@ class FieldService
 			'sort'		=> true,
 			'filter'	=> [
 				'type'		=> MetadataTypeEnum::LIST,
-				'choices' 	=> StatusTypeEnum::getChoices(),
+				'choices' 	=> StatusTypeEnum::cases(),
 			]
 		];
 		
@@ -725,10 +725,10 @@ class FieldService
 					];
 				case MetadataTypeEnum::LIST:
 					$choices = [];
-					foreach ($this->metadataItemRepository->getMetadataItem($metadata) as $metadataItem) {
+					foreach ($this->metadataChoiceRepository->getMetadataChoice($metadata) as $metadataChoice) {
 						$choices[] = [
-							'id' => $metadataItem->getId(),
-							'name' => $metadataItem->getValue(),
+							'id' => $metadataChoice->getId(),
+							'name' => $metadataChoice->getValue(),
 						];
 					}
 					$element = [

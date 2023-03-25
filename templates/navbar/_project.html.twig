@@ -77,7 +77,7 @@
 		{% set document_items = document_items|merge([
 			{
 				'name': 'All documents',
-				'href': path('seriesListByBelonging', {'project': project.id, 'belong': constant('App\\Entity\\Enum\\SerieBelongingEnum::ALL')}),
+				'href': path('seriesListByBelonging', {'project': project.id, 'belong': enum('App\\Entity\\Enum\\SerieBelongingEnum::ALL').value}),
 			}])
 		%}
 	{% endif %}
@@ -86,7 +86,7 @@
 		{% set document_items = document_items|merge([
 			{
 				'name': 'MDR only',
-				'href': path('seriesListByBelonging', {'project': project.id, 'belong': constant('App\\Entity\\Enum\\SerieBelongingEnum::MDR')}),
+				'href': path('seriesListByBelonging', {'project': project.id, 'belong': enum('App\\Entity\\Enum\\SerieBelongingEnum::MDR').value}),
 			}])
 		%}
 	{% endif %}
@@ -96,7 +96,7 @@
 		{% set document_items = document_items|merge([
 			{
 				'name': 'SDR only',
-				'href': path('seriesListByBelonging', {'project': project.id, 'belong': constant('App\\Entity\\Enum\\SerieBelongingEnum::SDR')}),
+				'href': path('seriesListByBelonging', {'project': project.id, 'belong': enum('App\\Entity\\Enum\\SerieBelongingEnum::SDR').value}),
 			}])
 		%}
 	{% endif %}
@@ -115,7 +115,7 @@
 			{% if current_type != program.type %}
 				{% set menu = menu|merge([
 					{
-						'name': program.type|readable_enum
+						'name': program.type|to_string
 					}
 				]) %}
 				{% set current_type = program.type %}

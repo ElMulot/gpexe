@@ -4,6 +4,7 @@ namespace App\Form;
 
 use App\Entity\Codification;
 use App\Entity\Enum\CodificationTypeEnum;
+use App\Form\Type\ComboBoxType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -15,22 +16,39 @@ class CodificationType extends AbstractType
 {
 	public function buildForm(FormBuilderInterface $builder, array $options)
 	{
+		/**@var Codification */
+		$codification = $builder->getData();
+		
 		$builder
 			->add('name')
-			->add('type', ChoiceType::class, [
-				'choices' => CodificationTypeEnum::getChoices(),
-				'expanded' => true,
-				'disabled' => $builder->getData()->getId(),
-			])
-			->add('codename', TextType::class)
-			->add('pattern', TextType::class, [
-				'required' => false
-			])
-			->add('value', TextType::class, [
-				'required' => false
-			])
-		;
-	}
+			->add('codename', TextType::class);
+		
+		if ($codification->isRegex() === true) {
+			$builder->add('pattern', TextType::class, [
+				'required' => false,
+			]);
+		}
+		switch ($codification->getType()) {
+			case CodificationTypeEnum::FIXED:
+				$builder->add('defaultValue', TextType::class, [
+					'required'	=> true,
+					'label' => 'Value',
+				]);
+				break;
+			case CodificationTypeEnum::TEXT:
+			case CodificationTypeEnum::REGEX:
+				$builder->add('defaultValue', TextType::class, [
+					'required'	=> false,
+				]);
+				break;
+			case CodificationTypeEnum::LIST:
+				$builder->add('defaultValue', ComboBoxType::class, [
+					'required'	=> false,
+					'choices'	=> $codification->getCodificationChoices()->getValues(),
+					'choice_label'	=> 'value',
+				]);
+				break;
+		}	}
 
 	public function configureOptions(OptionsResolver $resolver)
 	{

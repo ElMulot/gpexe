@@ -12,13 +12,13 @@ use App\Helpers\Date;
 use Spatie\Regex\Regex;
 use App\Repository\VersionRepository;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
-use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: VersionRepository::class)]
 #[UniqueEntity(
 	fields: ['name', 'document']
 )]
-class Version extends AbstractElement
+class Version extends AbstractElement implements \Stringable
 {
 	#[ORM\Id]
 	#[ORM\GeneratedValue]
@@ -26,7 +26,7 @@ class Version extends AbstractElement
 	private ?int $id = null;
 
 	#[ORM\Column(length: 100)]
-	#[NotBlank]
+	#[Assert\NotBlank]
 	private ?string $name = null;
 
 	#[ORM\Column]
@@ -44,13 +44,13 @@ class Version extends AbstractElement
 	#[ORM\ManyToOne]
 	private ?Status $status = null;
 
-	#[ORM\ManyToMany(targetEntity: MetadataItem::class, cascade: ['persist'])]
-	#[ORM\JoinTable(name: 'version_metadata_item')]
-	private Collection $metadataItems;
+	#[ORM\ManyToMany(targetEntity: MetadataChoice::class, cascade: ['persist'])]
+	#[ORM\JoinTable(name: 'version_metadata_choice')]
+	private Collection $metadataChoices;
 
-	#[ORM\ManyToMany(targetEntity: MetadataValue::class, cascade: ['persist'])]
-	#[ORM\JoinTable(name: 'version_metadata_value')]
-	private Collection $metadataValues;
+	#[ORM\ManyToMany(targetEntity: MetadataElement::class, cascade: ['persist'])]
+	#[ORM\JoinTable(name: 'version_metadata_element')]
+	private Collection $metadataElements;
 
 	#[ORM\ManyToOne]
 	#[ORM\JoinColumn(nullable: true)]
@@ -73,8 +73,8 @@ class Version extends AbstractElement
 	public function __construct()
 	{
 		$this->required = true;
-		$this->metadataItems = new ArrayCollection();
-		$this->metadataValues = new ArrayCollection();
+		$this->metadataChoices = new ArrayCollection();
+		$this->metadataElements = new ArrayCollection();
 	 	$this->reviews = new ArrayCollection();
 	}
 
@@ -173,52 +173,52 @@ class Version extends AbstractElement
 	}
 
 	/**
-	 * @return Collection|MetadataItem[]
+	 * @return Collection|MetadataChoice[]
 	 */
-	public function getMetadataItems(): Collection
+	public function getMetadataChoices(): Collection
 	{
-		return $this->metadataItems;
+		return $this->metadataChoices;
 	}
 
-	public function addMetadataItem(MetadataItem $metadataItem): self
+	public function addMetadataChoice(MetadataChoice $metadataChoice): self
 	{
-		if (!$this->metadataItems->contains($metadataItem)) {
-			$this->metadataItems[] = $metadataItem;
+		if (!$this->metadataChoices->contains($metadataChoice)) {
+			$this->metadataChoices[] = $metadataChoice;
 		}
 		
 		return $this;
 	}
 
-	public function removeMetadataItem(MetadataItem $metadataItem): self
+	public function removeMetadataChoice(MetadataChoice $metadataChoice): self
 	{
-		if ($this->metadataItems->contains($metadataItem)) {
-			$this->metadataItems->removeElement($metadataItem);
+		if ($this->metadataChoices->contains($metadataChoice)) {
+			$this->metadataChoices->removeElement($metadataChoice);
 		}
 		
 		return $this;
 	}
 	
 	/**
-	 * @return Collection|MetadataValue[]
+	 * @return Collection|MetadataElement[]
 	 */
-	public function getMetadataValues(): Collection
+	public function getMetadataElements(): Collection
 	{
-		return $this->metadataValues;
+		return $this->metadataElements;
 	}
 
-	public function addMetadataValue(MetadataValue $metadataValue): self
+	public function addMetadataElement(MetadataElement $metadataElement): self
 	{
-		if (!$this->metadataValues->contains($metadataValue)) {
-			$this->metadataValues[] = $metadataValue;
+		if (!$this->metadataElements->contains($metadataElement)) {
+			$this->metadataElements[] = $metadataElement;
 		}
 		
 		return $this;
 	}
 
-	public function removeMetadataValue(MetadataValue $metadataValue): self
+	public function removeMetadataElement(MetadataElement $metadataElement): self
 	{
-		if ($this->metadataValues->contains($metadataValue)) {
-			$this->metadataValues->removeElement($metadataValue);
+		if ($this->metadataElements->contains($metadataElement)) {
+			$this->metadataElements->removeElement($metadataElement);
 		}
 		
 		return $this;
@@ -346,7 +346,7 @@ class Version extends AbstractElement
 				return $this->getDate();
 				
 			case 'version.required':
-				return $this->required();
+				return $this->isRequired();
 				
 			case 'version.writer':
 				return $this->getWriter();
@@ -426,7 +426,7 @@ class Version extends AbstractElement
 					/** @var Metadata $metadata */
 					foreach ($this->getDocument()->getSerie()->getProject()->getMetadatas()->getValues() as $metadata) {
 						if ($metadata->getFullCodename() === $codename) {
-							return $this->getTypedMetadataValue($metadata);
+							return $this->getTypedMetadataElement($metadata);
 						}
 					}
 					
@@ -557,7 +557,7 @@ class Version extends AbstractElement
 					/** @var Metadata $metadata */
 					foreach ($this->getDocument()->getSerie()->getProject()->getMetadatas()->getValues() as $metadata) {
 						if ($metadata->getFullCodename() === $codename) {
-							$this->setMetadataValue($metadata, $value);
+							$this->setMetadataElement($metadata, $value);
 							return $this;
 						}
 					}

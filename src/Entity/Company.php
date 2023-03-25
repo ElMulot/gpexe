@@ -2,15 +2,13 @@
 
 namespace App\Entity;
 
-use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Fresh\DoctrineEnumBundle\Validator\Constraints as DoctrineAssert;
 use App\Entity\Enum\CompanyTypeEnum;
 use App\Repository\CompanyRepository;
-use Symfony\Component\Validator\Constraints\NotBlank;
-use Symfony\Component\Validator\Constraints\Regex;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 #[ORM\Entity(repositoryClass: CompanyRepository::class)]
 #[UniqueEntity(
@@ -28,18 +26,17 @@ class Company implements \Stringable
 	private ?int $id = null;
 
 	#[ORM\Column(length: 100, unique: true)]
-	#[NotBlank]
-	#[Regex('/^[^$"]+$/')]
+	#[Assert\NotBlank]
+	#[Assert\Regex('/^[^$"]+$/')]
 	private ?string $name = null;
 	
 	#[ORM\Column(length: 100)]
-	#[NotBlank]
-	#[Regex('/^\w+$/')]
+	#[Assert\NotBlank]
+	#[Assert\Regex('/^\w+$/')]
 	private ?string $codename = null;
 	
-	#[ORM\Column(type: 'company_type_enum')]
-	#[DoctrineAssert\EnumType(entity: CompanyTypeEnum::class)]
-	private ?string $type = null;
+	#[ORM\Column(type: 'string', enumType: CompanyTypeEnum::class)]
+	private ?CompanyTypeEnum $type = null;
 
 	#[ORM\Column]
 	private ?int $priority = null;
@@ -55,7 +52,7 @@ class Company implements \Stringable
 
 	public function __construct()
 	{
-		$this->type = CompanyTypeEnum::getDefaultValue();
+		$this->type = CompanyTypeEnum::SUPPLIER;
 		$this->priority = 0;
 		$this->users = new ArrayCollection();
 	 	$this->series = new ArrayCollection();
@@ -79,7 +76,6 @@ class Company implements \Stringable
 		return $this;
 	}
 	
-	
 	public function getCodename(): ?string
 	{
 		return $this->codename;
@@ -92,14 +88,13 @@ class Company implements \Stringable
 		return $this;
 	}
 
-	public function getType(): string
+	public function getType(): CompanyTypeEnum
 	{
 		return $this->type;
 	}
 
-	public function setType(string $type): self
+	public function setType(CompanyTypeEnum $type): self
 	{
-		CompanyTypeEnum::assertValidChoice($type);
 		$this->type = $type;
 
 		return $this;

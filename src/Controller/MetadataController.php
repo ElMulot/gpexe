@@ -1,7 +1,6 @@
 <?php
 namespace App\Controller;
 
-use App\Entity\Enum\MetadataTypeEnum;
 use App\Entity\Project;
 use App\Entity\Metadata;
 use App\Form\MetadataType;
@@ -82,8 +81,8 @@ class MetadataController extends AbstractTurboController
 		$form->handleRequest($request);
 
 		if ($form->isSubmitted() && $form->isValid()) {
+
 			$entityManager = $this->doctrine->getManager();
-			$entityManager->persist($metadata);
 			$entityManager->flush();
 			
 			$this->addFlash('success', 'Datas updated');

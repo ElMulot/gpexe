@@ -12,7 +12,6 @@
 		"doctrine/doctrine-bundle": "^2.8",
 		"doctrine/doctrine-migrations-bundle": "^3.2",
 		"doctrine/orm": "^2.11",
-		"fresh/doctrine-enum-bundle": "9.0.*",
 		"phpdocumentor/reflection-docblock": "^5.3",
 		"phpoffice/phpspreadsheet": "^1.22",
 		"spatie/regex": "^3.1",

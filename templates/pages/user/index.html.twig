@@ -24,9 +24,7 @@
 						{% set value = attribute(entity, header) %}
 
 						{% if header|type(class) == 'string' %}
-							<td class="col-auto text-left">{{ value|default('')|truncate }}</td>
-						{% elseif '_enum' in header|type(class) %}
-							<td class="col-auto text-left">{{ value|readable_enum(header|type(class))|truncate }}</td>
+							<td class="col-auto text-left">{{ value|to_string|truncate }}</td>
 						{% else %}
 							<td class="col-auto text-center">{{ value|to_string('dd-MM-yyyy HH:mm:ss') }}</td>
 						{% endif %}

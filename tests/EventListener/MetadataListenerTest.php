@@ -3,11 +3,11 @@
 namespace App\Tests\EventListener;
 
 use App\Entity\Metadata;
-use App\Entity\MetadataItem;
+use App\Entity\MetadataChoice;
 use PHPUnit\Framework\TestCase;
 use App\EventListener\MetadataListener;
 use Doctrine\Persistence\ObjectManager;
-use App\EventListener\MetadataItemListener;
+use App\EventListener\MetadataChoiceListener;
 use Doctrine\Common\Collections\ArrayCollection;
 use PHPUnit\Framework\MockObject\MockObject;
 use Doctrine\Persistence\Event\LifecycleEventArgs;
@@ -38,17 +38,17 @@ class MetadataListenerTest extends TestCase
 	function testPostPersistIfMetadataDefaultValueIsNew(): void
 	{
 
-		//create 3 MetadataItem
-		$metadataItemsCollection = new ArrayCollection();
+		//create 3 MetadataChoice
+		$metadataChoicesCollection = new ArrayCollection();
 		for ($i=0; $i<2; $i++) {
 
-			/**@var MetadataItem&MockObject */
-			$metadataItem = $this->createMock(MetadataItem::class);
-			$metadataItem
+			/**@var MetadataChoice&MockObject */
+			$metadataChoice = $this->createMock(MetadataChoice::class);
+			$metadataChoice
 				->method('getValue')
 				->willReturn("test{$i}");
 
-			$metadataItemsCollection->add($metadataItem);
+			$metadataChoicesCollection->add($metadataChoice);
 		}
 
 		/**@var Metadata&MockObject */
@@ -62,17 +62,17 @@ class MetadataListenerTest extends TestCase
 			->willReturn(true);
 
 		$metadata
-			->method('getMetadataItems')
-			->willReturn($metadataItemsCollection);
+			->method('getMetadataChoices')
+			->willReturn($metadataChoicesCollection);
 
-		$metadataItem = new MetadataItem();
-		$metadataItem->setMetadata($metadata);
-		$metadataItem->setValue('test');
+		$metadataChoice = new MetadataChoice();
+		$metadataChoice->setMetadata($metadata);
+		$metadataChoice->setValue('test');
 
 		$this->objectManager
 			->expects($this->once())
 			->method('persist')
-			->with($metadataItem);
+			->with($metadataChoice);
 
 		$this->objectManager
 			->expects($this->once())
@@ -89,17 +89,17 @@ class MetadataListenerTest extends TestCase
 	function testPostPersistIfMetadataDefaultValueIsNotNew(): void
 	{
 
-		//create 3 MetadataItem
-		$metadataItemsCollection = new ArrayCollection;
+		//create 3 MetadataChoice
+		$metadataChoicesCollection = new ArrayCollection;
 		for ($i=0; $i<2; $i++) {
 
-			/**@var MetadataItem&MockObject */
-			$metadataItem = $this->createMock(MetadataItem::class);
-			$metadataItem
+			/**@var MetadataChoice&MockObject */
+			$metadataChoice = $this->createMock(MetadataChoice::class);
+			$metadataChoice
 				->method('getValue')
 				->willReturn("test{$i}");
 
-			$metadataItemsCollection->add($metadataItem);
+			$metadataChoicesCollection->add($metadataChoice);
 		}
 		
 		/**@var Metadata&MockObject */
@@ -113,8 +113,8 @@ class MetadataListenerTest extends TestCase
 			->willReturn(true);
 
 		$metadata
-			->method('getMetadataItems')
-			->willReturn($metadataItemsCollection);
+			->method('getMetadataChoices')
+			->willReturn($metadataChoicesCollection);
 
 		$this->objectManager
 			->expects($this->never())

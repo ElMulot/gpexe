@@ -3,11 +3,13 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-use App\Repository\CodificationValueRepository;
-use Symfony\Component\Validator\Constraints\Regex;
+use App\Repository\CodificationElementRepository;
+use App\Validator\CodificationElementValidator;
+use Symfony\Component\Validator\Constraints as Assert;
 
-#[ORM\Entity(repositoryClass: CodificationValueRepository::class)]
-class CodificationValue implements \Stringable
+#[ORM\Entity(repositoryClass: CodificationElementRepository::class)]
+// #[Assert\Callback([CodificationElementValidator::class, 'validate'])]
+class CodificationElement implements \Stringable
 {
 	#[ORM\Id]
 	#[ORM\GeneratedValue]
@@ -15,10 +17,12 @@ class CodificationValue implements \Stringable
 	private ?int $id = null;
 
 	#[ORM\Column(length: 10)]
-	#[Regex('/^[^$"]+$/')]
+	#[Assert\Regex('/^[^$"]+$/')]
+	// #[Assert\Callback([CodificationElementValidator::class, 'validate'])]
+	// #[Assert\Expression("value contains this.getCodification().getProject().getSplitter()", message: 'test')]
 	private ?string $value = null;
 
-	#[ORM\ManyToOne(inversedBy: 'codificationValues')]
+	#[ORM\ManyToOne(inversedBy: 'codificationElements')]
 	private ?Codification $codification = null;
 
 	public function getId(): ?int

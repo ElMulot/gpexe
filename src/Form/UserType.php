@@ -15,6 +15,7 @@ use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\LocaleType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\TimezoneType;
+use Symfony\Component\Validator\Constraints\NotCompromisedPassword;
 
 class UserType extends AbstractType
 {
@@ -30,6 +31,7 @@ class UserType extends AbstractType
 		if ($user->getId() === null) {
 			$builder
 				->add('plainPassword', PasswordType::class, [
+					'constraints' => new NotCompromisedPassword(),
 					'hash_property_path' => 'password',
 					'mapped' => false
 				]);

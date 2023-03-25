@@ -29,11 +29,7 @@ abstract class AbstractVariousType extends AbstractType
 
 	public function configureOptions(OptionsResolver $resolver)
 	{
-		$resolver->setDefaults([
-			'data' => [],
-		]);
-
-		$resolver->setAllowedTypes('data', 'array');
+		$resolver->setAllowedTypes('data', ['null', 'array']);
 	}
 
 	public function buildForm(FormBuilderInterface $builder, array $options)

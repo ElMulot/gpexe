@@ -24,7 +24,7 @@ class CodificationRepository extends RepositoryService
 	 * @return Codification[]
 	 *
 	 */
-	public function getCodifications(Project $project)
+	public function getCodifications(Project $project): array
 	{
 		$qb = $this->newQB('c');
 		return $qb

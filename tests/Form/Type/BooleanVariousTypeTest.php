@@ -72,7 +72,7 @@ class BooleanVariousTypeTest extends TypeTestCase
 		]);
 
 		$this->assertTrue($form->isSynchronized());
-		$this->assertNull($form->getData());
+		$this->assertSame([false, true], $form->getData());
 	}
 
 	/**
@@ -90,6 +90,26 @@ class BooleanVariousTypeTest extends TypeTestCase
 		$form->submit([
 			'input'		=> $value,
 			'switch'	=> null,
+		]);
+
+		$this->assertTrue($form->isSynchronized());
+		$this->assertSame($expected, $form->getData());
+	}
+
+	/**
+	 * @covers BooleanVariousType
+	 * @testWith	[null, false]
+	 * 				["", true]
+	 * 				["0", true]
+	 * 				["1", true]
+	 * 				["a", true]
+	 */
+	public function testSubmitValidDataWithoutSwitch($value, $expected): void
+	{
+		$form = $this->factory->create(BooleanVariousType::class, [false]);
+
+		$form->submit([
+			'input'		=> $value
 		]);
 
 		$this->assertTrue($form->isSynchronized());

@@ -243,10 +243,13 @@ class DocumentController extends AbstractTurboController
 		
 		$this->denyAccessUnlessGranted('DOCUMENT_NEW', $project);
 
+		// $document = $this->documentRepository->getDocumentsByIds([1, 5]);
 		$document = new Document();
-		
+		$document->setName('Test');
+		$documents = [$document];
+
 		try {
-			$form = $this->createForm(DocumentType::class, [$document], [
+			$form = $this->createForm(DocumentType::class, $documents, [
 				'project'	=> $project,
 				'ids'		=> $request->get('id'),
 			]);
@@ -261,8 +264,20 @@ class DocumentController extends AbstractTurboController
 		if ($form->isSubmitted() && $form->isValid()) {
 			
 			$entityManager = $this->doctrine->getManager();
-			$this->documentService->removeOrphans();
-			$entityManager->flush();
+			
+			foreach ($documents as $document) {
+				$entityManager->persist($document);
+			}
+			dump($documents);
+			
+			// $this->documentService->removeOrphans();
+			// $entityManager->flush();
+
+			
+
+			return $this->render('pages/engineering/new/_pannel.html.twig', [
+				'form' => $form,
+			]);
 			
 			// foreach ($this->codificationRepository->getCodifications($project) as $codification) {
 				
@@ -280,7 +295,7 @@ class DocumentController extends AbstractTurboController
 			// 	}
 				
 			// 	try {
-			// 		$document->setCodificationValue($codification, $value);
+			// 		$document->setCodificationElement($codification, $value);
 			// 	} catch (\Error $e) {
 			// 		$this->addFlash('danger', $e->getMessage());
 			// 	}
@@ -304,7 +319,7 @@ class DocumentController extends AbstractTurboController
 			// 	}
 				
 			// 	try {
-			// 		$document->setMetadataValue($metadata, $value);
+			// 		$document->setMetadataElement($metadata, $value);
 			// 	} catch (\Error $e) {
 			// 		if ($metadata->isMandatory() === true) {
 			// 			$this->addFlash('danger', $e->getMessage());
@@ -376,7 +391,7 @@ class DocumentController extends AbstractTurboController
 						}
 						
 						try {
-							$document->setCodificationValue($codification, $value);
+							$document->setCodificationElement($codification, $value);
 						} catch (\Error $e) {
 							$this->addFlash('danger', $e->getMessage());
 						}
@@ -410,7 +425,7 @@ class DocumentController extends AbstractTurboController
 						}
 						
 						try {
-							$document->setMetadataValue($metadata, $value);
+							$document->setMetadataElement($metadata, $value);
 						} catch (\Error $e) {
 							if ($metadata->isMandatory() === true) {
 								$this->addFlash('danger', $e->getMessage());
