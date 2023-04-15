@@ -10,7 +10,7 @@
 					{% if field.id in query.display|keys and field.display.thead is same as(true) %}
 						{% if field.id == 'version_name' %}
 							<td style="text-align: center;">
-								{{ (item[field.id] ?? '') }}
+								{{ item[field.id] ?? '' }}
 							</td>
 						{% elseif field.type == enum('App\\Entity\\Enum\\MetadataTypeEnum::BOOL') %}
 							<td style="text-align: center;">
@@ -18,11 +18,16 @@
 							</td>
 						{% elseif field.type == enum('App\\Entity\\Enum\\MetadataTypeEnum::DATE') or field.type == enum('App\\Entity\\Enum\\MetadataTypeEnum::LIST') %}
 							<td style="text-align: center;">
-								{{ (item[field.id] ?? '') }}
+								{# in case of the returned value is enum #}
+								{% if item[field.id].value is defined %}
+									{{ item[field.id].value }}
+								{% else %}
+									{{ item[field.id] ?? '' }}
+								{% endif %}
 							</td>
 						{% else %}
 							<td>
-								{{ (item[field.id] ?? '') }}
+								{{ item[field.id] ?? '' }}
 							</td>
 						{% endif %}
 					{% endif %}

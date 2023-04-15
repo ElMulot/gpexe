@@ -39,6 +39,10 @@ abstract class AbstractVariousType extends AbstractType
 		
 		$builder->resetViewTransformers();
 		$builder->setCompound(true);
+
+		//remove constraints on input field as there's no need to validate each value twice
+		unset($options['constraints']);
+
 		$builder->add('input', $this->getParent(), $options);
 		
 		//add a new field 'switch' if the datas are not all identical

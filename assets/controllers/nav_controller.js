@@ -12,8 +12,9 @@ export default class extends Controller {
 
 	connect() {
 
+		/**@typedef {HTMLElement} e */
 		this.element.querySelectorAll('.nav-link').forEach(e => {
-
+			
 			if (e.dataset.turboFrame !== undefined) { //nav with turbo links
 				
 				var $pannel = document.getElementById(e.dataset.turboFrame);
@@ -45,7 +46,9 @@ export default class extends Controller {
 				// render active link at startup
 				this.element.querySelectorAll('.active').forEach(e => {
 					if (e.href !== undefined) {
+						Object.entries(e.dataset).forEach(([k, v]) => $pannel.dataset[k] = v );
 						$pannel.src = e.href;
+						console.log($pannel);
 					}
 				});
 

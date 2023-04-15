@@ -255,7 +255,7 @@ class Serie extends AbstractElement implements \Stringable
 	{
 		
 		switch ($codename) {
-			case 'serie.name':
+			case 'serie':
 				return $this->getName();
 				
 			case 'serie.company':
@@ -266,7 +266,7 @@ class Serie extends AbstractElement implements \Stringable
 					/** @var Metadata $metadata */
 					foreach ($this->getProject()->getMetadatas()->getValues() as $metadata) {
 						if ($metadata->getFullCodename() === $codename) {
-							return $this->getTypedMetadataElement($metadata);
+							return $this->getMetadataValue($metadata);
 						}
 					}
 				}
@@ -296,7 +296,7 @@ class Serie extends AbstractElement implements \Stringable
 					/** @var Metadata $metadata */
 					foreach ($this->getProject()->getMetadatas()->getValues() as $metadata) {
 						if ($metadata->getFullCodename() === $codename) {
-							$this->setMetadataElement($metadata, $value);
+							$this->setMetadataValue($metadata, $value);
 							return $this;
 						}
 					}

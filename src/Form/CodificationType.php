@@ -30,19 +30,19 @@ class CodificationType extends AbstractType
 		}
 		switch ($codification->getType()) {
 			case CodificationTypeEnum::FIXED:
-				$builder->add('defaultValue', TextType::class, [
+				$builder->add('defaultRawValue', TextType::class, [
 					'required'	=> true,
 					'label' => 'Value',
 				]);
 				break;
 			case CodificationTypeEnum::TEXT:
 			case CodificationTypeEnum::REGEX:
-				$builder->add('defaultValue', TextType::class, [
+				$builder->add('defaultRawValue', TextType::class, [
 					'required'	=> false,
 				]);
 				break;
 			case CodificationTypeEnum::LIST:
-				$builder->add('defaultValue', ComboBoxType::class, [
+				$builder->add('defaultRawValue', ComboBoxType::class, [
 					'required'	=> false,
 					'choices'	=> $codification->getCodificationChoices()->getValues(),
 					'choice_label'	=> 'value',

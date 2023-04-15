@@ -22,6 +22,7 @@ export default class extends Controller {
     }
 
     updateClasses(id) {
+        
         this.buttonTargets.forEach(e => {
             if (e.getAttribute('data-engineering--view-id-param') == id) {
                 e.classList.remove('btn-primary');
@@ -31,6 +32,9 @@ export default class extends Controller {
                 e.classList.add('btn-primary');
             }
         });
-        this.dispatch('update', { detail: { id: id } });
+
+        if (id) {
+            this.dispatch('update', { detail: { id: id } });
+        }
     }
 }

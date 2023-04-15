@@ -10,10 +10,12 @@
 	</button>
 </nav>
 <div class="tab-content nav-container" {{ stimulus_target('engineering--main', 'navContainer') }}>
-	<turbo-frame class="tab-pane fade show active" id="view_pannel" role="tabpanel" aria-labelledby="view_label" src="{{ path('view', {'project': project.id}) }}">
+	<turbo-frame class="tab-pane fade show active" id="view_pannel" role="tabpanel" aria-labelledby="view_label"
+		src="{{ path('view', {'project': project.id}|merge(app.request.query.all)) }}">
 		
 	</turbo-frame>
-	<turbo-frame class="tab-pane fade" id="serie_pannel" role="tabpanel" aria-labelledby="serie_label"{% if display_serie_select is same as(false) and display_serie_new is same as (false) %} src="{{ path('serie', {'project': project.id, 'id': series|map(v => v.id) }) }}"{% endif %}>
+	<turbo-frame class="tab-pane fade" id="serie_pannel" role="tabpanel" aria-labelledby="serie_label"{% if display_serie_select is same as(false) and display_serie_new is same as (false) %} 
+		src="{{ path('serie', {'project': project.id}|merge(app.request.query.all)) }}"{% endif %}>
 
 	</turbo-frame>
 	<turbo-frame class="tab-pane fade" id="progress_pannel" role="tabpanel" aria-labelledby="progress_label">

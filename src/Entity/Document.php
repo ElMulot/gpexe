@@ -9,13 +9,12 @@ use App\Entity\Enum\CodificationTypeEnum;
 use App\Exception\InvalidCodenameException;
 use Doctrine\Common\Collections\Collection;
 use App\Exception\InvalidReferenceException;
-use App\Validator\DocumentCodificationValidator;
+use App\Validator\CodificationIsUnique;
 use Doctrine\Common\Collections\ArrayCollection;
 use Spatie\Regex\Regex;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: DocumentRepository::class)]
-#[Assert\Callback([DocumentCodificationValidator::class, 'validate'])]
 class Document extends AbstractElement implements \Stringable
 {
 	#[ORM\Id]
@@ -40,10 +39,12 @@ class Document extends AbstractElement implements \Stringable
 
 	#[ORM\ManyToMany(targetEntity: MetadataChoice::class, cascade: ['persist'])]
 	#[ORM\JoinTable(name: 'document_metadata_choice')]
+	#[Assert\Valid]
 	private Collection $metadataChoices;
 
 	#[ORM\ManyToMany(targetEntity: MetadataElement::class, cascade: ['persist'])]
 	#[ORM\JoinTable(name: 'document_metadata_element')]
+	#[Assert\Valid]
 	private Collection $metadataElements;
 
 	#[ORM\OneToMany(targetEntity: Version::class, mappedBy: 'document', cascade: ['persist'], orphanRemoval: true)]
@@ -282,7 +283,7 @@ class Document extends AbstractElement implements \Stringable
 			return $this->reference;
 		}
 		
-		if ($this->getCodificationChoices()->count() == 0 && $this->getCodificationElements()->count() == 0) {
+		if ($this->getCodificationChoices()->count() === 0 && $this->getCodificationElements()->count() === 0) {
 			return null;
 		}
 		

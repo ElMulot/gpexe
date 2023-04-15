@@ -8,12 +8,11 @@ use Doctrine\ORM\Mapping as ORM;
 use App\Entity\Enum\MetadataTypeEnum;
 use App\Repository\MetadataRepository;
 use App\Entity\Enum\MetadataParentEnum;
+use App\Validator\IsValid;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
-use Spatie\Regex\Regex;
-use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 #[ORM\Entity(repositoryClass: MetadataRepository::class)]
 #[UniqueEntity(
@@ -46,7 +45,6 @@ class Metadata implements \Stringable
 	#[Assert\NotEqualTo('approver')]
 	#[Assert\NotEqualTo('reference')]
 	#[Assert\NotEqualTo('company')]
-	
 	private ?string $codename = null;
 
 	#[ORM\Column(type: 'string', enumType: MetadataTypeEnum::class)]
@@ -59,6 +57,7 @@ class Metadata implements \Stringable
 	private ?string $pattern = null;
 
 	#[ORM\Column(length: 255, nullable: true)]
+	#[IsValid]
 	private ?string $defaultRawValue = null;
 
 	#[ORM\Column(type: 'string', enumType: MetadataParentEnum::class)]
@@ -68,9 +67,11 @@ class Metadata implements \Stringable
 	private ?Project $project = null;
 
 	#[ORM\OneToMany(targetEntity: MetadataChoice::class, mappedBy: 'metadata', orphanRemoval: true)]
+	#[Assert\Valid]
 	private Collection $metadataChoices;
 
 	#[ORM\OneToMany(targetEntity: MetadataElement::class, mappedBy: 'metadata', orphanRemoval: true)]
+	#[Assert\Valid]
 	private Collection $metadataElements;
 
 	public function __construct()

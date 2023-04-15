@@ -65,6 +65,19 @@ Object.isObject = function (value) {
 }
 
 /**
+ * Determine wheter an array or an object is empty
+ * @param {*} value  - The array or the object to test
+ * @returns {boolean} - True if the object is empty
+ */
+global.isEmpty = function (value) {
+	return (
+		value === null ||
+		(Object.getPrototypeOf(value) === Array.prototype && value.length === 0) ||
+		(Object.getPrototypeOf(value) === Object.prototype && Object.getOwnPropertyNames(value).length === 0 && Object.getOwnPropertySymbols(value).length === 0)
+	);
+}
+
+/**
  * Determine whether the passed value is an Object.
  * @param {string} type - The name of the event.
  * @param {Object} options - An object with the options of CustomEvent constructor. Option bubbles is defined true by default.

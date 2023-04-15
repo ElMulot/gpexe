@@ -51,7 +51,7 @@ class VersionController extends AbstractTurboController
 
 	/**
 	 * Query parameters :
-	 * 	+ array		id				array of version ids that will be used for document selector in the form
+	 * 	+ array		versions		array of version ids that will be used for document selector in the form
 	 */
 	#[Route(path: '/project/{project}/version/new', name: 'versionNew', requirements: ['project' => '\d+'])]
 	public function new(Request $request, Project $project) : Response
@@ -59,232 +59,75 @@ class VersionController extends AbstractTurboController
 		
 		$this->denyAccessUnlessGranted('VERSION_NEW', $project);
 		
+		$documents = $this->documentRepository->getDocumentsByVersionsId($request->get('versions'));
+		
 		$version = new Version();
-
-		try {
-			$form = $this->createForm(VersionType::class, [$version], [
-				'project' => $project,
-				'ids' => $request->get('id'),
-			]);
-		} catch (InternalErrorException $e) {
-			$this->addFlash('warning', $e->getMessage());
-			//todo : review path
-			return $this->renderError($request, 'serie', ['project' => $project->getId(), 'id' => $request->get('id')]);
-		}
+		$versions = [$version];
+		
+		$form = $this->createForm(VersionType::class, $versions, [
+			'project'	=> $project,
+			'documents'	=> $documents,
+		]);
 
 		$form->handleRequest($request);
 		
 		if ($form->isSubmitted() && $form->isValid()) {
 
-			// return $this->redirectToRoute('versionNew', [
-			// 	'document' => $document->getId()
-			// ]);
+			$entityManager = $this->doctrine->getManager();
+			$entityManager->persist($version);
+			$entityManager->flush();
+
+			$this->addFlash('success', 'New version created');
+
+			//fermeture modal à traiter
+			return $this->renderSuccess($request, 'versionNew', [
+				'project'	=> $project->getId(),
+				'versions'	=> $request->get('versions')
+			]);
+
 		} else {
 			return $this->render('pages/engineering/new/_pannel.html.twig', [
 				'form' => $form,
 			]);
 		}
-
-
-		// if ($document === null) {
-		// 	$documents = $this->documentRepository->getDocumentsByRequest($request);
-		// 	if ($documents == false) {
-		// 		$this->addFlash('danger', 'None documents selected');
-		// 		return $this->render('ajax/error.html.twig');
-		// 	}
-			
-		// 	if (count($documents) > 1) {
-		// 		$this->addFlash('danger', 'Only one reference must be selected');
-		// 		return $this->render('ajax/error.html.twig');
-		// 	}
-		// 	$document = reset($documents);
-		// }
-		// $serie = $document->getSerie();
-		// $project = $serie->getProject();
-
-		// $this->denyAccessUnlessGranted('DOCUMENT_NEW', $serie);
-
-		// $version = new Version();
-		// $version->setDocument($document);
-		// if ($lastVersion = $document->getLastVersion()) {
-		// 	$version->setStatus($lastVersion->getStatus());
-		// 	$version->setWriter($lastVersion->getWriter());
-		// 	$version->setChecker($lastVersion->getChecker());
-		// 	$version->setApprover($lastVersion->getApprover());
-		// 	foreach ($this->metadataRepository->getMetadatasForVersion($project) as $metadata) {
-		// 		if ($metadata->isBoolean() || $metadata->isList() || $metadata->isMandatory()) {
-		// 			try {
-		// 				$version->setMetadataElement($metadata, $lastVersion->getMetadataElement($metadata));
-		// 			} catch (\Error $e) {
-		// 				continue;
-		// 			}
-		// 		}
-		// 	}
-		// } else {
-		// 	$version->setStatus($this->statusRepository->getDefaultStatus($project));
-		// }
-		// $form = $this->createForm(VersionType::class, $version, [
-		// 	'serie' => $serie,
-		// ]);
-		// $form->handleRequest($request);
-		// if ($form->isSubmitted() && $form->isValid()) {
-			
-		// 	$version->setRequired($form->get('isRequired')->getData());
-		// 	if ($version->isRequired()) {
-		// 		$version->setScheduledDate($form->get('date')->getData());
-		// 	} else {
-		// 		$version->setDeliveryDate($form->get('date')->getData());
-		// 	}
-		// 	$version->setStatus($form->get('status')->getData());
-		// 	$version->setWriter($form->get('writer')->getData());
-		// 	$version->setChecker($form->get('checker')->getData());
-		// 	$version->setApprover($form->get('approver')->getData());
-			
-		// 	foreach ($this->metadataRepository->getMetadatasForVersion($project) as $metadata) {
-				
-		// 		$value = $form->get($metadata->getFullId())->getData();
-				
-		// 		if ($value === null && $metadata->isMandatory()) {
-		// 			$this->addFlash('danger', $this->translator->trans('notEmpty.field', ['field' => $metadata->getName()]));
-		// 			return $this->render('ajax/form.html.twig', [
-		// 				'form' => $form,
-		// 			]);
-		// 		}
-				
-		// 		try {
-		// 			$version->setMetadataElement($metadata, $value);
-		// 		} catch (\Error $e) {
-		// 			if ($metadata->isMandatory() === true) {
-		// 				$this->addFlash('danger', $e->getMessage());
-		// 				return $this->render('ajax/form.html.twig', [
-		// 					'form' => $form,
-		// 				]);
-		// 			}
-		// 		}
-		// 	}
-			
-		// 	$entityManager = $this->doctrine->getManager();
-		// 	$entityManager->persist($version);
-		// 	$entityManager->flush();
-			
-		// 	if ($request->query->has('modal')) {
-		// 		return $this->ajaxRedirectService->get($this->generateUrl('documentDetail', ['version' => $version->getId()]), '#modal_detail');
-		// 	} else {
-		// 		$this->addFlash('success', 'New version created');
-		// 		return new Response();
-		// 	}
-			
-		// } else {
-		// 	return $this->render('ajax/form.html.twig', [
-		// 		'form' => $form,
-		// 	]);
-		// }
 	}
-	
-	#[Route(path: '/project/serie/document/version/edit', name: 'versionEdit')]
-	public function edit(Request $request) : Response
+
+	/**
+	 * Query parameters :
+	 * 	+ array		versions		array of version ids that will be used for serie selector in the form
+	 */
+	#[Route(path: '/project/{project}/serie/document/version/edit', name: 'versionEdit', requirements: ['project' => '\d+'])]
+	public function edit(Request $request, Project $project) : Response
 	{
-		$documents = $this->documentRepository->getDocumentsByRequest($request);
-		if ($documents == false) {
-			$this->addFlash('danger', 'None documents selected');
-			return $this->render('ajax/error.html.twig');
-		}
+		$documents = $this->documentRepository->getDocumentsByVersionsId($request->get('versions'));
+		$versions = $this->versionRepository->getVersionsByIds($request->get('versions'));
+		
 		$document = reset($documents);
-		$serie = $document->getSerie();
-		$project = $serie->getProject();
-		
-		//todo : à revoir
-		$versions = $this->versionRepository->getVersions($request);
-		if ($request->query->has('save')) {
-			foreach ($versions as $version) {
-				$version->setRequired(false);
-			}
-		}
-		
+
 		$this->denyAccessUnlessGranted('DOCUMENT_EDIT', $document);
 
 		$form = $this->createForm(VersionType::class, $versions, [
-			'serie' => $serie,
-			'allow_extra_fields' => true,
+			'project'	=> $project,
+			'documents'	=> $documents,
 		]);
+
 		$form->handleRequest($request);
+		
 		if ($form->isSubmitted() && $form->isValid()) {
 			
 			$entityManager = $this->doctrine->getManager();
-			
-			foreach ($versions as $version) {
-				
-				if ($form->has('name')) {
-					$version->setName($form->get('name')->getData());
-				}
-				
-				if ($this->isMultiple($form, 'isRequired') == false) {
-					$version->setRequired($form->get('isRequired')->getData());
-				}
-				
-				if ($this->isMultiple($form, 'date') == false) {
-					if ($version->isRequired()) {
-						$version->setScheduledDate($form->get('date')->getData());
-					} else {
-						$version->setDeliveryDate($form->get('date')->getData());
-					}
-				}
-				
-				if ($this->isMultiple($form, 'status') == false) {
-					$version->setStatus($form->get('status')->getData());
-				}
-				
-				foreach ($this->metadataRepository->getMetadatasForVersion($project) as $metadata) {
-					
-					if ($this->isMultiple($form, $metadata->getFullId()) == false) {
-						
-						$value = $form->get($metadata->getFullId())->getData();
-						if ($value === null && $metadata->isMandatory()) {
-							$this->addFlash('danger', $this->translator->trans('notEmpty.field', ['field' => $metadata->getName()]));
-							return $this->render('ajax/form.html.twig', [
-								'form' => $form,
-							]);
-						}
-						
-						try {
-							$version->setMetadataElement($metadata, $value);
-						} catch (\Error $e) {
-							if ($metadata->isMandatory() === true) {
-								$this->addFlash('danger', $e->getMessage());
-								return $this->render('ajax/form.html.twig', [
-									'form' => $form,
-								]);
-							}
-						}
-					}
-				}
-				
-				if ($this->isMultiple($form, 'writer') == false) {
-					$version->setWriter($form->get('writer')->getData());
-				}
-				
-				if ($this->isMultiple($form, 'checker') == false) {
-					$version->setChecker($form->get('checker')->getData());
-				}
-				
-				if ($this->isMultiple($form, 'approver') == false) {
-					$version->setApprover($form->get('approver')->getData());
-				}
-				
-				$entityManager->persist($version);
-			}
-			
 			$entityManager->flush();
 			
-			if ($request->query->has('modal')) {
-				return $this->ajaxRedirectService->get($this->generateUrl('documentDetail', ['version' => reset($versions)->getId()]), '#modal_detail');
-			} else {
-				$this->addFlash('success', $this->translator->trans('updated.version', ['count' => count($versions)]));
-				return new Response();
-			}
+			$this->addFlash('success', 'Versions updated');
+
+			//fermeture modal à traiter
+			return $this->renderSuccess($request, 'versionNew', [
+				'project'	=> $project->getId(),
+				'versions'	=> $request->get('versions')
+			]);
 			
 		} else {
-			return $this->render('ajax/form.html.twig', [
+			return $this->render('pages/engineering/edit/_pannel.html.twig', [
 				'form' => $form,
 			]);
 		}
@@ -315,7 +158,7 @@ class VersionController extends AbstractTurboController
 			}
 			$entityManager->flush();
 			
-			$this->documentService->removeOrphans();
+			// $this->documentService->removeOrphans();
 			$entityManager->flush();
 			
 			if ($request->query->has('modal') && $document->getVersions()->count() > 0) {
@@ -362,7 +205,7 @@ class VersionController extends AbstractTurboController
 			foreach ($this->metadataRepository->getMetadatasForVersion($project) as $metadata) {
 				if ($metadata->isBoolean() || $metadata->isList() || $metadata->isMandatory()) {
 					try {
-						$newVersion->setMetadataElement($metadata, $version->getTypedMetadataElement($metadata));
+						$newVersion->setMetadataValue($metadata, $version->getMetadataValue($metadata));
 					} catch (\Error $e) {
 						$this->addFlash('danger', $e->getMessage());
 					}

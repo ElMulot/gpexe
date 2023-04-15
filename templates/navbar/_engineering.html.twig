@@ -15,21 +15,25 @@
 				'name': 'New',
 				'href': path('engineeringNew', {'project': project.id, 'series': serie_ids}),
 				'data-turbo-frame': 'xl_modal',
+				'data-turbo-stream-replace': 'serie_pannel',
 			},
 			{
 				'name': 'Edit',
 				'href': path('engineeringEdit', {'project': project.id}),
 				'data-turbo-frame': 'xl_modal',
+				'data-turbo-stream-replace': 'serie_pannel',
 			},
 			{
 				'name': 'Move',
 				'href': path('documentMove', {'project': project.id}),
 				'data-turbo-frame': 'xl_modal',
+				'data-turbo-stream-replace': 'serie_pannel',
 			},
 			{
 				'name': 'Delete',
 				'href': path('engineeringDelete', {'project': project.id}),
 				'data-turbo-frame': 'xl_modal',
+				'data-turbo-stream-replace': 'serie_pannel',
 			},
 		])
 	}}

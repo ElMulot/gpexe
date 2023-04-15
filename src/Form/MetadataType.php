@@ -54,13 +54,13 @@ class MetadataType extends AbstractType
 			case MetadataTypeEnum::TEXT:
 			case MetadataTypeEnum::REGEX:
 			case MetadataTypeEnum::LINK:
-				$builder->add('defaultValue', TextType::class, [
+				$builder->add('defaultRawValue', TextType::class, [
 					'required'	=> false,
 					'label' => 'Default value',
 				]);
 				break;
 			case MetadataTypeEnum::DATE:
-				$builder->add('defaultValue', DateType::class, [
+				$builder->add('defaultRawValue', DateType::class, [
 					'required'	=> false,
 					'label' => 'Default value',
 					'getter'	=> function(Metadata $metadata, FormInterface $form): mixed
@@ -74,7 +74,7 @@ class MetadataType extends AbstractType
 				]);
 				break;
 			case MetadataTypeEnum::LIST:
-				$builder->add('defaultValue', ComboBoxType::class, [
+				$builder->add('defaultRawValue', ComboBoxType::class, [
 					'required'	=> false,
 					'label' => 'Default value',
 					'choices'	=> $metadata->getMetadataChoices()->getValues(),

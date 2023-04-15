@@ -426,7 +426,7 @@ class Version extends AbstractElement implements \Stringable
 					/** @var Metadata $metadata */
 					foreach ($this->getDocument()->getSerie()->getProject()->getMetadatas()->getValues() as $metadata) {
 						if ($metadata->getFullCodename() === $codename) {
-							return $this->getTypedMetadataElement($metadata);
+							return $this->getMetadataValue($metadata);
 						}
 					}
 					
@@ -557,7 +557,7 @@ class Version extends AbstractElement implements \Stringable
 					/** @var Metadata $metadata */
 					foreach ($this->getDocument()->getSerie()->getProject()->getMetadatas()->getValues() as $metadata) {
 						if ($metadata->getFullCodename() === $codename) {
-							$this->setMetadataElement($metadata, $value);
+							$this->setMetadataValue($metadata, $value);
 							return $this;
 						}
 					}

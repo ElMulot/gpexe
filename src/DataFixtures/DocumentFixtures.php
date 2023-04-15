@@ -9,7 +9,7 @@ use Doctrine\Persistence\ObjectManager;
 
 class DocumentFixtures extends Fixture implements DependentFixtureInterface
 {
-
+	
 	public function load(ObjectManager $manager)
 	{
 		for ($i=0; $i<2; $i++) {
@@ -21,11 +21,11 @@ class DocumentFixtures extends Fixture implements DependentFixtureInterface
 					$b = $k % 3;
 					$document = new Document();
 					$document
-						->setName("Document {$k}")
+						->setName("Document {$i}-{$j}-{$k}")
 						->setSerie($this->getReference(constant(SerieFixtures::class. "::PROJECT_{$i}_SERIE_{$j}")))
-						->addCodificationElement($this->getReference(constant(CodificationElementFixtures::class . "::PROJECT_{$i}_CODIFICATION_ELEMENT_TEXT_" . $a)))
-						->addCodificationElement($this->getReference(constant(CodificationElementFixtures::class . "::PROJECT_{$i}_CODIFICATION_ELEMENT_REGEX_" . $b)))
-						->addCodificationChoice($this->getReference(constant(CodificationChoiceFixtures::class . "::PROJECT_{$i}_CODIFICATION_CHOICE_" . $b)))
+						->addCodificationElement($this->getReference(constant(CodificationElementFixtures::class . "::PROJECT_{$i}_CODIFICATION_ELEMENT_TEXT_0")))
+						->addCodificationElement($this->getReference(constant(CodificationElementFixtures::class . "::PROJECT_{$i}_CODIFICATION_ELEMENT_REGEX_{$a}")))
+						->addCodificationChoice($this->getReference(constant(CodificationChoiceFixtures::class . "::PROJECT_{$i}_CODIFICATION_CHOICE_{$b}")))
 						->addMetadataElement($this->getReference(constant(MetadataElementFixtures::class . "::PROJECT_{$i}_METADATA_ELEMENT_DOCUMENT_BOOL")))
 						->addMetadataElement($this->getReference(constant(MetadataElementFixtures::class . "::PROJECT_{$i}_METADATA_ELEMENT_DOCUMENT_TEXT_" . rand(0, 2))))
 						->addMetadataElement($this->getReference(constant(MetadataElementFixtures::class . "::PROJECT_{$i}_METADATA_ELEMENT_DOCUMENT_REGEX_" . rand(0, 2))))

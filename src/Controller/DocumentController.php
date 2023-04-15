@@ -33,6 +33,7 @@ use Doctrine\Persistence\ManagerRegistry;
 use InvalidArgumentException;
 use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\Form\FormError;
 
 class DocumentController extends AbstractTurboController
 {
@@ -108,6 +109,9 @@ class DocumentController extends AbstractTurboController
 		]);
 	}
 	
+	/**
+	 * @deprecated version
+	 */
 	#[Route(path: '/project/{project}/serie/{type}/{serie}/table', name: 'documentTable', requirements: ['project' => '\d+', 'type' => 'sdr|mdr|all', 'serie' => '\d+'], defaults: ['serie' => 0])]
 	public function table(Request $request, FlashBagInterface $flashBag, Project $project, string $type, Serie $serie = null) : Response
 	{
@@ -148,15 +152,15 @@ class DocumentController extends AbstractTurboController
 			}
 		}
 		$versionsCount = $this->versionRepository->getVersionsCount($codifications, $fields, $series, $project, $request);
-		$maxResultsPerQuery = $request->query->get('max_results_per_page') ?? 50;
-		if ($maxResultsPerQuery == 0) { //display all
+		$resultsPerPage = $request->query->get('results_per_page') ?? 50;
+		if ($resultsPerPage == 0) { //display all
 			$pageMax = 1;
 		} else {
-			$pageMax = max(ceil($versionsCount / $maxResultsPerQuery), 1);
+			$pageMax = max(ceil($versionsCount / $resultsPerPage), 1);
 		}
-		$request->query->set('max_results_per_page', $maxResultsPerQuery);
+		$request->query->set('results_per_page', $resultsPerPage);
 		$request->query->set('page', min($page, $pageMax));
-		$versions = $this->versionRepository->getVersionsAsArray($codifications, $fields, $series, $project, $request);
+		$versions = $this->versionRepository->getVersionsAsArray($codifications, $fields, $project, $request);
 		$serializer = new Serializer([new DateTimeNormalizer(['datetime_format' => 'd-m-Y'])]);
 		return new JsonResponse([
 				'datas' => $serializer->normalize($versions),
@@ -202,8 +206,8 @@ class DocumentController extends AbstractTurboController
 				$request->query->set('display', $this->getDefaultDisplay($fields));
 			}
 		}
-		$request->query->set('max_results_per_page', 0);
-		$versions = $this->versionRepository->getVersionsAsArray($codifications, $fields, $series, $project, $request);
+		$request->query->set('results_per_page', 0);
+		$versions = $this->versionRepository->getVersionsAsArray($codifications, $fields, $project, $request);
 		try {
 			$this->programService->exportFromView($fields, $versions, $request);
 		} catch (\Exception $e) {
@@ -235,106 +239,55 @@ class DocumentController extends AbstractTurboController
 
 	/**
 	 * Query parameters :
-	 * 	+ array		id				array of document ids that will be used for serie selector in the form
+	 * 	+ array		series			array of serie ids that will be used for serie selector in the form if versions is empty
+	 * 	+ array		versions		array of version ids that will be used for serie selector in the form
 	 */
 	#[Route(path: '/project/{project}/document/new', name: 'documentNew', requirements: ['project' => '\d+'])]
 	public function new(Request $request, Project $project) : Response
 	{
 		
 		$this->denyAccessUnlessGranted('DOCUMENT_NEW', $project);
-
-		// $document = $this->documentRepository->getDocumentsByIds([1, 5]);
+		
+		if ($request->query->has('versions')) {
+			$series = $this->serieRepository->getSeriesByVersionIds($request->get('versions'));
+		} else {
+			$series = $this->serieRepository->getSeriesByIds($request->get('series'));
+		}
+		
 		$document = new Document();
-		$document->setName('Test');
 		$documents = [$document];
 
-		try {
-			$form = $this->createForm(DocumentType::class, $documents, [
-				'project'	=> $project,
-				'ids'		=> $request->get('id'),
-			]);
-		} catch (InternalErrorException $e) {
-			$this->addFlash('warning', $e->getMessage());
-			//todo : review path
-			return $this->renderError($request, 'serie', ['project' => $project->getId(), 'id' => $request->get('id')]);
-		}
+		$form = $this->createForm(DocumentType::class, $documents, [
+			'project'	=> $project,
+			'series'	=> $series,
+		]);
 
 		$form->handleRequest($request);
 		
 		if ($form->isSubmitted() && $form->isValid()) {
 			
 			$entityManager = $this->doctrine->getManager();
-			
-			foreach ($documents as $document) {
-				$entityManager->persist($document);
+			$entityManager->persist($document);
+
+			// return $this->render('pages/engineering/new/_pannel.html.twig', [
+			// 	'form' => $form,
+			// ]);
+
+			//try block in case a duplicated codification detected through UniqueCodificationListener
+			try {
+				$entityManager->flush();
+			} catch (\Exception $e) {
+				$form->addError(new FormError($e->getMessage()));
+				return $this->render('pages/engineering/new/_pannel.html.twig', [
+					'form' => $form,
+				]);
 			}
-			dump($documents);
 			
-			// $this->documentService->removeOrphans();
-			// $entityManager->flush();
+			$this->addFlash('success', 'New document created');
 
-			
-
-			return $this->render('pages/engineering/new/_pannel.html.twig', [
-				'form' => $form,
-			]);
-			
-			// foreach ($this->codificationRepository->getCodifications($project) as $codification) {
-				
-			// 	if ($codification->isFixed()) {
-			// 		continue;
-			// 	}
-				
-			// 	$value = $form->get($codification->getFullId())->getData();
-				
-			// 	if ($value === null && $codification->isMandatory()) {
-			// 		$this->addFlash('danger', $this->translator->trans('notEmpty.field', ['field' => $codification->getName()]));
-			// 		return $this->render('ajax/form.html.twig', [
-			// 			'form' => $form,
-			// 		]);
-			// 	}
-				
-			// 	try {
-			// 		$document->setCodificationElement($codification, $value);
-			// 	} catch (\Error $e) {
-			// 		$this->addFlash('danger', $e->getMessage());
-			// 	}
-			// }
-			
-			// if ($this->documentService->validateReference($document) === false) {
-			// 	$this->addFlash('danger', $this->translator->trans('alreadyExist.reference', ['reference' => $document->getReference()]));
-			// 	return $this->render('ajax/form.html.twig', [
-			// 		'form' => $form,
-			// 	]);
-			// }
-			
-			// foreach ($this->metadataRepository->getMetadatasForDocument($project) as $metadata) {
-			// 	$value = $form->get($metadata->getFullId())->getData();
-				
-			// 	if ($value === null && $metadata->isMandatory()) {
-			// 		$this->addFlash('danger', $this->translator->trans('notEmpty.field', ['field' => $metadata->getName()]));
-			// 		return $this->render('ajax/form.html.twig', [
-			// 			'form' => $form,
-			// 		]);
-			// 	}
-				
-			// 	try {
-			// 		$document->setMetadataElement($metadata, $value);
-			// 	} catch (\Error $e) {
-			// 		if ($metadata->isMandatory() === true) {
-			// 			$this->addFlash('danger', $e->getMessage());
-			// 			return $this->render('ajax/form.html.twig', [
-			// 				'form' => $form,
-			// 			]);
-			// 		}
-			// 	}
-			// }
-			
-			// $entityManager->persist($document);
-			// $entityManager->flush();
-			
-			return $this->redirectToRoute('versionNew', [
-				'document' => $document->getId()
+			return $this->renderSuccess($request, 'versionNew', [
+				'project'	=> $project->getId(),
+				'versions'	=> $request->get('versions')
 			]);
 		} else {
 			return $this->render('pages/engineering/new/_pannel.html.twig', [
@@ -343,120 +296,53 @@ class DocumentController extends AbstractTurboController
 		}
 	}
 	
-	#[Route(path: '/project/serie/document/edit', name: 'documentEdit')]
-	public function edit(Request $request) : Response
+	/**
+	 * Query parameters :
+	 * 	+ array		series			array of serie ids that will be used for serie selector in the form if versions is empty
+	 * 	+ array		versions		array of version ids that will be used for serie selector in the form
+	 */
+	#[Route(path: '/project/{project}/serie/document/edit', name: 'documentEdit', requirements: ['project' => '\d+'])]
+	public function edit(Request $request, Project $project) : Response
 	{
-		//todo: à remplacer
-		//$documents = $this->documentRepository->getDocumentsByRequest($request);
-		if ($documents == false) {
-			$this->addFlash('danger', $this->translator->trans('None documents selected'));
-			return $this->render('ajax/error.html.twig');
-		}
+		$series = $this->serieRepository->getSeriesByVersionIds($request->get('versions'));
+		$documents = $this->documentRepository->getDocumentsByVersionsId($request->get('versions'));
 		
-		$document = reset($documents);
-		$serie = $document->getSerie();
-		$project = $serie->getProject();
+		$serie = reset($series);
 
 		$this->denyAccessUnlessGranted('DOCUMENT_EDIT', $serie);
 
 		$form = $this->createForm(DocumentType::class, $documents, [
-			'serie' => $serie,
+			'project'	=> $project,
+			'series'	=> $series,
 		]);
+
 		$form->handleRequest($request);
+
 		if ($form->isSubmitted() && $form->isValid()) {
 			
 			$entityManager = $this->doctrine->getManager();
-			$this->documentService->removeOrphans();
-			$entityManager->flush();
-			
-			$references = [];
-			
-			foreach ($documents as $document) {
-				
-				foreach ($this->codificationRepository->getCodifications($project) as $codification) {
-					
-					if ($codification->isFixed()) {
-						continue;
-					}
-					
-					if ($this->isMultiple($form, $codification->getFullId()) == false) {
-						
-						$value = $form->get($codification->getFullId())->getData();
-						
-						if ($value === null && $codification->isMandatory()) {
-							$this->addFlash('danger', $this->translator->trans('notEmpty.field', ['field' => $codification->getName()]));
-							return $this->render('ajax/form.html.twig', [
-								'form' => $form,
-							]);
-						}
-						
-						try {
-							$document->setCodificationElement($codification, $value);
-						} catch (\Error $e) {
-							$this->addFlash('danger', $e->getMessage());
-						}
-					}
-				}
-				
-				$references[] = $document->getReference();
-				
-				if ($this->documentService->validateReference($document) === false) {
-					$this->addFlash('danger', $this->translator->trans('alreadyExist.reference', ['reference' => $document->getReference()]));
-					return $this->render('ajax/form.html.twig', [
-						'form' => $form,
-					]);
-				}
-				
-				if ($form->has('name')) {
-					$document->setName($form->get('name')->getData());
-				}
-				
-				foreach ($this->metadataRepository->getMetadatasForDocument($project) as $metadata) {
-					
-					if ($this->isMultiple($form, $metadata->getFullId()) == false) {
-						
-						$value = $form->get($metadata->getFullId())->getData();
-						
-						if ($value === null && $metadata->isMandatory()) {
-							$this->addFlash('danger', $this->translator->trans('notEmpty.field', ['field' => $metadata->getName()]));
-							return $this->render('ajax/form.html.twig', [
-								'form' => $form,
-							]);
-						}
-						
-						try {
-							$document->setMetadataElement($metadata, $value);
-						} catch (\Error $e) {
-							if ($metadata->isMandatory() === true) {
-								$this->addFlash('danger', $e->getMessage());
-								return $this->render('ajax/form.html.twig', [
-									'form' => $form,
-								]);
-							}
-						}
-					}
-				}
-				
-				$entityManager->persist($document);
-			}
-			
-			//check if any modified documents hasn't the same codification
-			if (array_unique($references) != $references) {
-				$this->addFlash('danger', $this->translator->trans('The same codification has been setting up to more than one document'));
-				return $this->render('ajax/form.html.twig', [
+
+			//try block in case a duplicated codification detected through UniqueCodificationListener
+			try {
+				$entityManager->flush();
+			} catch (\Exception $e) {
+				$form->addError(new FormError($e->getMessage()));
+				return $this->render('pages/engineering/new/_pannel.html.twig', [
 					'form' => $form,
 				]);
 			}
+
+			$this->addFlash('success', 'Documents updated');
+
+			//fermeture modal à traiter
+			return $this->renderSuccess($request, 'versionNew', [
+				'project'	=> $project->getId(),
+				'versions'	=> $request->get('versions')
+			]);
 			
-			$entityManager->flush();
-			
-			$request->query->remove('id');
-			$this->addFlash('success', $this->translator->trans('Document updated'));
-			return new Response();
 		} else {
-			$request->query->remove('id');
-			return $this->render('ajax/form.html.twig', [
-				'form' => $form
+			return $this->render('pages/engineering/edit/_pannel.html.twig', [
+				'form' => $form,
 			]);
 		}
 	}

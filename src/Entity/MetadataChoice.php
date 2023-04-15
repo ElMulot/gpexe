@@ -5,8 +5,9 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use App\Entity\Metadata;
 use App\Repository\MetadataChoiceRepository;
+use App\Validator\IsValid;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
-use Symfony\Component\Validator\Constraints\Regex;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: MetadataChoiceRepository::class)]
 #[UniqueEntity(
@@ -20,7 +21,8 @@ class MetadataChoice implements \Stringable
 	private ?int $id = null;
 
 	#[ORM\Column(length: 255)]
-	#[Assert\Regex('/^[^$"]+$/')]
+	#[Assert\NotBlank]
+	#[IsValid]
 	private ?string $value = null;
 
 	#[ORM\ManyToOne(inversedBy: 'metadataChoices')]

@@ -3,15 +3,24 @@
 {% extends 'modal/xl_modal.html.twig' %}
 
 {% block modal_body %}
-	{% set serie_ids = series|map(v => v.id) %}
 	<div class="row justify-content-center">
-		<a class="col-md-6 btn btn-primary btn-lg py-3 mt-3" href="{{ path('serie', {'project': project.id, 'id': serie_ids }) }}" data-turbo-frame="serie_pannel" {{ stimulus_target('modal', 'close') }}>
+		<a class="col-md-6 btn btn-primary btn-lg py-3 mt-3" 
+			href="{{ path('serie', {'project': project.id}|merge(app.request.query.all)) }}"
+			data-turbo-frame="serie_pannel" {{ stimulus_target('modal', 'close') }}>
 			{% trans %}All{% endtrans %}
 		</a>
 	</div>
 	{% for serie in series %}
 		<div class="row justify-content-center">
-			<a class="col-md-6 btn btn-primary btn-lg py-3 mt-3" href="{{ path('serie', {'project': project.id, 'id': serie_ids, 'selected': serie.id }) }}" data-turbo-frame="serie" {{ stimulus_target('modal', 'close') }}>
+			<a class="col-md-6 btn btn-primary btn-lg py-3 mt-3"
+				href="{{ path('serie', {'project': project.id,
+										'id': app.request.get('id'),
+										'display': app.request.get('display'),
+										'filters': (app.request.get('filters') ?? [])|merge({'serie': [serie.id]}),
+										'results_per_page': app.request.get('results_per_page'),
+										'sort_desc': app.request.get('sort_desc'),
+										'sort_asc': app.request.get('sort_asc')}) }}"
+				data-turbo-frame="serie_pannel" {{ stimulus_target('modal', 'close') }}>
 				{{ serie.name }}
 			</a>
 		</div>

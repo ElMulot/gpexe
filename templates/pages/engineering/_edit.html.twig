@@ -3,41 +3,39 @@
 {% extends 'modal/xl_modal.html.twig' %}
 {% import "macros/_nav.html.twig" as nav %}
 
+{% set serie_ids = app.request.get('series') %}
+{% set version_ids = app.request.get('versions') %}
 {% set items = [] %}
 
-{% if series|length == 1 %}
-	{% set items = items|merge([
-		{
-			'name': "Serie",
-			'href': path('serieEdit', {'serie': series|first.id }),
-		}
-	]) %}	
-{% endif %}
+{% set items = items|merge([
+	{
+		'name': "Serie",
+		'href': path('serieEdit', {'project': project.id, 'series': serie_ids, 'versions': version_ids }),
+		'data-turbo-stream-replace': 'edit_pannel',
+	}
+]) %}	
 
-{% if documents|length > 0 %}
-	{% set document_ids = documents|map(v => v.id) %}
+{% if version_ids is iterable and version_ids|length > 0 %}
 	{% set items = items|merge([
 		{
 			'name': "Document",
-			'href': path('documentEdit', {'id': document_ids}),
+			'href': path('documentEdit', {'project': project.id, 'series': serie_ids, 'versions': version_ids}),
+			'data-turbo-stream-replace': 'edit_pannel',
 		}
-	]) %}	
-{% endif %}
-
-{% if versions|length > 0 %}
-	{% set version_ids = versions|map(v => v.id) %}
+	]) %}
+	
 	{% set items = items|merge([
 		{
 			'name': "Version",
-			'href': path('versionEdit', {'id': version_ids}),
-			'class': 'active',
+			'href': path('versionEdit', {'project': project.id, 'versions': version_ids}),
+			'data-turbo-stream-replace': 'edit_pannel',
 		}
 	]) %}	
 {% endif %}
 
 {% block modal_body %}
 
-	{% if items|length == 0 %}
+	{% if serie_ids is iterable and serie_ids|length > 0 %}
 		<div class="row justify-content-center">
 			<p>{% trans %}Select one or more lines first.{% endtrans %}</p>
 		</div>

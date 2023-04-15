@@ -30,7 +30,38 @@ class EngineeringController extends AbstractTurboController
         						private int $maxResultsPerPage)
 	{
 	}
-    
+
+	/**
+	 * Query parameters :
+	 * 	+ string		document_reference
+	 * 	+ string		version_name
+	 * 	+ string		document_name
+	 * 	+ string		version_initial_scheduled_date
+	 * 	+ string		version_scheduled_date
+	 * 	+ string		version_delivery_date
+	 * 	+ string		version_date
+	 * 	+ string		version_is_required					"0" or "1"
+	 * 	+ string		version_writer						as array of writer ids
+	 * 	+ array			version_checker						as array of checker ids
+	 * 	+ array			version_approver					as array of approver ids
+	 * 	+ array			serie								as array of serie ids
+	 * 	+ array			serie_company						as array of company ids
+	 * 	+ array			status_value						as array of status ids
+	 * 	+ array			status_type							as array of StatusTypeEnum ids
+	 * 	+ string|array	codification_{id}					as array of codificationChoice if list, otherwise string of codificationElement
+	 * 	+ string|array	metadata_{id}						as array of metadataChoice if list, otherwise string of metadataElement
+	 * 	+ array			visa_{id}							as array of visa ids
+	 * 	+ string		version_first						"0" or "1"
+	 * 	+ string		version_first_scheduled				"0" or "1"
+	 * 	+ string		version_first_delivered				"0" or "1"
+	 * 	+ string		version_last						"0" or "1"
+	 * 	+ string		version_last_scheduled				"0" or "1"
+	 * 	+ string		version_last_delivered				"0" or "1"
+	 * 	+ array			display								user defined display
+	 * 	+ int			results_per_page					user defined results per page
+	 *  + string		sort_desc							user defined sorted desc
+	 *  + string		sort_asc							user defined sorted asc
+	 */
     #[Route(path: '/project/{project}/thead', name: 'engineeringThead', requirements: ['project' => '\d+'])]
 	public function thead(Request $request, Project $project) : Response
 	{
@@ -44,7 +75,7 @@ class EngineeringController extends AbstractTurboController
 
 		$fields = $this->fieldService->getFieldsForJs($project, $serieIds);
 
-		if ($request->query->all('display') == false) {
+		if ($request->query->has('display') === false) {
 			$view = null;
 			if ($viewId = $request->query->get('view')) {
 				$view = $this->viewRepository->getViewById($viewId);
@@ -55,12 +86,19 @@ class EngineeringController extends AbstractTurboController
 			if ($view === null) {
 				$view = $this->getDefaultDisplay($fields);
 			}
+
+			//save selected serie before overwrite filters parameter
+			$serie = $request->get('filters')['serie'] ?? [];
 			
 			$request->query->replace($view->getValue());
+			if ($serie) {
+				$request->query->set('filters', ($request->get('filters') ?? []) + ['serie' => $serie]);
+			}
 		}
 		
 		$request->query->set('series', $serieIds);
 		$request->setRequestFormat(TurboBundle::STREAM_FORMAT);
+		
 		return $this->render('pages/engineering/index/_thead.html.twig', [
 			'fields' => $fields,
 			'query' => $request->query->all(),
@@ -69,20 +107,22 @@ class EngineeringController extends AbstractTurboController
 	
     #[Route(path: '/project/{project}/tbody', name: 'engineeringTbody', requirements: ['project' => '\d+'])]
 	public function tbody(Request $request, Project $project) : Response
-	{
-		$serieIds = $request->query->all('series');
-        if (is_array($serieIds) === false) {
-            $serieIds = [];
-        }
+	{	
+		if ($request->query->has('filter') === false) {
+			$request->query->set('filter', []);
+		}
 		
+		$serieIds = $request->get('filter')['serie'] ?? [];
 		$series = $this->serieRepository->getSeriesByIds($serieIds);
 
-		foreach ($series as $serie) {
+		foreach ($series as $key => $serie) {
 			if ($this->isGranted('ENGINEERING_SHOW', $serie) === false) {
-				$series->removeElement($serie);
+				unset($series[$key]);
 			}
 		}
 
+		$request->query->set('filter', $request->query->all('filter') + ['serie' => array_map(fn($serie) => $serie->getId(), $series)]);
+		
 		$page = max((int)$request->query->get('page') ?? 1, 1);
 		$request->query->remove('page');
 
@@ -90,18 +130,18 @@ class EngineeringController extends AbstractTurboController
 		
 		$codifications = $this->codificationRepository->getCodifications($project);
 
-		$versionsCount = $this->versionRepository->getVersionsCount($codifications, $fields, $series, $project, $request);
+		$versionsCount = $this->versionRepository->getVersionsCount($codifications, $fields, $project, $request);
 
-		$maxResultsPerPage = $request->query->get('max_results_per_page') ?? $this->maxResultsPerPage;
-		if ($maxResultsPerPage == 0) { //display all
+		$resultsPerPage = $request->query->get('results_per_page') ?? $this->maxResultsPerPage;
+		if ($resultsPerPage == 0) { //display all
 			$pageMax = 1;
 		} else {
-			$pageMax = max(ceil($versionsCount / $maxResultsPerPage), 1);
+			$pageMax = max(ceil($versionsCount / $resultsPerPage), 1);
 		}
-		$request->query->set('max_results_per_page', $maxResultsPerPage);
+		$request->query->set('results_per_page', $resultsPerPage);
 		$request->query->set('page', min($page, $pageMax));
 
-		$versions = $this->versionRepository->getVersionsAsArray($codifications, $fields, $series, $project, $request);
+		$versions = $this->versionRepository->getVersionsAsArray($codifications, $fields, $project, $request);
 		// $serializer = new Serializer([new DateTimeNormalizer(['datetime_format' => 'd-m-Y'])]);
 
 		$request->setRequestFormat(TurboBundle::STREAM_FORMAT);
@@ -118,49 +158,31 @@ class EngineeringController extends AbstractTurboController
 	/**
 	 * Query parameters :
 	 * 	+ array		series			array of serie ids
-	 * 	+ array		id				array of version ids
+	 * 	+ array		versions		array of version ids
 	 */
     #[Route(path: '/project/{project}/engineering/new', name: 'engineeringNew', requirements: ['project' => '\d+'])]
 	public function new(Request $request, Project $project) : Response
 	{
-		if ($request->query->has('id')) {		
-			$versionIds = $request->get('id');
-			$documents = $this->documentRepository->getDocumentsByVersionsId($versionIds);
-			$series = $this->serieRepository->getSeriesByVersionIds($versionIds);
-		} else {
-			$series = $this->serieRepository->getSeriesByIds($request->get('series'));
-			$documents = [];
-		}
-		
 		return $this->render('pages/engineering/_new.html.twig', [
 			'project' => $project,
-			'series' => $series,
-			'documents' => $documents,
 		]);
 	}
 
 	/**
 	 * Query parameters :
-	 * 	+ array		id				array of version ids
+	 * 	+ array		versions		array of version ids
 	 */
     #[Route(path: '/project/{project}/engineering/edit', name: 'engineeringEdit', requirements: ['project' => '\d+'])]
 	public function edit(Request $request, Project $project) : Response
 	{
-		$versionIds = $request->get('id');
-		$versions = $this->versionRepository->getVersionsByIds($versionIds);
-		$documents = $this->documentRepository->getDocumentsByVersionsId($versionIds);
-		$series = $this->serieRepository->getSeriesByVersionIds($versionIds);
-
 		return $this->render('pages/engineering/_edit.html.twig', [
-			'series' => $series,
-			'documents' => $documents,
-			'versions' => $versions,
+			'project' => $project,
 		]);
 	}
 
 	/**
 	 * Query parameters :
-	 * 	+ array		id				array of version ids
+	 * 	+ array		versions		array of version ids
 	 */
     #[Route(path: '/project/{project}/engineering/delete', name: 'engineeringDelete', requirements: ['project' => '\d+'])]
 	public function delete(Request $request, Project $project) : Response

@@ -2,6 +2,8 @@
 
 namespace App\Repository;
 
+use App\Entity\CodificationChoice;
+use App\Entity\CodificationElement;
 use Symfony\Component\HttpFoundation\Request;
 use Doctrine\Persistence\ManagerRegistry;
 use App\Service\RepositoryService;
@@ -10,6 +12,8 @@ use App\Entity\Project;
 use App\Entity\Review;
 use App\Entity\Serie;
 use App\Entity\Version;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\ORM\Query\Expr\Join;
 
 /**
  * @method Document|null find($id, $lockMode = null, $lockVersion = null)
@@ -110,49 +114,34 @@ class DocumentRepository extends RepositoryService
 	}
 	
 	/**
-	 * @return Document[]
+	 * @return Document
 	 *
 	 */
-	public function getDocumentsByReference(Project $project, $codificationChoices, $codificationElements)
+	public function getDocumentByReference(Project $project, Collection $codificationElements, Collection $codificationChoices)
 	{
 		$qb = $this->newQB('d');
 		$qb->innerJoin('d.serie', 's')
 			->andWhere($qb->eq('s.project', $project));
-		
-		foreach ($codificationChoices->getValues() as $codificationChoice) {
-			
-			$id = $codificationChoice->getCodification()->getId();
-			
-			$subQb = $this->newQB();
-			$subQb->select('d' . $id)
-				->from(Document::class, 'd' . $id)
-				->innerJoin('d' . $id . '.codificationChoices', 'i' . $id)
-				->andWhere($subQb->eq('i' . $id . '.value', $codificationChoice->getValue()))
-			;
-			
-			$qb->andWhere($qb->in('d.id', $subQb->getQuery()->getArrayResult()));
-			
-		}
-		
-		foreach ($codificationElements->getValues() as $id => $codificationElement) {
-			
+
+		/**@var CodificationElement $codificationElement */
+		foreach ($codificationElements->getValues() as $codificationElement) {
 			$id = $codificationElement->getCodification()->getId();
-			
-			$subQb = $this->newQB();
-			$subQb->select('d' . $id)
-				->from(Document::class, 'd' . $id)
-				->innerJoin('d' . $id . '.codificationElements', 'v' . $id)
-				->andWhere($subQb->eq('v' . $id . '.value', $codificationElement->getValue()))
-			;
-			
-			$qb->andWhere($qb->in('d.id', $subQb->getQuery()->getArrayResult()));
-			
+			$qb->innerJoin('d.codificationElements', "c{$id}_", Join::WITH, $qb->andX(
+				$qb->eq("c{$id}_.codification", $id), $qb->eq("c{$id}_.value", $codificationElement->getValue())
+			));
 		}
-		
+
+		/**@var CodificationChoice $codificationChoice */
+		foreach ($codificationChoices->getValues() as $codificationChoice) {
+			$id = $codificationChoice->getCodification()->getId();
+			$qb->innerJoin('d.codificationChoices', "c{$id}_", Join::WITH, $qb->eq("c{$id}_.id", $codificationChoice->getId()));
+		}
+
+		//using setMaxResults should be useless as each document must have an unique codification, but otherwise, it could generate an exception.
 		return $qb
+			->setMaxResults(1)
 			->getQuery()
-			->getResult()
-		;
+			->getOneOrNullResult();
 	}
 	
 	/**

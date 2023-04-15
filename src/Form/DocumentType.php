@@ -1,21 +1,15 @@
 <?php
 namespace App\Form;
 
-use App\Entity\Codification;
 use App\Entity\CodificationChoice;
-use App\Entity\CodificationElement;
 use App\Entity\Document;
 use App\Entity\Enum\CodificationTypeEnum;
 use App\Entity\Enum\MetadataTypeEnum;
-use App\Entity\Metadata;
 use App\Entity\MetadataChoice;
-use App\Entity\MetadataElement;
 use App\Entity\Project;
 use App\Entity\Serie;
 use App\Exception\InternalErrorException;
 use App\Form\DataMapper\DocumentMapper;
-use App\Form\EventSubscriber\DefaultValueSubscriber;
-use App\Form\Type\BooleanType;
 use App\Form\Type\BooleanVariousType;
 use App\Form\Type\DateVariousType;
 use App\Form\Type\EntityVariousType;
@@ -25,29 +19,19 @@ use App\Repository\CodificationRepository;
 use App\Repository\MetadataRepository;
 use App\Repository\SerieRepository;
 use App\Service\PropertyService;
-use App\Validator\CodificationElementValidator;
-use PhpParser\Node\Expr\Instanceof_;
+use App\Validator\IsValid;
+use App\Validator\NotContainsSplitter;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\DataMapperInterface;
 use Symfony\Component\Form\FormBuilderInterface;
-use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
-use Symfony\Component\Form\Extension\Core\Type\DateType;
-use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
-use Symfony\Component\Form\Extension\Core\Type\TextareaType;
-use Symfony\Component\Form\FormEvent;
-use Symfony\Component\Form\FormEvents;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormView;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Validator\Constraints\Callback;
-use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Constraints\GroupSequence;
 use Symfony\Component\Validator\Constraints\Regex;
-use Symfony\Component\Validator\Context\ExecutionContextInterface;
+use Symfony\Component\Validator\Constraints\Url;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
-use Symfony\Component\Validator\Mapping\ClassMetadata;
-use Symfony\Component\Validator\Mapping\PropertyMetadata;
 
 class DocumentType extends AbstractType
 {
@@ -61,6 +45,11 @@ class DocumentType extends AbstractType
 		
 	}
 
+	//As fields are not mapped to entity, new constraints has been attached to each field with group validation "Form" to have
+	//an error attached to each field.
+	//If a constraint is forgotten, the constraint in the entity will provide the ultimate security.
+	//As a consequence, if the validation don't fail, each field will be validated twice (once with "From" group, once with "Default" group).
+	//A solution could be to mapped each violation on the correct field.
 	public function buildForm(FormBuilderInterface $builder, array $options)
 	{
 		
@@ -73,20 +62,20 @@ class DocumentType extends AbstractType
 
 		/**@var Document $document */
 		$document = reset($documents);
-		
-		$isNew = $document->getId() === null;
 
 		/** @var Project $project */
 		$project = $options['project'];
-		$codifications = [$this->codificationRepository->getCodifications($project)[2]];
+		$codifications = $this->codificationRepository->getCodifications($project);
 		$metadatas = $this->metadataRepository->getMetadatasForDocument($project);
-		$series = $this->serieRepository->getSeriesByVersionIds($options['ids']);
-
+		$series = $options['series'];
+		
 		if (count($series) === 0) {
 			throw new InternalErrorException();
 		} elseif (count($series) === 1) {
-			$builder->add('serie', TextType::class, [
-				'data' => reset($series)->getName(),
+			$builder->add('serie', EntityType::class, [
+				'class' => Serie::class,
+				'choices' => $series,
+				'data' => reset($series),
 				'disabled' => true,
 			]);
 		} elseif (count($series) > 1) {
@@ -107,7 +96,6 @@ class DocumentType extends AbstractType
 			$defaultOptions = [
 				'label'			=> $codification->getName(),
 				'required'		=> true,
-				// 'constraints'	=> $propertyMetadatas[0]->getConstraints(),
 				// 'empty_data'	=> $codification->getDefaultValue(),
 			];
 
@@ -117,10 +105,16 @@ class DocumentType extends AbstractType
 				case CodificationTypeEnum::REGEX:
 
 					$builder->add($codification->getFullId(), TextVariousType::class, $defaultOptions + [
-						'constraints' => new Callback(
-							callback: [CodificationElementValidator::class, 'validateAsForm'],
-							payload: ['splitter' => $project->getSplitter(), 'pattern' => $codification->getPattern()]
-						)
+						'constraints' => [
+							new NotContainsSplitter(
+								payload: ['splitter' => $project->getSplitter()],
+								groups: ['Form']
+							),
+							new IsValid(
+								payload: ['pattern' => $codification->getPattern()],
+								groups: ['Form']
+							),
+						]
 					]);
 
 					break;
@@ -137,106 +131,89 @@ class DocumentType extends AbstractType
 			}
 		}
 		
-		// foreach ($metadatas as $metadata) {
-		// 	$defaultOptions = [
-		// 		'label'			=> $metadata->getName(),
-		// 		'required'		=> $metadata->isMandatory(),
-		// 		'constraints'	=> ($metadata->isMandatory() === true)?[new NotBlank()]:[],
-		// 		'empty_data'	=> $metadata->getDefaultValue(),
-		// 	];
+		foreach ($metadatas as $metadata) {
 
-		// 	switch ($metadata->getType()) {
+			//mandatory add a required attribut, so the constraint isMandatory is not necessary
+
+			$defaultOptions = [
+				'label'			=> $metadata->getName(),
+				'required'		=> $metadata->isMandatory(),
+				// 'empty_data'	=> $metadata->getDefaultValue(),
+			];
+
+			switch ($metadata->getType()) {
 				
-		// 		case MetadataTypeEnum::BOOL:
-		// 			$builder->add($metadata->getFullId(), BooleanVariousType::class, $defaultOptions + [
-		// 				'constraints'			=> [],
-		// 			]);
-		// 			break;
+				case MetadataTypeEnum::BOOL:
+					$builder->add($metadata->getFullId(), BooleanVariousType::class, $defaultOptions);
+					break;
 					
-		// 		case MetadataTypeEnum::DATE:
-		// 			$builder->add($metadata->getFullId(), DateVariousType::class, $defaultOptions + [
-		// 				'constraints'			=> [],
-		// 			]);
-		// 			break;
+				case MetadataTypeEnum::DATE:
+					$builder->add($metadata->getFullId(), DateVariousType::class, $defaultOptions + [
+						'constraints' => [
+							new IsValid(
+								groups: ['Form']
+							),
+						]
+					]);
+					break;
 					
-		// 		case MetadataTypeEnum::TEXT:
-		// 			$builder->add($metadata->getFullId(), TextareaVariousType::class, $defaultOptions + [
-		// 				'constraints'			=> [],
-		// 			]);
-		// 			break;
+				case MetadataTypeEnum::TEXT:
+					$builder->add($metadata->getFullId(), TextareaVariousType::class, $defaultOptions + [
+						'constraints' => [
+							new IsValid(
+								groups: ['Form']
+							),
+						]
+					]);
+					break;
 				
-		// 		case MetadataTypeEnum::REGEX:
-		// 			$builder->add($metadata->getFullId(), TextVariousType::class, $defaultOptions + [
-		// 				'constraints'	=> [],
-		// 			]);
-		// 			break;
-		// 		case MetadataTypeEnum::LINK:
-		// 			$builder->add($metadata->getFullId(), TextVariousType::class, $defaultOptions + [
-		// 				'constraints'	=> [],
-		// 			]);
-		// 			break;
+				case MetadataTypeEnum::REGEX:
+					$builder->add($metadata->getFullId(), TextVariousType::class, $defaultOptions + [
+						'constraints' => [
+							new IsValid(
+								payload: ['pattern' => $metadata->getPattern()],
+								groups: ['Form']
+							),
+						]
+					]);
+					break;
+				case MetadataTypeEnum::LINK:
+					$builder->add($metadata->getFullId(), TextVariousType::class, $defaultOptions + [
+						'constraints' => [
+							new IsValid(
+								payload: ['isUrl' => true],
+								groups: ['Form']
+							),
+						]
+					]);
+					break;
 					
-		// 		case MetadataTypeEnum::LIST:
-		// 			$builder->add($metadata->getFullId(), EntityVariousType::class, $defaultOptions + [
-		// 				'class'			=> MetadataChoice::class,
-		// 				'choices'		=> $metadata->getMetadataChoices(),
-		// 				'choice_label'	=> 'value',
-		// 				'choice_value'	=> 'value',
-
-		// 			]);
-		// 			break;
-		// 	}
-		// }
-
-		$builder->setDataMapper(new DocumentMapper($project, $document, $isNew, $codifications, $metadatas));
-	}
-
-    public function finishView(FormView $view, FormInterface $form, array $options)
-    {
-		
-		foreach ($view->children as $name => $child) {
-			if ($form->has($name) === true) {				
-				// if ($form->get($name)->getConfig()->getType()->getInnerType() instanceof TextVariousType === true) {
-				// 	$child->children['input']->vars['attr']['placeholder'] = $form->get($name)->getConfig()->getEmptyData();
-				// } elseif ($form->get($name)->getConfig()->getType()->getInnerType() instanceof EntityVariousType === true) {
-					// if ($form->get($name)->getData() === null) {
-					// 	foreach ($form->get($name)->getConfig()->getOption('choices') as $value) {
-					// 		if ($value->getValue() === $form->get($name)->getConfig()->getEmptyData()) {
-					// 			$form->get($name)->setData([$value]);
-					// 			break;
-					// 		}
-					// 	}
-					// }
-				// }
-
+				case MetadataTypeEnum::LIST:
+					$builder->add($metadata->getFullId(), EntityVariousType::class, $defaultOptions + [
+						'class'			=> MetadataChoice::class,
+						'choices'		=> $metadata->getMetadataChoices(),
+						'choice_label'	=> 'value',
+						'choice_value'	=> 'value',
+					]);
+					break;
 			}
-
-
-			// switch ($codification->getType()) {
-
-			// 	case CodificationTypeEnum::TEXT:
-			// 	case CodificationTypeEnum::REGEX:
-			// 		$view->children['input']->vars['attr']['placeholder'] = $form->getConfig()->getEmptyData();
-			// 		break;
-
-			// 	case CodificationTypeEnum::LIST:
-			// 		$view->children['input']->vars['attr']['placeholder'] = $form->getConfig()->getEmptyData();
-			// 		break;
-			// }
 		}
-    }
+
+		$builder->setDataMapper(new DocumentMapper($project, $document, $codifications, $metadatas));
+	}
 	
 	public function configureOptions(OptionsResolver $resolver)
 	{
 		$resolver->setDefaults([
-			'data_class' => null,
-			'project' => null,
-			'ids' => [],
+			'data_class'		=> null,
+			'project'			=> null,
+			'series'			=> [],
+			'validation_groups'	=> new GroupSequence(['Form', 'Default']),
 		]);
 		
-		$resolver->setRequired(['project']);
+		$resolver->setRequired(['project', 'series']);
 
 		$resolver->setAllowedTypes('project', Project::class);
-		$resolver->setAllowedTypes('ids', ['null', 'string[]']);
+		$resolver->setAllowedTypes('series', Serie::class . '[]');
 	}
 }

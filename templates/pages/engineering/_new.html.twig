@@ -3,42 +3,46 @@
 {% extends 'modal/xl_modal.html.twig' %}
 {% import "macros/_nav.html.twig" as nav %}
 
+{% set serie_ids = app.request.get('series') %}
+{% set version_ids = app.request.get('versions') %}
 {% set items = [] %}
+	
+{% set items = items|merge([
+	{
+		'name': "Serie",
+		'href': path('serieNew', {'project': project.id, 'series': serie_ids, 'versions': version_ids }),
+		'data-turbo-stream-replace': 'new_pannel',
+	}
+]) %}
 
-{% if series|length > 0 %}
-	{% set serie_ids = series|map(v => v.id) %}
-	{% set items = items|merge([
-		{
-			'name': "Serie",
-			'href': path('serieNew', {'project': project.id, 'id': serie_ids }),
-		}
-	]) %}
-{% endif %}
+{% set items = items|merge([
+	{
+		'name': "Document",
+		'href': path('documentNew', {'project': project.id, 'series': serie_ids, 'versions': version_ids}),
+		'data-turbo-stream-replace': 'new_pannel',
+	}
+]) %}
 
-{% if series|length > 0 %}
-	{% set serie_ids = series|map(v => v.id) %}
-	{% set items = items|merge([
-		{
-			'name': "Document",
-			'href': path('documentNew', {'project': project.id, 'id': serie_ids}),
-		}
-	]) %}
-{% endif %}
-
-{% if documents|length > 0 %}
-	{% set document_ids = documents|map(v => v.id) %}
+{% if version_ids is iterable and version_ids|length > 0 %}
 	{% set items = items|merge([
 		{
 			'name': "Version",
-			'href': path('versionNew', {'project': project.id, 'id': document_ids}),
+			'href': path('versionNew', {'project': project.id, 'versions': version_ids}),
+			'data-turbo-stream-replace': 'new_pannel',
 		}
 	]) %}
 {% endif %}
 
 {% block modal_body %}
 
-	{{ nav.turbo('new_pannel', items|map(item => (item == items|last)?item|merge({'class': 'active'}):item), true) }}
-	
+	{% if serie_ids is iterable and serie_ids|length > 0 %}
+		<div class="row justify-content-center">
+			<p>{% trans %}Select one or more lines first.{% endtrans %}</p>
+		</div>
+	{% else %}
+		{{ nav.turbo('new_pannel', items|map(item => (item == items|last)?item|merge({'class': 'active'}):item), true) }}
+	{% endif %}
+
 {% endblock %}
 
 {% block modal_footer %}

@@ -2,7 +2,7 @@
 
 namespace App\Exception;
 
-class InternalErrorException extends \Exception
+class InternalErrorException extends \Error
 {
     public function __construct(string $message = 'Internal error.')
     {

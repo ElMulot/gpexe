@@ -37,7 +37,7 @@ class ViewFixtures extends Fixture implements DependentFixtureInterface
 					"version_checker" => 10,
 					"version_date" => 10,
 				],
-				"filter" => [
+				"filters" => [
 					"version_last" => 1
 				],
 				"results_per_page" => 50,
@@ -62,7 +62,7 @@ class ViewFixtures extends Fixture implements DependentFixtureInterface
 			$statusFixturesClass = new \ReflectionClass(StatusFixtures::class);
 			foreach ($statusFixturesClass->getConstants() as $name => $constant) {
 				if (str_starts_with($name, "PROJECT_{$i}") === true) {
-					$value['filter']['status_value'][] = $this->getReference(constant(StatusFixtures::class . "::{$name}"))->getId();
+					$value['filters']['status_value'][] = $this->getReference(constant(StatusFixtures::class . "::{$name}"))->getId();
 				}
 			}
 
@@ -90,7 +90,7 @@ class ViewFixtures extends Fixture implements DependentFixtureInterface
 					"version_checker" => 10,
 					"version_date" => 10,
 				],
-				"filter" => [
+				"filters" => [
 					"version_last" => 1
 				],
 				"results_per_page" => 50,
@@ -115,7 +115,7 @@ class ViewFixtures extends Fixture implements DependentFixtureInterface
 				$status = $this->getReference(constant(StatusFixtures::class . "::{$name}"));
 				
 				if (str_starts_with($name, "PROJECT_{$i}") === true && $status->isCancel() === false) {
-					$value['filter']['status_value'][] = $status->getId();
+					$value['filters']['status_value'][] = $status->getId();
 				}
 			}
 
@@ -143,7 +143,7 @@ class ViewFixtures extends Fixture implements DependentFixtureInterface
 					"version_checker" => 10,
 					"version_date" => 10,
 				],
-				"filter" => [
+				"filters" => [
 					"version_last" => 1
 				],
 				"results_per_page" => 50,

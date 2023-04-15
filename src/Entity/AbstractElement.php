@@ -118,6 +118,7 @@ abstract class AbstractElement
 	{
 		//check and format input value
 		//a null value means that no MetadataElement or MetadataChoice should be created
+		
 		switch ($metadata->getType()) {
 			case MetadataTypeEnum::BOOL:
 				if (is_scalar($value) === false) {
@@ -139,24 +140,26 @@ abstract class AbstractElement
 					$value = null;
 				} elseif (is_scalar($value) === false) {
 					throw new InvalidValueException($value, $metadata->getFullCodename());
+				} else {
+					$value = (string)$value;
 				}
-				$value = (string)$value;
+				
 		}
 		
 		//check if metadata is mandatory
-		if ($value === null && $metadata->isMandatory() === true) {
-			throw new MandatoryValueException($metadata->getFullCodename());
-		}
+		// if ($value === null && $metadata->isMandatory() === true) {
+		// 	throw new MandatoryValueException($metadata->getFullCodename());
+		// }
 
 		//check regex
-		if ($metadata->isRegex() === true && $value !== null && Regex::match('/' . $metadata->getPattern() . '/', $value)->hasMatch() === false) {
-			throw new InvalidValueException($value, $metadata->getFullCodename());
-		}
+		// if ($metadata->isRegex() === true && $value !== null && Regex::match('/' . $metadata->getPattern() . '/', $value)->hasMatch() === false) {
+		// 	throw new InvalidValueException($value, $metadata->getFullCodename());
+		// }
 		
 		//apply default value if empty
-		if ($value === null && $metadata->getDefaultValue()) {
-			$value = $metadata->getDefaultValue();
-		}
+		// if ($value === null && $metadata->getDefaultValue()) {
+		// 	$value = $metadata->getDefaultValue();
+		// }
 
 		//update metadataElement or metadataChoice
 		switch ($metadata->getType()) {
@@ -165,6 +168,7 @@ abstract class AbstractElement
 			case MetadataTypeEnum::TEXT:
 			case MetadataTypeEnum::REGEX:
 			case MetadataTypeEnum::DATE:
+			case MetadataTypeEnum::LINK:	
 				foreach ($this->getMetadataElements()->getValues() as $metadataElement) {
 					if ($metadataElement->getMetadata() === $metadata) {
 						if ($metadataElement->getValue() === $value) {
@@ -188,6 +192,7 @@ abstract class AbstractElement
 				$metadataElement = new MetadataElement();
 				$metadataElement->setRawValue($value);
 				$metadataElement->setMetadata($metadata);
+				$this->addMetadataElement($metadataElement);
 				return $this;
 				
 			case MetadataTypeEnum::LIST:

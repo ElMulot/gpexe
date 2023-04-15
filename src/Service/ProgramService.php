@@ -186,7 +186,7 @@ class ProgramService
 				$sheet = $this->workbook->getSheet();
 				
 				//orphans removal
-				$this->documentService->removeOrphans();
+				// $this->documentService->removeOrphans();
 				$this->entityManager->flush();
 				
 				//save

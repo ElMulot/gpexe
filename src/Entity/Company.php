@@ -17,6 +17,7 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 #[UniqueEntity(
 	fields: 'codename'
 )]
+
 class Company implements \Stringable
 {
 	

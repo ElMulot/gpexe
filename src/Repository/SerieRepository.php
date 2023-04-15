@@ -6,6 +6,7 @@ use App\Entity\Company;
 use App\Entity\Enum\CompanyTypeEnum;
 use App\Entity\Project;
 use App\Entity\Serie;
+use App\Entity\User;
 use App\Service\RepositoryService;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Persistence\ManagerRegistry;
@@ -29,7 +30,7 @@ class SerieRepository extends RepositoryService
 	 * Return an array of series from an array of serie.id.
 	 * Used-by : EngineeringController->tbody
 	 * @param array|null $ids
-	 * @return Collection|Serie[]
+	 * @return Serie[]
 	 */
 	public function getSeriesByIds(?array $ids = []): array
 	{
@@ -63,10 +64,7 @@ class SerieRepository extends RepositoryService
 		;
 	}
 
-	/**
-	 * @return Serie[]
-	 */
-	public function getSeriesByIdsAsArray(array $ids)
+	public function getSeriesByIdsAsArray(array $ids): array
 	{
 		$qb = $this->newQb('s');
 		return $qb
@@ -188,6 +186,45 @@ class SerieRepository extends RepositoryService
 			->andWhere($qb->eq('s.project', $project))
 			->andWhere($qb->in('c.type', [CompanyTypeEnum::SUB_CONTRACTOR, CompanyTypeEnum::SUPPLIER]))
 			->addOrderBy('s.name')
+			->getQuery()
+			->getResult()
+		;
+	}
+
+	public function getAvialableSeriesByProjectAndByUserAsArray(Project $project, User $user): array
+	{
+		$qb = $this->newQb('s');
+		return $qb
+			->select('s.id, s.name')
+			->innerJoin('s.company', 'c')
+			->andWhere($qb->eq('s.project', $project))
+			->andWhere($qb->orX(
+				$qb->in('c.type', [CompanyTypeEnum::MAIN_CONTRACTOR, CompanyTypeEnum::CHECKER])),
+				$qb->andX(
+					$qb->in('c.type', [CompanyTypeEnum::SUB_CONTRACTOR, CompanyTypeEnum::SUPPLIER])),
+					$qb->eq('c', $user->getCompany()
+					)
+				)
+			->addOrderBy('s.name')
+			->getQuery()
+			->getArrayResult();
+	}
+
+	/**
+	 * Return an array of series from an array of company.id.
+	 * Used-by : EngineeringController->action
+	 * @param array|null $companyIds
+	 * @return Serie[]
+	 */
+	public function getSeriesByCompanyIds(?array $companyIds = []): array
+	{
+		
+		$qb = $this->newQb('s');
+
+		return $qb
+			->innerJoin('s.documents', 'd')
+			->innerJoin('d.versions', 'v')
+			->andWhere($qb->in('v.id', $companyIds))
 			->getQuery()
 			->getResult()
 		;

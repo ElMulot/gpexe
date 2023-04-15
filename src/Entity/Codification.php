@@ -5,9 +5,9 @@ namespace App\Entity;
 use App\Entity\Project;
 use App\Entity\CodificationChoice;
 use Doctrine\ORM\Mapping as ORM;
-use App\Validator\CodificationValidator;
 use App\Entity\Enum\CodificationTypeEnum;
 use App\Repository\CodificationRepository;
+use App\Validator\IsValid;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -17,7 +17,6 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 #[UniqueEntity(
 	fields: ['codename', 'project']
 )]
-#[Assert\Callback([CodificationValidator::class, 'validate'])]
 class Codification implements \Stringable
 {
 	#[ORM\Id]
@@ -42,16 +41,18 @@ class Codification implements \Stringable
 	private ?string $pattern = null;
 
 	#[ORM\Column(length: 10, nullable: true)]
-	#[Assert\Regex('/^[^$"]+$/')]
+	#[IsValid]
 	private ?string $defaultRawValue = null;
 
 	#[ORM\ManyToOne(inversedBy: 'codifications', cascade:['persist'], fetch: 'EAGER')]
 	private ?Project $project = null;
 
 	#[ORM\OneToMany(targetEntity: CodificationChoice::class, mappedBy: 'codification', orphanRemoval: true)]
+	#[Assert\Valid]
 	private Collection $codificationChoices;
 
 	#[ORM\OneToMany(targetEntity: CodificationElement::class, mappedBy: 'codification', orphanRemoval: true)]
+	#[Assert\Valid]
 	private Collection $codificationElements;
 
 	public function __construct()

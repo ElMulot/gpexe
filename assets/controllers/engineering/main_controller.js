@@ -63,13 +63,16 @@ export default class extends Controller {
 		 * Listener triggered on user change view.
 		 */
 		this.element.addEventListener('engineering--view:update', event => {
-			const serieIds = this.#urlParams.get('series');
+			const series = this.#urlParams.get('series');
+			const selectedSeries = this.#urlParams.get('filters[serie]');
+			
 			if (this.hasLastPageLoadedTarget === true) {
 				this.lastPageLoadedTarget.value = 0;
 			}
 			this.#urlParams.deleteAll();
 			this.#urlParams.set('view', event.detail.id);
-			this.#urlParams.set('series', serieIds);
+			this.#urlParams.set('filters[serie]', selectedSeries);
+			this.#urlParams.set('series', series);
 			this.setThead();
 		});
 
@@ -80,8 +83,24 @@ export default class extends Controller {
 			if (this.hasLastPageLoadedTarget === true) {
 				this.lastPageLoadedTarget.value = 0;
 			}
+			
 			this.#urlParams.delete('page');
-			this.#urlParams.set('series', event.detail.ids);
+			this.#urlParams.set('series', event.detail.series);
+			if (isEmpty(event.detail.display) === false) {
+				this.#urlParams.set('display', event.detail.display);
+			}
+			if (isEmpty(event.detail.filters) === false) {
+				this.#urlParams.set('filters', event.detail.filters);
+			}
+			if (event.detail.resultsPerPage) {
+				this.#urlParams.set('results_per_page', event.detail.resultsPerPage);
+			}
+			if (event.detail.sortDesc) {
+				this.#urlParams.set('sort_desc', event.detail.sortDesc);
+			}
+			if (event.detail.sortAsc) {
+				this.#urlParams.set('sort_asc', event.detail.sortAsc);
+			}
 			this.setThead();
 		});
 
@@ -362,7 +381,7 @@ export default class extends Controller {
 			[urlString, paramString] = e.href.split('?');
 			
 			const urlParams = new UrlParams(paramString);
-			urlParams.set('id', ids);
+			urlParams.set('versions', ids);
 			e.href = urlString + '?' + urlParams.toString();
 		});
 	}

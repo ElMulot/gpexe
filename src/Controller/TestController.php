@@ -76,9 +76,7 @@ class TestController extends AbstractTurboController
 		// }
 
 		// $this->dateService->formatAsDefault(new \DateTime());
-
-		// $document = $this->doctrine->getRepository(Document::class)->findBy(['id' => [1]]);
-
+		
 		/**@var ClassMetadata */
 		// $metadata = $this->validatorInterface->getMetadataFor(CodificationChoice::class);
 		/**@var PropertyMetadata */
@@ -108,8 +106,7 @@ class TestController extends AbstractTurboController
 		// $form->handleRequest($request);		
 		
 		$test = '';
-
-		dump(CodificationTypeEnum::FIXED);
+		dump($request->get('filter')['dd'] ?? 0);
 
 		// if ($form->isSubmitted() && $form->isValid()) {
 		// 	$test = $form->getData();

@@ -1,2 +1,5 @@
 #user.mail.not_blank: Un utilisateur avec cette adresse mail existe déjà.
-codification.no_splitter: The {{value}}
+codification.no_splitter: La valeur ne doit pas contenir le séparateur "{{ splitter }}".
+value.forbidden_symbol: La valeur ne doit pas contenir le symbole "{{ symbol }}".
+value.regex: La valeur n'est pas compatible avec le masque.
+value.mandatory: La valeur ne peut être vide.

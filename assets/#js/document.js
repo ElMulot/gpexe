@@ -2125,7 +2125,7 @@ $(document).ready(function() {
 				.addClass('form-control form-control-sm bg-dark border-secondary text-white')
 				.css('width', '150')
 				.on('change', function() {
-					urlSearch.set('max_results_per_page', $(this).val())
+					urlSearch.set('results_per_page', $(this).val())
 					urlSearch.delete('view');
 					urlSearch.fetch();
 				})
@@ -2135,7 +2135,7 @@ $(document).ready(function() {
 		for (let [text, value] of maxResultsPerQuery) {
 			select.addLast('option')
 				.attr('value', value)
-				.attr('selected', urlSearch.get('max_results_per_page') == value)
+				.attr('selected', urlSearch.get('results_per_page') == value)
 				.text(text)
 			;
 		}

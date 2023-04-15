@@ -14,6 +14,16 @@
 {% block main %}
 
 <div class="d-flex justify-content-center">
+	
+	{% if app.request.get('s') is iterable and app.request.get('s')|length > 0 %}
+		ok
+	{% endif %}
+	
+
+	<pre>
+		{{ dump(app.request.get('s')) }}
+	</pre>	
+	
 	{% if form is defined %}
 		{{ form(form) }}
 	{% endif %}

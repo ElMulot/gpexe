@@ -4,11 +4,11 @@ namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use App\Repository\CodificationElementRepository;
-use App\Validator\CodificationElementValidator;
+use App\Validator\IsValid;
+use App\Validator\NotContainsSplitter;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: CodificationElementRepository::class)]
-// #[Assert\Callback([CodificationElementValidator::class, 'validate'])]
 class CodificationElement implements \Stringable
 {
 	#[ORM\Id]
@@ -17,9 +17,8 @@ class CodificationElement implements \Stringable
 	private ?int $id = null;
 
 	#[ORM\Column(length: 10)]
-	#[Assert\Regex('/^[^$"]+$/')]
-	// #[Assert\Callback([CodificationElementValidator::class, 'validate'])]
-	// #[Assert\Expression("value contains this.getCodification().getProject().getSplitter()", message: 'test')]
+	#[NotContainsSplitter]
+	#[IsValid]
 	private ?string $value = null;
 
 	#[ORM\ManyToOne(inversedBy: 'codificationElements')]
@@ -37,6 +36,7 @@ class CodificationElement implements \Stringable
 
 	public function setValue(string $value): self
 	{
+		dump($value);
 		$this->value = $value;
 		
 		return $this;

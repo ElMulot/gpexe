@@ -23,6 +23,7 @@ use App\Entity\Visa;
 use App\Service\DateService;
 use Symfony\Component\Stopwatch\Stopwatch;
 use Spatie\Regex\Regex;
+use Symfony\Component\HttpFoundation\Request;
 
 /**
  * @method Version|null find($id, $lockMode = null, $lockVersion = null)
@@ -38,30 +39,35 @@ class VersionRepository extends RepositoryService
 		parent::__construct($registry, Version::class);
 	}
 	
-	public function getVersionsCount($codifications, $fields, $series, $project, $request=null): int
+	public function getVersionsCount($codifications, $fields, $project, $request=null): int
 	{
 		
 		if ($request->query == false) {
 			return 0;
 		}
 
-		$qb = $this->getCoreQB($codifications, $fields, $series, $project, $request);
+		$qb = $this->getCoreQB($codifications, $fields, $project, $request);
 		
 		//count cannot work if version_date alias is defined
 		return is_countable($qb->getQuery()->getResult()) ? count($qb->getQuery()->getResult()) : 0;
 	}
 	
 	/**
-	 * @return Version[]
+	 * Undocumented function
 	 *
+	 * @param Codifications[] $codifications
+	 * @param array $fields
+	 * @param Project $project
+	 * @param Request|null $request
+	 * @return array
 	 */
-	public function getVersionsAsArray($codifications, $fields, $series, $project, $request=null): array
+	public function getVersionsAsArray(array $codifications, array $fields, Project $project, Request $request=null): array
 	{
 		if ($request == null || $request->query == false) {
 			return [];
 		}
 		
-		$qb = $this->getCoreQB($codifications, $fields, $series, $project, $request);
+		$qb = $this->getCoreQB($codifications, $fields, $project, $request);
 
 		//highlight
 		if ($request->query->has('highlight') && $qb->hasAlias('version_is_required') === false) {
@@ -121,7 +127,7 @@ class VersionRepository extends RepositoryService
 					$qb->addOrderBy('approver.name', $order);
 					break;
 					
-				case 'serie_name':
+				case 'serie':
 					$qb->addOrderBy('serie.name', $order);
 					break;
 					
@@ -234,18 +240,16 @@ class VersionRepository extends RepositoryService
 		//page
 		$page = $request->query->get('page');
 		
-		if ($request->query->get('max_results_per_page') > 0) {
+		if ($request->query->get('results_per_page') > 0) {
 			$qb
-				->setFirstResult(($page -1) * $request->query->get('max_results_per_page'))
-				->setMaxResults($request->query->get('max_results_per_page'));
+				->setFirstResult(($page -1) * $request->query->get('results_per_page'))
+				->setMaxResults($request->query->get('results_per_page'));
 		}
 		
 		$display = array_keys($request->query->all('display') ?? []);
 		
-		//je ne sais pas pourquoi cette condition est présente
-		//todo : à clarifier
-		// if (array_search('document_reference', $display) !== false || preg_grep('/codification_(\d+)/', $display)) {
-			
+		if (array_search('document_reference', $display) !== false || preg_grep('/codification_(\d+)/', $display)) {
+
 			foreach ($fields as $field) {
 				
 				if (($result = Regex::match('/codification_(\d+)/', $field['id']))->hasMatch()) {
@@ -261,6 +265,7 @@ class VersionRepository extends RepositoryService
 							$qb->addSelect(sprintf('%1$s_.value AS %1$s', $field['id']));
 							break;
 							
+						case CodificationTypeEnum::TEXT:
 						case CodificationTypeEnum::REGEX:
 							if ($qb->hasAlias($field['id']. '_') === false) {
 								$qb->innerJoin('document.codificationElements', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.codification', $id));
@@ -271,194 +276,187 @@ class VersionRepository extends RepositoryService
 					
 				}
 			}
+
+		}
 			
-			foreach ($display as $name) {
+		foreach ($display as $name) {
+			
+			switch ($name) {
 				
-				switch ($name) {
+				case 'version_name':
+					$qb->addSelect('version.name AS version_name');
+					break;
+				
+				case 'document_name':
+					$qb->addSelect('document.name AS document_name');
+					break;
 					
-					case 'version_name':
-						$qb->addSelect('version.name AS version_name');
-						break;
+				case 'version_initial_scheduled_date':
+					$qb->addSelect("DATE_FORMAT(version.initialScheduledDate, '%d-%m-%Y') AS version_initial_scheduled_date");
+					break;
+				
+				case 'version_scheduled_date':
+					$qb->addSelect("DATE_FORMAT(version.scheduledDate, '%d-%m-%Y') AS version_scheduled_date");
+					break;
+				
+				case 'version_delivery_date':
+					$qb->addSelect("DATE_FORMAT(version.deliveryDate, '%d-%m-%Y') AS version_delivery_date");
+					break;
 					
-					case 'document_name':
-						$qb->addSelect('document.name AS document_name');
-						break;
+				case 'version_date':
+					$qb->addSelect("DATE_FORMAT(IF(version.required = false, version.deliveryDate, version.scheduledDate), '%d-%m-%Y') AS version_date");
+					break;
+					
+				case 'version_is_required':
+					if ($qb->hasAlias('version_is_required') === false) {
+						$qb->addSelect('version.required AS version_is_required');
+					}
+					break;
+					
+				case 'version_writer':
+					if ($qb->hasAlias('writer') === false) {
+						$qb->leftJoin('version.writer', 'writer');
+					}
+					$qb->addSelect('writer.name AS version_writer');
+					break;
+					
+				case 'version_checker':
+					if ($qb->hasAlias('checker') === false) {
+						$qb->leftJoin('version.checker', 'checker');
+					}
+					$qb->addSelect('checker.name AS version_checker');
+					break;
+					
+				case 'version_approver':
+					if ($qb->hasAlias('approver') === false) {
+						$qb->leftJoin('version.approver', 'approver');
+					}
+					$qb->addSelect('approver.name AS version_approver');
+					break;
+				
+				case 'serie':
+					$qb->addSelect('serie.name AS serie');
+					break;
+				
+				case 'serie_company':
+					if ($qb->hasAlias('company') === false) {
+						$qb->leftJoin('serie.company', 'company');
+					}
+					$qb->addSelect('company.name AS serie_company');
+					break;
+				
+				case 'status_value':
+					if ($qb->hasAlias('status') === false) {
+						$qb->leftJoin('version.status', 'status');
+					}
+					$qb->addSelect('status.value AS status_value');
+					break;
+				
+				case 'status_type':
+					if ($qb->hasAlias('status') === false) {
+						$qb->leftJoin('version.status', 'status');
+					}
+					$qb->addSelect('status.type AS status_type');
+					break;
+				
+				case (($result = Regex::match('/metadata_(\d+)/', $name))->hasMatch()):
+					
+					$id = $result->group(1);
+					
+					foreach ($fields as $field) {
 						
-					case 'version_initial_scheduled_date':
-						$qb->addSelect("DATE_FORMAT(version.initialScheduledDate, '%d-%m-%Y') AS version_initial_scheduled_date");
-						break;
-					
-					case 'version_scheduled_date':
-						$qb->addSelect("DATE_FORMAT(version.scheduledDate, '%d-%m-%Y') AS version_scheduled_date");
-						break;
-					
-					case 'version_delivery_date':
-						$qb->addSelect("DATE_FORMAT(version.deliveryDate, '%d-%m-%Y') AS version_delivery_date");
-						break;
-						
-					case 'version_date':
-						$qb->addSelect("DATE_FORMAT(IF(version.required = false, version.deliveryDate, version.scheduledDate), '%d-%m-%Y') AS version_date");
-						break;
-						
-					case 'version_is_required':
-						if ($qb->hasAlias('version_is_required') === false) {
-							$qb->addSelect('version.required AS version_is_required');
-						}
-						break;
-						
-					case 'version_writer':
-						if ($qb->hasAlias('writer') === false) {
-							$qb->leftJoin('version.writer', 'writer');
-						}
-						$qb->addSelect('writer.name AS version_writer');
-						break;
-						
-					case 'version_checker':
-						if ($qb->hasAlias('checker') === false) {
-							$qb->leftJoin('version.checker', 'checker');
-						}
-						$qb->addSelect('checker.name AS version_checker');
-						break;
-						
-					case 'version_approver':
-						if ($qb->hasAlias('approver') === false) {
-							$qb->leftJoin('version.approver', 'approver');
-						}
-						$qb->addSelect('approver.name AS version_approver');
-						break;
-					
-					case 'serie_name':
-						$qb->addSelect('serie.name AS serie_name');
-						break;
-					
-					case 'serie_company':
-						if ($qb->hasAlias('company') === false) {
-							$qb->leftJoin('serie.company', 'company');
-						}
-						$qb->addSelect('company.name AS serie_company');
-						break;
-					
-					case 'status_value':
-						if ($qb->hasAlias('status') === false) {
-							$qb->leftJoin('version.status', 'status');
-						}
-						$qb->addSelect('status.value AS status_value');
-						break;
-					
-					case 'status_type':
-						if ($qb->hasAlias('status') === false) {
-							$qb->leftJoin('version.status', 'status');
-						}
-						$qb->addSelect('status.type AS status_type');
-						break;
-					
-					case (($result = Regex::match('/metadata_(\d+)/', $name))->hasMatch()):
-						
-						$id = $result->group(1);
-						
-						foreach ($fields as $field) {
+						if ($name == $field['id']) {
 							
-							if ($name == $field['id']) {
+							switch ($field['type']) {
 								
-								switch ($field['type']) {
+								case MetadataTypeEnum::BOOL:
+								case MetadataTypeEnum::TEXT:
+								case MetadataTypeEnum::REGEX:
+								case MetadataTypeEnum::LINK:
+									if ($qb->hasAlias($field['id'] . '_') === false) {
+										$qb
+											->leftJoin($field['parent'] . '.metadataElements', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
+											->groupBy('version.id')
+										;
+									}
+									$qb->addSelect(sprintf('MAX(%1$s_.value) AS %1$s', $field['id']));
+									break;
 									
-									case MetadataTypeEnum::BOOL:
-									case MetadataTypeEnum::TEXT:
-									case MetadataTypeEnum::REGEX:
-									case MetadataTypeEnum::LINK:
-										if ($qb->hasAlias($field['id'] . '_') === false) {
-											$qb
-												->leftJoin($field['parent'] . '.metadataElements', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
-												->groupBy('version.id')
-											;
-										}
-										$qb->addSelect(sprintf('MAX(%1$s_.value) AS %1$s', $field['id']));
-										break;
-										
-									case MetadataTypeEnum::DATE:
-										if ($qb->hasAlias($field['id'] . '_') === false) {
-											$qb
-												->leftJoin($field['parent'] . '.metadataElements', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
-												->groupBy('version.id')
-											;
-										}
-										$qb->addSelect(sprintf('MAX(%1$s_.value) AS %1$s', $field['id']));
-										break;
-										
-									case MetadataTypeEnum::LIST:
-										
-										if ($qb->hasAlias($field['id'] . '_') === false) {
-											$qb
-												->leftJoin($field['parent'] . '.metadataChoices', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
-												->groupBy('version.id')
-											;
-										}
-										$qb->addSelect(sprintf('MAX(%1$s_.value) AS %1$s', $field['id']));
-										break;
-										
-								}
-								break;
+								case MetadataTypeEnum::DATE:
+									if ($qb->hasAlias($field['id'] . '_') === false) {
+										$qb
+											->leftJoin($field['parent'] . '.metadataElements', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
+											->groupBy('version.id')
+										;
+									}
+									$qb->addSelect(sprintf('MAX(%1$s_.value) AS %1$s', $field['id']));
+									break;
+									
+								case MetadataTypeEnum::LIST:
+									
+									if ($qb->hasAlias($field['id'] . '_') === false) {
+										$qb
+											->leftJoin($field['parent'] . '.metadataChoices', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
+											->groupBy('version.id')
+										;
+									}
+									$qb->addSelect(sprintf('MAX(%1$s_.value) AS %1$s', $field['id']));
+									break;
+									
 							}
+							break;
 						}
-						break;
+					}
+					break;
+					
+				case (($result = Regex::match('/visa_(\d+)/', $name))->hasMatch()):
+					
+					$id = $result->group(1);
+					
+					foreach ($fields as $field) {
 						
-					case (($result = Regex::match('/visa_(\d+)/', $name))->hasMatch()):
-						
-						$id = $result->group(1);
-						
-						foreach ($fields as $field) {
-							
-							if ($name == $field['id']) {
-								if ($qb->hasAlias($field['id'] . '_') === false) {
-									
-									$subQb = $this->newQB('');
-									$visas = $subQb
-										->select('visa.id')
-										->from(Visa::class, 'visa')
-										->andWhere($subQb->eq('visa.project', $project))
-										->andWhere($subQb->eq('visa.company', $id))
-										->getQuery()
-										->getArrayResult()
-									;
-									
-									$qb
-										->leftJoin('version.reviews', 'review_' . $id, Join::WITH, $qb->in('review_' . $id . '.visa', $visas))
-										->leftJoin('review_' . $id . '.visa', $field['id'] . '_')
-									;
-									
-								}
-								$qb->addSelect(sprintf('%1$s_.name AS %1$s', $field['id']));
-								break;
+						if ($name == $field['id']) {
+							if ($qb->hasAlias($field['id'] . '_') === false) {
+								
+								$subQb = $this->newQB('');
+								$visas = $subQb
+									->select('visa.id')
+									->from(Visa::class, 'visa')
+									->andWhere($subQb->eq('visa.project', $project))
+									->andWhere($subQb->eq('visa.company', $id))
+									->getQuery()
+									->getArrayResult()
+								;
+								
+								$qb
+									->leftJoin('version.reviews', 'review_' . $id, Join::WITH, $qb->in('review_' . $id . '.visa', $visas))
+									->leftJoin('review_' . $id . '.visa', $field['id'] . '_')
+								;
+								
 							}
-							
+							$qb->addSelect(sprintf('%1$s_.name AS %1$s', $field['id']));
+							break;
 						}
-						break;
-				}
+						
+					}
+					break;
 			}
-		// }
+		}
 		
 		$results = $qb->getQuery()->getArrayResult();
 		
 		if (array_search('document_reference', $display) !== false) {
-			
+
 			foreach ($results as &$result) {
 				
 				$references = [];
 				
 				foreach ($codifications as $codification) {
-					
-					$id = $codification->getId();
-					
-					if ($codification->isFixed()) {
-						
-						$references[] = $codification->getDefaultValue();
-						
-					} elseif (array_key_exists('codification_' . $id, $result)) {
-						
-						if (empty($result['codification_' . $id]) === false) {
-							$references[] = $result['codification_' . $id];
-						}
-						
+					if ($codification->isFixed() === true) {
+						$references[] = $codification->getDefaultRawValue();
+					} else {
+						$id = $codification->getId();
+						$references[] = $result['codification_' . $id] ?? '';
 					}
 					
 				}
@@ -493,7 +491,7 @@ class VersionRepository extends RepositoryService
 					if ($item[$highlight] instanceof \DateTimeInterface) {
 						$date = $item[$highlight];
 					} else {
-						$date = DateService::fromFormat($item[$highlight]);
+						$date = DateService::fromInternalPattern($item[$highlight]);
 					}
 					if ($date < new \DateTime('today')) {
 						$item['highlight'] = 'FF919180';
@@ -630,18 +628,16 @@ class VersionRepository extends RepositoryService
 		;
 	}
 	
-	private function getCoreQB($codifications, $fields, $series, $project, $request): QueryBuilderService
+	private function getCoreQB($codifications, $fields, $project, Request $request): QueryBuilderService
 	{
 		
 		$qb = $this->newQB('version');
 		
 		$qb->select('version.id AS version_id, document.id AS document_id, serie.id AS serie_id')
 			->innerJoin('version.document', 'document')
-			->innerJoin('document.serie', 'serie')
-			->andWhere($qb->in('serie.id', $series))
-		;
+			->innerJoin('document.serie', 'serie');
 		
-		if ($request->query->all('filters')) {
+		if ($request->query->has('filters')) {
 			
 			foreach ($fields as $field) {
 				
@@ -746,7 +742,7 @@ class VersionRepository extends RepositoryService
 							}
 							break;
 							
-						case 'serie_name':
+						case 'serie':
 							$qb->andWhere($qb->in('serie.id', $value));
 							break;
 							

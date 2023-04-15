@@ -6,7 +6,12 @@ export default class extends Controller {
 	static targets = ['button'];
 
 	static values = {
-		selected: Number,
+		series: Array,
+		display: Object,
+		filters: Object,
+		resultsPerPage: Number,
+		sortDesc: String,
+		sortAsc: String,
 	}
 
 	static param = {
@@ -20,31 +25,35 @@ export default class extends Controller {
 			Tab.getInstance(document.getElementById('view_label')).show();
 		} else {
 			document.getElementById('serie_label').classList.remove('disabled');
-			this.updateClasses(this.selectedValue);
+			this.updateClasses(this.filtersValue['serie']);
 		}
 
 		this.dispatch('connected');
 	}
 
 	update({ params }) {
-		this.updateClasses(params.id);
+		this.updateClasses([params.id]);
 	}
 
-	updateClasses(selected) {
-
-		var ids = [];
+	updateClasses(selectedSeries) {
 		
 		this.buttonTargets.forEach(e => {
-			if (selected === 0 || e.getAttribute('data-engineering--serie-id-param') == selected) {
+			let id = e.getAttribute('data-engineering--serie-id-param');
+
+			if (selectedSeries.some(v => v == id) === true) {
 				e.classList.remove('btn-primary');
 				e.classList.add('btn-outline-primary');
-				ids.push(Number(e.getAttribute('data-engineering--serie-id-param')));
 			} else {
 				e.classList.remove('btn-outline-primary');
 				e.classList.add('btn-primary');
 			}
 		});
-		
-		this.dispatch('update', { detail: { ids: ids } });
+
+		this.dispatch('update', { detail: { series: this.seriesValue,
+											display: this.displayValue,
+											filters: {...this.filtersValue, ...{'serie': selectedSeries}},
+											resultsPerPage: this.resultsPerPageValue,
+											sortDesc: this.sortDescValue,
+											sortAsc: this.sortAscValue} });
 	}
 }

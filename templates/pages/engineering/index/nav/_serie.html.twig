@@ -1,8 +1,12 @@
 {% if app.request.headers.get('Turbo-frame') == 'serie_pannel' %}
 
 	<turbo-frame id="serie_pannel">
-		{% set selected_serie_id = (selected_serie)?selected_serie.id:0 %}
-		<div class="row p-2" {{ stimulus_controller('engineering--serie', (selected_serie)?{'selected': selected_serie.id}:[]) }}>
+		<div class="row p-2" {{ stimulus_controller('engineering--serie', {'series': series|map(s => s.id),
+																			'display': app.request.get('display'),
+																			'filters': app.request.get('filters'),
+																			'resultsPerPage': app.request.get('results_per_page'),
+																			'sortDesc': app.request.get('sort_desc'),
+																			'sortAsc': app.request.get('sort_asc')}) }}>
 			<div class="col px-2">
 				{% for serie in series %}
 					<button type="button" class="btn btn-width" 
@@ -16,7 +20,7 @@
 			{% if series is not empty %}
 				{% if is_granted('ENGINEERING_SHOW', series|first) %}
 					<div class="col-auto">
-						<a class="btn btn-primary" href="{{ path('serie', {'project': project.id, 'id': series|map(v => v.id)}|merge((selected_serie)?{'selected': selected_serie.id}:[])) }}" data-turbo-frame="fs_modal" data-turbo-stream-replace="serie_pannel">
+						<a class="btn btn-primary" href="{{ path('serie', {'project': project.id, 'id': series|map(v => v.id)}) }}" data-turbo-frame="fs_modal" data-turbo-stream-replace="serie_pannel">
 							{% trans %}Manage series{% endtrans %}
 						</a>
 					</div>

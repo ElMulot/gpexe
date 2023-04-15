@@ -55,7 +55,7 @@ class HomeController extends AbstractTurboController
 			],
 			'highlight' => 'version_date',
 			'sortAsc' => 'version_date',
-			'max_results_per_page' => 50,
+			'results_per_page' => 50,
 			'page' => 1,
 		];
 		if ($project->getVisasByCompany($company)->isEmpty() === false) {
@@ -77,7 +77,7 @@ class HomeController extends AbstractTurboController
 					'visa_' . $company->getId() => [0],
 				],
 				'sortAsc' => 'version_date',
-				'max_results_per_page' => 50,
+				'results_per_page' => 50,
 				'page' => 1,
 			];
 		} else {

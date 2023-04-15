@@ -129,6 +129,8 @@ class MetadataElementFixtures extends Fixture implements DependentFixtureInterfa
 	
 	public function load(ObjectManager $manager)
 	{
+		$alphabet = range('A', 'Z');
+
 		for ($i=0; $i<2; $i++) {
 
 			$metadataElement = new MetadataElement();
@@ -155,14 +157,14 @@ class MetadataElementFixtures extends Fixture implements DependentFixtureInterfa
 			for ($j=0; $j<3; $j++) {
 				$metadataElement = new MetadataElement();
 				$metadataElement
-					->setRawValue("Item_{$i}{$j}")
+					->setRawValue($alphabet[$i] . $alphabet[$j])
 					->setMetadata($this->getReference(constant(MetadataFixtures::class . "::PROJECT_{$i}_METADATA_SERIE_TEXT")));
 				$manager->persist($metadataElement);
 				$this->addReference("PROJECT_{$i}_METADATA_ELEMENT_SERIE_TEXT_{$j}", $metadataElement);
 
 				$metadataElement = new MetadataElement();
 				$metadataElement
-					->setRawValue("I{$i}{$j}")
+					->setRawValue("M{$i}{$j}")
 					->setMetadata($this->getReference(constant(MetadataFixtures::class . "::PROJECT_{$i}_METADATA_SERIE_REGEX")));
 				$manager->persist($metadataElement);
 				$this->addReference("PROJECT_{$i}_METADATA_ELEMENT_SERIE_REGEX_{$j}", $metadataElement);
@@ -185,14 +187,14 @@ class MetadataElementFixtures extends Fixture implements DependentFixtureInterfa
 
 				$metadataElement = new MetadataElement();
 				$metadataElement
-					->setRawValue("Item_{$i}{$j}")
+					->setRawValue($alphabet[$i] . $alphabet[$j])
 					->setMetadata($this->getReference(constant(MetadataFixtures::class . "::PROJECT_{$i}_METADATA_DOCUMENT_TEXT")));
 				$manager->persist($metadataElement);
 				$this->addReference("PROJECT_{$i}_METADATA_ELEMENT_DOCUMENT_TEXT_{$j}", $metadataElement);
 
 				$metadataElement = new MetadataElement();
 				$metadataElement
-					->setRawValue("I{$i}{$j}")
+					->setRawValue("M{$i}{$j}")
 					->setMetadata($this->getReference(constant(MetadataFixtures::class . "::PROJECT_{$i}_METADATA_DOCUMENT_REGEX")));
 				$manager->persist($metadataElement);
 				$this->addReference("PROJECT_{$i}_METADATA_ELEMENT_DOCUMENT_REGEX_{$j}", $metadataElement);
@@ -215,14 +217,14 @@ class MetadataElementFixtures extends Fixture implements DependentFixtureInterfa
 
 				$metadataElement = new MetadataElement();
 				$metadataElement
-					->setRawValue("Item_{$i}{$j}")
+					->setRawValue($alphabet[$i] . $alphabet[$j])
 					->setMetadata($this->getReference(constant(MetadataFixtures::class . "::PROJECT_{$i}_METADATA_VERSION_TEXT")));
 				$manager->persist($metadataElement);
 				$this->addReference("PROJECT_{$i}_METADATA_ELEMENT_VERSION_TEXT_{$j}", $metadataElement);
 
 				$metadataElement = new MetadataElement();
 				$metadataElement
-					->setRawValue("I{$i}{$j}")
+					->setRawValue("M{$i}{$j}")
 					->setMetadata($this->getReference(constant(MetadataFixtures::class . "::PROJECT_{$i}_METADATA_VERSION_REGEX")));
 				$manager->persist($metadataElement);
 				$this->addReference("PROJECT_{$i}_METADATA_ELEMENT_VERSION_REGEX_{$j}", $metadataElement);

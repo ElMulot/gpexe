@@ -1,6 +1,6 @@
 {% extends 'layout.html.twig' %}
 
-{% set display_serie_select = series|length > 1 and project is defined and company is defined %}
+{% set display_serie_select = series|length > 1 and project is defined and company is defined and app.request.get('filters')['serie'] is not defined %}
 {% set display_serie_new = series is empty and project is defined and company is defined %}
 
 {% block stylesheets %}
@@ -38,7 +38,13 @@
 	{% if display_serie_new is same as(true) %}
 		{% include "modal/xl_modal.html.twig" with {'src': path('serieNew', {'project': project.id, 'company': company.id})} %}
 	{% elseif display_serie_select is same as(true) %}
-		{% include "modal/xl_modal.html.twig" with {'src': path('serieSelect', {'project': project.id, 'id': series|map(v => v.id)})} %}
+		{% include "modal/xl_modal.html.twig" with {'src': path('serieSelect', {'project': project.id,
+																				'id': series|map(v => v.id),
+																				'display': app.request.get('display'),
+																				'filters': app.request.get('filters'),
+																				'results_per_page': app.request.get('results_per_page'),
+																				'sort_desc': app.request.get('sort_desc'),
+																				'sort_asc': app.request.get('sort_asc')})} %}
 	{% else %}
 		{{ parent() }}
 	{% endif %}

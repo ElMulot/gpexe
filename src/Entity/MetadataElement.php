@@ -5,8 +5,8 @@ namespace App\Entity;
 use App\Entity\Enum\MetadataTypeEnum;
 use Doctrine\ORM\Mapping as ORM;
 use App\Repository\MetadataElementRepository;
-use Symfony\Component\Validator\Constraints as Assert;
-use Symfony\Component\Validator\Context\ExecutionContextInterface;
+use App\Validator\IsMandatory;
+use App\Validator\IsValid;
 
 #[ORM\Entity(repositoryClass: MetadataElementRepository::class)]
 class MetadataElement implements \Stringable
@@ -17,7 +17,8 @@ class MetadataElement implements \Stringable
 	private ?int $id = null;
 
 	#[ORM\Column(length: 255)]
-	#[Assert\Regex('/^[^$"]+$/')]
+	#[IsValid]
+	#[IsMandatory]
 	private ?string $rawValue = null;
 
 	#[ORM\ManyToOne(inversedBy: 'metadataElements')]
@@ -37,7 +38,7 @@ class MetadataElement implements \Stringable
 	public function setRawValue(mixed $rawValue): self
 	{
 		$this->rawValue = (string)$rawValue;
-
+		
 		return $this;
 	}
 
@@ -49,7 +50,7 @@ class MetadataElement implements \Stringable
 	public function setMetadata(?Metadata $metadata): self
 	{
 		$this->metadata = $metadata;
-
+		
 		return $this;
 	}
 

@@ -3,19 +3,17 @@
 namespace App\Service;
 
 use Symfony\Contracts\Translation\TranslatorInterface;
-use App\Entity\Codification;
 use App\Entity\Enum\CodificationTypeEnum;
 use App\Entity\Enum\MetadataTypeEnum;
 use App\Entity\Enum\StatusTypeEnum;
-use App\Entity\Metadata;
 use App\Entity\Project;
-use App\Entity\Status;
 use App\Entity\User;
 use App\Repository\CodificationChoiceRepository;
 use App\Repository\CompanyRepository;
 use App\Repository\CodificationRepository;
 use App\Repository\MetadataChoiceRepository;
 use App\Repository\MetadataRepository;
+use App\Repository\SerieRepository;
 use App\Repository\StatusRepository;
 use App\Repository\UserRepository;
 use App\Repository\VisaRepository;
@@ -24,10 +22,21 @@ use Symfony\Bundle\SecurityBundle\Security;
 class FieldService
 {
 	
-	public function __construct(private readonly TranslatorInterface $translator, private readonly Security $security, private readonly CompanyRepository $companyRepository, private readonly CodificationRepository $codificationRepository, private readonly CodificationChoiceRepository $codificationChoiceRepository, private readonly MetadataRepository $metadataRepository, private readonly MetadataChoiceRepository $metadataChoiceRepository, private readonly StatusRepository $statusRepository, private readonly UserRepository $userRepository, private readonly VisaRepository $visaRepository)
+	public function __construct(private readonly TranslatorInterface $translator,
+								private readonly Security $security,
+								private readonly CompanyRepository $companyRepository,
+								private readonly CodificationRepository $codificationRepository,
+								private readonly CodificationChoiceRepository $codificationChoiceRepository,
+								private readonly MetadataRepository $metadataRepository,
+								private readonly MetadataChoiceRepository $metadataChoiceRepository,
+								private readonly SerieRepository $serieRepository,
+								private readonly StatusRepository $statusRepository,
+								private readonly UserRepository $userRepository,
+								private readonly VisaRepository $visaRepository)
 	{
 	}
 	
+	//todo : à remettre à jour. Title est-il utilisé ?
 	//---------------------------
 	// Usage of fields properties
 	//---------------------------
@@ -246,10 +255,10 @@ class FieldService
 					'write' => $permissionWrite,
 				],
 			],
-			'serie.name' => [
-				'id' =>'serie_name',
-				'codename' => 'serie.name',
-				'title' => $this->translator->trans('Serie name'),
+			'serie' => [
+				'id' =>'serie',
+				'codename' => 'serie',
+				'title' => $this->translator->trans('Serie'),
 				'type' => MetadataTypeEnum::LIST,
 				'parent' => 'serie',
 				'default_width' => 10,
@@ -537,10 +546,10 @@ class FieldService
 		return $fields;
 	}
 	
-	public function getFieldsForJs(Project $project, array $series): array
+	public function getFieldsForJs(Project $project, array $serieIds): array
 	{
 		$fields = $this->getFields($project);
-		$writers = $this->userRepository->getUsersArrayBySerieIds($series);
+		$writers = $this->userRepository->getUsersArrayBySerieIds($serieIds);
 		$checkers = $this->userRepository->getCheckersArray($project);
 		
 		$element = [];
@@ -667,13 +676,13 @@ class FieldService
 			]
 		];
 		
-		$fields['serie.name']['element'] = [
-			'id' 		=> 'serie_name',
-			'title' 	=> $this->translator->trans('Serie name'),
+		$fields['serie']['element'] = [
+			'id' 		=> 'serie',
+			'title' 	=> $this->translator->trans('Serie'),
 			'sort'		=> true,
 			'filter'	=> [
 				'type'		=> MetadataTypeEnum::LIST,
-				'choices' 	=> $series,
+				'choices' 	=> $this->serieRepository->getSeriesByIdsAsArray($serieIds),
 			]
 		];
 		
@@ -703,7 +712,7 @@ class FieldService
 			'sort'		=> true,
 			'filter'	=> [
 				'type'		=> MetadataTypeEnum::LIST,
-				'choices' 	=> StatusTypeEnum::cases(),
+				'choices' 	=> array_map(fn(StatusTypeEnum $e) => ['id' => $e->name, 'name' => $e->value] , StatusTypeEnum::cases())
 			]
 		];
 		

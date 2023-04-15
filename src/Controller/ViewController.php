@@ -25,7 +25,8 @@ class ViewController extends AbstractTurboController
 
 	/**
 	 * Query parameters :
-	 * 	+ int		selected		view id to display
+	 * 	+ int		view					view id to display
+	 * 	+ all the query parameters indicated in EngineeringController::thead
 	 */
 	#[Route(path: '/project/{project}/view', name: 'view', requirements: ['project' => '\d+'])]
 	public function index(Request $request, Project $project) : Response
@@ -34,10 +35,14 @@ class ViewController extends AbstractTurboController
 		
 		$views = $this->viewRepository->getViewsByProjectAndByUser($project, $this->getUser());
 		
-		$selectedViewId = $request->get('selected');
+		$selectedViewId = $request->query->get('view');
 
 		if ($selectedViewId === null) {
-			$selectedView = $this->viewRepository->getDefaultViewByProjectAndByUser($project, $this->getUser());
+			if ($request->query->has('display') === false) {
+				$selectedView = $this->viewRepository->getDefaultViewByProjectAndByUser($project, $this->getUser());
+			} else {
+				$selectedView = null;
+			}
 		} else {
 			$selectedView = match(count($views)) {
 				0		=>  null,
@@ -46,7 +51,6 @@ class ViewController extends AbstractTurboController
 			};
 		}
 		
-		// $request->setRequestFormat(TurboBundle::STREAM_FORMAT);
 		return $this->render('pages/engineering/index/nav/_view.html.twig', [
 			'views' => $views,
 			'selected_view' => $selectedView,

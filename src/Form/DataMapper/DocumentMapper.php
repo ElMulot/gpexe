@@ -7,8 +7,6 @@ use App\Entity\Document;
 use App\Entity\Metadata;
 use App\Entity\Project;
 use App\Exception\InternalErrorException;
-use App\Repository\CodificationRepository;
-use PhpParser\Lexer\TokenEmulator\ReadonlyFunctionTokenEmulator;
 use Symfony\Component\Form\DataMapperInterface;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\Exception\UnexpectedTypeException;
@@ -19,7 +17,6 @@ class DocumentMapper implements DataMapperInterface
 
 	public function __construct(private readonly Project $project,
 								private readonly Document $document,
-								private readonly bool $isNew,
 								private readonly array $codifications,
 								private readonly array $metadatas)
 	{
@@ -46,6 +43,10 @@ class DocumentMapper implements DataMapperInterface
 		if ($document instanceof Document === false) {
 			throw new UnexpectedTypeException($viewData, Document::class);
 		}
+
+		$isNew = $document->getId() === null;
+
+		$forms['serie']->setData(array_map(fn(Document $document) => $document->getSerie(), $viewData));
 		
 		if (count($viewData) === 1) {
 			$forms['name']->setData(reset($viewData)->getName());
@@ -54,7 +55,7 @@ class DocumentMapper implements DataMapperInterface
 		/**@var Codification $codification */
 		foreach ($this->codifications as $codification) {
 			if ($codification->isFixed() === false) {
-				if ($this->isNew === true) {
+				if ($isNew === true) {
 					$forms[$codification->getFullId()]->setData([$codification->getDefaultValue()]);
 				} else {
 					$values = array_map(fn(Document $document) => $document->getCodificationValue($codification), $viewData);
@@ -64,14 +65,14 @@ class DocumentMapper implements DataMapperInterface
 		}
 
 		/**@var Metadata $metadata */
-		// foreach ($this->metadatas as $metadata) {
-		// 	if ($this->isNew === true) {
-		// 		$forms[$metadata->getFullId()]->setData([$metadata->getDefaultValue()]);
-		// 	} else {
-		// 		$values = array_map(fn(Document $document) => $document->getMetadataValue($metadata), $viewData);
-		// 		$forms[$metadata->getFullId()]->setData($values);
-		// 	}
-		// }
+		foreach ($this->metadatas as $metadata) {
+			if ($isNew === true) {
+				$forms[$metadata->getFullId()]->setData([$metadata->getDefaultValue()]);
+			} else {
+				$values = array_map(fn(Document $document) => $document->getMetadataValue($metadata), $viewData);
+				$forms[$metadata->getFullId()]->setData($values);
+			}
+		}
 		
 	}
 
@@ -88,8 +89,14 @@ class DocumentMapper implements DataMapperInterface
 		/**@var Document $document */
 		foreach ($viewData as &$document) {
 			
+			$data = $forms['serie']->getData();
+			
+			if (is_array($data) === false) {
+				$document->setSerie($data);
+			}
+
 			$data = $forms['name']->getData();
-			if (is_scalar($data) === true) {
+			if (is_array($data) === false) {
 				$document->setName($data);
 			}
 
@@ -97,9 +104,17 @@ class DocumentMapper implements DataMapperInterface
 			foreach ($this->codifications as $codification) {
 				if ($codification->isFixed() === false) {
 					$data  = $forms[$codification->getFullId()]->getData();
-					if (is_scalar($data) === true) {
+					if (is_array($data) === false) {
 						$document->setCodificationValue($codification, $data);
 					}
+				}
+			}
+
+			/**@var Metadata $metadata */
+			foreach ($this->metadatas as $metadata) {
+				$data  = $forms[$metadata->getFullId()]->getData();
+				if (is_array($data) === false) {
+					$document->setMetadataValue($metadata, $data);
 				}
 			}
 		}

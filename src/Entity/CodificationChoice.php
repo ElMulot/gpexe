@@ -4,9 +4,9 @@ namespace App\Entity;
 
 use App\Entity\Codification;
 use Doctrine\ORM\Mapping as ORM;
-use App\Validator\CodificationChoiceValidator;
 use App\Repository\CodificationChoiceRepository;
-use Doctrine\Common\Collections\ArrayCollection;
+use App\Validator\IsValid;
+use App\Validator\NotContainsSplitter;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
@@ -14,7 +14,6 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 #[UniqueEntity(
 	fields: ['value', 'codification']
 )]
-#[Assert\Callback([CodificationChoiceValidator::class, 'validate'])]
 class CodificationChoice implements \Stringable
 {
 	#[ORM\Id]
@@ -28,9 +27,8 @@ class CodificationChoice implements \Stringable
 	private ?string $name = null;
 
 	#[ORM\Column(length: 10)]
-	// #[Assert\Regex('/^[^$"]+$/')]
-	#[Assert\Regex('/^\d{2}$/')]
-	#[Assert\Regex(pattern: '/^\d{2}$/', groups:['Test'])]
+	#[NotContainsSplitter]
+	#[IsValid]
 	private ?string $value = null;
 
 	#[ORM\ManyToOne(inversedBy: 'codificationChoices')]
