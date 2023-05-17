@@ -4,11 +4,9 @@ namespace App\Validator;
 
 use App\Entity\CodificationChoice;
 use App\Entity\CodificationElement;
-use DoctrineExtensions\Query\Mysql\Instr;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
-use Symfony\Component\Validator\Exception\UnexpectedValueException;
 
 #[\Attribute]
 class NotContainsSplitterValidator extends ConstraintValidator
@@ -23,8 +21,8 @@ class NotContainsSplitterValidator extends ConstraintValidator
 			return;
 		}
 
-		if (!is_string($value)) {
-			throw new UnexpectedValueException($value, 'string');
+		if (is_string($value) === false) {
+			return;
 		}
 
 		$object = $this->context->getObject();

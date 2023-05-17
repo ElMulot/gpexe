@@ -13,16 +13,7 @@
 
 {% block main %}
 
-<div class="d-flex justify-content-center">
-	
-	{% if app.request.get('s') is iterable and app.request.get('s')|length > 0 %}
-		ok
-	{% endif %}
-	
-
-	<pre>
-		{{ dump(app.request.get('s')) }}
-	</pre>	
+<div class="d-flex justify-content-center" data-turbo="false">
 	
 	{% if form is defined %}
 		{{ form(form) }}
@@ -30,7 +21,9 @@
 </div>
 <div class="d-flex justify-content-center">
 	{% if test is defined %}
-		{# {{ test|to_string }} #}
+		<pre>
+			{{ dump(test) }}
+		</pre>
 	{% endif %}
 </div>
 	

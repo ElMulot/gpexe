@@ -1,24 +1,23 @@
 import { Tooltip, Collapse } from 'bootstrap';
 
-const BsPopper = class {
+const BsPopper = class
+	{
+	constructor()
+	{
+		document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach((e: Element) => new Tooltip(e));
 
-	constructor() {
-
-		document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(e => new Tooltip(e));
-
-		document.addEventListener('hidden.bs.modal', event => {
+		document.addEventListener('hidden.bs.modal', () => {
 			if (document.body.querySelectorAll('.modal.show').length === 0) {
-				document.querySelectorAll('modal-backdrop-component').forEach(e => e.remove());
+				document.querySelectorAll('modal-backdrop-component').forEach((e: Element) => e.remove());
 			}
 		});
 	}
 }
 
-const Popper = new BsPopper();
-
-const BsCollapse = class {
-	
-	static show(e) {
+const BsCollapse = class
+	{	
+	static show(e: Element): boolean
+	{
 
 		if (e === null) {
 			return false;
@@ -42,7 +41,8 @@ const BsCollapse = class {
 		return true;
 	}
 
-	static hide(e) {
+	static hide(e: Element): boolean
+	{
 
 		if (e === null) {
 			return false;
@@ -67,11 +67,14 @@ const BsCollapse = class {
 		bsCollapse.hide();
 
 		//only needed for nav managed by bootstrap
-		e.addEventListener('hidden.bs.collapse', event => { event.target.classList.remove('active'); });
-
+		e.addEventListener('hidden.bs.collapse', (event: Event) => { 
+			if (event.target instanceof Element) {
+				event.target.classList.remove('active')
+			};
+		});
 		return true;
 	}
 
 }
 
-export { BsCollapse as Collapse };
+export { BsPopper as Popper, BsCollapse as Collapse };

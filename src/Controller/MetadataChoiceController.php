@@ -3,6 +3,7 @@ namespace App\Controller;
 
 use App\Entity\Metadata;
 use App\Entity\MetadataChoice;
+use App\Entity\Project;
 use App\Form\MetadataChoiceType;
 use App\Repository\MetadataChoiceRepository;
 use Symfony\Component\HttpFoundation\Request;
@@ -16,32 +17,27 @@ class MetadataChoiceController extends AbstractTurboController
 {
 
 	public function __construct(private readonly ManagerRegistry $doctrine,
+								private readonly MetadataChoiceRepository $metadataChoiceRepository,
 								private readonly TranslatorInterface $translator)
 	{
 	}
 	
-	#[Route(path: '/project/metadata/{metadata}/item', name: 'metadataChoice', requirements: ['metadata' => '\d+'])]
-	public function index(MetadataChoiceRepository $metadataChoiceRepository, Metadata $metadata) : Response
+	#[Route(path: '/project/{project}/metadata/{metadata}/item', name: 'metadataChoice', requirements: ['project' => '\d+', 'metadata' => '\d+'])]
+	public function index(Project $project, Metadata $metadata) : Response
 	{
-		$project = $metadata->getProject();
-
 		$this->denyAccessUnlessGranted('PROJECT_EDIT', $project);
 		
 		return $this->render('generic/list.html.twig', [
 			'title'			=> $this->translator->trans('List for the metadata') . ' : ' . $metadata->getName(),
 			'class'			=> MetadataChoice::class,
-			'entities'		=> $metadataChoiceRepository->getMetadataChoice($metadata),
-			'dismiss_url'	=> $this->generateUrl('metadata', [
-				'project'	=> $project->getId(),
-			]),
+			'entities'		=> $this->metadataChoiceRepository->getMetadataChoice($metadata),
+			'dismiss_route'	=> 'metadata',
 		]);
 	}
 
-	#[Route(path: '/project/metadata/{metadata}/item/new', name: 'metadataChoiceNew', requirements: ['metadata' => '\d+'])]
-	public function new(Request $request, Metadata $metadata) : Response
+	#[Route(path: '/project/{project}/metadata/{metadata}/item/new', name: 'metadataChoiceNew', requirements: ['project' => '\d+', 'metadata' => '\d+'])]
+	public function new(Request $request, Project $project, Metadata $metadata) : Response
 	{
-		$project = $metadata->getProject();
-
 		$this->denyAccessUnlessGranted('PROJECT_EDIT', $project);
 
 		$metadataChoice = new MetadataChoice();
@@ -69,12 +65,9 @@ class MetadataChoiceController extends AbstractTurboController
 		}
 	}
 	
-	#[Route(path: '/project/metadata/item/{metadataChoice}/edit', name: 'metadataChoiceEdit', requirements: ['metadataChoice' => '\d+'])]
-	public function edit(Request $request, MetadataChoice $metadataChoice) : Response
+	#[Route(path: '/project/{project}/metadata/{metadata}/item/{metadataChoice}/edit', name: 'metadataChoiceEdit', requirements: ['project' => '\d+', 'metadata' => '\d+', 'metadataChoice' => '\d+'])]
+	public function edit(Request $request, Project $project, Metadata $metadata, MetadataChoice $metadataChoice) : Response
 	{
-		$metadata = $metadataChoice->getMetadata();
-		$project = $metadata->getProject();
-
 		$this->denyAccessUnlessGranted('PROJECT_EDIT', $project);
 
 		$form = $this->createForm(MetadataChoiceType::class, $metadataChoice);
@@ -98,12 +91,9 @@ class MetadataChoiceController extends AbstractTurboController
 		}
 	}
 	
-	#[Route(path: '/project/metadata/item/{metadataChoice}/delete', name: 'metadataChoiceDelete', methods: ['GET', 'DELETE'], requirements: ['metadataChoice' => '\d+'])]
-	public function delete(Request $request, MetadataChoice $metadataChoice) : Response
+	#[Route(path: '/project/{project}/metadata/{metadata}/item/{metadataChoice}/delete', name: 'metadataChoiceDelete', methods: ['GET', 'DELETE'], requirements: ['project' => '\d+', 'metadata' => '\d+', 'metadataChoice' => '\d+'])]
+	public function delete(Request $request, Project $project, Metadata $metadata, MetadataChoice $metadataChoice) : Response
 	{
-		$metadata = $metadataChoice->getMetadata();
-		$project = $metadata->getProject();
-
 		$this->denyAccessUnlessGranted('PROJECT_EDIT', $project);
 
 		$form = $this->createDeleteForm($metadataChoice);

@@ -35,7 +35,6 @@ class QueryBuilderService extends QueryBuilder
 	
 	public function addNestedSelect(QueryBuilderService $qb, $alias): self
 	{
-		$this->addAlias($alias);
 		return $this->addSelect('(' . $qb->getDQL() . ') AS ' . $alias);
 	}
 	

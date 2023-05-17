@@ -56,7 +56,7 @@ class ProgramService
 								private readonly PropertyService $propertyService,
 								private readonly Security $security,
 								private readonly RequestStack $requestStack,
-								private readonly string $publicDirectory,
+								private readonly string $publicDir,
 								#[Autowire('%app.uploads_directory%/')]
 								private readonly string $targetPath)
 	{
@@ -110,7 +110,7 @@ class ProgramService
 				//upload file
 				try {
 					//$file = $file->move($this->targetPath, 'GPEXE Import.' . $file->getClientOriginalExtension());
-					$file = $file->move($this->publicDirectory . $this->targetPath, 'GPEXE Import.' . $file->guessExtension());
+					$file = $file->move($this->publicDir . $this->targetPath, 'GPEXE Import.' . $file->guessExtension());
 				} catch (FileException) {
 					throw new \Exception('Erreur : impossible d\'écrire sur le serveur');
 				}

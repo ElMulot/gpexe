@@ -32,6 +32,8 @@ class IsValidValidatorTest extends ConstraintValidatorTestCase
 	/**
 	 * @testWith	[null]
 	 * 				[""]
+	 * 				[[]]
+	 * 				[['a', 'b']]
 	 */
 	public function testIfEmpty($value)
 	{
@@ -321,7 +323,7 @@ class IsValidValidatorTest extends ConstraintValidatorTestCase
 
 	public function testUrlAsPayload()
 	{
-		$this->constraint->payload['isUrl'] = true;
+		$this->constraint->payload['isLink'] = true;
 		
 		$this->context = $this->createContext();
 		

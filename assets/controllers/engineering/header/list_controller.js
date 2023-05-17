@@ -9,6 +9,7 @@ export default class extends Controller {
 
 	static values = {
 		id: String,
+		key: String,
 		filtered: Array,
 		sortedDesc: Boolean,
 		sortedAsc: Boolean,
@@ -43,7 +44,7 @@ export default class extends Controller {
 			this.dispatch('filter', {
 				prefix: 'engineering--header--component',
 				detail: {
-					key: this.idValue,
+					key: this.keyValue,
 					value: ids
 				}
 			});

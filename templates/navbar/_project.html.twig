@@ -1,7 +1,7 @@
 {% import "macros/_navbar.html.twig" as navbar %}
 
 <ul class="navbar-nav me-auto">
-	{{ navbar.item('Back', route_back) }}
+	{{ navbar.item('Back', path(back_route)) }}
 
 	{% set admin_items = [] %}
 
@@ -77,26 +77,26 @@
 		{% set document_items = document_items|merge([
 			{
 				'name': 'All documents',
-				'href': path('seriesListByBelonging', {'project': project.id, 'belong': enum('App\\Entity\\Enum\\SerieBelongingEnum::ALL').value}),
+				'href': path('engineering', {'project': project.id}),
 			}])
 		%}
 	{% endif %}
 
-	{% if is_granted('SHOW_MDR', project) %}
+	{% if is_granted('SHOW_MDR', project) and mdr_series is not empty %}
 		{% set document_items = document_items|merge([
 			{
 				'name': 'MDR only',
-				'href': path('seriesListByBelonging', {'project': project.id, 'belong': enum('App\\Entity\\Enum\\SerieBelongingEnum::MDR').value}),
+				'href': path('engineering', {'project': project.id, 'series': mdr_series|map(v => v.id)}),
 			}])
 		%}
 	{% endif %}
 
 
-	{% if is_granted('SHOW_SDR', project) %}
+	{% if is_granted('SHOW_SDR', project) and sdr_series is not empty %}
 		{% set document_items = document_items|merge([
 			{
 				'name': 'SDR only',
-				'href': path('seriesListByBelonging', {'project': project.id, 'belong': enum('App\\Entity\\Enum\\SerieBelongingEnum::SDR').value}),
+				'href': path('engineering', {'project': project.id, 'series': sdr_series|map(v => v.id)}),
 			}])
 		%}
 	{% endif %}

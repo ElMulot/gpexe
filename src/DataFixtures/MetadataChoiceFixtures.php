@@ -69,7 +69,7 @@ class MetadataChoiceFixtures extends Fixture implements DependentFixtureInterfac
 		// $metadata = $this->getReference(constant(MetadataFixtures::class . "::PROJECT_{$i}_METADATA_SERIE_LIST"));
 		// /**@var MetadataChoice */
 		// $metadataChoice = $this->getReference("PROJECT_{$i}_METADATA_CHOICE_SERIE_{$j}");
-		// $metadata->setDefaultRawValue($metadataChoice->getId());
+		// $metadata->setDefaultValue($metadataChoice->getId());
 		// $manager->persist($metadata);
 		// $manager->flush();
 
@@ -77,7 +77,7 @@ class MetadataChoiceFixtures extends Fixture implements DependentFixtureInterfac
 		// $metadata = $this->getReference(constant(MetadataFixtures::class . "::PROJECT_{$i}_METADATA_DOCUMENT_LIST"));
 		// /**@var MetadataChoice */
 		// $metadataChoice = $this->getReference("PROJECT_{$i}_METADATA_CHOICE_DOCUMENT_{$j}");
-		// $metadata->setDefaultRawValue($metadataChoice->getId());
+		// $metadata->setDefaultValue($metadataChoice->getId());
 		// $manager->persist($metadata);
 		// $manager->flush();
 
@@ -85,7 +85,7 @@ class MetadataChoiceFixtures extends Fixture implements DependentFixtureInterfac
 		// $metadata = $this->getReference(constant(MetadataFixtures::class . "::PROJECT_{$i}_METADATA_VERSION_LIST"));
 		// /**@var MetadataChoice */
 		// $metadataChoice = $this->getReference("PROJECT_{$i}_METADATA_CHOICE_VERSION_{$j}");
-		// $metadata->setDefaultRawValue($metadataChoice->getId());
+		// $metadata->setDefaultValue($metadataChoice->getId());
 		// $manager->persist($metadata);
 		// $manager->flush();
 	}

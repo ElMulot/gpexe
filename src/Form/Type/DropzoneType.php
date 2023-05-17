@@ -17,7 +17,7 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class DropzoneType extends AbstractType
 {
-	public function __construct(private readonly string $publicDirectory)
+	public function __construct(private readonly string $publicDir)
 	{
 	}
     

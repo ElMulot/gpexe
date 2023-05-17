@@ -14,7 +14,7 @@ use Symfony\Component\Validator\Constraints\Image;
 class ImageTransformer implements DataTransformerInterface
 {
 
-	public function __construct(private readonly string $publicDirectory,
+	public function __construct(private readonly string $publicDir,
 								#[Autowire('%app.uploads_directory%')]
 								private readonly string $uploadsDirectory,
 								private readonly FileUploaderService $fileUploadService,
@@ -28,7 +28,7 @@ class ImageTransformer implements DataTransformerInterface
 			return null;
 		}
 		try {
-			return new File($this->publicDirectory . $this->uploadsDirectory . $value);
+			return new File($this->publicDir . $this->uploadsDirectory . $value);
 		} catch (FileNotFoundException $e) {
 			return null;
 		}

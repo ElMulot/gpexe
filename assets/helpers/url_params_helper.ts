@@ -1,8 +1,10 @@
 import { v4 as uuidv4 } from 'uuid';
 
-const UrlParams = class extends URLSearchParams {
+const UrlParams = class extends URLSearchParams
+{
 
-	constructor(paramsString) {
+	constructor(paramsString: string)
+	{
 		super(paramsString);
 	}
 
@@ -11,9 +13,9 @@ const UrlParams = class extends URLSearchParams {
 	 * @param {string} key
 	 * @returns {boolean} True if key or key[] or key[...] exists.
 	 */
-	has(key) {
-
-		const safeKey = this.#getSafeKey(key);
+	has(key: string): boolean
+	{
+		const safeKey = this._getSafeKey(key);
 		if (super.has(safeKey) === true) {
 			return true;
 		} else if (super.has(safeKey + '[]') === true) {
@@ -26,21 +28,23 @@ const UrlParams = class extends URLSearchParams {
 	/**
 	 * Return values associated to key or key[] or key[...].
 	 * @param {string} key
-	 * @returns {null|String|Object} A string or an object if the given search parameter is found; otherwise, null.
+	 * @returns {string|object|null} A string or an object if the given search parameter is found; otherwise, null.
 	 */
-	get(key) {
-
-		const safeKey = this.#getSafeKey(key);
+	get(key: string): any
+	{
+		const safeKey = this._getSafeKey(key);
 		if (super.has(safeKey) === true) {
 			return super.get(safeKey) || '';
 		} else if (super.has(safeKey + '[]') === true) {
 			return super.getAll(safeKey + '[]') || [];
 		} else if (this.has(safeKey) === true) {
 			console.warn("url_params_helper: Utilisation d'une fonction expérimentale !")
-			var result = {};
+			var result: any = {};
+			
 			[...super.entries()].filter(([k, v]) => k.startsWith(safeKey + '[') && k.endsWith(']')).map(([k, v]) => {
 				let matches = k.matchAll(/(?<=\[)[^\]]*(?=\])/g);
 				var tmp = result;
+
 				Array.from(matches, m => m[0]).forEach((m, i, a) => {
 					
 					if (i === a.length-1) {
@@ -65,7 +69,7 @@ const UrlParams = class extends URLSearchParams {
 						}
 					} else if (m !== '') {
 						if (tmp[m] === undefined) {
-							tmp[m] = [];
+							tmp[m] = {};
 						} else if (Object.isObject(tmp[m]) === false && Array.isArray(tmp[m]) === false) {
 							if (a[i+1] === '') {
 								Object.assign(tmp, {[m]: [tmp[m]]});
@@ -78,9 +82,8 @@ const UrlParams = class extends URLSearchParams {
 				});
 			});
 			return result;
-		} else {
-			return null;
 		}
+		return null;
 	}
 
 	/**
@@ -89,9 +92,10 @@ const UrlParams = class extends URLSearchParams {
 	 * @param {String} key 
 	 * @param {*} value A Number, a String, an Array or an Object.
 	 */
-	set(key, value) {
+	set(key: string, value: any): void
+	{
 
-		const safeKey = this.#getSafeKey(key);
+		const safeKey = this._getSafeKey(key);
 
 		if (Object.isObject(value)) {
 			[...super.keys()].filter(k => k.startsWith(safeKey + '[')).forEach(k => this.delete(k));
@@ -111,9 +115,10 @@ const UrlParams = class extends URLSearchParams {
 	 * @param {String} key 
 	 * @param {*} value A Number, a String, an Array or an Object.
 	 */
-	append(key, value) {
+	append(key: string, value: any): void
+	{
 
-		const safeKey = this.#getSafeKey(key);
+		const safeKey = this._getSafeKey(key);
 
 		if (Object.isObject(value)) {
 			Object.entries(value).forEach(([k, v]) => this.append(safeKey + '[' + k + ']', v));
@@ -128,8 +133,9 @@ const UrlParams = class extends URLSearchParams {
 	 * Deletes the given search parameter and all its associated values, from the list of all search parameters. 
 	 * @param {String} key 
 	 */
-	delete(key) {
-		const safeKey = this.#getSafeKey(key);
+	delete(key: string): void
+	{
+		const safeKey = this._getSafeKey(key);
 		super.delete(safeKey);
 		super.delete(safeKey + '[]');
 	}
@@ -137,13 +143,15 @@ const UrlParams = class extends URLSearchParams {
 	/**
 	 * Deletes all search parameters. 
 	 */
-	deleteAll() {
+	deleteAll(): void
+	{
 		[...this.keys()].forEach(k => {
 			super.delete(k);
 		});
 	}
 
-	#getSafeKey(key) {
+	private _getSafeKey(key: string): string
+	{
 		const safeKey = key.replace(/(\S+)\[\]/, '$1');
 		if (safeKey === '') {
 			throw new Error('Invalid key for UrlParams.');

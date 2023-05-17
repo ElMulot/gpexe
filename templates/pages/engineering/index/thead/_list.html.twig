@@ -17,7 +17,7 @@
 		<div class="dropdown-menu" {{ stimulus_target('engineering--header', 'menu') }}>
 			<div style="width:15rem;"
 				{{ stimulus_target('engineering--header', 'component') }}
-				{{ stimulus_controller('engineering--header--list', { 'id': field.id, 'filtered': filtered, 'sortedDesc': sortedDesc, 'sortedAsc':sortedAsc }) }}>
+				{{ stimulus_controller('engineering--header--list', { 'id': field.id, 'key': field.key, 'filtered': filtered, 'sortedDesc': sortedDesc, 'sortedAsc':sortedAsc }) }}>
 				<div class="d-flex flex-wrap justify-content-center px-3 pt-2">
 					<button type="button" class="btn btn-sm btn-primary mx-1"
 						{{ stimulus_target('engineering--header--list', 'sortDesc') }}
@@ -41,7 +41,7 @@
 						</button>
 					</div>
 				</div>
-				{% if field.element.filter.choices is defined %}
+				{% if field.choices is defined %}
 					<div class="dropdown-list border-top border-dark pt-2 px-3">
 						<div class="form-check">
 							<input type="checkbox" class="form-check-input" id="{{ field.id ~ '_select_all' }}"
@@ -51,7 +51,7 @@
 								{% trans %}Select all{% endtrans %}
 							</label>
 						</div>
-						{% for choice in field.element.filter.choices %}
+						{% for choice in field.choices %}
 							<div class="form-check">
 								<input type="checkbox" class="form-check-input" value="{{ choice.id }}" id="{{ field.id ~ '_' ~ choice.id }}"
 									{{ stimulus_target('engineering--header--list', 'checkbox') }}>

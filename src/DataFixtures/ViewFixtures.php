@@ -34,12 +34,10 @@ class ViewFixtures extends Fixture implements DependentFixtureInterface
 					"version_name" => 3,
 					"document_name" => 27,
 					"status_value" => 6,
-					"version_checker" => 10,
+					"checker_name" => 10,
 					"version_date" => 10,
 				],
-				"filters" => [
-					"version_last" => 1
-				],
+				"version_last" => 1,
 				"results_per_page" => 50,
 				"sortDesc" => "version_date"
 			];
@@ -62,7 +60,7 @@ class ViewFixtures extends Fixture implements DependentFixtureInterface
 			$statusFixturesClass = new \ReflectionClass(StatusFixtures::class);
 			foreach ($statusFixturesClass->getConstants() as $name => $constant) {
 				if (str_starts_with($name, "PROJECT_{$i}") === true) {
-					$value['filters']['status_value'][] = $this->getReference(constant(StatusFixtures::class . "::{$name}"))->getId();
+					$value['status_value'][] = $this->getReference(constant(StatusFixtures::class . "::{$name}"))->getId();
 				}
 			}
 
@@ -87,12 +85,10 @@ class ViewFixtures extends Fixture implements DependentFixtureInterface
 					"version_name" => 3,
 					"document_name" => 27,
 					"status_value" => 6,
-					"version_checker" => 10,
+					"checker_name" => 10,
 					"version_date" => 10,
 				],
-				"filters" => [
-					"version_last" => 1
-				],
+				"version_last" => 1,
 				"results_per_page" => 50,
 				"sortDesc" => "version_date"
 			];
@@ -115,7 +111,7 @@ class ViewFixtures extends Fixture implements DependentFixtureInterface
 				$status = $this->getReference(constant(StatusFixtures::class . "::{$name}"));
 				
 				if (str_starts_with($name, "PROJECT_{$i}") === true && $status->isCancel() === false) {
-					$value['filters']['status_value'][] = $status->getId();
+					$value['status_value'][] = $status->getId();
 				}
 			}
 
@@ -140,12 +136,10 @@ class ViewFixtures extends Fixture implements DependentFixtureInterface
 					"version_name" => 3,
 					"document_name" => 27,
 					"status_value" => 6,
-					"version_checker" => 10,
+					"checker_name" => 10,
 					"version_date" => 10,
 				],
-				"filters" => [
-					"version_last" => 1
-				],
+				"version_last" => 1,
 				"results_per_page" => 50,
 				"sortDesc" => "version_date"
 			];

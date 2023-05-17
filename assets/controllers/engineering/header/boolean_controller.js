@@ -9,6 +9,7 @@ export default class extends Controller {
 
 	static values = {
 		id: String,
+		key: String,
 		filtered: Number,
 		sortedDesc: Boolean,
 		sortedAsc: Boolean,
@@ -27,7 +28,7 @@ export default class extends Controller {
 			this.dispatch('filter', {
 				prefix: 'engineering--header--component',
 				detail: {
-					key: this.idValue,
+					key: this.keyValue,
 					value: (this.checkboxTargets.find(e => e.checked === true))?this.checkboxTargets.find(e => e.checked === true).value:0,
 				}
 			});

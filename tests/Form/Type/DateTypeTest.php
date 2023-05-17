@@ -8,7 +8,6 @@ use App\Form\DataMapper\VariousMapper;
 use App\Form\Extension\DateTypeExtension;
 use Symfony\Component\Form\Test\TypeTestCase;
 use Symfony\Component\Form\PreloadedExtension;
-use App\Form\DataTransformer\VariousTransformer;
 use App\Form\EventSubscriber\VariousFieldSubscriber;
 use App\Service\DateService;
 use PHPUnit\Framework\MockObject\MockObject;

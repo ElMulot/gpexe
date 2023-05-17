@@ -16,6 +16,7 @@ use App\Entity\Enum\CodificationTypeEnum;
 use App\Entity\Enum\CompanyTypeEnum;
 use App\Entity\Enum\MetadataTypeEnum;
 use App\Entity\Enum\StatusTypeEnum;
+use App\Entity\Serie;
 use App\Entity\Status;
 use App\Entity\User;
 use App\Entity\Version;
@@ -106,32 +107,32 @@ class VersionRepository extends RepositoryService
 					$qb->addOrderBy('version_date_', $order);
 					break;
 					
-				case 'version_writer':
+				case 'writer_name':
 					if ($qb->hasAlias('writer') === false) {
 						$qb->leftJoin('version.writer', 'writer');
 					}
 					$qb->addOrderBy('writer.name', $order);
 					break;
 					
-				case 'version_checker':
+				case 'checker_name':
 					if ($qb->hasAlias('checker') === false) {
 						$qb->leftJoin('version.checker', 'checker');
 					}
 					$qb->addOrderBy('checker.name', $order);
 					break;
 					
-				case 'version_approver':
+				case 'approver_name':
 					if ($qb->hasAlias('approver') === false) {
 						$qb->leftJoin('version.approver', 'approver');
 					}
 					$qb->addOrderBy('approver.name', $order);
 					break;
 					
-				case 'serie':
+				case 'serie_name':
 					$qb->addOrderBy('serie.name', $order);
 					break;
 					
-				case 'serie_company':
+				case 'company_name':
 					if ($qb->hasAlias('company') === false) {
 						$qb->leftJoin('serie.company', 'company');
 					}
@@ -166,34 +167,48 @@ class VersionRepository extends RepositoryService
 								case MetadataTypeEnum::TEXT:
 								case MetadataTypeEnum::REGEX:
 								case MetadataTypeEnum::LINK:
-									if ($qb->hasAlias($field['id'] . '_') === false) {
-										$qb
-											->leftJoin($field['parent'] . '.metadataElements', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
-											->groupBy('version.id')
-										;
+									if ($qb->hasAlias($field['id']) === false) {
+										$qb->addNestedSelect(
+											$this->newQB()
+												->select($field['id'] . '_.value')
+												->from($this->getParentClass($field['parent']), $field['parent'] . '_' . $field['id'] . '_')
+												->leftJoin($field['parent'] . '_' . $field['id'] . '_.metadataElements', $field['id'] . '_')
+												->andWhere($qb->eq($field['id'] . '_.metadata', $id))
+												->andWhere($field['parent'] . '_' . $field['id'] . '_.id = ' . $field['parent'] . '.id'),
+											$field['id']
+										);
 									}
-									$qb->addOrderBy($field['id'] . '_.value', $order);
+									$qb->addOrderBy($field['id'], $order);
 									break;
 									
 								case MetadataTypeEnum::DATE:
-									if ($qb->hasAlias($field['id'] . '_') === false) {
-										$qb
-											->leftJoin($field['parent'] . '.metadataElements', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
-											->groupBy('version.id')
-											->addSelect($this->dateStatement($field['id']))
-										;
+									if ($qb->hasAlias($field['id']) === false) {
+										$qb->addNestedSelect(
+											$this->newQB()
+												->select($this->strToDate($field['id'] . '_.value'))
+												->from($this->getParentClass($field['parent']), $field['parent'] . '_' . $field['id'] . '_')
+												->leftJoin($field['parent'] . '_' . $field['id'] . '_.metadataElements', $field['id'] . '_')
+												->andWhere($qb->eq($field['id'] . '_.metadata', $id))
+												->andWhere($field['parent'] . '_' . $field['id'] . '_.id = ' . $field['parent'] . '.id'),
+											$field['id']
+										);
 									}
-									$qb->addOrderBy($field['id'] . '_value', $order);
+									$qb->addOrderBy($field['id'], $order);
 									break;
 									
 								case MetadataTypeEnum::LIST:
-									if ($qb->hasAlias($field['id'] . '_') === false) {
-										$qb
-											->leftJoin($field['parent'] . '.metadataChoices', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
-											->groupBy('version.id')
-										;
+									if ($qb->hasAlias($field['id']) === false) {
+										$qb->addNestedSelect(
+											$this->newQB()
+												->select($field['id'] . '_items.value')
+												->from($this->getParentClass($field['parent']), $field['parent'] . '_' . $field['id'] . '_')
+												->leftJoin($field['parent'] . '_' . $field['id'] . '_.metadataChoices', $field['id'] . '_')
+												->andWhere($qb->eq($field['id'] . '_.metadata', $id))
+												->andWhere($field['parent'] . '_' . $field['id'] . '_.id = ' . $field['parent'] . '.id'),
+											$field['id']
+										);
 									}
-									$qb->addOrderBy($field['id'] . '_.value', $order);
+									$qb->addOrderBy($field['id'], $order);
 									break;
 									
 							}
@@ -292,19 +307,19 @@ class VersionRepository extends RepositoryService
 					break;
 					
 				case 'version_initial_scheduled_date':
-					$qb->addSelect("DATE_FORMAT(version.initialScheduledDate, '%d-%m-%Y') AS version_initial_scheduled_date");
+					$qb->addSelect($this->dateFormat('version.initialScheduledDate') . ' AS version_initial_scheduled_date');
 					break;
 				
 				case 'version_scheduled_date':
-					$qb->addSelect("DATE_FORMAT(version.scheduledDate, '%d-%m-%Y') AS version_scheduled_date");
+					$qb->addSelect($this->dateFormat('version.scheduledDate') . ' AS version_scheduled_date');
 					break;
 				
 				case 'version_delivery_date':
-					$qb->addSelect("DATE_FORMAT(version.deliveryDate, '%d-%m-%Y') AS version_delivery_date");
+					$qb->addSelect($this->dateFormat('version.deliveryDate') . ' AS version_delivery_date');
 					break;
 					
 				case 'version_date':
-					$qb->addSelect("DATE_FORMAT(IF(version.required = false, version.deliveryDate, version.scheduledDate), '%d-%m-%Y') AS version_date");
+					$qb->addSelect($this->dateFormat('IF(version.required = false, version.deliveryDate, version.scheduledDate)') . ' AS version_date');
 					break;
 					
 				case 'version_is_required':
@@ -313,36 +328,36 @@ class VersionRepository extends RepositoryService
 					}
 					break;
 					
-				case 'version_writer':
+				case 'writer_name':
 					if ($qb->hasAlias('writer') === false) {
 						$qb->leftJoin('version.writer', 'writer');
 					}
-					$qb->addSelect('writer.name AS version_writer');
+					$qb->addSelect('writer.name AS writer_name');
 					break;
 					
-				case 'version_checker':
+				case 'checker_name':
 					if ($qb->hasAlias('checker') === false) {
 						$qb->leftJoin('version.checker', 'checker');
 					}
-					$qb->addSelect('checker.name AS version_checker');
+					$qb->addSelect('checker.name AS checker_name');
 					break;
 					
-				case 'version_approver':
+				case 'approver_name':
 					if ($qb->hasAlias('approver') === false) {
 						$qb->leftJoin('version.approver', 'approver');
 					}
-					$qb->addSelect('approver.name AS version_approver');
+					$qb->addSelect('approver.name AS approver_name');
 					break;
 				
-				case 'serie':
-					$qb->addSelect('serie.name AS serie');
+				case 'serie_name':
+					$qb->addSelect('serie.name AS serie_name');
 					break;
 				
-				case 'serie_company':
+				case 'company_name':
 					if ($qb->hasAlias('company') === false) {
 						$qb->leftJoin('serie.company', 'company');
 					}
-					$qb->addSelect('company.name AS serie_company');
+					$qb->addSelect('company.name AS company_name');
 					break;
 				
 				case 'status_value':
@@ -373,34 +388,46 @@ class VersionRepository extends RepositoryService
 								case MetadataTypeEnum::TEXT:
 								case MetadataTypeEnum::REGEX:
 								case MetadataTypeEnum::LINK:
-									if ($qb->hasAlias($field['id'] . '_') === false) {
-										$qb
-											->leftJoin($field['parent'] . '.metadataElements', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
-											->groupBy('version.id')
-										;
+									if ($qb->hasAlias($field['id']) === false) {
+										$qb->addNestedSelect(
+											$this->newQB()
+												->select($field['id'] . '_.value')
+												->from($this->getParentClass($field['parent']), $field['parent'] . '_' . $field['id'] . '_')
+												->leftJoin($field['parent'] . '_' . $field['id'] . '_.metadataElements', $field['id'] . '_')
+												->andWhere($qb->eq($field['id'] . '_.metadata', $id))
+												->andWhere($field['parent'] . '_' . $field['id'] . '_.id = ' . $field['parent'] . '.id'),
+											$field['id']
+										);
 									}
-									$qb->addSelect(sprintf('MAX(%1$s_.value) AS %1$s', $field['id']));
 									break;
 									
 								case MetadataTypeEnum::DATE:
-									if ($qb->hasAlias($field['id'] . '_') === false) {
-										$qb
-											->leftJoin($field['parent'] . '.metadataElements', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
-											->groupBy('version.id')
-										;
+									if ($qb->hasAlias($field['id']) === false) {
+										$qb->addNestedSelect(
+											$this->newQB()
+												->select($this->strToDate($field['id'] . '_.value'))
+												->from($this->getParentClass($field['parent']), $field['parent'] . '_' . $field['id'] . '_')
+												->leftJoin($field['parent'] . '_' . $field['id'] . '_.metadataElements', $field['id'] . '_')
+												->andWhere($qb->eq($field['id'] . '_.metadata', $id))
+												->andWhere($field['parent'] . '_' . $field['id'] . '_.id = ' . $field['parent'] . '.id'),
+											$field['id']
+										);
 									}
-									$qb->addSelect(sprintf('MAX(%1$s_.value) AS %1$s', $field['id']));
 									break;
 									
 								case MetadataTypeEnum::LIST:
 									
-									if ($qb->hasAlias($field['id'] . '_') === false) {
-										$qb
-											->leftJoin($field['parent'] . '.metadataChoices', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
-											->groupBy('version.id')
-										;
+									if ($qb->hasAlias($field['id']) === false) {
+										$qb->addNestedSelect(
+											$this->newQB()
+												->select($field['id'] . '_.value')
+												->from($this->getParentClass($field['parent']), $field['parent'] . '_' . $field['id']. '_')
+												->leftJoin($field['parent'] . '_' . $field['id'] . '_.metadataChoices', $field['id'] . '_')
+												->andWhere($qb->eq($field['id'] . '_.metadata', $id))
+												->andWhere($field['parent'] . '_' . $field['id'] . '_.id = ' . $field['parent'] . '.id'),
+											$field['id']
+										);
 									}
-									$qb->addSelect(sprintf('MAX(%1$s_.value) AS %1$s', $field['id']));
 									break;
 									
 							}
@@ -453,7 +480,7 @@ class VersionRepository extends RepositoryService
 				
 				foreach ($codifications as $codification) {
 					if ($codification->isFixed() === true) {
-						$references[] = $codification->getDefaultRawValue();
+						$references[] = $codification->getDefaultValue();
 					} else {
 						$id = $codification->getId();
 						$references[] = $result['codification_' . $id] ?? '';
@@ -636,352 +663,362 @@ class VersionRepository extends RepositoryService
 		$qb->select('version.id AS version_id, document.id AS document_id, serie.id AS serie_id')
 			->innerJoin('version.document', 'document')
 			->innerJoin('document.serie', 'serie');
-		
-		if ($request->query->has('filters')) {
 			
-			foreach ($fields as $field) {
+		foreach ($fields as $field) {
+			
+			if ($request->query->has($field['key']) === true) {
 				
-				if (array_key_exists($field['id'], $request->query->all('filters'))) {
+				$value = $request->query->all()[$field['key']];
+				
+				switch ($field['key']) {
 					
-					$value = $request->query->all('filters')[$field['id']];
+					case 'document_name':
+						$qb->andWhere($qb->like('document.name', $this->like($value)));
+						break;
+						
+					case 'version_initial_scheduled_date':
+						$value = implode(',', $value);
+						if (($result = Regex::match('/>(\d{2}-\d{2}-\d{4})/', $value))->hasMatch()) {
+							$qb->andWhere($qb->gte('version.initialScheduledDate', new \DateTime($result->group(1))));
+						}
+						if (($result = Regex::match('/<(\d{2}-\d{2}-\d{4})/', $value))->hasMatch()) {
+							$qb->andWhere($qb->lte('version.initialScheduledDate', new \DateTime($result->group(1))));
+						}
+						break;
+						
+					case 'version_scheduled_date':
+						$value = implode(',', $value);
+						if (($result = Regex::match('/>(\d{2}-\d{2}-\d{4})/', $value))->hasMatch()) {
+							if (Regex::match('/(?<=,)0/', $value)->hasMatch()) {
+								$qb->andWhere($qb->orX($qb->gte('version.scheduledDate', new \DateTime($result->group(1))), $qb->isNull('version.scheduledDate')));
+							} else {
+								$qb->andWhere($qb->gte('version.scheduledDate', new \DateTime($result->group(1))));
+							}
+						}
+						if (($result = Regex::match('/<(\d{2}-\d{2}-\d{4})/', $value))->hasMatch()) {
+							if (Regex::match('/(?<=,)0/', $value)->hasMatch()) {
+								$qb->andWhere($qb->orX($qb->lte('version.scheduledDate', new \DateTime($result->group(1))), $qb->isNull('version.scheduledDate')));
+							} else {
+								$qb->andWhere($qb->lte('version.scheduledDate', new \DateTime($result->group(1))));
+							}
+						}
+						if (($result = Regex::match('/^0/', $value))->hasMatch()) {
+							$qb->andWhere($qb->isNull('version.scheduledDate'));
+						}
+						break;
+						
+					case 'version_delivery_date':
+						$value = implode(',', $value);
+						if (($result = Regex::match('/>(\d{2}-\d{2}-\d{4})/', $value))->hasMatch()) {
+							if (Regex::match('/(?<=,)0/', $value)->hasMatch()) {
+								$qb->andWhere($qb->orX($qb->gte('version.deliveryDate', new \DateTime($result->group(1))), $qb->isNull('version.deliveryDate')));
+							} else {
+								$qb->andWhere($qb->gte('version.deliveryDate', new \DateTime($result->group(1))));
+							}
+						}
+						if (($result = Regex::match('/<(\d{2}-\d{2}-\d{4})/', $value))->hasMatch()) {
+							if (Regex::match('/(?<=,)0/', $value)->hasMatch()) {
+								$qb->andWhere($qb->orX($qb->lte('version.deliveryDate', new \DateTime($result->group(1))), $qb->isNull('version.deliveryDate')));
+							} else {
+								$qb->andWhere($qb->lte('version.deliveryDate', new \DateTime($result->group(1))));
+							}
+						}
+						if (($result = Regex::match('/^0/', $value))->hasMatch()) {
+							$qb->andWhere($qb->isNull('version.deliveryDate'));
+						}
+						break;
+						
+					case 'version_date':
+						$qb->addSelect("IF(version.required = false, version.deliveryDate, version.scheduledDate) AS HIDDEN version_date_");
+						$value = implode(',', $value);
+						if (($result = Regex::match('/>(\d{2}-\d{2}-\d{4})/', $value))->hasMatch()) {
+							$qb->andHaving($qb->gte('version_date_', new \DateTime($result->group(1))));
+						}
+						if (($result = Regex::match('/<(\d{2}-\d{2}-\d{4})/', $value))->hasMatch()) {
+							$qb->andHaving($qb->lte('version_date_', new \DateTime($result->group(1))));
+						}
+						break;
+						
+					case 'version_is_required':
+						$qb->andWhere($qb->eq('version.required', ($value == "1")));
+						break;
+						
+					case 'writers':
+						if (in_array(0, $value)) {
+							$qb->andWhere($qb->orX($qb->in('version.writer', $value), $qb->isNull('version.writer')));
+						} else {
+							$qb->andWhere($qb->in('version.writer', $value));
+						}
+						break;
+						
+					case 'checkers':
+						if (in_array(0, $value)) {
+							$qb->andWhere($qb->orX($qb->in('version.checker', $value), $qb->isNull('version.checker')));
+						} else {
+							$qb->andWhere($qb->in('version.checker', $value));
+						}
+						break;
+						
+					case 'approvers':
+						if (in_array(0, $value)) {
+							$qb->andWhere($qb->orX($qb->in('version.approver', $value), $qb->isNull('version.approver')));
+						} else {
+							$qb->andWhere($qb->in('version.approver', $value));
+						}
+						break;
+						
+					case 'series':
+						dump('ok');
+						$qb->andWhere($qb->in('serie.id', $value));
+						break;
+						
+					case 'companies':
+						$qb->andWhere($qb->in('serie.company', $value));
+						break;
+						
+					case 'status_value':
+						if ($qb->hasAlias('status') === false) {
+							$qb->innerJoin('version.status', 'status');
+						}
+						$qb->andWhere($qb->in('status.id', $value));
+						break;
+						
+					case 'status_type':
+						if ($qb->hasAlias('status') === false) {
+							$qb->innerJoin('version.status', 'status');
+						}
+						$qb->andWhere($qb->in('status.type', $value));
+						break;
 					
-					switch ($field['id']) {
+					case (($result = Regex::match('/codification_(\d+)/', $field['key']))->hasMatch()):
 						
-						case 'document_name':
-							$qb->andWhere($qb->like('document.name', $this->likeStatement($value)));
-							break;
-							
-						case 'version_initial_scheduled_date':
-							$value = implode(',', $value);
-							if (($result = Regex::match('/>(\d{2}-\d{2}-\d{4})/', $value))->hasMatch()) {
-								$qb->andWhere($qb->gte('version.initialScheduledDate', new \DateTime($result->group(1))));
-							}
-							if (($result = Regex::match('/<(\d{2}-\d{2}-\d{4})/', $value))->hasMatch()) {
-								$qb->andWhere($qb->lte('version.initialScheduledDate', new \DateTime($result->group(1))));
-							}
-							break;
-							
-						case 'version_scheduled_date':
-							$value = implode(',', $value);
-							if (($result = Regex::match('/>(\d{2}-\d{2}-\d{4})/', $value))->hasMatch()) {
-								if (Regex::match('/(?<=,)0/', $value)->hasMatch()) {
-									$qb->andWhere($qb->orX($qb->gte('version.scheduledDate', new \DateTime($result->group(1))), $qb->isNull('version.scheduledDate')));
-								} else {
-									$qb->andWhere($qb->gte('version.scheduledDate', new \DateTime($result->group(1))));
-								}
-							}
-							if (($result = Regex::match('/<(\d{2}-\d{2}-\d{4})/', $value))->hasMatch()) {
-								if (Regex::match('/(?<=,)0/', $value)->hasMatch()) {
-									$qb->andWhere($qb->orX($qb->lte('version.scheduledDate', new \DateTime($result->group(1))), $qb->isNull('version.scheduledDate')));
-								} else {
-									$qb->andWhere($qb->lte('version.scheduledDate', new \DateTime($result->group(1))));
-								}
-							}
-							if (($result = Regex::match('/^0/', $value))->hasMatch()) {
-								$qb->andWhere($qb->isNull('version.scheduledDate'));
-							}
-							break;
-							
-						case 'version_delivery_date':
-							$value = implode(',', $value);
-							if (($result = Regex::match('/>(\d{2}-\d{2}-\d{4})/', $value))->hasMatch()) {
-								if (Regex::match('/(?<=,)0/', $value)->hasMatch()) {
-									$qb->andWhere($qb->orX($qb->gte('version.deliveryDate', new \DateTime($result->group(1))), $qb->isNull('version.deliveryDate')));
-								} else {
-									$qb->andWhere($qb->gte('version.deliveryDate', new \DateTime($result->group(1))));
-								}
-							}
-							if (($result = Regex::match('/<(\d{2}-\d{2}-\d{4})/', $value))->hasMatch()) {
-								if (Regex::match('/(?<=,)0/', $value)->hasMatch()) {
-									$qb->andWhere($qb->orX($qb->lte('version.deliveryDate', new \DateTime($result->group(1))), $qb->isNull('version.deliveryDate')));
-								} else {
-									$qb->andWhere($qb->lte('version.deliveryDate', new \DateTime($result->group(1))));
-								}
-							}
-							if (($result = Regex::match('/^0/', $value))->hasMatch()) {
-								$qb->andWhere($qb->isNull('version.deliveryDate'));
-							}
-							break;
-							
-						case 'version_date':
-							$qb->addSelect("IF(version.required = false, version.deliveryDate, version.scheduledDate) AS HIDDEN version_date_");
-							$value = implode(',', $value);
-							if (($result = Regex::match('/>(\d{2}-\d{2}-\d{4})/', $value))->hasMatch()) {
-								$qb->andHaving($qb->gte('version_date_', new \DateTime($result->group(1))));
-							}
-							if (($result = Regex::match('/<(\d{2}-\d{2}-\d{4})/', $value))->hasMatch()) {
-								$qb->andHaving($qb->lte('version_date_', new \DateTime($result->group(1))));
-							}
-							break;
-							
-						case 'version_is_required':
-							$qb->andWhere($qb->eq('version.required', ($value == "1")));
-							break;
-							
-						case 'version_writer':
-							if (in_array(0, $value)) {
-								$qb->andWhere($qb->orX($qb->in('version.writer', $value), $qb->isNull('version.writer')));
-							} else {
-								$qb->andWhere($qb->in('version.writer', $value));
-							}
-							break;
-							
-						case 'version_checker':
-							if (in_array(0, $value)) {
-								$qb->andWhere($qb->orX($qb->in('version.checker', $value), $qb->isNull('version.checker')));
-							} else {
-								$qb->andWhere($qb->in('version.checker', $value));
-							}
-							break;
-							
-						case 'version_approver':
-							if (in_array(0, $value)) {
-								$qb->andWhere($qb->orX($qb->in('version.approver', $value), $qb->isNull('version.approver')));
-							} else {
-								$qb->andWhere($qb->in('version.approver', $value));
-							}
-							break;
-							
-						case 'serie':
-							$qb->andWhere($qb->in('serie.id', $value));
-							break;
-							
-						case 'serie_company':
-							$qb->andWhere($qb->in('serie.company', $value));
-							break;
-							
-						case 'status_value':
-							if ($qb->hasAlias('status') === false) {
-								$qb->innerJoin('version.status', 'status');
-							}
-							$qb->andWhere($qb->in('status.id', $value));
-							break;
-							
-						case 'status_type':
-							if ($qb->hasAlias('status') === false) {
-								$qb->innerJoin('version.status', 'status');
-							}
-							$qb->andWhere($qb->in('status.type', $value));
-							break;
+						$id = $result->group(1);
 						
-						case (($result = Regex::match('/codification_(\d+)/', $field['id']))->hasMatch()):
-							
-							$id = $result->group(1);
-							
-							switch ($field['type']) {
+						switch ($field['type']) {
 
-								case CodificationTypeEnum::LIST:
-									$qb->innerJoin('document.codificationChoices', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.codification', $id));
-									break;
-									
-								case CodificationTypeEnum::REGEX:
-									$qb->innerJoin('document.codificationElements', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.codification', $id));
-									break;
-							}
-							
-							switch ($field['type']) {
+							case CodificationTypeEnum::LIST:
+								$qb->innerJoin('document.codificationChoices', $field['key'] . '_', Join::WITH, $qb->eq($field['key'] . '_.codification', $id));
+								break;
 								
-								case CodificationTypeEnum::LIST:
-									$qb->andWhere($qb->in($field['id'] . '_.id', $value));
-									break;
-									
-								case CodificationTypeEnum::REGEX:
-									$qb->andWhere($qb->like($field['id'] . '_.value', $this->likeStatement($value)));
-									break;
-									
-							}
-							break;
+							case CodificationTypeEnum::REGEX:
+								$qb->innerJoin('document.codificationElements', $field['key'] . '_', Join::WITH, $qb->eq($field['key'] . '_.codification', $id));
+								break;
+						}
+						
+						switch ($field['type']) {
 							
-						case (($result = Regex::match('/metadata_(\d+)/', $field['id']))->hasMatch()):
-							
-							$id = $result->group(1);
-							
-							switch ($field['type']) {
+							case CodificationTypeEnum::LIST:
+								$qb->andWhere($qb->in($field['key'] . '_.id', $value));
+								break;
 								
-								case MetadataTypeEnum::BOOL:
-								case MetadataTypeEnum::TEXT:
-								case MetadataTypeEnum::REGEX:
-								case MetadataTypeEnum::LINK:
-									$qb
-										->leftJoin($field['parent'] . '.metadataElements', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
-										->groupBy('version.id')
-										->addSelect(sprintf('MAX(%1$s_.value) AS HIDDEN %1$s_value', $field['id']))
-									;
-									break;
-								case MetadataTypeEnum::DATE:
-									$qb
-										->leftJoin($field['parent'] . '.metadataElements', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
-										->groupBy('version.id')
-										->addSelect($this->dateStatement($field['id']))
-									;
-									break;
-									
-								case MetadataTypeEnum::LIST:
-									$qb
-										->leftJoin($field['parent'] . '.metadataChoices', $field['id'] . '_', Join::WITH, $qb->eq($field['id'] . '_.metadata', $id))
-										->groupBy('version.id')
-										->addSelect(sprintf('MAX(%1$s_.id) AS HIDDEN %1$s_id', $field['id']))
-									;
-									break;
-									
-							}
-							
-							switch ($field['type']) {
+							case CodificationTypeEnum::REGEX:
+								$qb->andWhere($qb->like($field['key'] . '_.value', $this->like($value)));
+								break;
 								
-								case MetadataTypeEnum::BOOL:
-									if ($value == '1') {
-										$qb->andHaving($qb->eq($field['id'] . '_value', 1));
+						}
+						break;
+						
+					case (($result = Regex::match('/metadata_(\d+)/', $field['key']))->hasMatch()):
+						
+						$id = $result->group(1);
+						
+						switch ($field['type']) {
+							
+							case MetadataTypeEnum::BOOL:
+							case MetadataTypeEnum::TEXT:
+							case MetadataTypeEnum::REGEX:
+							case MetadataTypeEnum::LINK:
+								$qb->addNestedSelect(
+									$this->newQB()
+										->select($field['key'] . '_.value')
+										->from($this->getParentClass($field['parent']), $field['parent'] . '_' . $field['key'] . '_')
+										->leftJoin($field['parent'] . '_' . $field['key'] . '_.metadataElements', $field['key'] . '_')
+										->andWhere($qb->eq($field['key'] . '_.metadata', $id))
+										->andWhere($field['parent'] . '_' . $field['key'] . '_.id = ' . $field['parent'] . '.id'),
+										$field['key']
+									);
+								break;
+							case MetadataTypeEnum::DATE:
+								$qb->addNestedSelect(
+									$this->newQB()
+										->select($this->strToDate($field['key'] . '_.value'))
+										->from($this->getParentClass($field['parent']), $field['parent'] . '_' . $field['key'] . '_')
+										->leftJoin($field['parent'] . '_' . $field['key'] . '_.metadataElements', $field['key'] . '_')
+										->andWhere($qb->eq($field['key'] . '_.metadata', $id))
+										->andWhere($field['parent'] . '_' . $field['key'] . '_.id = ' . $field['parent'] . '.id'),
+										$field['key']
+									);
+								break;
+								
+							case MetadataTypeEnum::LIST:
+								$qb->addNestedSelect(
+									$this->newQB()
+										->select($field['key'] . '_.id AS HIDDEN ' . $field['key'] . '_id')
+										->from($this->getParentClass($field['parent']), $field['parent'] . '_' . $field['key'] . '_')
+										->leftJoin($field['parent'] . '_' . $field['key'] . '_.metadataChoices', $field['key'] . '_')
+										->andWhere($qb->eq($field['key'] . '_.metadata', $id))
+										->andWhere($field['parent'] . '_' . $field['key'] . '_.id = ' . $field['parent'] . '.id'),
+										$field['key'] . '_id'
+									);
+								break;
+								
+						}
+						
+						switch ($field['type']) {
+							
+							case MetadataTypeEnum::BOOL:
+								if ($value == '1') {
+									$qb->andHaving($qb->eq($field['key'] . '_value', 1));
+								} else {
+									$qb->andHaving($qb->isNull($field['key'] . '_value'));
+								}
+								break;
+								
+							case MetadataTypeEnum::TEXT:
+							case MetadataTypeEnum::REGEX:
+								$qb->andHaving($qb->like($field['key'] . '_value', $this->like($value)));
+								break;
+								
+							case MetadataTypeEnum::DATE:
+								$value = implode(',', $value);
+								if (($r = Regex::match('/>(\d{2}-\d{2}-\d{4})/', $value))->hasMatch()) {
+									if (Regex::match('/(?<=,)0/', $value)->hasMatch()) {
+										$qb->andHaving(
+											$qb->orX(
+												$qb->gte($field['key'] . '_value', new \DateTime($r->group(1))),
+												$qb->isNull($field['key'] . '_value')
+											)
+										);
 									} else {
-										$qb->andHaving($qb->isNull($field['id'] . '_value'));
+										$qb->andHaving($qb->gte($field['key'] . '_value', new \DateTime($r->group(1))));
 									}
-									break;
-									
-								case MetadataTypeEnum::TEXT:
-								case MetadataTypeEnum::REGEX:
-									$qb->andHaving($qb->like($field['id'] . '_value', $this->likeStatement($value)));
-									break;
-									
-								case MetadataTypeEnum::DATE:
-									$value = implode(',', $value);
-									if (($r = Regex::match('/>(\d{2}-\d{2}-\d{4})/', $value))->hasMatch()) {
-										if (Regex::match('/(?<=,)0/', $value)->hasMatch()) {
-											$qb->andHaving(
-												$qb->orX(
-													$qb->gte($field['id'] . '_value', new \DateTime($r->group(1))),
-													$qb->isNull($field['id'] . '_value')
+								}
+								if (($r = Regex::match('/<(\d{2}-\d{2}-\d{4})/', $value))->hasMatch()) {
+									if (Regex::match('/(?<=,)0/', $value)->hasMatch()) {
+										$qb->andHaving(
+											$qb->orX(
+												$qb->lte($field['key'] . '_value', new \DateTime($r->group(1))),
+												$qb->isNull($field['key'] . '_value')
 												)
 											);
-										} else {
-											$qb->andHaving($qb->gte($field['id'] . '_value', new \DateTime($r->group(1))));
-										}
-									}
-									if (($r = Regex::match('/<(\d{2}-\d{2}-\d{4})/', $value))->hasMatch()) {
-										if (Regex::match('/(?<=,)0/', $value)->hasMatch()) {
-											$qb->andHaving(
-												$qb->orX(
-													$qb->lte($field['id'] . '_value', new \DateTime($r->group(1))),
-													$qb->isNull($field['id'] . '_value')
-													)
-												);
-										} else {
-											$qb->andHaving($qb->lte($field['id'] . '_value', new \DateTime($r->group(1))));
-										}
-									}
-									if (($r = Regex::match('/^0/', $value))->hasMatch()) {
-										$qb->andHaving(
-											$qb->isNull($field['id'] . '_value')
-										);
-									}
-									break;
-									
-								case MetadataTypeEnum::LIST:
-									if (in_array(0, $value)) {
-										$qb->andHaving($qb->orX($qb->in($field['id'] . '_id', $value), $qb->isNull($field['id'] . '_id')));
 									} else {
-										$qb->andHaving($qb->in($field['id'] . '_id', $value));
+										$qb->andHaving($qb->lte($field['key'] . '_value', new \DateTime($r->group(1))));
 									}
-									break;
-									
-							}
-							break;
-							
-						case (($result = Regex::match('/visa_(\d+)/', $field['id']))->hasMatch()):
-							
-							$id = $result->group(1);
-							
-							if ($qb->hasAlias($field['id'] . '_') === false) {
+								}
+								if (($r = Regex::match('/^0/', $value))->hasMatch()) {
+									$qb->andHaving(
+										$qb->isNull($field['key'] . '_value')
+									);
+								}
+								break;
 								
-								$subQb = $this->newQB('');
-								$visas = $subQb
-									->select('visa.id')
-									->from(Visa::class, 'visa')
-									->andWhere($subQb->eq('visa.project', $project))
-									->andWhere($subQb->eq('visa.company', $id))
-									->getQuery()
-									->getArrayResult()
-								;
+							case MetadataTypeEnum::LIST:
+								if (in_array(0, $value)) {
+									$qb->andHaving($qb->orX($qb->in($field['key'] . '_id', $value), $qb->isNull($field['key'] . '_id')));
+								} else {
+									$qb->andHaving($qb->in($field['key'] . '_id', $value));
+								}
+								break;
 								
-								$qb
-									->leftJoin('version.reviews', 'review_' . $id, Join::WITH, $qb->in('review_' . $id . '.visa', $visas))
-									->leftJoin('review_' . $id . '.visa', $field['id'] . '_')
-								;
-								
-							}
+						}
+						break;
+						
+					case (($result = Regex::match('/visa_(\d+)/', $field['key']))->hasMatch()):
+						
+						$id = $result->group(1);
+						
+						if ($qb->hasAlias($field['key'] . '_') === false) {
 							
-							if (in_array(0, $value)) {
-								$qb->andWhere($qb->orX($qb->in($field['id'] . '_.id', $value), $qb->isNull($field['id'] . '_.id')));
-							} else {
-								$qb->andWhere($qb->in($field['id'] . '_.id', $value));
-							}
-							break;
+							$subQb = $this->newQB('');
+							$visas = $subQb
+								->select('visa.id')
+								->from(Visa::class, 'visa')
+								->andWhere($subQb->eq('visa.project', $project))
+								->andWhere($subQb->eq('visa.company', $id))
+								->getQuery()
+								->getArrayResult()
+							;
 							
-						case 'version_first':
-							$qb->leftJoin(Version::class, 'vf', Join::WITH,
-									'version.document = vf.document AND (
-										IF(version.required = false, version.deliveryDate, version.scheduledDate) > IF(vf.required = false, vf.deliveryDate, vf.scheduledDate) OR (
-											IF(version.required = false, version.deliveryDate, version.scheduledDate) = IF(vf.required = false, vf.deliveryDate, vf.scheduledDate) AND version.name > vf.name
-										)
-									)')
-								->andWhere($qb->andX($qb->isNull('vf.scheduledDate'), $qb->isNull('vf.deliveryDate')))
+							$qb
+								->leftJoin('version.reviews', 'review_' . $id, Join::WITH, $qb->in('review_' . $id . '.visa', $visas))
+								->leftJoin('review_' . $id . '.visa', $field['key'] . '_')
 							;
-							break;
 							
-						case 'version_first_scheduled':
-							$qb->leftJoin(Version::class, 'vfs', Join::WITH,
-									'version.document = vfs.document AND vfs.required = true AND (
-										version.scheduledDate > vfs.scheduledDate OR (
-											version.scheduledDate = vfs.scheduledDate AND version.name > vfs.name
-										)
-									)')
-								->andWhere($qb->isNull('vfs.scheduledDate'), $qb->eq('version.required', true))
-							;
-							break;
+						}
 						
-						case 'version_first_delivered':
-							$qb->leftJoin(Version::class, 'vfd', Join::WITH,
-									'version.document = vfd.document AND vfd.required = false AND (
-										version.deliveryDate > vfd.deliveryDate OR (
-											version.deliveryDate = vfd.deliveryDate AND version.name > vfd.name
-										)
-									)')
-								->andWhere($qb->isNull('vfd.deliveryDate'), $qb->eq('version.required', false))
-							;
-							break;
+						if (in_array(0, $value)) {
+							$qb->andWhere($qb->orX($qb->in($field['key'] . '_.id', $value), $qb->isNull($field['key'] . '_.id')));
+						} else {
+							$qb->andWhere($qb->in($field['key'] . '_.id', $value));
+						}
+						break;
 						
-						case 'version_last':
-							$qb->leftJoin(Version::class, 'vl', Join::WITH,
-									'version.document = vl.document AND (
-										IF(version.required = false, version.deliveryDate, version.scheduledDate) < IF(vl.required = false, vl.deliveryDate, vl.scheduledDate) OR (
-											IF(version.required = false, version.deliveryDate, version.scheduledDate) = IF(vl.required = false, vl.deliveryDate, vl.scheduledDate) AND version.name < vl.name
-										)
-									)')
-								->andWhere($qb->isNull('vl.scheduledDate'), $qb->isNull('vl.deliveryDate'))
-							;
-							break;
+					case 'version_first':
+						$qb->leftJoin(Version::class, 'vf', Join::WITH,
+								'version.document = vf.document AND (
+									IF(version.required = false, version.deliveryDate, version.scheduledDate) > IF(vf.required = false, vf.deliveryDate, vf.scheduledDate) OR (
+										IF(version.required = false, version.deliveryDate, version.scheduledDate) = IF(vf.required = false, vf.deliveryDate, vf.scheduledDate) AND version.name > vf.name
+									)
+								)')
+							->andWhere($qb->andX($qb->isNull('vf.scheduledDate'), $qb->isNull('vf.deliveryDate')))
+						;
+						break;
 						
-						case 'version_last_scheduled':
-							$qb->leftJoin(Version::class, 'vls', Join::WITH,
-									'version.document = vls.document AND vls.required = true AND (
-										version.scheduledDate < vls.scheduledDate OR (
-											version.scheduledDate = vls.scheduledDate AND version.name < vls.name
-										)
-									)')
-								->andWhere($qb->isNull('vls.scheduledDate'), $qb->eq('version.required', true))
-							;
-							break;
-						
-						case 'version_last_delivered':
-							$qb->leftJoin(Version::class, 'vld', Join::WITH,
-									'version.document = vld.document AND vld.required = false AND (
-										version.deliveryDate < vld.deliveryDate OR (
-											version.deliveryDate = vld.deliveryDate AND version.name < vld.name
-										)
-									)')
-								->andWhere($qb->isNull('vld.deliveryDate'), $qb->eq('version.required', false))
-							;
-							break;
-						
-					}
+					case 'version_first_scheduled':
+						$qb->leftJoin(Version::class, 'vfs', Join::WITH,
+								'version.document = vfs.document AND vfs.required = true AND (
+									version.scheduledDate > vfs.scheduledDate OR (
+										version.scheduledDate = vfs.scheduledDate AND version.name > vfs.name
+									)
+								)')
+							->andWhere($qb->isNull('vfs.scheduledDate'), $qb->eq('version.required', true))
+						;
+						break;
+					
+					case 'version_first_delivered':
+						$qb->leftJoin(Version::class, 'vfd', Join::WITH,
+								'version.document = vfd.document AND vfd.required = false AND (
+									version.deliveryDate > vfd.deliveryDate OR (
+										version.deliveryDate = vfd.deliveryDate AND version.name > vfd.name
+									)
+								)')
+							->andWhere($qb->isNull('vfd.deliveryDate'), $qb->eq('version.required', false))
+						;
+						break;
+					
+					case 'version_last':
+						$qb->leftJoin(Version::class, 'vl', Join::WITH,
+								'version.document = vl.document AND (
+									IF(version.required = false, version.deliveryDate, version.scheduledDate) < IF(vl.required = false, vl.deliveryDate, vl.scheduledDate) OR (
+										IF(version.required = false, version.deliveryDate, version.scheduledDate) = IF(vl.required = false, vl.deliveryDate, vl.scheduledDate) AND version.name < vl.name
+									)
+								)')
+							->andWhere($qb->isNull('vl.scheduledDate'), $qb->isNull('vl.deliveryDate'))
+						;
+						break;
+					
+					case 'version_last_scheduled':
+						$qb->leftJoin(Version::class, 'vls', Join::WITH,
+								'version.document = vls.document AND vls.required = true AND (
+									version.scheduledDate < vls.scheduledDate OR (
+										version.scheduledDate = vls.scheduledDate AND version.name < vls.name
+									)
+								)')
+							->andWhere($qb->isNull('vls.scheduledDate'), $qb->eq('version.required', true))
+						;
+						break;
+					
+					case 'version_last_delivered':
+						$qb->leftJoin(Version::class, 'vld', Join::WITH,
+								'version.document = vld.document AND vld.required = false AND (Y
+									version.deliveryDate < vld.deliveryDate OR (
+										version.deliveryDate = vld.deliveryDate AND version.name < vld.name
+									)
+								)')
+							->andWhere($qb->isNull('vld.deliveryDate'), $qb->eq('version.required', false))
+						;
+						break;
+					
 				}
 			}
 		}
@@ -989,14 +1026,31 @@ class VersionRepository extends RepositoryService
 		return $qb;
 	}
 	
-	private function likeStatement(string $value): string
+	private function like(string $value): string
 	{
 		return str_replace('%%', '%', '%' . str_replace('*', '%', $value) . '%');	
 	}
 	
-	private function dateStatement(string $value): string
+	private function dateFormat(string $value): string
 	{		
-		return "STR_TO_DATE(MAX(" . $value . "_.value), '%d-%m-%Y') AS HIDDEN " . $value . "_value";
+		return 'DATE_FORMAT(' . $value . ', \'' . DateService::SQL_INTERNAL_DATE_FORMAT . '\')';
 	}
-	
+
+	private function strToDate(string $value): string
+	{		
+		return 'STR_TO_DATE(' . $value . ', \'' . DateService::SQL_INTERNAL_DATE_FORMAT . '\')';
+	}
+
+	private function getParentClass(string $parent): string
+	{
+		switch ($parent) {
+			case 'serie':
+				return Serie::class;
+			case 'document':
+				return Document::class;
+			case 'version':
+				return Version::class;
+		};
+	}
+
 }

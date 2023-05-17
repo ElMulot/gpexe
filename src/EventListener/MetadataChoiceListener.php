@@ -17,7 +17,7 @@ class MetadataChoiceListener
 		$metadata = $metadataChoice->getMetadata();
 		
 		if ($metadata->getDefaultValue() === $metadataChoice->getValue()) {
-			$metadata->setDefaultRawValue(null);
+			$metadata->setDefaultValue(null);
 			$event->getObjectManager()->persist($metadata);
 			$event->getObjectManager()->flush();
 		}

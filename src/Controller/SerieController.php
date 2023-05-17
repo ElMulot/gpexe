@@ -30,20 +30,30 @@ class SerieController extends AbstractTurboController
 	}
 	
 	/**
+	 * Set the list of avialable series:
+	 * 	+ if query parameter company is defined, the series list will be the series associated to this company
+	 * 	+ otherwise, the series list will be all the series allowed to be displayed for the current user
+	 * 
 	 * Query parameters :
-	 * 	+ all the query parameters indicated in EngineeringController::thead
+	 * 	+ all the query parameters indicated in EngineeringController::engineering
 	 */
 	#[Route(path: '/project/{project}/serie', name: 'serie', requirements: ['project' => '\d+'])]
 	public function index(Request $request, Project $project) : Response
 	{
 		$this->denyAccessUnlessGranted('SERIE_SHOW', $project);
+
+		if ($request->query->has('companies') === true) {
+			$series = $this->serieRepository->getSeriesByProjectAndByCompanyIds($project, $request->query->all('companies'));
+		} else {
+			$series = $this->serieRepository->getAvialableSeriesByProjectAndByUser($project, $this->getUser());
+		}
 		
-		$serieIds = $request->get('id');
-		$series = $this->serieRepository->getAvialableSeriesByProjectAndByUserAsArray($project, $this->getUser());
-		
-		$serie = $request->get('filters')['serie'] ?? $serieIds;
-		$request->query->set('filters', ($request->get('filters') ?? []) + ['serie' => $serie]);
-		
+		foreach ($series as $key => $serie) {
+			if ($this->isGranted('ENGINEERING_SHOW', $serie) === false) {
+				unset($series[$key]);
+			}
+		}
+
 		return $this->render('pages/engineering/index/nav/_serie.html.twig', [
 			'title' => $this->translator->trans('Series for') . ' : ' . $project->getName(),
 			'class' => Serie::class,
@@ -53,96 +63,20 @@ class SerieController extends AbstractTurboController
 	}
 
 	/**
+	 * Display a window to select the serie(s) to display
+	 * 
 	 * Query parameters :
-	 * 	+ array		display					user defined display
-	 * 	+ array		filters					user defined filter
-	 * 	+ int		results_per_page		user defined results per page
-	 *  + string	sort_desc				user defined sorted desc
-	 *  + string	sort_asc				user defined sorted asc
-	 */
-	#[Route(path: '/project/{project}/series/{company}', name: 'seriesListByCompany', requirements: ['project' => '\d+', 'company' => '\d+'])]
-	public function seriesByCompany(Project $project, Company $company) : Response
-	{
-
-		$series = $this->serieRepository->getSeriesByCompany($project, $company);
-
-		if (empty($series) === true) {
-			if ($this->isGranted('SERIE_NEW', $project) === false) {
-				return $this->redirectToRoute('project', [
-					'project' => $project,
-				]);
-			}
-		} else {
-			$this->denyAccessUnlessGranted('ENGINEERING_SHOW', reset($series));
-		}
-
-		return $this->render('pages/engineering/index.html.twig', [
-			'series' => $series,
-			'project' => $project,
-			'company' => $company,
-		]);
-	}
-	
-	/**
-	 * Query parameters :
-	 * 	+ array		display					user defined display
-	 * 	+ array		filters					user defined filter
-	 * 	+ int		results_per_page		user defined results per page
-	 *  + string	sort_desc				user defined sorted desc
-	 *  + string	sort_asc				user defined sorted asc
-	 */
-	#[Route(path: '/project/{project}/series/{belong}', name: 'seriesListByBelonging', requirements: ['project' => '\d+', 'belong' => new EnumRequirement(SerieBelongingEnum::class)])]
-	public function seriesByBelonging(Project $project, string $belong) : Response
-	{	
-		switch ($belong) {
-			case SerieBelongingEnum::ALL:
-				$this->denyAccessUnlessGranted('SHOW_ALL', $project);
-				$series = $this->serieRepository->getSeriesByProject($project);
-				break;
-			case SerieBelongingEnum::MDR:
-				$this->denyAccessUnlessGranted('SHOW_MDR', $project);
-				$series = $this->serieRepository->getMdrSeriesByProject($project);
-				break;
-			case SerieBelongingEnum::SDR:
-				$this->denyAccessUnlessGranted('SHOW_SDR', $project);
-				$series = $this->serieRepository->getSdrSeriesByProject($project);
-				break;
-			default:
-				throw new \LogicException('logic.codeNotReached');
-		}
-
-		
-		if (empty($series) === true) {
-			return $this->redirectToRoute('project', [
-				'project' => $project,
-			]);
-		}
-
-		return $this->render('pages/engineering/index.html.twig', [
-			'series' => $series,
-			'project' => $project,
-		]);
-	}
-
-	/**
-	 * Query parameters :
-	 * 	+ array		id						array of serie ids that could be displayed
-	 * 	+ array		display					user defined display
-	 * 	+ array		filters					user defined filter
-	 * 	+ int		results_per_page		user defined results per page
-	 *  + string	sort_desc				user defined sorted desc
-	 *  + string	sort_asc				user defined sorted asc
+	 * 	+ array		id						serie ids to display
+	 * 	+ all the query parameters indicated in EngineeringController::engineering
 	 */
 	#[Route(path: '/project/{project}/series/select', name: 'serieSelect', requirements: ['project' => '\d+'])]
 	public function select(Request $request, Project $project) : Response
 	{
-		$serieIds = $request->get('id');
 		
-		$series = $this->serieRepository->getSeriesByIds($serieIds);
-		
-		foreach ($series as $serie) {
-			$this->denyAccessUnlessGranted('ENGINEERING_SHOW', $serie);
-		}
+		$series = $this->serieRepository->getSeriesByIds($request->query->all('id'));
+
+		$request->query->remove('series');
+		$request->query->remove('id');
 
 		return $this->render('pages/engineering/index/_select.html.twig', [
 			'series' => $series,
@@ -153,16 +87,20 @@ class SerieController extends AbstractTurboController
 
 	/**
 	 * Query parameters :
-	 * 	+ array		series			array of serie ids that will be used for company selector in the form
-	 * 	+ array		versions		array of version ids (not used for serie creation)
+	 * 	+ array		versions		array of version ids that will be used for company selector in the form
+	 * 	+ array		series			array of serie ids that will be used for company selector in the form if versions is empty
 	 */
 	#[Route(path: '/project/{project}/serie/new', name: 'serieNew', requirements: ['project' => '\d+'])]
-	public function new(Request $request, Project $project, Company $company = null) : Response
+	public function new(Request $request, Project $project) : Response
 	{
 		$this->denyAccessUnlessGranted('SERIE_NEW', $project);
 		
-		$companies = $this->companyRepository->getCompaniesBySerieIds($request->get('series'));
-		
+		if ($request->query->has('versions')) {
+			$companies = $this->companyRepository->getCompaniesByVersionIds($request->query->all('versions'));
+		} else {
+			$companies = $this->companyRepository->getCompaniesBySerieIds($request->query->all('series'));
+		}
+
 		$serie = new Serie();
 		$serie->setProject($project);
 		$series = [$serie];
@@ -177,16 +115,17 @@ class SerieController extends AbstractTurboController
 		if ($form->isSubmitted() && $form->isValid()) {
 			
 			$entityManager = $this->doctrine->getManager();
-			$entityManager->persist($serie);
+			foreach ($series as $serie) {
+				$entityManager->persist($serie);
+			}
+			
 			$entityManager->flush();
 			
 			$this->addFlash('success', 'New serie created');
 
 			return $this->renderSuccess($request, 'documentNew', [
 				'project'	=> $project->getId(),
-				'series'	=> $request->get('series'),
-				'versions'	=> $request->get('versions')
-			]);
+			] + $request->query->all());
 
 		} else {
 			
@@ -199,16 +138,15 @@ class SerieController extends AbstractTurboController
 
 	/**
 	 * Query parameters :
-	 * 	+ array		series			array of serie ids that will be edited and used for company selector in the form
-	 * 	+ array		versions		array of version ids (not used for serie edition)
+	 * 	+ array		versions		array of version ids that will be used for company selector in the form
 	 */
 	#[Route(path: '/project/{project}/serie/edit', name: 'serieEdit', requirements: ['project' => '\d+'])]
 	public function edit(Request $request, Project $project) : Response
 	{
 		$this->denyAccessUnlessGranted('SERIE_EDIT', $project);
 
-		$companies = $this->companyRepository->getCompaniesBySerieIds($request->get('series'));
-		$series = $this->serieRepository->getSeriesByIds($request->get('series'));
+		$companies = $this->companyRepository->getCompaniesByVersionIds($request->query->all('versions'));
+		$series = $this->serieRepository->getSeriesByVersionIds($request->query->all('series'));
 
 		$form = $this->createForm(SerieType::class, $series, [
 			'project'	=> $project,
@@ -231,9 +169,11 @@ class SerieController extends AbstractTurboController
 			]);
 
 		} else {
+
 			return $this->render('pages/engineering/edit/_pannel.html.twig', [
 				'form' => $form,
 			]);
+			
 		}
 	}
 	

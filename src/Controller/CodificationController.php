@@ -72,11 +72,9 @@ class CodificationController extends AbstractTurboController
 		}
 	}
 
-	#[Route(path: '/project/codification/{codification}/edit', name: 'codificationEdit', requirements: ['codification' => '\d+'])]
-	public function edit(Request $request, Codification $codification) : Response
+	#[Route(path: '/project/{project}/codification/{codification}/edit', name: 'codificationEdit', requirements: ['project' => '\d+', 'codification' => '\d+'])]
+	public function edit(Request $request, Project $project, Codification $codification) : Response
 	{
-		$project = $codification->getProject();
-
 		$this->denyAccessUnlessGranted('PROJECT_EDIT', $project);
 
 		$form = $this->createForm(CodificationType::class, $codification);
@@ -102,11 +100,9 @@ class CodificationController extends AbstractTurboController
 		}
 	}
 
-	#[Route(path: '/project/codification/{codification}/delete', name: 'codificationDelete', methods: ['GET', 'DELETE'], requirements: ['codification' => '\d+'])]
-	public function delete(Request $request, Codification $codification) : Response
+	#[Route(path: '/project/{project}/codification/{codification}/delete', name: 'codificationDelete', methods: ['GET', 'DELETE'], requirements: ['project' => '\d+', 'codification' => '\d+'])]
+	public function delete(Request $request, Project $project, Codification $codification) : Response
 	{
-		$project = $codification->getProject();
-		
 		$this->denyAccessUnlessGranted('PROJECT_EDIT', $project);
 		
 		$form = $this->createDeleteForm($codification);

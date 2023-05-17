@@ -1,0 +1,149 @@
+- 
+    version: 0.1.0
+    date: 12/10/2020
+    changes:
+        - Première version de test
+- 
+    version: 0.1.1
+    date: 13/10/2020
+    changes:
+        - Seules les dernières versions sont prises en compte sur l'écran d'accueil
+        - Correction d'affichage des visas disponibles
+        - Correction de bugs
+- 
+    version: 0.1.2
+    date: 14/10/2020
+    changes:
+        - Traduction des balises js
+        - Désormais, les liens sur la page d'acceuil renvoi vers la série considérée avec le bon filtre
+- 
+    version: 0.1.3
+    date: 15/10/2020
+    changes:
+        - Désormais, il est possible de créer une version après apposition d'un visa avec observations
+        - Corrections de bugs suite mail M. Barnouin*
+- 
+    version: 0.2
+    date: 08/11/2020
+    changes:
+        - Intégration de la librairie box/spout pour les imports/export Excel
+        - Modification de la création d'une nouvelle version après apposition d'un visa
+        - Suppression de l'onglet "Rechercher" dans le panneau principal et ajout d'une recherche texte sur chaque colonne
+        - Les modifications en masse sont de nouveau possibles
+        - Corrections du bug sur l'écran d'accueil
+        - Ajouts de photos en arrière plan sur la page de login
+        - Correction de bugs
+- 
+    version: 0.3.0
+    date: 25/11/2020
+    changes:
+        - Ajout du calcul des avancements
+        - Ajout du module Automatisations
+        - Accélération de l'affichage du tableau principal
+        - Migration sous Symfony 5.1
+        - Passage au nouveau système d'authentification Symfony 5.1
+        - Correction de bugs
+- 
+    version: 0.3.1
+    date: 26/11/2020
+    changes:
+        - Correction de bugs
+- 
+    version: 0.3.2
+    date: 06/12/2020
+    changes:
+        - Correction de bugs
+- 
+    version: 0.3.3
+    date: 20/12/2020
+    changes:
+        - Il est désormais possible de modifier les données attachés à plusieurs documents en même temps
+        - Les fenêtres peuvent être déplacées par un cliquer-glisser sur leur en-tête
+        - Correction de bugs
+- 
+    version: 0.4.0
+    date: 01/03/2021
+    changes:
+        - Ajout d'un nouveau type de programme, les tâches qui permettent d'automatiser des opérations sur la base
+        - Il est désormais possible de déplacer et de modifier la largeur des colonnes. Les modifications peuvent être sauvegardées dans la vue
+        - Lors de la création d'une nouvelle version, les métadonnées sont copiées de la dernière version créée
+        - Correction de bugs
+- 
+    version: 0.4.1
+    date: 17/03/2021
+    changes:
+        - Refonte de la vue principale
+        - Modification de la façon dont est gérée le surlignage des lignes par date
+        - Migration sous Symfony 5.2
+        - Correction de bugs
+- 
+    version: 0.5.0
+    date: 05/04/2021
+    changes:
+        - Modernisation de l'interpréteur de script pour les imports/exports/task/progress
+        - Intégration de la librairie Spatie/Regex
+        - Mise à jour des librairies
+        - Correction de bugs
+- 
+    version: 0.5.1
+    date: 01/05/2021
+    changes:
+        - Ajout d'un mini-graphique d'avancement dans le tableau principal
+        - Ajout d'un bouton "Exporter la vue courante" dans le tableau principal
+        - Il est désormais possible de ne sélectionner que les champs vides
+        - Sous Chrome, les menus ne disparaissent plus en cas d'évênement mouseout en dehors de la fenêtre
+        - Ajout d'un bouton "Tous les documents" dans la vue projet
+        - Les erreurs des programmes sont désormais gérés par des exceptions
+        - Modification de la structure des programmes exports
+        - Cron enfin fonctionnel et remplacement des automatisations par des commandes Symfony
+        - Ajout de boutons d'imitation (impersonation) dans la liste des utilisateurs
+        - Correction de bugs
+- 
+    version: 0.5.2
+    date: 30/05/2021
+    changes:
+        - Amélioration mineure de la présentation des formulaires
+        - Dans la page d'accueil, les liens vers les séries dont certains documents sont en retard de visas n'affichent désormais que les documents non visés
+        - Correction de bugs
+        - Ajout de quelques traductions complémentaires
+- 
+    version: 0.5.3
+    date: 10/06/2021
+    changes:
+        - Migration sous Symfony 5.3
+        - Correction de bugs
+- 
+    version: 0.5.4
+    date: 19/06/2021
+    changes:
+        - Ajout d'un certificat SSL et passage au protocole https
+        - Correction de bugs
+- 
+    version: 0.5.5
+    date: 12/07/2021
+    changes:
+        - Correction de bugs
+- 
+    version: 0.5.6
+    date: 08/09/2021
+    changes:
+        - Correction de bugs
+- 
+    version: 0.5.7
+    date: 13/09/2021
+    changes:
+        - Mise à jour des librairies
+        - Correction de bugs
+- 
+    version: 0.5.8
+    date: 29/09/2021
+    changes:
+        - Correction de bugs
+- 
+    version: 0.6.0
+    date: xx/xx/2022
+    changes:
+        - Migration sous php 8.1
+        - Migration sous Symfony 5.4
+        - Passage en application monopage (spa) et refonte de l'interface
+        - Correction de bugs

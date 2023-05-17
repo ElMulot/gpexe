@@ -10,7 +10,7 @@
 {% set items = items|merge([
 	{
 		'name': "Serie",
-		'href': path('serieEdit', {'project': project.id, 'series': serie_ids, 'versions': version_ids }),
+		'href': path('serieEdit', {'project': project.id}|merge(app.request.query.all)),
 		'data-turbo-stream-replace': 'edit_pannel',
 	}
 ]) %}	
@@ -19,7 +19,7 @@
 	{% set items = items|merge([
 		{
 			'name': "Document",
-			'href': path('documentEdit', {'project': project.id, 'series': serie_ids, 'versions': version_ids}),
+			'href': path('documentEdit', {'project': project.id}|merge(app.request.query.all)),
 			'data-turbo-stream-replace': 'edit_pannel',
 		}
 	]) %}
@@ -27,7 +27,7 @@
 	{% set items = items|merge([
 		{
 			'name': "Version",
-			'href': path('versionEdit', {'project': project.id, 'versions': version_ids}),
+			'href': path('versionEdit', {'project': project.id}|merge(app.request.query.all)),
 			'data-turbo-stream-replace': 'edit_pannel',
 		}
 	]) %}	
@@ -35,7 +35,7 @@
 
 {% block modal_body %}
 
-	{% if serie_ids is iterable and serie_ids|length > 0 %}
+	{% if app.request.query.has('versions') is same as(false) %}
 		<div class="row justify-content-center">
 			<p>{% trans %}Select one or more lines first.{% endtrans %}</p>
 		</div>

@@ -42,7 +42,7 @@ class Codification implements \Stringable
 
 	#[ORM\Column(length: 10, nullable: true)]
 	#[IsValid]
-	private ?string $defaultRawValue = null;
+	private ?string $defaultValue = null;
 
 	#[ORM\ManyToOne(inversedBy: 'codifications', cascade:['persist'], fetch: 'EAGER')]
 	private ?Project $project = null;
@@ -115,14 +115,14 @@ class Codification implements \Stringable
 		return $this;
 	}
 	
-	public function getDefaultRawValue(): ?string
+	public function getDefaultValue(): ?string
 	{
-		return $this->defaultRawValue;
+		return $this->defaultValue;
 	}
 
-	public function setDefaultRawValue(mixed $defaultRawValue): self
+	public function setDefaultValue(mixed $defaultValue): self
 	{
-		$this->defaultRawValue = (string)$defaultRawValue;
+		$this->defaultValue = (string)$defaultValue;
 
 		return $this;
 	}
@@ -234,9 +234,9 @@ class Codification implements \Stringable
 	 *
 	 * @return null|string
 	 */
-	public function getDefaultValue(): null|string
+	public function getTypedDefaultValue(): null|string
 	{
-		if ($this->defaultRawValue === null) {
+		if ($this->defaultValue === null) {
 			return null;
 		}
 		
@@ -244,13 +244,13 @@ class Codification implements \Stringable
 			case CodificationTypeEnum::LIST:
 				/**@var CodificationChoice $codificationChoice */
 				foreach ($this->codificationChoices as $codificationChoice) {
-					if ($codificationChoice->getValue() === $this->defaultRawValue) {
+					if ($codificationChoice->getValue() === $this->defaultValue) {
 						return $codificationChoice;
 					}
 				}
 				return null;
 			default:
-				return $this->defaultRawValue;
+				return $this->defaultValue;
 		}
 	}
 

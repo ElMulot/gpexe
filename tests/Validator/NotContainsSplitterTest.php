@@ -37,6 +37,8 @@ class NotContainsSplitterTest extends ConstraintValidatorTestCase
 	/**
 	 * @testWith	[null]
 	 * 				[""]
+	 * 				[[]]
+	 * 				[['a', 'b']]
 	 */
 	public function testIfEmpty($value)
 	{

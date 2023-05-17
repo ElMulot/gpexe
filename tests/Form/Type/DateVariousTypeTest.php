@@ -8,7 +8,6 @@ use App\Form\DataMapper\VariousMapper;
 use App\Form\Extension\DateTypeExtension;
 use Symfony\Component\Form\Test\TypeTestCase;
 use Symfony\Component\Form\PreloadedExtension;
-use App\Form\DataTransformer\VariousTransformer;
 use App\Form\EventSubscriber\VariousFieldSubscriber;
 use App\Service\DateService;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -17,14 +16,12 @@ class DateVariousTypeTest extends TypeTestCase
 {
 	
 	private $suscriber;
-	private $modelTransformer;
 	private $dataMappper;
 	private $dateService;
 
 	protected function setUp(): void
 	{
 		$this->suscriber = new VariousFieldSubscriber();
-		$this->modelTransformer = new VariousTransformer();
 		$this->dataMappper = new VariousMapper();
 		
 		/**@var DateService&MockObject */
@@ -38,7 +35,7 @@ class DateVariousTypeTest extends TypeTestCase
 
 	protected function getExtensions()
 	{
-		$type = new DateVariousType($this->suscriber, $this->modelTransformer, $this->dataMappper);
+		$type = new DateVariousType($this->suscriber, $this->dataMappper);
 
 		return [
 			new PreloadedExtension([$type], []),

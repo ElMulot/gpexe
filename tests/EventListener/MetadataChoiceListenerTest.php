@@ -43,7 +43,7 @@ class MetadataChoiceListenerTest extends TestCase
 
 		$metadata
 			->expects($this->once())
-			->method('setDefaultRawValue')
+			->method('setDefaultValue')
 			->with(null);
 
 		/**@var MetadataChoice&MockObject */
@@ -83,7 +83,7 @@ class MetadataChoiceListenerTest extends TestCase
 
 		$metadata
 			->expects($this->never())
-			->method('setDefaultRawValue');
+			->method('setDefaultValue');
 
 		/**@var MetadataChoice&MockObject */
 		$metadataChoice = $this->createMock(MetadataChoice::class);

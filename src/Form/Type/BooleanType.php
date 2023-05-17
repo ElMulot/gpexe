@@ -26,9 +26,9 @@ class BooleanType extends AbstractType
 			],
 			'compound'		=> false,
 			'empty_data'	=> $emptyData,
-			'false_values'	=> [null],
+			'false_values'	=> [null, '0'],
         ]);
-
+		
 		// $resolver->setAllowedTypes('data', ['null', 'boolean', 'string']);
 		// $resolver->setAllowedTypes('empty_data', ['null', 'boolean', 'string']);
 		$resolver->setAllowedTypes('false_values', 'array');
@@ -37,14 +37,19 @@ class BooleanType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
 		// dump('BooleanType->buildForm');
-		$builder->setData($options['data'] ?? false);
+		// $builder->setEmptyData(false);
+		// $options['empty_data'] = false;
+		
+		// $builder->setData($options['data'] ?? false);
 		$builder->resetViewTransformers();
+
+		
 
 		$viewTransformer = new BooleanToStringTransformer($options['false_values']);
 		$builder->addViewTransformer($viewTransformer);
 
-		// $options['required'] = true;
 		// parent::buildForm($builder, $options);
+		// dump($builder);
     }
 
 	public function buildView(FormView $view, FormInterface $form, array $options)

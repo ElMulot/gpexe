@@ -8,9 +8,7 @@ use App\Form\Type\ComboBoxType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
-use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 
 class CodificationType extends AbstractType
 {
@@ -30,19 +28,19 @@ class CodificationType extends AbstractType
 		}
 		switch ($codification->getType()) {
 			case CodificationTypeEnum::FIXED:
-				$builder->add('defaultRawValue', TextType::class, [
+				$builder->add('defaultValue', TextType::class, [
 					'required'	=> true,
 					'label' => 'Value',
 				]);
 				break;
 			case CodificationTypeEnum::TEXT:
 			case CodificationTypeEnum::REGEX:
-				$builder->add('defaultRawValue', TextType::class, [
+				$builder->add('defaultValue', TextType::class, [
 					'required'	=> false,
 				]);
 				break;
 			case CodificationTypeEnum::LIST:
-				$builder->add('defaultRawValue', ComboBoxType::class, [
+				$builder->add('defaultValue', ComboBoxType::class, [
 					'required'	=> false,
 					'choices'	=> $codification->getCodificationChoices()->getValues(),
 					'choice_label'	=> 'value',

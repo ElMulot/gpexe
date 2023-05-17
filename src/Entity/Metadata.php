@@ -58,7 +58,7 @@ class Metadata implements \Stringable
 
 	#[ORM\Column(length: 255, nullable: true)]
 	#[IsValid]
-	private ?string $defaultRawValue = null;
+	private ?string $defaultValue = null;
 
 	#[ORM\Column(type: 'string', enumType: MetadataParentEnum::class)]
 	private ?MetadataParentEnum $parent = null;
@@ -155,14 +155,14 @@ class Metadata implements \Stringable
 		return $this;
 	}
 
-	public function getDefaultRawValue(): ?string
+	public function getDefaultValue(): ?string
 	{
-		return $this->defaultRawValue;
+		return $this->defaultValue;
 	}
 
-	public function setDefaultRawValue(mixed $defaultRawValue): self
+	public function setDefaultValue(mixed $defaultValue): self
 	{
-		$this->defaultRawValue = (string)$defaultRawValue;
+		$this->defaultValue = (string)$defaultValue;
 
 		return $this;
 	}
@@ -303,27 +303,27 @@ class Metadata implements \Stringable
 	 *
 	 * @return null|string
 	 */
-	public function getDefaultValue(): null|bool|string|\DateTimeInterface|MetadataChoice
+	public function getTypedDefaultValue(): null|bool|string|\DateTimeInterface|MetadataChoice
 	{
-		if ($this->defaultRawValue === null) {
+		if ($this->defaultValue === null) {
 			return null;
 		}
 		
 		switch ($this->type) {
 			case MetadataTypeEnum::BOOL:
-				return (bool)$this->defaultRawValue;
+				return (bool)$this->defaultValue;
 			case MetadataTypeEnum::DATE:
-				return new \DateTime($this->defaultRawValue);
+				return new \DateTime($this->defaultValue);
 			case MetadataTypeEnum::LIST:
 				/**@var MetadataChoice $metadataChoice */
 				foreach ($this->metadataChoices as $metadataChoice) {
-					if ($metadataChoice->getValue() === $this->defaultRawValue) {
+					if ($metadataChoice->getValue() === $this->defaultValue) {
 						return $metadataChoice;
 					}
 				}
 				return null;
 			default:
-				return $this->defaultRawValue;
+				return $this->defaultValue;
 		}
 	}
 

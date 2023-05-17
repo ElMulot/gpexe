@@ -135,21 +135,21 @@ class MetadataElementFixtures extends Fixture implements DependentFixtureInterfa
 
 			$metadataElement = new MetadataElement();
 			$metadataElement
-				->setRawValue("1")
+				->setValue("1")
 				->setMetadata($this->getReference(constant(MetadataFixtures::class . "::PROJECT_{$i}_METADATA_SERIE_BOOL")));
 			$manager->persist($metadataElement);
 			$this->addReference("PROJECT_{$i}_METADATA_ELEMENT_SERIE_BOOL", $metadataElement);
 
 			$metadataElement = new MetadataElement();
 			$metadataElement
-				->setRawValue("1")
+				->setValue("1")
 				->setMetadata($this->getReference(constant(MetadataFixtures::class . "::PROJECT_{$i}_METADATA_DOCUMENT_BOOL")));
 			$manager->persist($metadataElement);
 			$this->addReference("PROJECT_{$i}_METADATA_ELEMENT_DOCUMENT_BOOL", $metadataElement);
 
 			$metadataElement = new MetadataElement();
 			$metadataElement
-				->setRawValue("1")
+				->setValue("1")
 				->setMetadata($this->getReference(constant(MetadataFixtures::class . "::PROJECT_{$i}_METADATA_VERSION_BOOL")));
 			$manager->persist($metadataElement);
 			$this->addReference("PROJECT_{$i}_METADATA_ELEMENT_VERSION_BOOL", $metadataElement);
@@ -157,28 +157,28 @@ class MetadataElementFixtures extends Fixture implements DependentFixtureInterfa
 			for ($j=0; $j<3; $j++) {
 				$metadataElement = new MetadataElement();
 				$metadataElement
-					->setRawValue($alphabet[$i] . $alphabet[$j])
+					->setValue($alphabet[$i] . $alphabet[$j])
 					->setMetadata($this->getReference(constant(MetadataFixtures::class . "::PROJECT_{$i}_METADATA_SERIE_TEXT")));
 				$manager->persist($metadataElement);
 				$this->addReference("PROJECT_{$i}_METADATA_ELEMENT_SERIE_TEXT_{$j}", $metadataElement);
 
 				$metadataElement = new MetadataElement();
 				$metadataElement
-					->setRawValue("M{$i}{$j}")
+					->setValue("M{$i}{$j}")
 					->setMetadata($this->getReference(constant(MetadataFixtures::class . "::PROJECT_{$i}_METADATA_SERIE_REGEX")));
 				$manager->persist($metadataElement);
 				$this->addReference("PROJECT_{$i}_METADATA_ELEMENT_SERIE_REGEX_{$j}", $metadataElement);
 
 				$metadataElement = new MetadataElement();
 				$metadataElement
-					->setRawValue("0{$i}-0{$j}-1970")
+					->setValue('1970-0' . $j+1 . '-0' . $i+1)
 					->setMetadata($this->getReference(constant(MetadataFixtures::class . "::PROJECT_{$i}_METADATA_SERIE_DATE")));
 				$manager->persist($metadataElement);
 				$this->addReference("PROJECT_{$i}_METADATA_ELEMENT_SERIE_DATE_{$j}", $metadataElement);
 
 				$metadataElement = new MetadataElement();
 				$metadataElement
-					->setRawValue("http://example.com/?project={$i}&value={$j}")
+					->setValue("http://example.com/?project={$i}&value={$j}")
 					->setMetadata($this->getReference(constant(MetadataFixtures::class . "::PROJECT_{$i}_METADATA_SERIE_LINK")));
 				$manager->persist($metadataElement);
 				$this->addReference("PROJECT_{$i}_METADATA_ELEMENT_SERIE_LINK_{$j}", $metadataElement);
@@ -187,28 +187,28 @@ class MetadataElementFixtures extends Fixture implements DependentFixtureInterfa
 
 				$metadataElement = new MetadataElement();
 				$metadataElement
-					->setRawValue($alphabet[$i] . $alphabet[$j])
+					->setValue($alphabet[$i] . $alphabet[$j])
 					->setMetadata($this->getReference(constant(MetadataFixtures::class . "::PROJECT_{$i}_METADATA_DOCUMENT_TEXT")));
 				$manager->persist($metadataElement);
 				$this->addReference("PROJECT_{$i}_METADATA_ELEMENT_DOCUMENT_TEXT_{$j}", $metadataElement);
 
 				$metadataElement = new MetadataElement();
 				$metadataElement
-					->setRawValue("M{$i}{$j}")
+					->setValue("M{$i}{$j}")
 					->setMetadata($this->getReference(constant(MetadataFixtures::class . "::PROJECT_{$i}_METADATA_DOCUMENT_REGEX")));
 				$manager->persist($metadataElement);
 				$this->addReference("PROJECT_{$i}_METADATA_ELEMENT_DOCUMENT_REGEX_{$j}", $metadataElement);
 
 				$metadataElement = new MetadataElement();
 				$metadataElement
-					->setRawValue("0{$i}-0{$j}-1970")
+					->setValue('1970-0' . $j+1 . '-0' . $i+1)
 					->setMetadata($this->getReference(constant(MetadataFixtures::class . "::PROJECT_{$i}_METADATA_DOCUMENT_DATE")));
 				$manager->persist($metadataElement);
 				$this->addReference("PROJECT_{$i}_METADATA_ELEMENT_DOCUMENT_DATE_{$j}", $metadataElement);
 
 				$metadataElement = new MetadataElement();
 				$metadataElement
-					->setRawValue("http://example.com/?project={$i}&value={$j}")
+					->setValue("http://example.com/?project={$i}&value={$j}")
 					->setMetadata($this->getReference(constant(MetadataFixtures::class . "::PROJECT_{$i}_METADATA_DOCUMENT_LINK")));
 				$manager->persist($metadataElement);
 				$this->addReference("PROJECT_{$i}_METADATA_ELEMENT_DOCUMENT_LINK_{$j}", $metadataElement);
@@ -217,28 +217,28 @@ class MetadataElementFixtures extends Fixture implements DependentFixtureInterfa
 
 				$metadataElement = new MetadataElement();
 				$metadataElement
-					->setRawValue($alphabet[$i] . $alphabet[$j])
+					->setValue($alphabet[$i] . $alphabet[$j])
 					->setMetadata($this->getReference(constant(MetadataFixtures::class . "::PROJECT_{$i}_METADATA_VERSION_TEXT")));
 				$manager->persist($metadataElement);
 				$this->addReference("PROJECT_{$i}_METADATA_ELEMENT_VERSION_TEXT_{$j}", $metadataElement);
 
 				$metadataElement = new MetadataElement();
 				$metadataElement
-					->setRawValue("M{$i}{$j}")
+					->setValue("M{$i}{$j}")
 					->setMetadata($this->getReference(constant(MetadataFixtures::class . "::PROJECT_{$i}_METADATA_VERSION_REGEX")));
 				$manager->persist($metadataElement);
 				$this->addReference("PROJECT_{$i}_METADATA_ELEMENT_VERSION_REGEX_{$j}", $metadataElement);
 
 				$metadataElement = new MetadataElement();
 				$metadataElement
-					->setRawValue("0{$i}-0{$j}-1970")
+					->setValue('1970-0' . $j+1 . '-0' . $i+1)
 					->setMetadata($this->getReference(constant(MetadataFixtures::class . "::PROJECT_{$i}_METADATA_VERSION_DATE")));
 				$manager->persist($metadataElement);
 				$this->addReference("PROJECT_{$i}_METADATA_ELEMENT_VERSION_DATE_{$j}", $metadataElement);
 
 				$metadataElement = new MetadataElement();
 				$metadataElement
-					->setRawValue("http://example.com/?project={$i}&value={$j}")
+					->setValue("http://example.com/?project={$i}&value={$j}")
 					->setMetadata($this->getReference(constant(MetadataFixtures::class . "::PROJECT_{$i}_METADATA_VERSION_LINK")));
 				$manager->persist($metadataElement);
 				$this->addReference("PROJECT_{$i}_METADATA_ELEMENT_VERSION_LINK_{$j}", $metadataElement);

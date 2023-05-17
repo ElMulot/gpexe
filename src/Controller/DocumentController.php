@@ -58,120 +58,6 @@ class DocumentController extends AbstractTurboController
 	{
 	}
 	
-	#[Route(path: '/project/{project}/serie/{type}/{serie}', name: 'document', requirements: ['project' => '\d+', 'type' => 'sdr|mdr|all', 'serie' => '\d+'], defaults: ['serie' => 0])]
-	public function index(Project $project, string $type, Serie $serie = null) : Response
-	{
-		if ($this->isGranted('ROUTE_SERIE', $project) === false) {
-			return $this->redirectToRoute('project');
-		}
-
-		if ($serie === null) {
-			$company = null;
-			if ($this->getUserCompany()->isMainContractor() === false) {
-				return $this->redirectToRoute('project');
-			}
-		} else {
-			$company = $serie->getCompany();
-			if ($this->getUserCompany()->isMainContractor() === false && $this->getUserCompany() !== $serie->getCompany()) {
-				return $this->redirectToRoute('project');
-			}
-		}
-		return $this->render('document/index.html.twig', [
-			'project' => $project,
-			'current_serie' => $serie,
-			'type' => $type,
-			'current_company' => $company,
-			'route_back' =>  $this->generateUrl('project', [
-				'project' => $project->getId(),
-			]),
-		]);
-	}
-	
-	#[Route(path: '/project/{project}/serie/{type}/{serie}/fields', name: 'documentFields', requirements: ['project' => '\d+', 'type' => 'sdr|mdr|all', 'serie' => '\d+'], defaults: ['serie' => 0])]
-	public function fields(Project $project, string $type, Serie $serie = null) : Response
-	{
-		$this->denyAccessUnlessGranted('ROUTE_SERIE', $project);
-		
-		if ($serie === null) {
-			$company = null;
-			$series = $this->serieRepository->getSeriesByTypeAsArray($project, $type);
-			$fields = $this->fieldService->getFieldsForJs($project, $series);
-		} else {
-			$company = $serie->getCompany();
-			$series = $this->serieRepository->getSeriesByCompanyAsArray($project, $company);
-			$fields = $this->fieldService->getFieldsForJs($project, $series);
-		}
-		$progressPrograms = $this->programRepository->getEnabledProgressProgramsAsArray($project, $series);
-		return new JsonResponse([
-			'series' => $series,
-			'fields' => $fields,
-			'progress_programs' => $progressPrograms,
-		]);
-	}
-	
-	/**
-	 * @deprecated version
-	 */
-	#[Route(path: '/project/{project}/serie/{type}/{serie}/table', name: 'documentTable', requirements: ['project' => '\d+', 'type' => 'sdr|mdr|all', 'serie' => '\d+'], defaults: ['serie' => 0])]
-	public function table(Request $request, FlashBagInterface $flashBag, Project $project, string $type, Serie $serie = null) : Response
-	{
-		$this->denyAccessUnlessGranted('ROUTE_SERIE', $project);
-
-		$page = max((int)$request->query->get('page') ?? 1, 1);
-		$request->query->remove('page');
-		if ($viewId = $request->query->get('view')) {
-			if ($view = $this->viewRepository->getViewById($viewId)) {
-				$request->query->replace($view->getValue());
-				$request->query->set('view', $viewId);
-			} else {
-				$request->query->remove('view');
-			}
-		}
-		if ($serie === null) {
-			if ($this->getUserCompany()->isMainContractor() === false) {
-				throw $this->createAccessDeniedException();
-			}
-			$series = $this->serieRepository->getSeriesByTypeAsArray($project, $type);
-			$serieId = 0;
-		} else {
-			if ($this->getUserCompany()->isMainContractor() === false && $this->getUserCompany() !== $serie->getCompany()) {
-				throw $this->createAccessDeniedException();
-			}
-			$series = [$serie];
-			$serieId = $serie->getId();
-		}
-		$codifications = $this->codificationRepository->getCodifications($project);
-		$fields = $this->fieldService->getFields($project);
-		if ($request->query->all() == false) {
-			if ($view = $this->viewRepository->getDefaultViewByProjectAndByUser($project, $this->getUser())) {
-				$viewId = $view->getId();
-				$request->query->replace($view->getValue());
-				$request->query->set('view', $viewId);
-			} else {
-				$request->query->set('display', $this->getDefaultDisplay($fields));
-			}
-		}
-		$versionsCount = $this->versionRepository->getVersionsCount($codifications, $fields, $series, $project, $request);
-		$resultsPerPage = $request->query->get('results_per_page') ?? 50;
-		if ($resultsPerPage == 0) { //display all
-			$pageMax = 1;
-		} else {
-			$pageMax = max(ceil($versionsCount / $resultsPerPage), 1);
-		}
-		$request->query->set('results_per_page', $resultsPerPage);
-		$request->query->set('page', min($page, $pageMax));
-		$versions = $this->versionRepository->getVersionsAsArray($codifications, $fields, $project, $request);
-		$serializer = new Serializer([new DateTimeNormalizer(['datetime_format' => 'd-m-Y'])]);
-		return new JsonResponse([
-				'datas' => $serializer->normalize($versions),
-				'page_max' => $pageMax,
-				'query' => $request->query->all(),
-				'serie' => $serieId,
-				'flash' => $flashBag->all(),
-			]
-		);
-	}
-	
 	#[Route(path: '/project/{project}/serie/{type}/{serie}/export', name: 'documentExport', requirements: ['project' => '\d+', 'type' => 'sdr|mdr|all', 'serie' => '\d+'], defaults: ['serie' => 0])]
 	public function export(Request $request, Project $project, string $type, Serie $serie = null) : Response
 	{
@@ -239,19 +125,18 @@ class DocumentController extends AbstractTurboController
 
 	/**
 	 * Query parameters :
-	 * 	+ array		series			array of serie ids that will be used for serie selector in the form if versions is empty
 	 * 	+ array		versions		array of version ids that will be used for serie selector in the form
+	 * 	+ array		series			array of serie ids that will be used for serie selector in the form if versions is empty
 	 */
 	#[Route(path: '/project/{project}/document/new', name: 'documentNew', requirements: ['project' => '\d+'])]
 	public function new(Request $request, Project $project) : Response
 	{
-		
 		$this->denyAccessUnlessGranted('DOCUMENT_NEW', $project);
 		
 		if ($request->query->has('versions')) {
-			$series = $this->serieRepository->getSeriesByVersionIds($request->get('versions'));
+			$series = $this->serieRepository->getSeriesByVersionIds($request->query->all('versions'));
 		} else {
-			$series = $this->serieRepository->getSeriesByIds($request->get('series'));
+			$series = $this->serieRepository->getSeriesByIds($request->query->all('series'));
 		}
 		
 		$document = new Document();
@@ -267,11 +152,9 @@ class DocumentController extends AbstractTurboController
 		if ($form->isSubmitted() && $form->isValid()) {
 			
 			$entityManager = $this->doctrine->getManager();
-			$entityManager->persist($document);
-
-			// return $this->render('pages/engineering/new/_pannel.html.twig', [
-			// 	'form' => $form,
-			// ]);
+			foreach ($documents as $document) {
+				$entityManager->persist($document);
+			}
 
 			//try block in case a duplicated codification detected through UniqueCodificationListener
 			try {
@@ -287,12 +170,14 @@ class DocumentController extends AbstractTurboController
 
 			return $this->renderSuccess($request, 'versionNew', [
 				'project'	=> $project->getId(),
-				'versions'	=> $request->get('versions')
-			]);
+			] + $request->query->all());
+
 		} else {
+
 			return $this->render('pages/engineering/new/_pannel.html.twig', [
 				'form' => $form,
 			]);
+
 		}
 	}
 	
@@ -307,20 +192,25 @@ class DocumentController extends AbstractTurboController
 		$series = $this->serieRepository->getSeriesByVersionIds($request->get('versions'));
 		$documents = $this->documentRepository->getDocumentsByVersionsId($request->get('versions'));
 		
-		$serie = reset($series);
+		$document = reset($documents);
 
-		$this->denyAccessUnlessGranted('DOCUMENT_EDIT', $serie);
+		$this->denyAccessUnlessGranted('DOCUMENT_EDIT', $document);
 
 		$form = $this->createForm(DocumentType::class, $documents, [
 			'project'	=> $project,
 			'series'	=> $series,
 		]);
-
+		
 		$form->handleRequest($request);
-
+		
 		if ($form->isSubmitted() && $form->isValid()) {
-			
+
 			$entityManager = $this->doctrine->getManager();
+
+			dump($documents);
+			return $this->render('pages/engineering/edit/_pannel.html.twig', [
+				'form' => $form,
+			]);
 
 			//try block in case a duplicated codification detected through UniqueCodificationListener
 			try {
@@ -341,9 +231,11 @@ class DocumentController extends AbstractTurboController
 			]);
 			
 		} else {
+
 			return $this->render('pages/engineering/edit/_pannel.html.twig', [
 				'form' => $form,
 			]);
+			
 		}
 	}
 	

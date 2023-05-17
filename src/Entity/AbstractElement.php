@@ -89,7 +89,7 @@ abstract class AbstractElement
 				/**@var MetadataElement $metadataElement */
 				foreach ($this->getMetadataElements()->getValues() as $metadataElement) {
 					if ($metadataElement->getMetadata() == $metadata) {
-						return $metadataElement->getValue();
+						return $metadataElement->getTypedValue();
 					}
 				}
 				break;
@@ -171,7 +171,7 @@ abstract class AbstractElement
 			case MetadataTypeEnum::LINK:	
 				foreach ($this->getMetadataElements()->getValues() as $metadataElement) {
 					if ($metadataElement->getMetadata() === $metadata) {
-						if ($metadataElement->getValue() === $value) {
+						if ($metadataElement->getTypedValue() === $value) {
 							return $this;
 						} else {
 							$this->removeMetadataElement($metadataElement);
@@ -184,13 +184,13 @@ abstract class AbstractElement
 				}
 
 				foreach ($metadata->getMetadataElements()->getValues() as $metadataElement) {
-					if ($metadataElement->getValue() === $value) {
+					if ($metadataElement->getTypedValue() === $value) {
 						$this->addMetadataElement($metadataElement);
 						return $this;
 					}
 				}
 				$metadataElement = new MetadataElement();
-				$metadataElement->setRawValue($value);
+				$metadataElement->setValue($value);
 				$metadataElement->setMetadata($metadata);
 				$this->addMetadataElement($metadataElement);
 				return $this;

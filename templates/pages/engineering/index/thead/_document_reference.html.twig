@@ -4,6 +4,8 @@
 {% set sortedAsc = query.sortAsc is defined and codifications|filter(v => query.sortAsc == v.id) is not empty %}
 {% set sortedDesc = query.sortDesc is defined and codifications|filter(v => query.sortDesc == v.id) is not empty %}
 
+
+
 <th data-responsive
 		{{ stimulus_target('engineering--main', 'header') }}
 		{{ stimulus_controller('engineering--header', {'id': field.id, 'width': width, 'filtered': filtered, 'sortedAsc': sortedAsc, 'sortedAsc': sortedAsc}) }}
@@ -18,11 +20,11 @@
 		<div class="dropdown-menu" {{ stimulus_target('engineering--header', 'menu') }}>
 			<div class="d-flex flex-row">
 				{% for codification in codifications %}
-					{% if codification.type == 'list' %}
+					{% if codification.type == enum('App\\Entity\\Enum\\CodificationTypeEnum::LIST') %}
 						{% set filtered = (query.filters[codification.id] is defined)?query.filters[codification.id]:[] %}
 						<div style="width:15rem;"
 							{{ stimulus_target('engineering--header', 'component') }}
-							{{ stimulus_controller('engineering--header--list', { 'id': codification.id, 'filtered':filtered }) }}>
+							{{ stimulus_controller('engineering--header--list', { 'id': codification.id, 'key': codification.key, 'filtered':filtered }) }}>
 							<div class="border-bottom border-dark px-1 pb-2 text-center">
 								{{ codification.title }}
 							</div>
@@ -48,7 +50,7 @@
 										{% trans %}Select all{% endtrans %}
 									</label>
 								</div>
-								{% for choice in codification.element.filter.choices %}
+								{% for choice in codification.choices %}
 									<div class="form-check">
 										<input type="checkbox" class="form-check-input" value="{{ choice.id }}" id="{{ codification.id ~ '_' ~ choice.id }}"
 											{{ stimulus_target('engineering--header--list', 'checkbox') }}>
@@ -59,11 +61,11 @@
 								{% endfor %}
 							</div>
 						</div>
-					{% elseif codification.type == 'regex' %}
+					{% elseif codification.type == enum('App\\Entity\\Enum\\CodificationTypeEnum::TEXT') or codification.type == enum('App\\Entity\\Enum\\CodificationTypeEnum::REGEX') %}
 						{% set filtered = (query.filters[codification.id] is defined)?query.filters[codification.id] %}
 						<div style="width:15rem;"
 							{{ stimulus_target('engineering--header', 'component') }}
-							{{ stimulus_controller('engineering--header--text', { 'id': codification.id, 'filtered': filtered }) }}>
+							{{ stimulus_controller('engineering--header--text', { 'id': codification.id, 'key': codification.key, 'filtered': filtered }) }}>
 							<div class="border-bottom border-dark px-1 pb-2 text-center">
 								{{ codification.title }}
 							</div>
@@ -85,7 +87,7 @@
 				{% endfor %}
 				<div style="width:15rem;"
 					{{ stimulus_target('engineering--header', 'component') }}
-					{{ stimulus_controller('engineering--header--text', { 'id': 'reference' }) }}>
+					{{ stimulus_controller('engineering--header--text', { 'id': 'reference', 'key': 'reference' }) }}>
 					<div class="dropdown-title border-bottom border-dark px-1 pb-2 text-center">
 						{% trans %}Search by reference{% endtrans %}
 					</div>

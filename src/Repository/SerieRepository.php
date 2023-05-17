@@ -28,20 +28,21 @@ class SerieRepository extends RepositoryService
 	
 	/**
 	 * Return an array of series from an array of serie.id.
-	 * Used-by : EngineeringController->tbody
+	 * Used-by : EngineeringController::tbody, SerieController::select
+	 * 
 	 * @param array|null $ids
 	 * @return Serie[]
 	 */
 	public function getSeriesByIds(?array $ids = []): array
 	{
 		$qb = $this->newQb('s');
+
 		return $qb
 			->innerJoin('s.company', 'c')
 			->andWhere($qb->in('s.id', $ids))
 			->addOrderBy('c.type, s.name')
 			->getQuery()
-			->getResult()
-		;
+			->getResult();
 	}
 
 	/**
@@ -59,6 +60,7 @@ class SerieRepository extends RepositoryService
 			->innerJoin('s.documents', 'd')
 			->innerJoin('d.versions', 'v')
 			->andWhere($qb->in('v.id', $versionsIds))
+			->addOrderBy('s.name')
 			->getQuery()
 			->getResult()
 		;
@@ -191,11 +193,59 @@ class SerieRepository extends RepositoryService
 		;
 	}
 
-	public function getAvialableSeriesByProjectAndByUserAsArray(Project $project, User $user): array
+	/**
+	 * Return an array of serie ids from an array of company ids.
+	 * Used-by : EngineeringController::index
+	 * 
+	 * @param Project $project
+	 * @param array|null $companyIds
+	 * @return int[]
+	 */
+	public function getSeriesIdsByProjectAndByCompanyIds(Project $project, ?array $companyIds = []): array
+	{
+		
+		$qb = $this->newQb('s');
+
+		return $qb
+			->select('s.id')
+			->andWhere($qb->in('s.company', $companyIds))
+			->andWhere($qb->eq('s.project', $project))
+			->getQuery()
+			->getSingleColumnResult();
+	}
+
+	/**
+	 * Return an array of series from an array of company ids.
+	 * Used-by : EngineeringController::thead, SerieController::index
+	 * 
+	 * @param Project $project
+	 * @param array|null $companyIds
+	 * @return Serie[]
+	 */
+	public function getSeriesByProjectAndByCompanyIds(Project $project, ?array $companyIds = []): array
+	{
+		
+		$qb = $this->newQb('s');
+
+		return $qb
+			->andWhere($qb->in('s.company', $companyIds))
+			->andWhere($qb->eq('s.project', $project))
+			->getQuery()
+			->getResult();
+	}
+
+	/**
+	 * Return an array of series that can be visible by the user.
+	 * Used-by : EngineeringController::thead, SerieController::index
+	 *
+	 * @param Project $project
+	 * @param User $user
+	 * @return Serie[]
+	 */
+	public function getAvialableSeriesByProjectAndByUser(Project $project, User $user): array
 	{
 		$qb = $this->newQb('s');
 		return $qb
-			->select('s.id, s.name')
 			->innerJoin('s.company', 'c')
 			->andWhere($qb->eq('s.project', $project))
 			->andWhere($qb->orX(
@@ -207,27 +257,7 @@ class SerieRepository extends RepositoryService
 				)
 			->addOrderBy('s.name')
 			->getQuery()
-			->getArrayResult();
-	}
-
-	/**
-	 * Return an array of series from an array of company.id.
-	 * Used-by : EngineeringController->action
-	 * @param array|null $companyIds
-	 * @return Serie[]
-	 */
-	public function getSeriesByCompanyIds(?array $companyIds = []): array
-	{
-		
-		$qb = $this->newQb('s');
-
-		return $qb
-			->innerJoin('s.documents', 'd')
-			->innerJoin('d.versions', 'v')
-			->andWhere($qb->in('v.id', $companyIds))
-			->getQuery()
-			->getResult()
-		;
+			->getResult();
 	}
 	
 	// /**

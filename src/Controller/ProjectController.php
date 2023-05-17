@@ -9,6 +9,7 @@ use App\Service\FileUploaderService;
 use App\Repository\CompanyRepository;
 use App\Repository\ProgramRepository;
 use App\Repository\ProjectRepository;
+use App\Repository\SerieRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\HttpFoundation\Request;
@@ -21,7 +22,8 @@ class ProjectController extends AbstractTurboController
 								private readonly FileUploaderService $fileUploadService,
 								private readonly ManagerRegistry $doctrine,
 								private readonly ProgramRepository $programRepository,
-								private readonly ProjectRepository $projectRepository)
+								private readonly ProjectRepository $projectRepository,
+								private readonly SerieRepository $serieRepository)
 	{
 	}
 
@@ -51,6 +53,10 @@ class ProjectController extends AbstractTurboController
 			return $this->redirectToRoute('projectsList');
 		}
 
+		//todo: convertir en tableau de serie ids
+		$mdrSeries = $this->serieRepository->getMdrSeriesByProject($project);
+		$sdrSeries = $this->serieRepository->getSdrSeriesByProject($project);
+
 		$programs = [];
 		if ($this->isGranted('PROGRAM_SHOW', $project)) {
 			$programs = $this->programRepository->getEnabledPrograms($project);
@@ -59,20 +65,22 @@ class ProjectController extends AbstractTurboController
 		}
 
 		if ($this->isGranted('ROLE_ADMIN')) {
-			$routeBack = $this->generateUrl('projectsList');
+			$backRoute = 'projectsList';
 		} else {
 			$projects = $this->projectRepository->getProjects($this->getUser());
 			if (count($projects) == 1) {
-				$routeBack = $this->generateUrl('home');
+				$backRoute = 'home';
 			} else {
-				$routeBack = $this->generateUrl('projectsList');
+				$backRoute = 'projectsList';
 			}
 		}
 		
 		return $this->render('pages/project/index.html.twig', [
 			'project' => $project,
+			'mdr_series' => $mdrSeries,
+			'sdr_series' => $sdrSeries,
 			'programs' => $programs,
-			'route_back' => $routeBack,
+			'back_route' => $backRoute,
 		]);
 	}
 

@@ -31,7 +31,7 @@ class VariousMapperTest extends TestCase
 		$forms = new \ArrayObject(['input' => $form]);
 
 		$mapper = new VariousMapper();
-		$mapper->mapDataToForms('test', $forms);
+		$mapper->mapDataToForms(['test'], $forms);
 	}
 
 	/**

@@ -13,7 +13,7 @@ use Doctrine\Bundle\DoctrineBundle\Attribute\AsEntityListener;
 #[AsEntityListener(entity:Project::class, event: Events::postRemove, lazy:true)]
 class ProjectListener
 {
-	public function __construct(private readonly string $publicDirectory,
+	public function __construct(private readonly string $publicDir,
 								#[Autowire('%app.uploads_directory%')]
 								private readonly string $uploadsDirectory,
 								private readonly FileSystem $fileSystem)
@@ -36,7 +36,7 @@ class ProjectListener
 
 	private function deleteImage(string $imageName)
 	{
-		$this->fileSystem->remove($this->publicDirectory . $this->uploadsDirectory . $imageName);
+		$this->fileSystem->remove($this->publicDir . $this->uploadsDirectory . $imageName);
 	}
 }
 ?>

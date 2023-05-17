@@ -13,6 +13,8 @@ use App\Form\AccountType;
 use App\Form\CodificationChoiceType;
 use App\Form\DeleteType;
 use App\Form\ProjectType;
+use App\Form\Type\BooleanType;
+use App\Form\Type\BooleanVariousType;
 use App\Form\Type\ChoiceVariousType;
 use App\Form\Type\ComboBoxType;
 use App\Form\Type\DateVariousType;
@@ -35,6 +37,7 @@ use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Validator\Mapping\ClassMetadata;
 use Symfony\Component\Validator\Mapping\PropertyMetadata;
@@ -46,7 +49,7 @@ class TestController extends AbstractTurboController
 	public function __construct(private readonly TranslatorInterface $translator,
 								private readonly ManagerRegistry $doctrine,
 								private readonly UserPasswordHasherInterface $passwordHasher,
-                                private readonly string $publicDirectory,
+                                private readonly string $publicDir,
 								private readonly DateService $dateService,
 								#[Autowire('%app.uploads_directory%')]
                                 private readonly string $uploadsDirectory,
@@ -77,43 +80,49 @@ class TestController extends AbstractTurboController
 
 		// $this->dateService->formatAsDefault(new \DateTime());
 		
-		/**@var ClassMetadata */
-		// $metadata = $this->validatorInterface->getMetadataFor(CodificationChoice::class);
-		/**@var PropertyMetadata */
-		// $propertyMetadata = $metadata->getPropertyMetadata('value')[0];
+		$version = ['test1' => '', 'test2' => ''];
 
-		// $form = $this->createFormBuilder(null, [
-		// 		// 'csrf_protection' => false, 
-		// 		// 'attr' => ['id' => 'form_test'],
-		// 	])
-		// 	// ->add('test', ComboBoxType::class, [
-		// 	// 	'required'	=> true,
-		// 	// 	'placeholder' => 'test',
-		// 	// 	'choices' => $metadata->getMetadataChoices()->getValues(),
-		// 	// 	'choice_label'	=> 'value',
-		// 	// 	'data' => $metadata->getMetadataChoices()->getValues()[1],
-		// 	// ])
-		// 	->add('test', TextVariousType::class, [
-		// 		'data' => ['test', 'test2'],
-		// 		'required' => false,
-		// 	])
-		// 	// ->add('codification.ItemsValues', TextType::class, [
-		// 		// 'constraints' => $propertyMetadata->getConstraints(),
-		// 	// ])
-		// 	->add('save', SubmitType::class, ['label' => 'Save'])
-		// 	->getForm();
+		$form = $this->createFormBuilder($version, [
+				'csrf_protection' => false, 
+				'attr' => ['id' => 'form_test'],
+			])
+			// ->add('test', ComboBoxType::class, [
+			// 	'required'	=> true,
+			// 	'placeholder' => 'test',
+			// 	'choices' => $metadata->getMetadataChoices()->getValues(),
+			// 	'choice_label'	=> 'value',
+			// 	'data' => $metadata->getMetadataChoices()->getValues()[1],
+			// ])
+			->add('test1', TextType::class, [
+				'getter'	=> function(array $version, FormInterface $form): mixed
+							{
+								return 'test_1';
+							},
+			])
+			->add('test2', TextVariousType::class, [
+				'getter'	=> function(array $version, FormInterface $form): mixed
+							{
+								return ['test_2'];
+							},
+			])
+			// ->add('codification.ItemsValues', TextType::class, [
+				// 'constraints' => $propertyMetadata->getConstraints(),
+			// ])
+			->add('save', SubmitType::class, ['label' => 'Save', 'attr' => ['form' => 'form_test']])
+			->getForm();
 		
-		// $form->handleRequest($request);		
-		
-		$test = '';
-		dump($request->get('filter')['dd'] ?? 0);
+		// $form['test']->setData(['falsesss']);
+		$request->request->set('form', ['save' => '']);
 
-		// if ($form->isSubmitted() && $form->isValid()) {
-		// 	$test = $form->getData();
-		// }
+		$form->handleRequest($request);
+
+		if ($form->isSubmitted() && $form->isValid()) {
+			dump($form->get('test')->getData());
+			$test = $form->get('test')->getData();
+		}
 		return $this->render('test/index.html.twig', [
-			// 'form' => $form,
-			'test' => $test,
+			'form' => $form,
+			'test' => $test ?? null,
 		]);
 	}
 

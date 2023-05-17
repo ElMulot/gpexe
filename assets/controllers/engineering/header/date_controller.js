@@ -9,11 +9,14 @@ export default class extends Controller {
 
 	static values = {
 		id: String,
+		key: String,
 		filtered: Array,
 		sortedDesc: Boolean,
 		sortedAsc: Boolean,
 		highlighted: Boolean,
 	}
+
+	static outlets = ['flatpickr'];
 
 	connect() {
 
@@ -35,6 +38,9 @@ export default class extends Controller {
 			event.target.parentElement.querySelectorAll('input[type="checkbox"]').forEach(e => {
 				e.checked = event.target.value !== '';
 			});
+
+			console.log(this.flatpickrOutlets);
+
 			let greaterThan = this.greaterThanTextboxTarget.value.toDate();
 			let lessThan = this.lessThanTextboxTarget.value.toDate();
 			if (greaterThan && lessThan) {
@@ -78,7 +84,7 @@ export default class extends Controller {
 			this.dispatch('filter', {
 				prefix: 'engineering--header--component',
 				detail: {
-					key: this.idValue,
+					key: this.keyValue,
 					value: dates
 				}
 			});

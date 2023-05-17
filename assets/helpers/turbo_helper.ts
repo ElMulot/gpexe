@@ -22,18 +22,18 @@ const TurboHelper = class {
 	constructor() {
 
 		//loading animation for instant loading turbo-frame
-		document.querySelectorAll('turbo-frame[src]').forEach(e => {
+		document.querySelectorAll('turbo-frame[src]').forEach((e: Element) => {
 			this.renderLoading(e);
 		});
 
 		//clear document before caching
-		document.addEventListener('turbo:before-cache', event => {
+		document.addEventListener('turbo:before-cache', () => {
 			this.closeAllModals();
 			this.clearLoadingComponents();
 			this.emptyFrames();
 		});
 
-		document.addEventListener('turbo:before-fetch-request', event => {
+		document.addEventListener('turbo:before-fetch-request', (event: Event) => {
 			
 			//add in response specific headers
 			// -------------------------------------------------------------------------------------------------------------------------
@@ -55,7 +55,8 @@ const TurboHelper = class {
 			//if target is the <html> element, only explicitOriginalTarget is used
 
 			const target = event.target;
-			const explicitOriginalTarget = event.explicitOriginalTarget;
+			//todo : à vérifier si explicitOriginalTarget est équivalent à currentTarget
+			const explicitOriginalTarget = event.currentTarget;
 
 			if (target instanceof HTMLBodyElement === true) {
 				var dataset = Object.entries(explicitOriginalTarget.dataset);

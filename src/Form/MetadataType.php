@@ -47,36 +47,33 @@ class MetadataType extends AbstractType
 
 		switch ($metadata->getType()) {
 			case MetadataTypeEnum::BOOL:
-				$builder->add('defaultRawValue', BooleanType::class, [
+				$builder->add('defaultValue', BooleanType::class, [
 					'label' => 'Default value',
 				]);
 				break;
 			case MetadataTypeEnum::TEXT:
 			case MetadataTypeEnum::REGEX:
 			case MetadataTypeEnum::LINK:
-				$builder->add('defaultRawValue', TextType::class, [
+				$builder->add('defaultValue', TextType::class, [
 					'required'	=> false,
-					'label' => 'Default value',
 				]);
 				break;
 			case MetadataTypeEnum::DATE:
-				$builder->add('defaultRawValue', DateType::class, [
+				$builder->add('defaultValue', DateType::class, [
 					'required'	=> false,
-					'label' => 'Default value',
 					'getter'	=> function(Metadata $metadata, FormInterface $form): mixed
 					{
 						return new \DateTime($metadata->getDefaultValue());
 					},
 					'setter'	=> function(Metadata $metadata, $modelData, FormInterface $form): void
 					{
-						$metadata->setDefaultRawValue($this->dateService->formatAsInternal($modelData));
+						$metadata->setDefaultValue($this->dateService->formatAsInternal($modelData));
 					},
 				]);
 				break;
 			case MetadataTypeEnum::LIST:
-				$builder->add('defaultRawValue', ComboBoxType::class, [
+				$builder->add('defaultValue', ComboBoxType::class, [
 					'required'	=> false,
-					'label' => 'Default value',
 					'choices'	=> $metadata->getMetadataChoices()->getValues(),
 					'choice_label'	=> 'value',
 				]);

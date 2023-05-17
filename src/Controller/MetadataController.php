@@ -1,6 +1,7 @@
 <?php
 namespace App\Controller;
 
+use App\Entity\Enum\MetadataTypeEnum;
 use App\Entity\Project;
 use App\Entity\Metadata;
 use App\Form\MetadataType;
@@ -9,6 +10,7 @@ use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Requirement\EnumRequirement;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 class MetadataController extends AbstractTurboController
@@ -31,8 +33,8 @@ class MetadataController extends AbstractTurboController
 		]);
 	}
 
-	#[Route(path: '/project/{project}/metadata/new/{type}', name: 'metadataNew', requirements: ['project' => '\d+', 'type' => 'bool|text|regex|date|link|list'])]
-	public function new(Request $request, Project $project, string $type = null) : Response
+	#[Route(path: '/project/{project}/metadata/new/{type}', name: 'metadataNew', requirements: ['project' => '\d+', 'type' => new EnumRequirement(MetadataTypeEnum::class)])]
+	public function new(Request $request, Project $project, MetadataTypeEnum $type = null) : Response
 	{
 		$this->denyAccessUnlessGranted('PROJECT_EDIT', $project);
 
@@ -70,11 +72,9 @@ class MetadataController extends AbstractTurboController
 		}
 	}
 
-	#[Route(path: '/project/metadata/{metadata}/edit', name: 'metadataEdit', requirements: ['metadata' => '\d+'])]
-	public function edit(Request $request, Metadata $metadata) : Response
+	#[Route(path: '/project/{project}/metadata/{metadata}/edit', name: 'metadataEdit', requirements: ['project' => '\d+', 'metadata' => '\d+'])]
+	public function edit(Request $request, Project $project, Metadata $metadata) : Response
 	{
-		$project = $metadata->getProject();
-
 		$this->denyAccessUnlessGranted('PROJECT_EDIT', $project);
 
 		$form = $this->createForm(MetadataType::class, $metadata);
@@ -100,11 +100,9 @@ class MetadataController extends AbstractTurboController
 		}
 	}
 
-	#[Route(path: '/project/metadata/{metadata}/delete', name: 'metadataDelete', methods: ['GET', 'DELETE'], requirements: ['metadata' => '\d+'])]
-	public function delete(Request $request, Metadata $metadata) : Response
+	#[Route(path: '/project/{project}/metadata/{metadata}/delete', name: 'metadataDelete', methods: ['GET', 'DELETE'], requirements: ['project' => '\d+', 'metadata' => '\d+'])]
+	public function delete(Request $request, Project $project, Metadata $metadata) : Response
 	{
-		$project = $metadata->getProject();
-
 		$this->denyAccessUnlessGranted('PROJECT_EDIT', $project);
 		
 		$form = $this->createDeleteForm($metadata);

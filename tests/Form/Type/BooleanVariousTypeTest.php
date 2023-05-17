@@ -4,7 +4,6 @@ namespace App\Tests\Form\Type;
 
 use App\Form\DataMapper\VariousMapper;
 use App\Form\DataTransformer\BooleanToStringTransformer;
-use App\Form\DataTransformer\VariousTransformer;
 use App\Form\DataTransformer\ViewTransformer;
 use App\Form\EventSubscriber\VariousFieldSubscriber;
 use App\Form\Type\BooleanType;
@@ -20,14 +19,12 @@ class BooleanVariousTypeTest extends TypeTestCase
 {
 	
 	private $suscriber;
-	private $modelTransformer;
 	private $viewTransformer;
 	private $dataMappper;
 
 	protected function setUp(): void
 	{
 		$this->suscriber = new VariousFieldSubscriber();
-		$this->modelTransformer = new VariousTransformer();
 		$this->viewTransformer = new BooleanToStringTransformer();
 		$this->dataMappper = new VariousMapper();
 		parent::setUp();
@@ -35,7 +32,7 @@ class BooleanVariousTypeTest extends TypeTestCase
 
 	protected function getExtensions()
 	{
-		$booleanVariousType = new BooleanVariousType($this->suscriber, $this->modelTransformer, $this->dataMappper);
+		$booleanVariousType = new BooleanVariousType($this->suscriber, $this->dataMappper);
 		$booleanType = new BooleanType($this->viewTransformer);
 
 		return [
@@ -79,7 +76,7 @@ class BooleanVariousTypeTest extends TypeTestCase
 	 * @covers BooleanVariousType
 	 * @testWith	[null, false]
 	 * 				["", true]
-	 * 				["0", true]
+	 * 				["0", false]
 	 * 				["1", true]
 	 * 				["a", true]
 	 */
@@ -100,7 +97,7 @@ class BooleanVariousTypeTest extends TypeTestCase
 	 * @covers BooleanVariousType
 	 * @testWith	[null, false]
 	 * 				["", true]
-	 * 				["0", true]
+	 * 				["0", false]
 	 * 				["1", true]
 	 * 				["a", true]
 	 */

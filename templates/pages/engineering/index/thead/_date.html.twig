@@ -18,7 +18,8 @@
 		<div class="dropdown-menu" {{ stimulus_target('engineering--header', 'menu') }}>
 			<div style="width:15rem;"
 				{{ stimulus_target('engineering--header', 'component') }}
-				{{ stimulus_controller('engineering--header--date', { 'id': field.id, 'filtered': filtered, 'sortedDesc': sortedDesc, 'sortedAsc': sortedAsc, 'highlighted': highlighted }) }}>
+				{{ stimulus_controller('engineering--header--date', { 'id': field.id, 'key': field.key, 'filtered': filtered, 'sortedDesc': sortedDesc, 'sortedAsc': sortedAsc, 'highlighted': highlighted }) }}
+				data-engineering--header--date-flatpickr-outlet=".form-control">
 				<div class="d-flex flex-wrap justify-content-center px-3 pt-2">
 					<button type="button" class="btn btn-sm btn-primary mx-1"
 						{{ stimulus_target('engineering--header--date', 'sortDesc') }}

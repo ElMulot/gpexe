@@ -19,8 +19,8 @@ class HomeController extends AbstractTurboController
 								private readonly ProjectRepository $projectRepository,
 								private readonly StatusRepository $statusRepository,
 								private readonly VersionRepository $versionRepository,
-								#[Autowire('%kernel.project_dir%')]
-        						private string $kernelProjectDir)
+								#[Autowire('app.ressource_dir')]
+								private readonly string $ressourcesDirectory)
 	{
 	}
 	
@@ -96,7 +96,7 @@ class HomeController extends AbstractTurboController
 	public function about() : Response
 	{
 		return $this->render('pages/main/about.html.twig', [
-			'items' => Yaml::parseFile($this->kernelProjectDir . '/config/ressources/about.yaml'),
+			'items' => Yaml::parseFile($this->ressourcesDirectory . 'about.yaml'),
 		]);
 	}
 	

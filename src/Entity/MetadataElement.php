@@ -19,7 +19,7 @@ class MetadataElement implements \Stringable
 	#[ORM\Column(length: 255)]
 	#[IsValid]
 	#[IsMandatory]
-	private ?string $rawValue = null;
+	private ?string $value = null;
 
 	#[ORM\ManyToOne(inversedBy: 'metadataElements')]
 	private ?Metadata $metadata = null;
@@ -30,14 +30,14 @@ class MetadataElement implements \Stringable
 		return $this->id;
 	}
 
-	public function getRawValue(): ?string
+	public function getValue(): ?string
 	{
-		return $this->rawValue;
+		return $this->value;
 	}
 
-	public function setRawValue(mixed $rawValue): self
+	public function setValue(mixed $value): self
 	{
-		$this->rawValue = (string)$rawValue;
+		$this->value = (string)$value;
 		
 		return $this;
 	}
@@ -54,16 +54,16 @@ class MetadataElement implements \Stringable
 		return $this;
 	}
 
-	public function getValue(): null|bool|string|\DateTimeInterface
+	public function getTypedValue(): null|bool|string|\DateTimeInterface
 	{
-		if ($this->rawValue === null) {
+		if ($this->value === null) {
 			return null;
 		}
 		
 		return match ($this->metadata->getType()) {
-			MetadataTypeEnum::BOOL	=> (bool)$this->rawValue,
-			MetadataTypeEnum::DATE	=> new \DateTime($this->rawValue),
-			default					=> $this->rawValue,
+			MetadataTypeEnum::BOOL	=> (bool)$this->value,
+			MetadataTypeEnum::DATE	=> new \DateTime($this->value),
+			default					=> $this->value,
 		};
 	}
 	

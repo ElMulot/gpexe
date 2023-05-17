@@ -5,94 +5,126 @@ namespace App\Form;
 use App\Entity\Serie;
 use App\Entity\Company;
 use App\Entity\Project;
-use App\Entity\Metadata;
+use App\Validator\IsValid;
 use App\Entity\MetadataChoice;
-use App\Form\Type\BooleanType;
+use App\Form\Type\DateVariousType;
+use App\Form\Type\TextVariousType;
+use App\Form\Type\EntityVariousType;
 use App\Entity\Enum\MetadataTypeEnum;
-use App\Repository\CompanyRepository;
+use App\Form\Type\BooleanVariousType;
+use App\Form\Type\TextareaVariousType;
 use App\Repository\MetadataRepository;
 use Symfony\Component\Form\AbstractType;
 use App\Exception\InternalErrorException;
-use App\Validator\IsValid;
+use App\Form\Type\ChoiceVariousType;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
-use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Form\Extension\Core\Type\DateType;
-use Symfony\Component\Form\Extension\Core\Type\TextType;
-use Symfony\Component\Form\Extension\Core\Type\TextareaType;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
-use Symfony\Component\Validator\Constraints\GroupSequence;
+use Symfony\Component\Form\ChoiceList\ChoiceList;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Validator\Constraints\Regex;
-use Symfony\Component\Validator\Constraints\Url;
+use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Validator\Constraints\GroupSequence;
 
 class SerieType extends AbstractType
 {
 	
-	public function __construct(private readonly CompanyRepository $companyRepository,
-								private readonly MetadataRepository $metadataRepository,
-								#[Autowire('%app.config.icu_date_pattern%')]
-								private readonly string $ICUDatePattern)
+	public function __construct(private readonly MetadataRepository $metadataRepository)
 	{
 	}
 	
-	//pour le moment, les champs company et name ne sont pas rattachés à l'entité.
-	//pour les autres, ce sont des getters/setters mais je pense qu'il faudra passer par un SerieMapper. A réfléchir.
+	//As fields are not mapped to entity, new constraints has been attached to each field with group validation "Form" to have
+	//an error attached to each field.
+	//If a constraint is forgotten, the constraint in the entity will provide the ultimate security.
+	//As a consequence, if the validation don't fail, each field will be validated twice (once with "From" group, once with "Default" group).
+	//A solution could be to mapped each violation on the correct field.
 	public function buildForm(FormBuilderInterface $builder, array $options)
 	{
 		
-		/** @var Serie $serie */
-		$serie = $builder->getData();
+		/** @var Serie[] */
+		$series = $builder->getData();
 
-		/** @var Project $project */
+		if (count($series) === 0) {
+			throw new InternalErrorException();
+		}
+
+		$serie = reset($series);
+
+		$isNew = $serie->getId() === null;
+
+		/** @var Project */
 		$project = $options['project'];
+		
+		/** @var Company[] */
+		$companies = $options['companies'];
+		
 		$metadatas = $this->metadataRepository->getMetadatasForSerie($project);
-		$companies = $options['company'];
 
 		if (count($companies) === 0) {
 			throw new InternalErrorException();
-		} elseif (count($companies) === 1) {
-			$builder->add('company', TextType::class, [
-				'data' => reset($companies)->getName(),
-				'disabled' => true,
+		} elseif (count($companies) === 1 || $isNew === false) {
+			$builder->add('company', EntityVariousType::class, [
+				'class'			=> Company::class,
+				'choices'		=> $companies,
+				'choice_label'	=> 'name',
+				'data'			=> $companies,
+				'disabled'		=> true,
 			]);
-		} elseif (count($companies) > 1) {
+		} else {
 			$builder->add('company', EntityType::class, [
-				'class' => Company::class,
-				'choices' => $companies,
+				'class'			=> Company::class,
+				'choices'		=> $companies,
+				'choice_label'	=> 'name',
+				'setter'		=> function(array &$series, mixed $modelData, FormInterface $form): void
+									{
+										array_walk($series, fn(Serie $serie) => $serie->setCompany($modelData));
+									},
 			]);
 		}
 
-		$builder->add('name', TextType::class);
+		if (count($series) === 1) {
+			$builder->add('name', TextType::class, [
+				'constraints'	=> new Regex('/^[^$"]+$/'),
+				'setter'		=> function(array &$series, $modelData, FormInterface $form): void
+									{
+										array_walk($series, fn(Serie $serie) => $serie->setName($modelData));
+									},
+			]);
+		}
 		
-		/** @var Metadata $metadata */
 		foreach ($metadatas as $metadata) {
 
+			//mandatory add a required attribut, so the constraint isMandatory is not necessary
+			
 			$defaultOptions = [
 				'label'			=> $metadata->getName(),
 				'required'		=> $metadata->isMandatory(),
-				'getter'		=> function(Serie $serie, FormInterface $form) use ($metadata): mixed
+				'getter'		=> function(array $series, FormInterface $form) use ($metadata, $isNew): mixed
 									{
-										if ($serie->getId() === null) {
-											return $metadata->getDefaultValue();
+										if ($isNew === true) {
+											return [$metadata->getTypedDefaultValue()];
 										} else {
-											return $serie->getMetadataValue($metadata);
+											return array_map(fn(Serie $serie) => $serie->getMetadataValue($metadata), $series);
 										}
 									},
-				'setter'		=> function (Serie &$serie, $viewData, FormInterface $form) use ($metadata): void
+				'setter'		=> function(array &$series, mixed $modelData, FormInterface $form) use ($metadata): void
 									{
-										$serie->setPropertyValue($metadata->getFullCodename(), $viewData);
+										if (is_array($modelData) === false) {
+											array_walk($series, fn(Serie $serie) => $serie->setMetadataValue($metadata, $modelData));
+										}
 									},
+				'empty_data' 	=> $metadata->getDefaultValue(),
 			];
 
 			switch ($metadata->getType()) {
 				
 				case MetadataTypeEnum::BOOL:
-					$builder->add($metadata->getCodeName(), BooleanType::class, $defaultOptions);
+					$builder->add($metadata->getFullId(), BooleanVariousType::class, $defaultOptions);
 					break;
 					
 				case MetadataTypeEnum::DATE:
-					$builder->add($metadata->getCodeName(), DateType::class, $defaultOptions + [
+					$builder->add($metadata->getFullId(), DateVariousType::class, $defaultOptions + [
 						'constraints' => [
 							new IsValid(
 								groups: ['Form']
@@ -102,7 +134,7 @@ class SerieType extends AbstractType
 					break;
 					
 				case MetadataTypeEnum::TEXT:
-					$builder->add($metadata->getCodeName(), TextareaType::class, $defaultOptions + [
+					$builder->add($metadata->getFullId(), TextareaVariousType::class, $defaultOptions + [
 						'constraints' => [
 							new IsValid(
 								groups: ['Form']
@@ -112,7 +144,7 @@ class SerieType extends AbstractType
 					break;
 				
 				case MetadataTypeEnum::REGEX:
-					$builder->add($metadata->getCodeName(), TextareaType::class, $defaultOptions + [
+					$builder->add($metadata->getFullId(), TextareaVariousType::class, $defaultOptions + [
 						'constraints' => [
 							new IsValid(
 								payload: ['pattern' => $metadata->getPattern()],
@@ -123,10 +155,10 @@ class SerieType extends AbstractType
 					break;
 					
 				case MetadataTypeEnum::LINK:
-					$builder->add($metadata->getCodeName(), TextType::class, $defaultOptions + [
+					$builder->add($metadata->getFullId(), TextVariousType::class, $defaultOptions + [
 						'constraints' => [
 							new IsValid(
-								payload: ['isUrl' => true],
+								payload: ['isLink' => true],
 								groups: ['Form']
 							),
 						]
@@ -134,26 +166,23 @@ class SerieType extends AbstractType
 					break;
 					
 				case MetadataTypeEnum::LIST:
-					$builder->add($metadata->getCodeName(), EntityType::class, $defaultOptions + [
+					$builder->add($metadata->getFullId(), EntityVariousType::class, $defaultOptions + [
 						'class'			=> MetadataChoice::class,
 						'choices'		=> $metadata->getMetadataChoices(),
 						'choice_label'	=> 'value',
 						'choice_value'	=> 'value',
 					]);
+					$builder->get($metadata->getFullId())->resetViewTransformers();
 					break;
 			}
 		}
-
 	}
 
 	public function configureOptions(OptionsResolver $resolver)
 	{
 		$resolver->setDefaults([
 			'data_class'		=> null,
-			'project'			=> null,
-			'companies'			=> [],
 			'validation_groups'	=> new GroupSequence(['Form', 'Default']),
-
 		]);
 
 		$resolver->setRequired(['project', 'companies']);

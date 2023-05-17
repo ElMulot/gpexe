@@ -18,7 +18,7 @@
 						{{ include('pages/engineering/index/thead/_document_reference.html.twig') }}
 					{% elseif field.type == enum('App\\Entity\\Enum\\MetadataTypeEnum::BOOL') %}
 						{{ include('pages/engineering/index/thead/_boolean.html.twig') }}
-					{% elseif field.type == enum('App\\Entity\\Enum\\MetadataTypeEnum::TEXT') %}
+					{% elseif field.type == enum('App\\Entity\\Enum\\MetadataTypeEnum::TEXT') or field.type == enum('App\\Entity\\Enum\\MetadataTypeEnum::REGEX') %}
 						{{ include('pages/engineering/index/thead/_text.html.twig') }}
 					{% elseif field.type == enum('App\\Entity\\Enum\\MetadataTypeEnum::DATE') %}
 						{{ include('pages/engineering/index/thead/_date.html.twig') }}

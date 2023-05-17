@@ -6,7 +6,6 @@ use App\Form\Type\ChoiceVariousType;
 use App\Form\DataMapper\VariousMapper;
 use Symfony\Component\Form\Test\TypeTestCase;
 use Symfony\Component\Form\PreloadedExtension;
-use App\Form\DataTransformer\VariousTransformer;
 use App\Form\EventSubscriber\VariousFieldSubscriber;
 use App\Form\DataTransformer\BooleanToStringTransformer;
 
@@ -14,14 +13,12 @@ class ChoiceVariousTypeTest extends TypeTestCase
 {
 	
 	private $suscriber;
-	private $modelTransformer;
 	private $viewTransformer;
 	private $dataMappper;
 
 	protected function setUp(): void
 	{
 		$this->suscriber = new VariousFieldSubscriber();
-		$this->modelTransformer = new VariousTransformer();
 		$this->viewTransformer = new BooleanToStringTransformer();
 		$this->dataMappper = new VariousMapper();
 		parent::setUp();
@@ -29,7 +26,7 @@ class ChoiceVariousTypeTest extends TypeTestCase
 
 	protected function getExtensions()
 	{
-		$type = new ChoiceVariousType($this->suscriber, $this->modelTransformer, $this->dataMappper);
+		$type = new ChoiceVariousType($this->suscriber, $this->dataMappper);
 
 		return [
 			new PreloadedExtension([$type], []),

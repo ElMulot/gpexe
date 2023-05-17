@@ -6,7 +6,7 @@
 				<div class="card card-width">
 					<div class="card-header">{{ company.name }}</div>
 					<div class="card-body">
-						<a class="btn btn-engineering" href="{{ path('seriesListByCompany', {'project': project.id, 'company': company.id}) }}" target="_top" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-original-title="{% trans %}Engineering{% endtrans %}">
+						<a class="btn btn-engineering" href="{{ path('engineering', {'project': project.id, 'companies': [company.id]}) }}" target="_top" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-original-title="{% trans %}Engineering{% endtrans %}">
 							<img src="{{ asset('icons/engineering.svg') }}" alt="{% trans %}Egnineering{% endtrans %}">
 						</a>
 					</div>

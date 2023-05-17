@@ -6,27 +6,24 @@ use App\Form\Type\TextVariousType;
 use App\Form\DataMapper\VariousMapper;
 use Symfony\Component\Form\Test\TypeTestCase;
 use Symfony\Component\Form\PreloadedExtension;
-use App\Form\DataTransformer\VariousTransformer;
 use App\Form\EventSubscriber\VariousFieldSubscriber;
 
 class TextVariousTypeTest extends TypeTestCase
 {
 	
 	private $suscriber;
-	private $modelTransformer;
 	private $dataMappper;
 
 	protected function setUp(): void
 	{
 		$this->suscriber = new VariousFieldSubscriber();
-		$this->modelTransformer = new VariousTransformer();
 		$this->dataMappper = new VariousMapper();
 		parent::setUp();
 	}
 
 	protected function getExtensions()
 	{
-		$type = new TextVariousType($this->suscriber, $this->modelTransformer, $this->dataMappper);
+		$type = new TextVariousType($this->suscriber, $this->dataMappper);
 
 		return [
 			new PreloadedExtension([$type], []),

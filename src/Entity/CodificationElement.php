@@ -36,7 +36,6 @@ class CodificationElement implements \Stringable
 
 	public function setValue(string $value): self
 	{
-		dump($value);
 		$this->value = $value;
 		
 		return $this;

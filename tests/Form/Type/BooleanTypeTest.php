@@ -39,7 +39,7 @@ class BooleanTypeTest extends TypeTestCase
 	 * @covers BooleanType
 	 * @testWith	[null, false]
 	 * 				["", true]
-	 * 				["0", true]
+	 * 				["0", false]
 	 * 				["1", true]
 	 * 				["a", true]
 	 */

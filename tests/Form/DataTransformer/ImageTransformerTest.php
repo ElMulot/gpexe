@@ -2,21 +2,17 @@
 
 namespace App\Tests\Form\DataTransformer;
 
-use App\Form\DataTransformer\ImageTransformer;
-use App\Form\DataTransformer\VariousTransformer;
-use App\Service\FileUploaderService;
-use org\bovigo\vfs\content\LargeFileContent;
 use org\bovigo\vfs\vfsStream;
-use org\bovigo\vfs\vfsStreamDirectory;
-use org\bovigo\vfs\vfsStreamFile;
-use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\Form\Exception\TransformationFailedException;
+use App\Service\FileUploaderService;
+use org\bovigo\vfs\vfsStreamDirectory;
+use PHPUnit\Framework\MockObject\MockObject;
+use App\Form\DataTransformer\ImageTransformer;
 use Symfony\Component\HttpFoundation\File\File;
-use Symfony\Component\Form\Exception\UnexpectedTypeException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Validator\ConstraintViolationList;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Symfony\Component\Form\Exception\TransformationFailedException;
 
 class ImageTransformerTest extends TestCase
 {
@@ -24,7 +20,7 @@ class ImageTransformerTest extends TestCase
 
 	public string $uploadsDirectory;
 	
-	public string $publicDirectory;
+	public string $publicDir;
 	
     private vfsStreamDirectory $root;
 
@@ -45,7 +41,7 @@ class ImageTransformerTest extends TestCase
 														]
 													]);
 
-		$this->publicDirectory  = $this->root->url() . '/';
+		$this->publicDir  = $this->root->url() . '/';
 		
 		$this->fileUploadService = $this->createMock(FileUploaderService::class);
 
@@ -59,13 +55,13 @@ class ImageTransformerTest extends TestCase
 	 */
 	public function testTransformSuccess(string $fileName): void
 	{
-		$transformer = new ImageTransformer($this->publicDirectory, $this->uploadsDirectory, $this->fileUploadService, $this->validator);
+		$transformer = new ImageTransformer($this->publicDir, $this->uploadsDirectory, $this->fileUploadService, $this->validator);
 
 		/**@var File $result */
 		$result = $transformer->transform($fileName);
 
 		$this->assertInstanceOf(File::class, $result);
-		$this->assertSame($result->getPath() . '/', $this->publicDirectory . $this->uploadsDirectory);
+		$this->assertSame($result->getPath() . '/', $this->publicDir . $this->uploadsDirectory);
 		$this->assertSame($result->getFilename(), $fileName);
 		
 	}
@@ -77,7 +73,7 @@ class ImageTransformerTest extends TestCase
 	 */
 	public function testTransformFail(mixed $fileName): void
 	{
-		$transformer = new ImageTransformer($this->publicDirectory, $this->uploadsDirectory, $this->fileUploadService, $this->validator);
+		$transformer = new ImageTransformer($this->publicDir, $this->uploadsDirectory, $this->fileUploadService, $this->validator);
 
 		$result = $transformer->transform($fileName);
 		$this->assertSame(null, $result);
@@ -92,7 +88,7 @@ class ImageTransformerTest extends TestCase
 		
 		$fileObject = new UploadedFile($file->url(), $file->getName());
 
-		$transformer = new ImageTransformer($this->publicDirectory, $this->uploadsDirectory, $this->fileUploadService, $this->validator);
+		$transformer = new ImageTransformer($this->publicDir, $this->uploadsDirectory, $this->fileUploadService, $this->validator);
 
 		$result = $transformer->reverseTransform($fileObject);
 
@@ -124,7 +120,7 @@ class ImageTransformerTest extends TestCase
 			->method('upload')
 			->with($fileObject);
 
-		$transformer = new ImageTransformer($this->publicDirectory, $this->uploadsDirectory, $this->fileUploadService, $this->validator);
+		$transformer = new ImageTransformer($this->publicDir, $this->uploadsDirectory, $this->fileUploadService, $this->validator);
 
 		$transformer->reverseTransform($fileObject);
 	}
@@ -150,7 +146,7 @@ class ImageTransformerTest extends TestCase
 			->method('validate')
 			->willReturn($constraintViolationList);
 		
-		$transformer = new ImageTransformer($this->publicDirectory, $this->uploadsDirectory, $this->fileUploadService, $this->validator);
+		$transformer = new ImageTransformer($this->publicDir, $this->uploadsDirectory, $this->fileUploadService, $this->validator);
 
 		$transformer->reverseTransform($fileObject);
 	}
@@ -160,7 +156,7 @@ class ImageTransformerTest extends TestCase
 	 */
 	public function testReverseTransformWithNull(): void
 	{
-		$transformer = new ImageTransformer($this->publicDirectory, $this->uploadsDirectory, $this->fileUploadService, $this->validator);
+		$transformer = new ImageTransformer($this->publicDir, $this->uploadsDirectory, $this->fileUploadService, $this->validator);
 
 		$result = $transformer->reverseTransform(null);
 
@@ -174,7 +170,7 @@ class ImageTransformerTest extends TestCase
 	{
 		$this->expectException(TransformationFailedException::class);
 		
-		$transformer = new ImageTransformer($this->publicDirectory, $this->uploadsDirectory, $this->fileUploadService, $this->validator);
+		$transformer = new ImageTransformer($this->publicDir, $this->uploadsDirectory, $this->fileUploadService, $this->validator);
 
 		$result = $transformer->reverseTransform('string test');
 	}

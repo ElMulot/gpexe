@@ -23,8 +23,10 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  */
 class DateService
 {
+	//all these format must be identicals
 	public const ICU_INTERNAL_DATE_PATTERN = 'yyyy-MM-dd';
 	public const PHP_INTERNAL_DATE_FORMAT = 'Y-m-d';
+	public const SQL_INTERNAL_DATE_FORMAT = '%Y-%m-%d';
 
 	public function __construct(private readonly RequestStack $requestStack,
 								#[Autowire('%app.config.default_locale%')]

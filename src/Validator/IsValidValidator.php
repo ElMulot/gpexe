@@ -3,7 +3,6 @@
 namespace App\Validator;
 
 use App\Entity\Codification;
-use App\Entity\CodificationChoice;
 use App\Entity\CodificationElement;
 use App\Entity\Metadata;
 use App\Entity\MetadataElement;
@@ -12,7 +11,6 @@ use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\Constraints\Url;
 use Symfony\Component\Validator\ConstraintValidator;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
-use UnexpectedValueException;
 
 class IsValidValidator extends ConstraintValidator
 {
@@ -31,7 +29,7 @@ class IsValidValidator extends ConstraintValidator
 		}
 
 		if (is_string($value) === false) {
-			throw new UnexpectedValueException($value, 'string');
+			return;
 		}
 
 		foreach (['$', '"'] as $symbol) {
@@ -65,17 +63,17 @@ class IsValidValidator extends ConstraintValidator
 			}
 		}
 		
-		$isUrl = false;
+		$isLink = false;
 
-		if (isset($constraint->payload['isUrl']) === true) {
-			$isUrl = $constraint->payload['isUrl'];
+		if (isset($constraint->payload['isLink']) === true) {
+			$isLink = $constraint->payload['isLink'];
 		} elseif ($object instanceof MetadataElement && $object->getMetadata()->isLink() === true) {
-			$isUrl = true;
+			$isLink = true;
 		} elseif ($object instanceof Metadata && $object->isLink() === true) {
-			$isUrl = true;
+			$isLink = true;
 		}
 		
-		if ($isUrl === true) {
+		if ($isLink === true) {
 			
 			//add standard constraint. To be functionnal, the Default group must be used (don't know why)
 			$this->context

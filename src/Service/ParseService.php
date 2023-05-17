@@ -9,7 +9,7 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 class ParseService
 {
 	
-	public function __construct(#[Autowire('app.ressource_directory')]
+	public function __construct(#[Autowire('app.ressource_dir')]
 								private readonly string $ressourcesDirectory)
 	{
 	}
@@ -102,7 +102,7 @@ class ParseService
 		} else {
 			
 			if (is_array($parsedCode)) {
-				$parsedCode = $this->setDefaultRawValue($structure);
+				$parsedCode = $this->setDefaultValue($structure);
 			} else {
 				$parsedCode = $this->checkRegex($structure, $parsedCode);
 			}
@@ -135,7 +135,7 @@ class ParseService
 		}
 	}
 	
-	private function setDefaultRawValue(array $structure)
+	private function setDefaultValue(array $structure)
 	{
 		if (array_key_exists('default', $structure)) {
 			return $structure['default'];
@@ -157,7 +157,7 @@ class ParseService
 				return (is_numeric($result->group(0)))?+$result->group(0):$result->group(0);
 			}
 		}
-		return $this->setDefaultRawValue($structure);
+		return $this->setDefaultValue($structure);
 	}
 	
 }

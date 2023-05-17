@@ -6,6 +6,7 @@ use App\Entity\Company;
 use App\Entity\Enum\CompanyTypeEnum;
 use App\Entity\Project;
 use App\Entity\User;
+use App\Entity\Version;
 use App\Service\RepositoryService;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
@@ -53,21 +54,22 @@ class UserRepository extends RepositoryService implements PasswordUpgraderInterf
 	}
 
 	/**
-	 * Return an array of users from an array of version.id.
+	 * Return an array of users from an array of versions
 	 * Used-by : VersionType
-	 * @param array|null $versionsIds
+	 * @param Version[]|null $versions
 	 * @return User[]
 	 */
-	public function getWriters(Project $project, ?array $versionsIds = []): array
+	public function getWriters(Project $project, ?array $versions = []): array
 	{
 		$qb = $this->newQB('u');
+
 		return $qb
 			->innerJoin('u.projects', 'p')
 			->innerJoin('p.series', 's')
 			->innerJoin('s.documents', 'd')
 			->innerJoin('d.versions', 'v')
 			->andWhere($qb->eq('p.id', $project))
-			->andWhere($qb->in('v.id', $versionsIds))
+			->andWhere($qb->in('v.id', array_map(fn(Version $version) => $version->getId(), $versions)))
 			->addOrderBy('u.name')
 			->getQuery()
 			->getResult()
@@ -106,13 +108,16 @@ class UserRepository extends RepositoryService implements PasswordUpgraderInterf
 	}
 	
 	/**
-	 * @return User[]
+	 * @param Serie[] $series
 	 */
-	public function getUsersArrayBySerieIds(array $series)
+	public function getUsersBySeriesAsArray(?array $series = []): array
 	{
-		if ($series == false) {
+		if (!$series) {
 			return [];
 		}
+
+		dump($series);
+
 		$qb = $this->newQB('u');
 		return $qb
 			->select('u.id, u.name')
@@ -121,8 +126,7 @@ class UserRepository extends RepositoryService implements PasswordUpgraderInterf
 			->andWhere($qb->in('s.id', $series))
 			->addOrderBy('u.name')
 			->getQuery()
-			->getResult()
-		;
+			->getArrayResult();
 	}
 	
 	/**

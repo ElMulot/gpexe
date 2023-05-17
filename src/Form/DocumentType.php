@@ -1,46 +1,37 @@
 <?php
 namespace App\Form;
 
-use App\Entity\CodificationChoice;
-use App\Entity\Document;
-use App\Entity\Enum\CodificationTypeEnum;
-use App\Entity\Enum\MetadataTypeEnum;
-use App\Entity\MetadataChoice;
-use App\Entity\Project;
 use App\Entity\Serie;
-use App\Exception\InternalErrorException;
-use App\Form\DataMapper\DocumentMapper;
-use App\Form\Type\BooleanVariousType;
-use App\Form\Type\DateVariousType;
-use App\Form\Type\EntityVariousType;
-use App\Form\Type\TextareaVariousType;
-use App\Form\Type\TextVariousType;
-use App\Repository\CodificationRepository;
-use App\Repository\MetadataRepository;
-use App\Repository\SerieRepository;
-use App\Service\PropertyService;
+use App\Entity\Project;
+use App\Entity\Document;
 use App\Validator\IsValid;
+use App\Entity\MetadataChoice;
+use App\Entity\CodificationChoice;
+use App\Form\Type\DateVariousType;
+use App\Form\Type\TextVariousType;
+use App\Form\Type\EntityVariousType;
+use App\Entity\Enum\MetadataTypeEnum;
+use App\Form\Type\BooleanVariousType;
+use App\Form\Type\TextareaVariousType;
+use App\Repository\MetadataRepository;
 use App\Validator\NotContainsSplitter;
-use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\FormBuilderInterface;
-use Symfony\Component\Form\Extension\Core\Type\TextType;
+use App\Entity\Enum\CodificationTypeEnum;
+use App\Exception\InternalErrorException;
 use Symfony\Component\Form\FormInterface;
-use Symfony\Component\Form\FormView;
-use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Validator\Constraints\GroupSequence;
+use App\Repository\CodificationRepository;
+use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Validator\Constraints\Regex;
-use Symfony\Component\Validator\Constraints\Url;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Validator\Constraints\GroupSequence;
 
 class DocumentType extends AbstractType
 {
 
-	public function __construct(private readonly PropertyService $propertyService,
-								private readonly CodificationRepository $codificationRepository,
-								private readonly MetadataRepository $metadataRepository,
-								private readonly SerieRepository $serieRepository,
-								private readonly ValidatorInterface $validatorInterface)
+	public function __construct(private readonly CodificationRepository $codificationRepository,
+								private readonly MetadataRepository $metadataRepository)
 	{
 		
 	}
@@ -60,34 +51,48 @@ class DocumentType extends AbstractType
 			throw new InternalErrorException();
 		}
 
-		/**@var Document $document */
 		$document = reset($documents);
 
-		/** @var Project $project */
+		$isNew = $document->getId() === null;
+
+		/** @var Project */
 		$project = $options['project'];
+		
+		/** @var Serie[] */
+		$series = $options['series'];
+		
 		$codifications = $this->codificationRepository->getCodifications($project);
 		$metadatas = $this->metadataRepository->getMetadatasForDocument($project);
-		$series = $options['series'];
 		
 		if (count($series) === 0) {
 			throw new InternalErrorException();
-		} elseif (count($series) === 1) {
-			$builder->add('serie', EntityType::class, [
-				'class' => Serie::class,
-				'choices' => $series,
-				'data' => reset($series),
-				'disabled' => true,
-			]);
-		} elseif (count($series) > 1) {
+		} elseif (count($series) === 1 || $isNew === false) {
 			$builder->add('serie', EntityVariousType::class, [
-				'class' => Serie::class,
-				'choices' => $series,
+				'class'			=> Serie::class,
+				'choices'		=> $series,
+				'choice_label'	=> 'name',
+				'data'			=> $series,
+				'disabled'		=> true,
+			]);
+		} else {
+			$builder->add('serie', EntityType::class, [
+				'class'			=> Serie::class,
+				'choices'		=> $series,
+				'choice_label'	=> 'name',
+				'setter'		=> function(array &$documents, mixed $modelData, FormInterface $form): void
+									{
+										array_walk($documents, fn(Document $document) => $document->setSerie($modelData));
+									},
 			]);
 		}
 		
 		if (count($documents) === 1) {
 			$builder->add('name', TextType::class, [
-				'constraints' => new Regex('/^[^$"]+$/'),
+				'constraints'	=> new Regex('/^[^$"]+$/'),
+				'setter'		=> function(array &$documents, $viewData, FormInterface $form): void
+									{
+										array_walk($documents, fn(Document $document) => $document->setName($viewData));
+									},
 			]);
 		}
 
@@ -96,14 +101,41 @@ class DocumentType extends AbstractType
 			$defaultOptions = [
 				'label'			=> $codification->getName(),
 				'required'		=> true,
-				// 'empty_data'	=> $codification->getDefaultValue(),
+				'getter'		=> function(array $documents, FormInterface $form) use ($codification, $isNew): mixed
+									{
+										if ($isNew === true) {
+											return [$codification->getTypedDefaultValue()];
+										} else {
+											return array_map(fn(Document $document) => $document->getCodificationValue($codification), $documents);
+										}
+									},
+				'setter'		=> function(array &$documents, mixed $modelData, FormInterface $form) use ($codification): void
+									{
+										if (is_array($modelData) === false) {
+											array_walk($documents, fn(Document $document) => $document->setCodificationValue($codification, $modelData));
+										}
+									},
+				'empty_data' 	=> $codification->getDefaultValue(),
 			];
 
 			switch ($codification->getType()) {
 
 				case CodificationTypeEnum::TEXT:
-				case CodificationTypeEnum::REGEX:
+					$builder->add($codification->getFullId(), TextareaVariousType::class, $defaultOptions + [
+						'constraints' => [
+							new NotContainsSplitter(
+								payload: ['splitter' => $project->getSplitter()],
+								groups: ['Form']
+							),
+							new IsValid(
+								groups: ['Form']
+							),
+						]
+					]);
+					break;
 
+
+				case CodificationTypeEnum::REGEX:
 					$builder->add($codification->getFullId(), TextVariousType::class, $defaultOptions + [
 						'constraints' => [
 							new NotContainsSplitter(
@@ -120,13 +152,13 @@ class DocumentType extends AbstractType
 					break;
 
 				case CodificationTypeEnum::LIST:
-					$defaultValue = $codification->getCodificationChoices()->filter(fn(CodificationChoice $ci) => $ci->getValue() === $codification->getDefaultValue())->toArray();
 					$builder->add($codification->getFullId(), EntityVariousType::class, $defaultOptions + [
 						'class'			=> CodificationChoice::class,
 						'choices' 		=> $codification->getCodificationChoices(),
 						'choice_label'	=> fn(CodificationChoice $codificationChoice) => $codificationChoice->getValue() . ' - ' . $codificationChoice->getName(),
 						'choice_value'	=> 'value',
 					]);
+					$builder->get($codification->getFullId())->resetViewTransformers();
 					break;
 			}
 		}
@@ -138,7 +170,21 @@ class DocumentType extends AbstractType
 			$defaultOptions = [
 				'label'			=> $metadata->getName(),
 				'required'		=> $metadata->isMandatory(),
-				// 'empty_data'	=> $metadata->getDefaultValue(),
+				'getter'		=> function(array $documents, FormInterface $form) use ($metadata, $isNew): mixed
+									{
+										if ($isNew === true) {
+											return [$metadata->getTypedDefaultValue()];
+										} else {
+											return array_map(fn(Document $document) => $document->getMetadataValue($metadata), $documents);
+										}
+									},
+				'setter'		=> function(array &$documents, mixed $modelData, FormInterface $form) use ($metadata): void
+									{
+										if (is_array($modelData) === false) {
+											array_walk($documents, fn(Document $document) => $document->setMetadataValue($metadata, $modelData));
+										}
+									},
+				'empty_data' 	=> $metadata->getDefaultValue(),
 			];
 
 			switch ($metadata->getType()) {
@@ -168,7 +214,7 @@ class DocumentType extends AbstractType
 					break;
 				
 				case MetadataTypeEnum::REGEX:
-					$builder->add($metadata->getFullId(), TextVariousType::class, $defaultOptions + [
+					$builder->add($metadata->getFullId(), TextareaVariousType::class, $defaultOptions + [
 						'constraints' => [
 							new IsValid(
 								payload: ['pattern' => $metadata->getPattern()],
@@ -177,11 +223,12 @@ class DocumentType extends AbstractType
 						]
 					]);
 					break;
+					
 				case MetadataTypeEnum::LINK:
 					$builder->add($metadata->getFullId(), TextVariousType::class, $defaultOptions + [
 						'constraints' => [
 							new IsValid(
-								payload: ['isUrl' => true],
+								payload: ['isLink' => true],
 								groups: ['Form']
 							),
 						]
@@ -195,19 +242,16 @@ class DocumentType extends AbstractType
 						'choice_label'	=> 'value',
 						'choice_value'	=> 'value',
 					]);
+					$builder->get($metadata->getFullId())->resetViewTransformers();
 					break;
 			}
 		}
-
-		$builder->setDataMapper(new DocumentMapper($project, $document, $codifications, $metadatas));
 	}
 	
 	public function configureOptions(OptionsResolver $resolver)
 	{
 		$resolver->setDefaults([
 			'data_class'		=> null,
-			'project'			=> null,
-			'series'			=> [],
 			'validation_groups'	=> new GroupSequence(['Form', 'Default']),
 		]);
 		

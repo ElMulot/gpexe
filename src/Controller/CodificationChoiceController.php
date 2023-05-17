@@ -3,6 +3,7 @@ namespace App\Controller;
 
 use App\Entity\Codification;
 use App\Entity\CodificationChoice;
+use App\Entity\Project;
 use App\Form\CodificationChoiceType;
 use Symfony\Component\HttpFoundation\Request;
 use App\Repository\CodificationChoiceRepository;
@@ -16,32 +17,27 @@ class CodificationChoiceController extends AbstractTurboController
 {
 
 	public function __construct(private readonly ManagerRegistry $doctrine,
+								private readonly CodificationChoiceRepository $codificationChoiceRepository,
 								private readonly TranslatorInterface $translator)
 	{
 	}
 
-	#[Route(path: '/project/codification/{codification}/item', name: 'codificationChoice', requirements: ['codification' => '\d+'])]
-	public function index(CodificationChoiceRepository $codificationChoiceRepository, Codification $codification) : Response
+	#[Route(path: '/project/{project}/codification/{codification}/item', name: 'codificationChoice', requirements: ['project' => '\d+', 'codification' => '\d+'])]
+	public function index(Project $project, Codification $codification) : Response
 	{
-		$project = $codification->getProject();
-
 		$this->denyAccessUnlessGranted('PROJECT_EDIT', $project);
 
 		return $this->render('generic/list.html.twig', [
 			'title' => $this->translator->trans('List for the code') . ' : ' . $codification->getName(),
 			'class' => CodificationChoice::class,
-			'entities' => $codificationChoiceRepository->getCodificationChoice($codification),
-			'dismiss_url'	=> $this->generateUrl('metadata', [
-				'project'	=> $project->getId(),
-			]),
+			'entities' => $this->codificationChoiceRepository->getCodificationChoice($codification),
+			'dismiss_route'	=> 'codification',
 		]);
 	}
 
-	#[Route(path: '/project/codification/{codification}/item/new', name: 'codificationChoiceNew', requirements: ['codification' => '\d+'])]
-	public function new(Request $request, Codification $codification) : Response
+	#[Route(path: '/project/{project}/codification/{codification}/item/new', name: 'codificationChoiceNew', requirements: ['project' => '\d+', 'codification' => '\d+'])]
+	public function new(Request $request, Project $project, Codification $codification) : Response
 	{
-		$project = $codification->getProject();
-
 		$this->denyAccessUnlessGranted('PROJECT_EDIT', $project);
 
 		$codificationChoice = new CodificationChoice();
@@ -71,12 +67,9 @@ class CodificationChoiceController extends AbstractTurboController
 		}
 	}
 	
-	#[Route(path: '/project/codification/item/{codificationChoice}/edit', name: 'codificationChoiceEdit', requirements: ['codificationChoice' => '\d+'])]
-	public function edit(Request $request, CodificationChoice $codificationChoice) : Response
+	#[Route(path: '/project/{project}/codification/{codification}/item/{codificationChoice}/edit', name: 'codificationChoiceEdit', requirements: ['project' => '\d+', 'codification' => '\d+', 'codificationChoice' => '\d+'])]
+	public function edit(Request $request, Project $project, Codification $codification, CodificationChoice $codificationChoice) : Response
 	{
-		$codification = $codificationChoice->getCodification();
-		$project = $codification->getProject();
-
 		$this->denyAccessUnlessGranted('PROJECT_EDIT', $project);
 
 		$form = $this->createForm(CodificationChoiceType::class, $codificationChoice);
@@ -102,12 +95,9 @@ class CodificationChoiceController extends AbstractTurboController
 		}
 	}
 	
-	#[Route(path: '/project/codification/item/{codificationChoice}/delete', name: 'codificationChoiceDelete', methods: ['GET', 'DELETE'], requirements: ['codificationChoice' => '\d+'])]
-	public function delete(Request $request, CodificationChoice $codificationChoice) : Response
+	#[Route(path: '/project/{project}/codification/{codification}/item/{codificationChoice}/delete', name: 'codificationChoiceDelete', methods: ['GET', 'DELETE'], requirements: ['project' => '\d+', 'codification' => '\d+', 'codificationChoice' => '\d+'])]
+	public function delete(Request $request, Project $project, Codification $codification, CodificationChoice $codificationChoice) : Response
 	{
-		$codification = $codificationChoice->getCodification();
-		$project = $codification->getProject();
-		
 		$this->denyAccessUnlessGranted('PROJECT_EDIT', $project);
 
 		$form = $this->createDeleteForm($codificationChoice);

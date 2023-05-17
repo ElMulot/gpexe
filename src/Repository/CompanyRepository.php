@@ -96,8 +96,30 @@ class CompanyRepository extends RepositoryService
 	}
 
 	/**
-	 * Undocumented function
-	 * Used-by: SerieType->mapDataToForms
+	 * Return an array of companies from an array of version.id.
+	 * Used-by : SerieController::new, SerieController::edit
+	 * 
+	 * @param array|null $versionIds
+	 * @return Company[]
+	 */
+	public function getCompaniesByVersionIds(?array $versionIds = []): array
+	{
+		$qb = $this->newQb('c');
+		
+		return $qb
+			->innerJoin('c.series', 's')
+			->innerJoin('s.documents', 'd')
+			->innerJoin('d.versions', 'v')
+			->andWhere($qb->in('v.id', $versionIds))
+			->addOrderBy('c.name')
+			->getQuery()
+			->getResult();
+	}
+
+	/**
+	 * Return an array of companies from an array of serie.id.
+	 * Used-by : SerieController::new
+	 * 
 	 * @param array|null $serieIds
 	 * @return Company[]
 	 */
@@ -105,8 +127,24 @@ class CompanyRepository extends RepositoryService
 	{
 		$qb = $this->newQb('c');
 		
-		return $qb->innerJoin('c.series', 's')
+		return $qb
+			->innerJoin('c.series', 's')
 			->andWhere($qb->in('s.id', $serieIds))
+			->addOrderBy('c.name')
+			->getQuery()
+			->getResult();
+	}
+
+	/**
+	 * @param array|null $ids
+	 * @return Company[]
+	 */
+	public function getCompaniesByIds(?array $ids = []): array
+	{
+		$qb = $this->newQb('c');
+		
+		return $qb
+			->andWhere($qb->in('c.id', $ids))
 			->addOrderBy('c.name')
 			->getQuery()
 			->getResult()

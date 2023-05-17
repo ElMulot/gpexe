@@ -27,6 +27,7 @@ export default class extends Controller {
 	static values = {
 		urlHeader: String,
 		urlBody: String,
+		query: Object,
 	}
 
 	connect() {
@@ -63,45 +64,35 @@ export default class extends Controller {
 		 * Listener triggered on user change view.
 		 */
 		this.element.addEventListener('engineering--view:update', event => {
+			
 			const series = this.#urlParams.get('series');
-			const selectedSeries = this.#urlParams.get('filters[serie]');
+			const companies = this.#urlParams.get('companies');
 			
 			if (this.hasLastPageLoadedTarget === true) {
 				this.lastPageLoadedTarget.value = 0;
 			}
 			this.#urlParams.deleteAll();
 			this.#urlParams.set('view', event.detail.id);
-			this.#urlParams.set('filters[serie]', selectedSeries);
 			this.#urlParams.set('series', series);
+			this.#urlParams.set('companies', companies);
 			this.setThead();
+
 		});
 
 		/**
 		 * Listener triggered on user change serie.
 		 */
 		this.element.addEventListener('engineering--serie:update', event => {
+			
 			if (this.hasLastPageLoadedTarget === true) {
 				this.lastPageLoadedTarget.value = 0;
 			}
-			
+
 			this.#urlParams.delete('page');
 			this.#urlParams.set('series', event.detail.series);
-			if (isEmpty(event.detail.display) === false) {
-				this.#urlParams.set('display', event.detail.display);
-			}
-			if (isEmpty(event.detail.filters) === false) {
-				this.#urlParams.set('filters', event.detail.filters);
-			}
-			if (event.detail.resultsPerPage) {
-				this.#urlParams.set('results_per_page', event.detail.resultsPerPage);
-			}
-			if (event.detail.sortDesc) {
-				this.#urlParams.set('sort_desc', event.detail.sortDesc);
-			}
-			if (event.detail.sortAsc) {
-				this.#urlParams.set('sort_asc', event.detail.sortAsc);
-			}
+
 			this.setThead();
+
 		});
 
 		/**
@@ -111,11 +102,13 @@ export default class extends Controller {
 			if (Object.isObject(event.detail.query) === true) {
 				this.#urlParams.deleteAll();
 				Object.entries(event.detail.query).forEach(([k, v]) => this.#urlParams.set(k, v));
+				console.log(this.#urlParams.get('series'));
 			}
 
 			this.#setResizable();
 			this.#setMovable();
 			this.setTbody();
+			this.lineSelected();
 		});
 
 		/**
@@ -131,7 +124,7 @@ export default class extends Controller {
 				if (e.value == false) {
 					e.value = null;
 				}
-				this.#urlParams.set('filters[' + e.key + ']', e.value);
+				this.#urlParams.set(e.key, e.value);
 			});
 			
 			this.dispatch('update', {
@@ -263,8 +256,9 @@ export default class extends Controller {
 			this.#urlParams.set('order[' + event.key + ']', newOrder);
 
 		});
-
+		
 		this.#urlParams = this.#getUrlParams();
+		
 		this.$action = document.getElementById('action');
 
 		this.dispatch('connected');
@@ -283,6 +277,7 @@ export default class extends Controller {
 	 * Clear thead and tbody frames and then update thead frame.
 	 */
 	setThead() {
+		
 		if (this.#urlParams.has('series') === true && this.#urlParams.has('view') === true || this.#urlParams.has('display') === true) {
 			this.theadTarget.innerHTML = '';
 			this.tbodyTarget.innerHTML = '';
@@ -350,7 +345,10 @@ export default class extends Controller {
 	}
 
 	/**
-	 * Action after each update of tbody to setup the actions when clicked on checkboxes.
+	 * Action after each click on :
+	 * 	+ checkAllTarget
+	 * 	+ any checkboxes (stimulus action)
+	 * 	+ on engineering--request:updated event
 	 */
 	lineSelected() {
 
@@ -374,7 +372,7 @@ export default class extends Controller {
 			this.checkAllTarget.indeterminate = false;
 			this.checkAllTarget.checked = hasChecked;
 		}
-
+		
 		this.$action.parentElement.querySelectorAll('a.dropdown-item').forEach(e => {
 			let urlString;
 			let paramString;
@@ -382,19 +380,23 @@ export default class extends Controller {
 			
 			const urlParams = new UrlParams(paramString);
 			urlParams.set('versions', ids);
+			urlParams.set('series', this.#urlParams.get('series'));
 			e.href = urlString + '?' + urlParams.toString();
 		});
 	}
 	
 	#getUrlParams() {
 		
-		let paramString;
+		// let paramString;
 
-		if (this.tableContainerTarget.src) {
-			[, paramString] = this.tableContainerTarget.src.split('?');
+		// if (this.tableContainerTarget.src) {
+		// 	[, paramString] = this.tableContainerTarget.src.split('?');
+		// 	return new UrlParams(paramString);
+		if (this.hasQueryValue === true) {
+			let urlParams = new UrlParams();
+			Object.entries(this.queryValue).forEach(([k, v]) => urlParams.set(k, v));
+			return urlParams;
 		}
-
-		return new UrlParams(paramString);
 	}
 
 	/**

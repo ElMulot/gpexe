@@ -4,13 +4,8 @@ namespace App\Form\Type;
 
 use App\Form\DataMapper\VariousMapper;
 use Symfony\Component\Form\AbstractType;
-use App\Form\DataTransformer\VariousTransformer;
 use Symfony\Component\Form\FormBuilderInterface;
-use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use App\Form\EventSubscriber\VariousFieldSubscriber;
-use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
-use Symfony\Component\Form\FormView;
-use Symfony\Component\Form\FormInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 
@@ -22,7 +17,6 @@ abstract class AbstractVariousType extends AbstractType
 {
 	
 	public function __construct(private readonly VariousFieldSubscriber $subscriber,
-								private readonly VariousTransformer $modelTransformer,
 								private readonly VariousMapper $dataMappper)
 	{
 	}
@@ -35,25 +29,33 @@ abstract class AbstractVariousType extends AbstractType
 	public function buildForm(FormBuilderInterface $builder, array $options)
 	{
 		// dump('AbstractVariousType->buildForm');
-		// $builder->resetModelTransformers();
-		
 		$builder->resetViewTransformers();
 		$builder->setCompound(true);
 
 		//remove constraints on input field as there's no need to validate each value twice
 		unset($options['constraints']);
+		unset($options['data']);
 
 		$builder->add('input', $this->getParent(), $options);
+		
+		//copy the transformers on the input field and remove transformer on the parent form
+		$builder->get('input')->resetModelTransformers();
+		foreach ($builder->getModelTransformers() as $transformer) {
+			$builder->get('input')->addModelTransformer($transformer);
+		}
+		$builder->resetModelTransformers();
+
+		$builder->get('input')->resetViewTransformers();
+		foreach ($builder->getViewTransformers() as $transformer) {
+			$builder->get('input')->addViewTransformer($transformer);
+		}
+		$builder->resetViewTransformers();
 		
 		//add a new field 'switch' if the datas are not all identical
 		$builder->addEventSubscriber($this->subscriber);
 		
 		//map datas to the 'input' field
 		$builder->setDataMapper($this->dataMappper);
-
-		//ModelFormat => NormalizedFormat : array to single value conversion
-		//NormalizedFormat => ModelFormat : return value is multiple is not enabled, otherwize null
-		$builder->get('input')->addModelTransformer($this->modelTransformer);
 	}
 
 	public function getBlockPrefix(): ?string

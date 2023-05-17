@@ -16,7 +16,7 @@ class ProjectListenerTest extends TestCase
 
 	public $event;
 
-	public string $publicDirectory;
+	public string $publicDir;
 
 	public string $uploadsDirectory;
 
@@ -30,7 +30,7 @@ class ProjectListenerTest extends TestCase
 			->method('getObjectManager')
 			->willReturn($objectManager);
 
-		$this->publicDirectory  = '%kernel.project_dir%/config/ressources/';
+		$this->publicDir  = '%kernel.project_dir%/config/ressources/';
 		$this->uploadsDirectory = 'uploads/';
 	}
 
@@ -61,9 +61,9 @@ class ProjectListenerTest extends TestCase
 		$fileSystem
 			->expects($this->once())
 			->method('remove')
-			->with($this->publicDirectory . $this->uploadsDirectory . $oldImageName);
+			->with($this->publicDir . $this->uploadsDirectory . $oldImageName);
 	
-		$projectListener = new ProjectListener($this->publicDirectory, $this->uploadsDirectory, $fileSystem);
+		$projectListener = new ProjectListener($this->publicDir, $this->uploadsDirectory, $fileSystem);
 
 		$projectListener->preUpdate($project, $event);
 	}
@@ -96,7 +96,7 @@ class ProjectListenerTest extends TestCase
 			->expects($this->never())
 			->method('remove');
 	
-		$projectListener = new ProjectListener($this->publicDirectory, $this->uploadsDirectory, $fileSystem);
+		$projectListener = new ProjectListener($this->publicDir, $this->uploadsDirectory, $fileSystem);
 
 		$projectListener->preUpdate($project, $event);
 	}
@@ -120,9 +120,9 @@ class ProjectListenerTest extends TestCase
 		$fileSystem
 			->expects($this->once())
 			->method('remove')
-			->with($this->publicDirectory . $this->uploadsDirectory . $imageName);
+			->with($this->publicDir . $this->uploadsDirectory . $imageName);
 	
-		$projectListener = new ProjectListener($this->publicDirectory, $this->uploadsDirectory, $fileSystem);
+		$projectListener = new ProjectListener($this->publicDir, $this->uploadsDirectory, $fileSystem);
 
 		$projectListener->postRemove($project);
 	}
@@ -147,7 +147,7 @@ class ProjectListenerTest extends TestCase
 			->expects($this->never())
 			->method('remove');
 	
-		$projectListener = new ProjectListener($this->publicDirectory, $this->uploadsDirectory, $fileSystem);
+		$projectListener = new ProjectListener($this->publicDir, $this->uploadsDirectory, $fileSystem);
 
 		$projectListener->postRemove($project);
 	}

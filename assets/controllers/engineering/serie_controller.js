@@ -7,11 +7,6 @@ export default class extends Controller {
 
 	static values = {
 		series: Array,
-		display: Object,
-		filters: Object,
-		resultsPerPage: Number,
-		sortDesc: String,
-		sortAsc: String,
 	}
 
 	static param = {
@@ -25,7 +20,7 @@ export default class extends Controller {
 			Tab.getInstance(document.getElementById('view_label')).show();
 		} else {
 			document.getElementById('serie_label').classList.remove('disabled');
-			this.updateClasses(this.filtersValue['serie']);
+			this.updateClasses(this.seriesValue);
 		}
 
 		this.dispatch('connected');
@@ -35,12 +30,12 @@ export default class extends Controller {
 		this.updateClasses([params.id]);
 	}
 
-	updateClasses(selectedSeries) {
+	updateClasses(series) {
 		
 		this.buttonTargets.forEach(e => {
 			let id = e.getAttribute('data-engineering--serie-id-param');
 
-			if (selectedSeries.some(v => v == id) === true) {
+			if (series.some(v => v == id) === true) {
 				e.classList.remove('btn-primary');
 				e.classList.add('btn-outline-primary');
 			} else {
@@ -49,11 +44,6 @@ export default class extends Controller {
 			}
 		});
 
-		this.dispatch('update', { detail: { series: this.seriesValue,
-											display: this.displayValue,
-											filters: {...this.filtersValue, ...{'serie': selectedSeries}},
-											resultsPerPage: this.resultsPerPageValue,
-											sortDesc: this.sortDescValue,
-											sortAsc: this.sortAscValue} });
+		this.dispatch('update', { detail: { series: series} });
 	}
 }

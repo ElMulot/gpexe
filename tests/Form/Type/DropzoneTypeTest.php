@@ -12,17 +12,17 @@ use Symfony\Component\HttpFoundation\File\File;
 class DropzoneTypeTest extends TypeTestCase
 {
 
-	private $publicDirectory;
+	private $publicDir;
 
 	protected function setUp(): void
 	{
-		$this->publicDirectory = '%kernel.project_dir%/public/';
+		$this->publicDir = '%kernel.project_dir%/public/';
 		parent::setUp();
 	}
 
 	protected function getExtensions()
 	{
-		$type = new DropzoneType($this->publicDirectory);
+		$type = new DropzoneType($this->publicDir);
 		return [
 			new PreloadedExtension([$type], []),
 		];

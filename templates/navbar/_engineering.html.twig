@@ -1,7 +1,6 @@
 {% import "macros/_navbar.html.twig" as navbar %}
 
 <ul class="navbar-nav me-auto">
-	{% set serie_ids = series|map(v => v.id) %}
 	
 	{{ navbar.item('Back', path('project', {'project': project.id})) }}
 
@@ -13,7 +12,7 @@
 		}, [
 			{
 				'name': 'New',
-				'href': path('engineeringNew', {'project': project.id, 'series': serie_ids}),
+				'href': path('engineeringNew', {'project': project.id}),
 				'data-turbo-frame': 'xl_modal',
 				'data-turbo-stream-replace': 'serie_pannel',
 			},

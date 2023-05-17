@@ -27,9 +27,17 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 
 class VersionController extends AbstractTurboController
 {
-	public function __construct(private readonly TranslatorInterface $translator, private readonly ManagerRegistry $doctrine, private readonly CompanyRepository $companyRepository, private readonly DocumentRepository $documentRepository, private readonly VersionRepository $versionRepository, private readonly MetadataRepository $metadataRepository, private readonly StatusRepository $statusRepository, private readonly AjaxRedirectService $ajaxRedirectService, private readonly DocumentService $documentService, FieldService $fieldService)
+	public function __construct(private readonly TranslatorInterface $translator,
+								private readonly ManagerRegistry $doctrine,
+								private readonly CompanyRepository $companyRepository,
+								private readonly DocumentRepository $documentRepository,
+								private readonly VersionRepository $versionRepository,
+								private readonly MetadataRepository $metadataRepository,
+								private readonly StatusRepository $statusRepository,
+								private readonly AjaxRedirectService $ajaxRedirectService,
+								private readonly DocumentService $documentService,
+								private readonly FieldService $fieldService)
 	{
-		$this->fieldService = $fieldService;
 	}
 	
 	#[Route(path: '/project/serie/document/version/{version}/detail', name: 'versionDetail', requirements: ['version' => '\d+'])]
@@ -52,14 +60,14 @@ class VersionController extends AbstractTurboController
 	/**
 	 * Query parameters :
 	 * 	+ array		versions		array of version ids that will be used for document selector in the form
+	 * 	+ array		series			array of serie ids (not used)
 	 */
 	#[Route(path: '/project/{project}/version/new', name: 'versionNew', requirements: ['project' => '\d+'])]
 	public function new(Request $request, Project $project) : Response
 	{
-		
 		$this->denyAccessUnlessGranted('VERSION_NEW', $project);
 		
-		$documents = $this->documentRepository->getDocumentsByVersionsId($request->get('versions'));
+		$documents = $this->documentRepository->getDocumentsByVersionsId($request->query->all('versions'));
 		
 		$version = new Version();
 		$versions = [$version];
@@ -74,7 +82,10 @@ class VersionController extends AbstractTurboController
 		if ($form->isSubmitted() && $form->isValid()) {
 
 			$entityManager = $this->doctrine->getManager();
-			$entityManager->persist($version);
+			foreach ($versions as $version) {
+				$entityManager->persist($version);
+			}
+			
 			$entityManager->flush();
 
 			$this->addFlash('success', 'New version created');
@@ -86,26 +97,27 @@ class VersionController extends AbstractTurboController
 			]);
 
 		} else {
+
 			return $this->render('pages/engineering/new/_pannel.html.twig', [
 				'form' => $form,
 			]);
+			
 		}
 	}
 
 	/**
 	 * Query parameters :
-	 * 	+ array		versions		array of version ids that will be used for serie selector in the form
+	 * 	+ array		versions		array of version ids that will be used for document selector in the form
 	 */
 	#[Route(path: '/project/{project}/serie/document/version/edit', name: 'versionEdit', requirements: ['project' => '\d+'])]
 	public function edit(Request $request, Project $project) : Response
 	{
-		$documents = $this->documentRepository->getDocumentsByVersionsId($request->get('versions'));
-		$versions = $this->versionRepository->getVersionsByIds($request->get('versions'));
-		
+		$documents = $this->documentRepository->getDocumentsByVersionsId($request->query->all('versions'));
+		$versions = $this->versionRepository->getVersionsByIds($request->query->all('versions'));
+
 		$document = reset($documents);
-
 		$this->denyAccessUnlessGranted('DOCUMENT_EDIT', $document);
-
+		
 		$form = $this->createForm(VersionType::class, $versions, [
 			'project'	=> $project,
 			'documents'	=> $documents,
@@ -127,9 +139,11 @@ class VersionController extends AbstractTurboController
 			]);
 			
 		} else {
+
 			return $this->render('pages/engineering/edit/_pannel.html.twig', [
 				'form' => $form,
 			]);
+			
 		}
 	}
 	

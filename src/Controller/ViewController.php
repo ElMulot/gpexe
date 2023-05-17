@@ -24,9 +24,14 @@ class ViewController extends AbstractTurboController
 	}
 
 	/**
+	 * Set the view according to the following rules:
+	 * 	+ if query parameter view is defined, set the corresponding view if exist
+	 * 	+ if no view is defined, set the default view for the current user
+	 * 	+ if no default view is defined, no view is defined
+	 * 
 	 * Query parameters :
 	 * 	+ int		view					view id to display
-	 * 	+ all the query parameters indicated in EngineeringController::thead
+	 * 	+ all the query parameters indicated in EngineeringController::engineering
 	 */
 	#[Route(path: '/project/{project}/view', name: 'view', requirements: ['project' => '\d+'])]
 	public function index(Request $request, Project $project) : Response
@@ -34,26 +39,18 @@ class ViewController extends AbstractTurboController
 		$this->denyAccessUnlessGranted('VIEW_SHOW', $project);
 		
 		$views = $this->viewRepository->getViewsByProjectAndByUser($project, $this->getUser());
-		
-		$selectedViewId = $request->query->get('view');
 
-		if ($selectedViewId === null) {
-			if ($request->query->has('display') === false) {
+		if ($request->query->has('display') === false) {
+			$selectedView = $this->viewRepository->getViewByProjectByUserAndById($project, $this->getUser(), $request->query->get('view'));
+
+			if ($selectedView === null) {
 				$selectedView = $this->viewRepository->getDefaultViewByProjectAndByUser($project, $this->getUser());
-			} else {
-				$selectedView = null;
 			}
-		} else {
-			$selectedView = match(count($views)) {
-				0		=>  null,
-				1		=> current($views),
-				default	=> current(array_filter($views, fn($item) => $item->getId() == $selectedViewId)),
-			};
 		}
-		
+
 		return $this->render('pages/engineering/index/nav/_view.html.twig', [
 			'views' => $views,
-			'selected_view' => $selectedView,
+			'selected_view' => $selectedView ?? null,
 			'project' => $project,
 		]);
 	}

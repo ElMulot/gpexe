@@ -1,0 +1,26 @@
+{
+	"compilerOptions": {
+		"target": "ES2017",
+		"module": "commonjs",
+		"strict": true,
+		"esModuleInterop": true,
+		"skipLibCheck": true,
+		"forceConsistentCasingInFileNames": true,
+		"typeRoots": ["assets/types", "node_modules/@types"],
+		"baseUrl": ".",
+		"paths": {
+			"i18n": ["assets/i18n"],
+			"helpers": ["assets/helpers"],
+			"styles": ["assets/styles"]
+		}
+	},
+	"$schema": "https://json.schemastore.org/tsconfig",
+	"display": "Recommended",
+	"include": [
+		"assets/**/*.ts"
+	],
+	"exclude": [
+		"node_modules",
+		"**/node_modules/*"
+	]
+  }
