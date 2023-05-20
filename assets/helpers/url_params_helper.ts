@@ -15,7 +15,7 @@ const UrlParams = class extends URLSearchParams
 	 */
 	has(key: string): boolean
 	{
-		const safeKey = this._getSafeKey(key);
+		const safeKey = this.#getSafeKey(key);
 		if (super.has(safeKey) === true) {
 			return true;
 		} else if (super.has(safeKey + '[]') === true) {
@@ -32,7 +32,7 @@ const UrlParams = class extends URLSearchParams
 	 */
 	get(key: string): any
 	{
-		const safeKey = this._getSafeKey(key);
+		const safeKey = this.#getSafeKey(key);
 		if (super.has(safeKey) === true) {
 			return super.get(safeKey) || '';
 		} else if (super.has(safeKey + '[]') === true) {
@@ -95,7 +95,7 @@ const UrlParams = class extends URLSearchParams
 	set(key: string, value: any): void
 	{
 
-		const safeKey = this._getSafeKey(key);
+		const safeKey = this.#getSafeKey(key);
 
 		if (Object.isObject(value)) {
 			[...super.keys()].filter(k => k.startsWith(safeKey + '[')).forEach(k => this.delete(k));
@@ -118,7 +118,7 @@ const UrlParams = class extends URLSearchParams
 	append(key: string, value: any): void
 	{
 
-		const safeKey = this._getSafeKey(key);
+		const safeKey = this.#getSafeKey(key);
 
 		if (Object.isObject(value)) {
 			Object.entries(value).forEach(([k, v]) => this.append(safeKey + '[' + k + ']', v));
@@ -130,12 +130,12 @@ const UrlParams = class extends URLSearchParams
 	}
 
 	/**
-	 * Deletes the given search parameter and all its associated values, from the list of all search parameters. 
+	 * Deletes the given search parameter and all its associated values, from the l#getSafeKeyist of all search parameters. 
 	 * @param {String} key 
 	 */
 	delete(key: string): void
 	{
-		const safeKey = this._getSafeKey(key);
+		const safeKey = this.#getSafeKey(key);
 		super.delete(safeKey);
 		super.delete(safeKey + '[]');
 	}
@@ -150,7 +150,7 @@ const UrlParams = class extends URLSearchParams
 		});
 	}
 
-	private _getSafeKey(key: string): string
+	#getSafeKey(key: string): string
 	{
 		const safeKey = key.replace(/(\S+)\[\]/, '$1');
 		if (safeKey === '') {

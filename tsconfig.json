@@ -10,9 +10,11 @@
 		"baseUrl": ".",
 		"paths": {
 			"i18n": ["assets/i18n"],
-			"helpers": ["assets/helpers"],
-			"styles": ["assets/styles"]
-		}
+			"helpers/*": ["assets/helpers/*"],
+			"styles/*": ["assets/styles/*"]
+		},
+		"experimentalDecorators": true,
+		"useDefineForClassFields": false
 	},
 	"$schema": "https://json.schemastore.org/tsconfig",
 	"display": "Recommended",

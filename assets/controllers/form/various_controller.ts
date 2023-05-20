@@ -1,13 +1,17 @@
 import { Controller } from '@hotwired/stimulus';
 
-export default class extends Controller {
+export default class VariousController extends Controller {
 
-	#height = 0;
+	#height = '0';
 
 	static targets = ['input', 'placeholder', 'switch'];
-	
-	connect() {
 
+	declare inputTarget: HTMLInputElement;
+	declare placeholderTarget: HTMLElement;
+	declare switchTarget: HTMLInputElement;
+	
+	connect(): void
+	{
 		new ResizeObserver(this.onResize.bind(this)).observe(this.inputTarget);
 		this.switchTarget.addEventListener('change', () => this.onCheckboxChange());
 		this.onResize();
@@ -17,7 +21,8 @@ export default class extends Controller {
 
 	}
 
-	onResize() {
+	onResize(): void
+	{
 		if (getComputedStyle(this.inputTarget).getPropertyValue('height') !== 'auto') {
 			this.#height = getComputedStyle(this.inputTarget).getPropertyValue('height');
 		}
@@ -25,16 +30,16 @@ export default class extends Controller {
 
 	}
 
-	onCheckboxChange() {
-		
+	onCheckboxChange(): void
+	{	
 		if (this.switchTarget.checked === true) {
 			this.inputTarget.style.display = 'none';
 			this.placeholderTarget.style.removeProperty('display');
-			this.inputTarget.parentNode.insertBefore(this.placeholderTarget, this.inputTarget);
+			this.inputTarget.parentNode?.insertBefore(this.placeholderTarget, this.inputTarget);
 		} else {
 			this.inputTarget.style.removeProperty('display');
 			this.placeholderTarget.style.display = 'none';
-			this.placeholderTarget.parentNode.insertBefore(this.inputTarget, this.placeholderTarget);
+			this.placeholderTarget.parentNode?.insertBefore(this.inputTarget, this.placeholderTarget);
 		}
 
 		this.inputTarget.style.display = (this.switchTarget.checked)?'none':'block';

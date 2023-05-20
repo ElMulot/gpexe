@@ -15,11 +15,11 @@ import i18n from 'i18n';
 // *Natively added by Turbo
 
 
-const TurboHelper = class {
-	
-	noCache = false;
+const TurboHelper = class
+{
 
-	constructor() {
+	constructor()
+	{
 
 		//loading animation for instant loading turbo-frame
 		document.querySelectorAll('turbo-frame[src]').forEach((e: Element) => {
@@ -33,8 +33,12 @@ const TurboHelper = class {
 			this.emptyFrames();
 		});
 
-		document.addEventListener('turbo:before-fetch-request', (event: Event) => {
+		const button = document.createElement('button')
+
+		document.addEventListener('turbo:before-fetch-request', (event: Turbo.TurboBeforeFetchRequestEvent) => {
 			
+			var $frame: HTMLElement|null;
+
 			//add in response specific headers
 			// -------------------------------------------------------------------------------------------------------------------------
 			// |                       When                      |        event.target       |      event.explicitOriginalTarget       |
@@ -54,9 +58,15 @@ const TurboHelper = class {
 			//in case of conflict, target has priority
 			//if target is the <html> element, only explicitOriginalTarget is used
 
-			const target = event.target;
+			const target = event.target as HTMLElement|null;
 			//todo : à vérifier si explicitOriginalTarget est équivalent à currentTarget
-			const explicitOriginalTarget = event.currentTarget;
+			const explicitOriginalTarget = event.currentTarget as HTMLElement|null;
+
+			if (target === null || explicitOriginalTarget === null) {
+				console.error('Internal error');
+				event.preventDefault();
+				return false;
+			}
 
 			if (target instanceof HTMLBodyElement === true) {
 				var dataset = Object.entries(explicitOriginalTarget.dataset);
@@ -64,23 +74,27 @@ const TurboHelper = class {
 				var dataset = [...Object.entries(explicitOriginalTarget.dataset), ...Object.entries(target.dataset)];
 			}
 
+			const headers = new Headers(event.detail.fetchOptions.headers);
+			
 			dataset.forEach(([k, d]) => {
-				if (k.match('^turbo') !== null && d !== '') {
-					event.detail.fetchOptions.headers['Turbo-' + k.match(/([A-Z][a-z]+)/g).join('-')] = d;
+				if (k.match('^turbo') !== null && d) {
+					headers.set('Turbo-' + (k.match(/([A-Z][a-z]+)/g) ?? []).join('-'), d);
 				}
 			});
 			
-			const frameId = event.detail.fetchOptions.headers['Turbo-Frame'];
-			const append = event.detail.fetchOptions.headers['Turbo-Append'] || false;
+			const frameId = headers.get('Turbo-Frame') ?? '';
+			const append = headers.get('Turbo-Append')?true:false;
 			
+			event.detail.fetchOptions.headers = headers;
+
 			//determination of the targeted frame
 			if (!frameId || frameId === '_top') {
 				//if frame is not defined or if the whole page must be replaced, place a loading animation in the center of the page
-				var $frame = document.body;
+				$frame = document.body;
 			} else if (frameId === '_self') {
 				//if _self is defined, clear the turbo-frame and place a loading animation in the center of instance
 				//to avoid this behaviour, explicitly specify the turbo-frame id
-				var $frame = event.target;
+				$frame = event.target as HTMLElement|null;
 			} else {
 				//if turbo-frame id is defined, append a loading animation
 				var $frame = document.getElementById(frameId);
@@ -91,6 +105,12 @@ const TurboHelper = class {
 				}
 			}
 
+			if ($frame === null) {
+				console.error('Internal error');
+				event.preventDefault();
+				return false;
+			}
+
 			//if the targeted frame contain a modal, place the loader on the body
 			if ([...$frame.children].some(e => e.classList.contains('modal'))) {
 				$frame = document.body;
@@ -99,7 +119,7 @@ const TurboHelper = class {
 			//clear the targeted frame
 			// console.log($frame.innerHTML);
 			if (append === false && $frame instanceof HTMLBodyElement === false) {
-				$frame.innerHTML = '';
+				$frame.clear
 			}
 			// console.log($frame.innerHTML);
 
@@ -107,10 +127,10 @@ const TurboHelper = class {
 			
 		});
 
-		document.addEventListener('turbo:before-fetch-response', event => {
+		document.addEventListener('turbo:before-fetch-response', (event: Turbo.TurboBeforeFetchResponseEvent) => {
 
 			//display error message from Symfony, except if form error (status code 422)
-			if (event.detail.fetchResponse.failed && event.detail.fetchResponse.response.status != 422) {
+			if (event.detail.fetchResponse.failed && event.detail.fetchResponse.response.status !== 422) {
 				if (event.detail.fetchResponse.response.headers.get('Turbo-Frame')) {
 					this.renderErrorMessage(event);
 					event.preventDefault();
@@ -134,28 +154,30 @@ const TurboHelper = class {
 			}
 		});
 
-		document.addEventListener('turbo:submit-end', event => {
+		document.addEventListener('turbo:submit-end', (event: Turbo.TurboSubmitEndEvent) => {
 			
 			//in case a successfull form submission, close the modal
 			if (event.detail.success) {
-				const frameId = event.detail.fetchResponse.response.headers.get('Turbo-Frame');
-				document.querySelectorAll(`#${frameId} .modal`).forEach(e => e.dispatchEvent(new Event('modal:close')));
+				const frameId = event.detail.formSubmission.fetchRequest.headers['Turbo-Frame'];
+				document.querySelectorAll(`#${frameId} .modal`).forEach((e) => e.dispatchEvent(new Event('modal:close')));
 			}
 		});
 
-		document.addEventListener('turbo:frame-render', (event) => {
+		document.addEventListener('turbo:frame-render', (event: Turbo.TurboFrameRenderEvent) => {
+
+			const target = event.target as HTMLElement|null;
 
 			//open the modal in the turbo-frame
-			[...event.target.children].forEach(e => {
-				if (e.classList.contains('modal')) {
-					e.dispatchEvent(new Event('modal:open'));
-				}
-			});
-
+			if (target !== null) {
+				[...target.children].forEach(e => {
+					if (e.classList.contains('modal')) {
+						e.dispatchEvent(new Event('modal:open'));
+					}
+				});
+			}
+			
 			//loading animation for instant loading turbo-frame
-			document.querySelectorAll('turbo-frame[src][busy]').forEach(e => {
-				this.renderLoading(e);
-			});
+			document.querySelectorAll('turbo-frame[src][busy]').forEach(e => this.renderLoading(e));
 		});
 	}
 
@@ -179,17 +201,14 @@ const TurboHelper = class {
 	}
 
 	emptyFrames() {
-		document.querySelectorAll('turbo-frame').forEach(e => e.innerHTML = '');
+		document.querySelectorAll('turbo-frame').forEach(e => e.clear());
 	}
 
-	renderLoading(e = document.body) {
+	renderLoading(e: Element = document.body) {
 
 		//hide navbar in case of a full page navigation
 		if (e instanceof HTMLBodyElement) {
 			document.querySelectorAll('#navbarContent').forEach(e => e.classList.add('invisible'));
-		}
-		
-		if (e instanceof HTMLBodyElement) {
 			if (document.getElementsByTagName('loading-component').length === 0) {
 				document.body.appendChild(document.createElement('loading-component'));
 			}
@@ -200,31 +219,63 @@ const TurboHelper = class {
 		}
 	}
 
-	renderErrorMessage(event) {
+	renderErrorMessage(event: Turbo.TurboBeforeFetchResponseEvent) {
 
 		const frameId = event.detail.fetchResponse.response.headers.get('Turbo-Frame');
-		const $frame = document.getElementById(frameId);
+		const $frame = document.getElementById(frameId ?? '');
 
-		if ($frame === null) {
+		if (!$frame) {
 			return;
 		}
 
-		event.detail.fetchResponse.responseHTML.then(html => {
+		event.detail.fetchResponse.responseHTML.then((html) => {
 			
+			if (html === undefined) {
+				return;
+			}
+
 			const responseHTML = new DOMParser().parseFromString(html, 'text/html');
 			const fullRender = ($frame.clientWidth > 720);
-			const header = responseHTML.querySelector('[href="#trace-box-1"]').innerHTML + (fullRender)?responseHTML.querySelector('.exception-http').innerHTML:'';
-			const title = (fullRender)?(responseHTML.querySelector('.exception-message-wrapper > div > h1').innerHTML +
-							'<br />' +
-							'<small>' +
-								responseHTML.querySelector('#trace-html-1 span.block.trace-file-path').innerHTML +
-							'</small>'):'';
-			const content = (fullRender)?responseHTML.querySelector('#trace-html-1-0').innerHTML:(responseHTML.querySelector('.exception-message-wrapper > div > h1').innerHTML +
-							'<br />' +
-							'<small>' +
-								responseHTML.querySelector('#trace-html-1 span.block.trace-file-path').innerHTML +
-							'</small>');
-			
+
+			const $traceBox = responseHTML.querySelector('[href="#trace-box-1"]');
+			const $exceptionHttp = responseHTML.querySelector('.exception-http');
+
+			const $exceptionMessageWrapper = responseHTML.querySelector('.exception-message-wrapper > div > h1');
+			const $traceFilePath = responseHTML.querySelector('#trace-html-1 span.block.trace-file-path');
+			const $traceHtml = responseHTML.querySelector('#trace-html-1-0');
+
+			var header: string = '';
+			var title: string = '';
+			var content: string = '';
+
+			if (fullRender === true) {
+				if ($traceBox && $exceptionHttp) {
+					header = $traceBox.innerHTML + $exceptionHttp.innerHTML;
+				}
+				if ($exceptionMessageWrapper && $traceFilePath) {
+					title = $exceptionMessageWrapper.innerHTML +
+						'<br />' +
+						'<small>' +
+							$traceFilePath.innerHTML +
+						'</small>';
+				}
+				if ($traceHtml) {
+					content = $traceHtml.innerHTML;
+				}
+
+			} else {
+				if ($traceBox) {
+					header = $traceBox.innerHTML;
+				}
+				if ($exceptionMessageWrapper && $traceFilePath) {
+					content = $exceptionMessageWrapper.innerHTML +
+						'<br />' +
+						'<small>' +
+							$traceFilePath.innerHTML +
+						'</small>';
+				}
+			}
+
 			if ([...$frame.children].some(e => e.classList.contains('modal'))) {
 				
 				$frame.innerHTML =
@@ -253,10 +304,13 @@ const TurboHelper = class {
 					'</div>';
 				
 				const $modal = [...$frame.children].find(e => e.classList.contains('modal'));
-				$modal.addEventListener('controller:connected', event => {
-					event.target.dispatchEvent(new Event('modal:open'));
-				});
-
+				if ($modal) {
+					$modal.addEventListener('controller:connected', (event: Event) => {
+						if (event.target) {
+							event.target.dispatchEvent(new Event('modal:open'));
+						}
+					});
+				}
 			} else {
 
 				$frame.innerHTML =

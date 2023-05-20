@@ -19,11 +19,11 @@ app.debug = false;
 // })(require.context('./components', true, /\.vue$/, 'lazy'));
 
 
-// Register lit elements from the components/ directory
-let components = require.context('./components', true, /\.js$/, 'lazy');
-components.keys().forEach((filePath: string) => {
-	components(filePath).then((module: any) => {
-		customElements.define(filePath.replace(/\W+(\w+)\.js/, '$1').replace(/_/g, '-'), module.default);
+// Register lit elements from the elements/ directory
+let elements = require.context('./elements', true, /\.[jt]s$/, 'lazy');
+elements.keys().forEach((filePath: string) => {
+	elements(filePath).then((module: any) => {
+		customElements.define(filePath.replace(/\W+(\w+)\.[jt]s/, '$1').replace(/_/g, '-'), module.default);
 	})
 });
 

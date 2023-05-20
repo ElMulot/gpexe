@@ -1,14 +1,17 @@
-
 import {LitElement, html} from 'lit';
+import {customElement} from 'lit/decorators.js';
 import i18n from 'i18n';
 
-export default class extends LitElement {
-    
-	createRenderRoot() {
+@customElement('loading-element')
+export class LoadingElement extends LitElement
+{
+	createRenderRoot(): this
+	{
 		return this;
 	}
 	
-	render() {
+	render()
+	{
         return html`
 			<div class="modal show" tabindex="-1" style="display: block;">
 				<div class="modal-dialog modal-dialog-centered justify-content-center">

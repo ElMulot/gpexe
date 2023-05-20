@@ -1,4 +1,4 @@
-import './helpers/global';
+import 'helpers/global';
 
 // CSS import
 import 'styles/app.scss';

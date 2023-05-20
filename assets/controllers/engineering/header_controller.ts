@@ -1,11 +1,11 @@
 import { Controller } from '@hotwired/stimulus';
 import { Dropdown } from 'bootstrap';
 
-export default class extends Controller {
+export default class HeaderController extends Controller {
 
-	#dropdown = null;
+	#dropdown: Dropdown|null = null;
 	#countOfRequest = 0;
-	#request = [];
+	#request: Record<string, string> = {};
 
 	static targets = ['toggle', 'menu', 'component'];
 
@@ -21,8 +21,27 @@ export default class extends Controller {
 
 	static classes = ['empty', 'fill', 'arrowDown', 'arrowUp'];
 
-	connect() {
+	declare toggleTarget: HTMLInputElement;
+	declare menuTarget: HTMLElement;
+	declare componentTarget: HTMLElement;
+	declare componentTargets: HTMLElement[];
 
+	declare idValue: string;
+	declare hasWidthValue: boolean;
+	declare widthValue: number;
+	declare filteredValue: boolean;
+	declare sortedDescValue: boolean;
+	declare sortedAscValue: boolean;
+	declare resizableValue: boolean;
+	declare movableValue: boolean;
+
+	declare emptyClass: string;
+	declare fillClass: string;
+	declare arrowDownClass: string;
+	declare arrowUpClass: string;
+
+	connect(): void
+	{
 		/**
 		 * Create Dropdown instance.
 		 */
@@ -36,7 +55,7 @@ export default class extends Controller {
 		 * Listener that reset the menu when opened.
 		 */
 		this.toggleTarget.addEventListener('show.bs.dropdown', () => {
-			this.componentTargets.forEach(e => {
+			this.componentTargets.forEach((e: HTMLElement) => {
 				this.dispatch('reset', {
 					target: e
 				});
@@ -60,7 +79,8 @@ export default class extends Controller {
 		/**
 		 * Listener triggered on order action.
 		 */
-		 this.element.addEventListener('engineering--main:requestMove', event => {
+
+		 this.element.addEventListener('engineering--main:requestMove', (event: CustomEvent) => {
 			this.dispatch('order', {
 				detail: [{
 					key: this.idValue,
@@ -72,7 +92,7 @@ export default class extends Controller {
 		/**
 		 * Listener triggered when update requested.
 		 */
-		this.element.addEventListener('engineering--main:update', event => {
+		this.element.addEventListener('engineering--main:update', (event: CustomEvent) => {
 			
 			if (event.detail.width !== undefined) {
 				this.widthValue = event.detail.width;
@@ -99,7 +119,7 @@ export default class extends Controller {
 
 			this.#reset();
 
-			this.#dropdown.hide();
+			this.#dropdown?.hide();
 
         });
 
@@ -109,7 +129,11 @@ export default class extends Controller {
 		this.element.addEventListener('engineering--header--component:filter', event => {
 
 			if (Array.isArray(event.detail)) {
-				this.#request = [...this.#request, ...event.detail];
+				
+				//to do : à vérifier.
+				//this.#request = [...this.#request, ...event.detail];
+				
+				Object.assign(this.#request, event.detail);
 			} else {
 				this.#request.push(event.detail);
 			}

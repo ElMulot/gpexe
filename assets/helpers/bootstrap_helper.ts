@@ -1,21 +1,21 @@
 import { Tooltip, Collapse } from 'bootstrap';
 
 const BsPopper = class
-	{
+{
 	constructor()
 	{
-		document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach((e: Element) => new Tooltip(e));
+		document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(e => new Tooltip(e));
 
 		document.addEventListener('hidden.bs.modal', () => {
 			if (document.body.querySelectorAll('.modal.show').length === 0) {
-				document.querySelectorAll('modal-backdrop-component').forEach((e: Element) => e.remove());
+				document.querySelectorAll('modal-backdrop-component').forEach(e => e.remove());
 			}
 		});
 	}
 }
 
 const BsCollapse = class
-	{	
+{	
 	static show(e: Element): boolean
 	{
 

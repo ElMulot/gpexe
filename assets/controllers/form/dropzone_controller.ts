@@ -17,12 +17,12 @@ import Cropper from 'cropperjs';
 //il reste à rendre ce controlleur utilisable avec autre chose qu'une image
 //j'ai renoncé à utiliser un component, bootstrap ne permet pas la gestion de modal dans un DOM Shadow.
 
-export default class extends Controller {
+export default class DropzoneController extends Controller {
 
-	imageWidth = 180;
-	imageHeight = 90;
-	mimeType = 'image/jpeg';
-	cropper = null;
+	readonly #imageWidth = 180;
+	readonly #imageHeight = 90;
+	#outputMimeType = 'image/jpeg';
+	#cropper: Cropper|null = null;
 
 	static targets = ['input', 'placeholder', 'preview', 'previewClearButton', 'previewFilename', 'previewImage', 'modal', 'image', 'cropButton'];
 	
@@ -32,8 +32,22 @@ export default class extends Controller {
 		mimeType: String,
     }
 
-	connect() {
-		
+	declare inputTarget: HTMLInputElement;
+	declare placeholderTarget: HTMLElement;
+	declare previewTarget: HTMLElement;
+	declare previewClearButtonTarget: HTMLElement;
+	declare previewFilenameTarget: HTMLElement;
+	declare previewImageTarget: HTMLElement;
+	declare modalTarget: HTMLElement;
+	declare imageTarget: HTMLElement;
+	declare cropButtonTarget: HTMLElement;
+
+	declare uploadsDirectoryValue: string;
+	declare nameValue: string;
+	declare mimeTypeValue: string;
+
+	connect(): void
+	{
 		this.previewClearButtonTarget.addEventListener('click', () => this.clear());
 		
 		this.inputTarget.addEventListener('change', () => this.onInputChange());
@@ -44,10 +58,10 @@ export default class extends Controller {
 
 		this.cropButtonTarget.addEventListener('click', () => this.onCropperButtonClick());
 
-		if (this.nameValue !== '') {
+		if (this.nameValue) {
 			fetch(this.uploadsDirectoryValue + this.nameValue).then(response => response.blob()).then(blob => {
-				let file = new File([blob], this.nameValue, {type:this.mimeType, lastModified:new Date().getTime()}, 'utf-8');
-				let container = new DataTransfer();
+				const file = new File([blob], this.nameValue, {type:this.#outputMimeType, lastModified:new Date().getTime()});
+				const container = new DataTransfer();
 				container.items.add(file);
 				this.inputTarget.files = container.files;
 				this.onInputChange();
@@ -55,16 +69,22 @@ export default class extends Controller {
 		}
 
 		this.dispatch('connected');
-
 	}
 
-	onInputChange() {
-
-        const file = this.inputTarget.files[0];
-        if (typeof file === 'undefined') {
-            return;
-        }
+	onInputChange(): void
+	{
+        const fileList = this.inputTarget.files;
+        
+		if (fileList === null || fileList.length === 0) {
+			return;
+		}
 		
+		const file = fileList.item(0);
+
+		if (file === null) {
+			return;
+		}
+
 		//check if uploaded file match the requested mime type
 		if (file.type && this.mimeTypeValue.match(/^\w+\/[-+.\w*]+$/g) !== null) {
 			if (file.type.includes(this.mimeTypeValue.replace('*', '')) === false) {
@@ -78,14 +98,14 @@ export default class extends Controller {
 		this.previewClearButtonTarget.style.display = 'block';
 		this.previewImageTarget.style.display = 'block';
 		this.previewImageTarget.className = '';
-		this.previewImageTarget.style = '';
+		this.previewImageTarget.removeAttribute('style');
 		this.previewTarget.style.display = 'flex';
 
         // Show the filename in preview if not image + icon or image
 		if (file.type.includes('image') === true) {
 			this.previewFilenameTarget.textContent = '';
-			this.previewImageTarget.style.width = this.imageWidth + 'px';
-			this.previewImageTarget.style.height = this.imageHeight + 'px';
+			this.previewImageTarget.style.width = this.#imageWidth + 'px';
+			this.previewImageTarget.style.height = this.#imageHeight + 'px';
 			const src = URL.createObjectURL(file);
 			this.previewImageTarget.style.backgroundImage = `url("${src}")`;
 			if (this.nameValue === '') { //new upload
@@ -97,54 +117,58 @@ export default class extends Controller {
 		} else {
 			this.previewFilenameTarget.textContent = file.name;
 			this.previewImageTarget.style.fontSize = "2rem";
-			this.previewImageTarget.classList.add('bi', 'bi-' + this.getfileEarmark(file));
+			this.previewImageTarget.classList.add('bi', 'bi-' + this.#getfileEarmark(file));
 		}
     }
 
-	onModalShow() {
-		
-		this.cropper = new Cropper(this.imageTarget.firstChild, {
-			aspectRatio: 2,
-			viewMode: 2,
-			autoCropArea: 1,
-		});
-
-	}
-
-	onModalHidden() {
-		
-		if (this.cropper !== null) {
-			this.cropper.destroy();
-			this.cropper = null;
+	onModalShow(): void
+	{	
+		if (this.imageTarget.firstChild instanceof HTMLImageElement) {
+			this.#cropper = new Cropper(this.imageTarget.firstChild, {
+				aspectRatio: 2,
+				viewMode: 2,
+				autoCropArea: 1,
+			});
 		}
-
 	}
 
-	onCropperButtonClick() {
+	onModalHidden(): void
+	{
+		this.#cropper?.destroy();
+		this.#cropper = null;
+	}
+
+	onCropperButtonClick(): void
+	{	
+		if (this.#cropper === null) {
+			return;
+		}
 		
 		this.clear();
-		let canvas = this.cropper.getCroppedCanvas({
-			width: this.imageWidth,
-			height: this.imageHeight,
+		let canvas = this.#cropper.getCroppedCanvas({
+			width: this.#imageWidth,
+			height: this.#imageHeight,
 		});
 		
-		canvas.toBlob(blob => {
-			let file = new File([blob], 'croppedImage.jpg', {type:this.mimeType, lastModified:new Date().getTime()}, 'utf-8');
+		canvas.toBlob((blob: Blob | null) => {
+			if (blob === null) {
+				return;
+			}
+			let file = new File([blob], 'croppedImage.jpg', {type:this.#outputMimeType, lastModified:new Date().getTime()});
 			let container = new DataTransfer();
 			container.items.add(file);
 			this.inputTarget.files = container.files;
 			this.nameValue = file.name;
 			this.inputTarget.dispatchEvent(new Event('change'));
-		}, this.mimeType);
+		}, this.#outputMimeType);
 
 		this.modalTarget.dispatchEvent(new Event('modal:close'));
 
 	}
 
-	clear() {
-
+	clear(): void
+	{
         this.nameValue = '';
-		
 		this.inputTarget.value = '';
         this.inputTarget.style.display = 'block';
         this.placeholderTarget.style.display = 'block';
@@ -155,13 +179,15 @@ export default class extends Controller {
         this.previewFilenameTarget.textContent = '';
 	}
 
-	getFileExtension(filename) {
+	#getFileExtension(filename: string): string
+	{
 		return filename.slice((filename.lastIndexOf(".") - 1 >>> 0) + 2);
 	}
 
-	getfileEarmark(file) {
+	#getfileEarmark(file: File): string
+	{
 
-		switch (this.getFileExtension(file.name)) {
+		switch (this.#getFileExtension(file.name)) {
 			
 			case '':
 				return 'file-earmark';
@@ -187,7 +213,7 @@ export default class extends Controller {
 				return 'file-earmark-spreadsheet';
 			
 			default:
-				return 'file-earmark-' + this.getFileExtension(filename);
+				return 'file-earmark-' + this.#getFileExtension(file.name);
 
 		}
 	}
