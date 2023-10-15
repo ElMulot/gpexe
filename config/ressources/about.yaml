@@ -187,3 +187,8 @@
     changes:
         - Migration sous Symfony 5.4
         - Mise à jour de sécurité
+- 
+    version: 0.5.18
+    date: 15/10/2023
+    changes:
+        - Mise à jour de sécurité
