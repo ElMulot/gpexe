@@ -18,7 +18,7 @@ class ProgramTransformer implements DataTransformerInterface
 		$this->parseService = $parseService;
 	}
 	
-	public function transform($value)
+	public function transform($value): mixed
 	{
 		if ($value === null) {
 			return '';

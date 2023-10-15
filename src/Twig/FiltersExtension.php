@@ -38,6 +38,10 @@ class FiltersExtension extends AbstractExtension
 	
 	public function truncateFilter(Environment $env, $value, $length = 30, $preserve = false, $separator = '...')
 	{
+		if ($value === null) {
+			return null;
+		}
+		
 		if (mb_strlen($value, $env->getCharset()) > $length) {
 			if ($preserve) {
 				// If breakpoint is on the last word, return the value without separator.
