@@ -192,3 +192,8 @@
     date: 15/10/2023
     changes:
         - Mise à jour de sécurité
+- 
+    version: 0.5.19
+    date: 20/10/2023
+    changes:
+        - Correction de bugs

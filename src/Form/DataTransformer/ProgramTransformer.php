@@ -18,7 +18,10 @@ class ProgramTransformer implements DataTransformerInterface
 		$this->parseService = $parseService;
 	}
 	
-	public function transform($value): mixed
+	/**
+	 * @return mixed
+	 */
+	public function transform($value)
 	{
 		if ($value === null) {
 			return '';
@@ -26,7 +29,10 @@ class ProgramTransformer implements DataTransformerInterface
 		return $value;
 	}
 	
-	public function reverseTransform($value): string
+	/**
+	 * @return mixed
+	 */
+	public function reverseTransform($value)
 	{
 		try {
 			$validatedCode = $this->parseService->getValidatedCode($value);

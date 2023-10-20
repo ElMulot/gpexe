@@ -13,7 +13,10 @@ use PhpParser\JsonDecoder;
 class ViewTransformer implements DataTransformerInterface
 {
 	
-	public function transform($value): mixed
+	/**
+	 * @return mixed
+	 */
+	public function transform($value)
 	{
 		try {
 			$encoder = new JsonEncoder();
@@ -25,7 +28,10 @@ class ViewTransformer implements DataTransformerInterface
 		}
 	}
 	
-	public function reverseTransform($value): mixed
+	/**
+	 * @return mixed
+	 */
+	public function reverseTransform($value)
 	{
 		try {
 			$encoder = new JsonEncoder();
