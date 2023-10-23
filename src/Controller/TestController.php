@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Document;
 use App\Entity\Project;
 use App\Entity\Serie;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -27,9 +28,39 @@ class TestController extends AbstractController
 	
 	public function index(): Response
 	{
-		phpinfo();
-				
-		return new Response();
+		
+		$entityManager = $this->getDoctrine()->getManager();
+		$nb = 0;
+		$ref = '';
+		$rev = '';
+		
+		foreach ($this->getDoctrine()->getRepository(Project::class)->getAllProjects() as $project) {
+
+			$documents = $this->getDoctrine()->getRepository(Document::class)->getDocumentsByProject($project);
+			foreach ($documents as $d) {
+				foreach ($d->getVersions()->getValues() as $v) {
+					
+					if ($v->getIsRequired() === true) {
+						if ($v->getReviews()->count() !== 0) {
+							$v->getReviews()->clear();
+							$ref = $d->getReference();
+							$rev = $v->getName();
+							$nb++;
+						}
+					}
+				}
+			}
+		}
+		
+		// $entityManager->flush();
+		
+		$s = 'visas supprimés : ' . $nb . "\n";
+		$s .= $ref . '-' . $rev;
+		
+		// $this->clearDuplicateDocuments();
+		// $this->clearDuplicateVersions();
+		
+		return new Response($s);
 	}
 	
 
@@ -41,7 +72,7 @@ class TestController extends AbstractController
 		
 		foreach ($this->getDoctrine()->getRepository(Project::class)->getAllProjects() as $project) {
 			
-			$series = $this->getDoctrine()->getRepository(Serie::class)->getHydratedSeries($project);
+			$series = $this->getDoctrine()->getRepository(Serie::class)->getSeriesByProject($project);
 			
 			do {
 				

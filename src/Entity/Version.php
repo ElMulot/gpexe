@@ -126,7 +126,15 @@ class Version
 	{
 		$this->isRequired = $isRequired;
 		if ($isRequired === true) {
+			if ($this->scheduledDate === null) {
+				$this->setScheduledDate($this->deliveryDate);
+			}
 			$this->deliveryDate = null;
+			// $this->reviews->clear();
+		} else {
+			if ($this->deliveryDate === null) {
+				$this->setDeliveryDate(($this->scheduledDate === null)?new \DateTime('now'):$this->scheduledDate);
+			}
 		}
 		
 		return $this;
@@ -144,11 +152,13 @@ class Version
 
 	public function setScheduledDate(?\DateTimeInterface $scheduledDate): self
 	{
-		if ($this->initialScheduledDate === null) {
-			$this->initialScheduledDate = $scheduledDate;
+		if ($scheduledDate !== null) {
+			if ($this->initialScheduledDate === null) {
+				$this->initialScheduledDate = $scheduledDate;
+			}
+			$this->scheduledDate = $scheduledDate;
 		}
-		$this->scheduledDate = $scheduledDate;
-		
+
 		return $this;
 	}
 	

@@ -399,9 +399,21 @@ class ProgramService
 				}
 			}
 			
+			//security patch
+			$newDocument = $currentDocument === null;
+			if ($newDocument === false) {
+				$oldName = $currentDocument->getName();
+			}
+
 			if ($currentDocument !== null) {
 				
 				foreach ($cache['get_document']['then'] as $then) {
+					
+					//security patch
+					if ($then->getVariable() === 'document.reference') {
+						$this->addComment('warning', sprintf('Le champ "%s" ne peut être mis à jour.', $then->getVariable()));
+						continue;
+					}
 					
 					try {
 						$currentDocument->setPropertyValue($then->getVariable(), $then->eval($currentDocument, $row));
@@ -442,6 +454,11 @@ class ProgramService
 				
 			}
 			
+			//security patch
+			if ($currentDocument->getName() == false) {
+				$currentDocument->setName($oldName);
+			}
+
 			if ($currentDocument->getName() == false || $currentDocument->getReference() == false) {
 				$this->addComment('error', 'Les champs "document.name" et "document.reference" sont obligatoires.');
 				$this->addComment('error', 'Ligne exclue : création du document annulée.');
@@ -462,11 +479,24 @@ class ProgramService
 					break;
 				}
 			}
+
+			//security patch
+			$newVersion = $currentVersion === null;
+			if ($newVersion === false) {
+				$oldName = $currentVersion->getName();
+				$oldDate = $currentVersion->getDate();
+			}
 			
 			if ($currentVersion !== null) {
 				
 				foreach ($cache['get_version']['then'] as $then) {
 					
+					//security patch
+					if ($then->getVariable() === 'version.name') {
+						$this->addComment('warning', sprintf('Le champ "%s" ne peut être mis à jour.', $then->getVariable()));
+						continue;
+					}
+
 					try {
 						$currentVersion->setPropertyValue($then->getVariable(), $then->eval($currentVersion, $row));
 						$this->addComment('valid', sprintf('Champ "%s" mis à jour.', $then->getVariable()));
@@ -539,7 +569,14 @@ class ProgramService
 				continue;
 				
 			}
-			
+
+			//security patch
+			if ($currentVersion->getName() == false) {
+				$currentVersion->setName($oldName);
+			}
+			if ($currentVersion->getDate() == false) {
+				$currentVersion->setDate($oldDate);
+			}
 			
 			if ($currentVersion->getName() == false || $currentVersion->getDate() == false) {
 			    $this->addComment('error', 'Les champs "version.name" et "version.date" sont obligatoires.');
