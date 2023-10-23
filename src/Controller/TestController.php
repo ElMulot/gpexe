@@ -29,6 +29,16 @@ class TestController extends AbstractController
 	public function index(): Response
 	{
 		
+		// $this->clearDuplicateDocuments();
+		// $this->clearDuplicateVersions();
+		// $this->clearShadowVisas();
+		
+		// return $this->render('test/index.html.twig');
+		return new Response();
+	}
+	
+	public function clearShadowVisas()
+	{
 		$entityManager = $this->getDoctrine()->getManager();
 		$nb = 0;
 		$ref = '';
@@ -52,17 +62,11 @@ class TestController extends AbstractController
 			}
 		}
 		
-		// $entityManager->flush();
+		$entityManager->flush();
 		
-		$s = 'visas supprimés : ' . $nb . "\n";
-		$s .= $ref . '-' . $rev;
-		
-		// $this->clearDuplicateDocuments();
-		// $this->clearDuplicateVersions();
-		
-		return new Response($s);
+		var_dump('visas supprimés : ' . $nb);
+		var_dump($ref . '-' . $rev);
 	}
-	
 
 	
 	private function clearDuplicateDocuments()
@@ -102,7 +106,7 @@ class TestController extends AbstractController
 		
 		$entityManager->flush();
 		
-		dump('documents dupliqués : ' . $nb);
+		var_dump('documents dupliqués : ' . $nb);
 	}
 	
 	private function clearDuplicateVersions()
@@ -142,6 +146,6 @@ class TestController extends AbstractController
 		
 		$entityManager->flush();
 		
-		dump('versions dupliquées : ' . $nb);
+		var_dump('versions dupliquées : ' . $nb);
 	}
 }
