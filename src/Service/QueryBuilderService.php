@@ -14,7 +14,7 @@ class QueryBuilderService extends QueryBuilder
 	
 	private $aliases = [];
 	
-	public function addSelect($select = null): static
+	public function addSelect($select = null): self
 	{
 		if (empty($select)) {
 			return $this;
