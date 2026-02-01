@@ -93,7 +93,7 @@ class SerieRepository extends RepositoryService
 	}
 	
 	/**
-	 * @return Serie[]
+	 * @return Serie
 	 *
 	 */
 	public function getDefaultSerie(Project $project)
@@ -104,6 +104,7 @@ class SerieRepository extends RepositoryService
 			->andWhere($qb->eq('s.project', $project))
 			->andWhere($qb->eq('c.type', Company::MAIN_CONTRACTOR))
 			->getQuery()
+			->setMaxResults(1)
 			->getSingleResult()
 		;
 	}

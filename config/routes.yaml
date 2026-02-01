@@ -86,7 +86,27 @@ user_delete:
 account:
     path: /account
     controller: App\Controller\AccountController::index
-    
+
+admin:
+    path: /admin
+    controller: App\Controller\AdminController::index
+
+clear_duplicate_documents:
+    path: /admin/clear_duplicate_documents/{flush}
+    controller: App\Controller\AdminController::clearDuplicateDocuments
+    defaults:
+        flush: null
+    requirements:
+        flush: ^flush$
+
+clear_duplicate_versions:
+    path: /admin/clear_duplicate_versions/{flush}
+    controller: App\Controller\AdminController::clearDuplicateVersions
+    defaults:
+        flush: null
+    requirements:
+        flush: ^flush$
+
 edit_account:
     path: /account/edit/
     controller: App\Controller\AccountController::edit

@@ -8,6 +8,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Symfony\Component\Yaml\Yaml;
 use App\Entity\Project;
+use App\Entity\User;
 use App\Service\FieldService;
 use App\Repository\ProjectRepository;
 use App\Repository\StatusRepository;
@@ -47,8 +48,10 @@ class HomeController extends AbstractController
 	
 	public function alert(Project $project): Response
 	{
+		/** @var User $user */
+		$user = $this->getUser();
+		$company = $user->getCompany();
 		$fields = $this->fieldService->getFields($project);
-		$company = $this->getUser()->getCompany();
 		
 		$prodSettings = [
 			'display' => [
@@ -63,7 +66,7 @@ class HomeController extends AbstractController
 			'filter' => [
 				'version_is_required' => 1,
 				'status_value' => $this->statusRepository->getNonCancelledStatuses($project),
-				'version_writer' => [$this->getUser()->getId()],
+				'version_writer' => [$user->getId()],
 				'version_first_scheduled' => 1,
 			],
 			'highlight' => 'version_date',
@@ -86,7 +89,7 @@ class HomeController extends AbstractController
 				'filter' => [
 					'version_is_required' => 0,
 					'status_value' => $this->statusRepository->getNonCancelledStatuses($project),
-					'version_checker' => [$this->getUser()->getId()],
+					'version_checker' => [$user->getId()],
 					'version_last_delivered' => 1,
 				    'visa_' . $company->getId() => [0],
 				],

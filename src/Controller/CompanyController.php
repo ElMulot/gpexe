@@ -2,21 +2,25 @@
 
 namespace App\Controller;
 
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Contracts\Translation\TranslatorInterface;
 use App\Entity\Company;
-use App\Repository\CompanyRepository;
 use App\Form\CompanyType;
+use App\Repository\CompanyRepository;
+use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Contracts\Translation\TranslatorInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class CompanyController extends AbstractController
 {
 	
+	private $doctrine;
+
 	private $translator;
 	
-	public function __construct(TranslatorInterface $translator)
+	public function __construct(ManagerRegistry $doctrine, TranslatorInterface $translator)
 	{
+		$this->doctrine = $doctrine;
 		$this->translator = $translator;
 	}
 	
@@ -37,7 +41,7 @@ class CompanyController extends AbstractController
 		$form->handleRequest($request);
 		
 		if ($form->isSubmitted() && $form->isValid()) {
-			$entityManager = $this->getDoctrine()->getManager();
+			$entityManager = $this->doctrine->getManager();
 			$entityManager->persist($company);
 			$entityManager->flush();
 			
@@ -58,7 +62,7 @@ class CompanyController extends AbstractController
 		$form->handleRequest($request);
 		
 		if ($form->isSubmitted() && $form->isValid()) {
-			$entityManager = $this->getDoctrine()->getManager();
+			$entityManager = $this->doctrine->getManager();
 			$entityManager->flush();
 			
 			$this->addFlash('success', 'Datas updated');
@@ -74,8 +78,8 @@ class CompanyController extends AbstractController
 	
 	public function delete(Request $request, Company $company): Response
 	{
-		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
-			$entityManager = $this->getDoctrine()->getManager();
+		if ($this->isCsrfTokenValid('delete', $request->get('_token'))) {
+			$entityManager = $this->doctrine->getManager();
 			$entityManager->remove($company);
 			$entityManager->flush();
 			

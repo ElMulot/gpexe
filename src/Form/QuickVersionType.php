@@ -125,7 +125,10 @@ class QuickVersionType extends AbstractType
 					foreach ($version->getDocument()->getSerie()->getProject()->getVisas()->getValues() as $visa) {
 						
 						if ($visa->getCompany()->getId() == $result->group(1)) {
-							if ($this->security->getUser()->getCompany() == $visa->getCompany() || ($this->security->isGranted('ROLE_CONTROLLER') && $project->hasUser($this->security->getUser())) || $this->security->isGranted('ROLE_ADMIN')) {
+							/** @var User $user */
+							$user = $this->security->getUser();
+
+							if ($user->getCompany() == $visa->getCompany() || ($this->security->isGranted('ROLE_CONTROLLER') && $project->hasUser($this->security->getUser())) || $this->security->isGranted('ROLE_ADMIN')) {
 								$options = [
 									'required'	=> false,
 									'class'		=> Visa::class,

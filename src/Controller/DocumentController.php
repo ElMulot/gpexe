@@ -4,6 +4,7 @@ namespace App\Controller;
 use App\Entity\Document;
 use App\Entity\Project;
 use App\Entity\Serie;
+use App\Entity\User;
 use App\Entity\Version;
 use App\Form\DocumentType;
 use App\Form\SerieChangeType;
@@ -20,17 +21,20 @@ use App\Repository\ViewRepository;
 use App\Service\DocumentService;
 use App\Service\FieldService;
 use App\Service\ProgramService;
+use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 class DocumentController extends AbstractController
 {
-	
+	private $doctrine;
+
 	private $translator;
 	
 	private $documentService;
@@ -59,8 +63,9 @@ class DocumentController extends AbstractController
 	
 	private $viewRepository;
 	
-	public function __construct(TranslatorInterface $translator, DocumentService $documentService, FieldService $fieldService, ProgramService $programService, CodificationRepository $codificationRepository, CompanyRepository $companyRepository, DocumentRepository $documentRepository, MetadataRepository $metadataRepository, ProgramRepository $programRepository, SerieRepository $serieRepository, StatusRepository $statusRepository, VersionRepository $versionRepository, UserRepository $userRepository, ViewRepository $viewRepository)
+	public function __construct(ManagerRegistry $doctrine, TranslatorInterface $translator, DocumentService $documentService, FieldService $fieldService, ProgramService $programService, CodificationRepository $codificationRepository, CompanyRepository $companyRepository, DocumentRepository $documentRepository, MetadataRepository $metadataRepository, ProgramRepository $programRepository, SerieRepository $serieRepository, StatusRepository $statusRepository, VersionRepository $versionRepository, UserRepository $userRepository, ViewRepository $viewRepository)
 	{
+		$this->doctrine = $doctrine;
 		$this->translator = $translator;
 		$this->documentService = $documentService;
 		$this->fieldService = $fieldService;
@@ -79,18 +84,21 @@ class DocumentController extends AbstractController
 	
 	public function index(Project $project, string $type, Serie $serie = null): Response
 	{
-		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
+		/** @var User $user */
+		$user = $this->getUser();	
+
+		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($user) === false) {
 			return $this->redirectToRoute('project');
 		}
 		
 		if ($serie === null) {
 			$company = null;
-			if ($this->getUser()->getCompany()->isMainContractor() === false) {
+			if ($user->getCompany()->isMainContractor() === false) {
 				return $this->redirectToRoute('project');
 			}
 		} else {
 			$company = $serie->getCompany();
-			if ($this->getUser()->getCompany()->isMainContractor() === false && $this->getUser()->getCompany() !== $serie->getCompany()) {
+			if ($user->getCompany()->isMainContractor() === false && $user->getCompany() !== $serie->getCompany()) {
 				return $this->redirectToRoute('project');
 			}
 		}
@@ -129,14 +137,17 @@ class DocumentController extends AbstractController
 	
 	public function table(Request $request, Project $project, string $type, Serie $serie = null): Response
 	{
+		/** @var User $user */
+		$user = $this->getUser();
+
 		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
 			throw $this->createAccessDeniedException();
 		}
 		
-		$page = max((int)$request->query->get('page') ?? 1, 1);
+		$page = max((int)$request->get('page') ?? 1, 1);
 		$request->query->remove('page');
 		
-		if ($viewId = $request->query->get('view')) {
+		if ($viewId = $request->get('view')) {
 			if ($view = $this->viewRepository->getViewById($viewId)) {
 				$request->query->replace($view->getValue());
 				$request->query->set('view', $viewId);
@@ -146,13 +157,13 @@ class DocumentController extends AbstractController
 		}
 		
 		if ($serie === null) {
-			if ($this->getUser()->getCompany()->isMainContractor() === false) {
+			if ($user->getCompany()->isMainContractor() === false) {
 				throw $this->createAccessDeniedException();
 			}
 			$series = $this->serieRepository->getSeriesByTypeAsArray($project, $type);
 			$serieId = 0;
 		} else {
-			if ($this->getUser()->getCompany()->isMainContractor() === false && $this->getUser()->getCompany() !== $serie->getCompany()) {
+			if ($user->getCompany()->isMainContractor() === false && $user->getCompany() !== $serie->getCompany()) {
 				throw $this->createAccessDeniedException();
 			}
 			$series = [$serie];
@@ -174,7 +185,7 @@ class DocumentController extends AbstractController
 		
 		$versionsCount = $this->versionRepository->getVersionsCount($codifications, $fields, $series, $project, $request);
 		
-		$resultsPerPage = $request->query->get('results_per_page') ?? 50;
+		$resultsPerPage = $request->get('results_per_page') ?? 50;
 		if ($resultsPerPage == 0) { //display all
 			$pageMax = 1;
 		} else {
@@ -188,23 +199,30 @@ class DocumentController extends AbstractController
 		
 		$serializer = new Serializer([new DateTimeNormalizer(['datetime_format' => 'd-m-Y'])]);
 		
+		/** @var Session $session */
+		$session = $request->getSession();
+		
 		return new JsonResponse([
 				'datas' => $serializer->normalize($versions),
 				'page_max' => $pageMax,
 				'query' => $request->query->all(),
 				'serie' => $serieId,
-				'flash' => $request->getSession()->getFlashBag()->all(),
+				'flash' => $session->getFlashBag()->all(),
 			]
 		);
+		$this->addFlash('success', 'Document exported successfully.');
 	}
 	
 	public function export(Request $request, Project $project, string $type, Serie $serie = null): Response
 	{
+		/** @var User $user */
+		$user = $this->getUser();
+
 		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
 			throw $this->createAccessDeniedException();
 		}
 		
-		if ($viewId = $request->query->get('view')) {
+		if ($viewId = $request->get('view')) {
 			if ($view = $this->viewRepository->getViewById($viewId)) {
 				$request->query->replace($view->getValue());
 				$request->query->set('view', $viewId);
@@ -214,12 +232,12 @@ class DocumentController extends AbstractController
 		}
 		
 		if ($serie === null) {
-			if ($this->getUser()->getCompany()->isMainContractor() === false) {
+			if ($user->getCompany()->isMainContractor() === false) {
 				throw $this->createAccessDeniedException();
 			}
 			$series = $this->serieRepository->getSeriesByTypeAsArray($project, $type);
 		} else {
-			if ($this->getUser()->getCompany()->isMainContractor() === false && $this->getUser()->getCompany() !== $serie->getCompany()) {
+			if ($user->getCompany()->isMainContractor() === false && $user->getCompany() !== $serie->getCompany()) {
 				throw $this->createAccessDeniedException();
 			}
 			$series = [$serie];
@@ -229,7 +247,7 @@ class DocumentController extends AbstractController
 		$fields = $this->fieldService->getFields($project);
 		
 		if ($request->query->all() == false) {
-			if ($view = $this->viewRepository->getDefaultViewByProjectAndByUser($project, $this->getUser())) {
+			if ($view = $this->viewRepository->getDefaultViewByProjectAndByUser($project, $user)) {
 				$viewId = $view->getId();
 				$request->query->replace($view->getValue());
 			} else {
@@ -261,10 +279,12 @@ class DocumentController extends AbstractController
 	{
 		$document = $version->getDocument();
 		$serie = $document->getSerie();
+		/** @var User $user */
+		$user = $this->getUser();
 		
 		if ($this->isGranted('ROLE_ADMIN') === false && 
-			$this->getUser()->getCompany()->isMainContractor() === false &&
-			$this->getUser()->getCompany() !== $serie->getCompany()) {
+			$user->getCompany()->isMainContractor() === false &&
+			$user->getCompany() !== $serie->getCompany()) {
 			throw $this->createAccessDeniedException();
 		}
 		
@@ -294,7 +314,7 @@ class DocumentController extends AbstractController
 		
 		if ($form->isSubmitted() && $form->isValid()) {
 			
-			$entityManager = $this->getDoctrine()->getManager();
+			$entityManager = $this->doctrine->getManager();
 			$this->documentService->removeOrphans();
 			$entityManager->flush();
 			
@@ -391,7 +411,7 @@ class DocumentController extends AbstractController
 		
 		if ($form->isSubmitted() && $form->isValid()) {
 			
-			$entityManager = $this->getDoctrine()->getManager();
+			$entityManager = $this->doctrine->getManager();
 			$this->documentService->removeOrphans();
 			$entityManager->flush();
 			
@@ -520,7 +540,7 @@ class DocumentController extends AbstractController
 		$form->handleRequest($request);
 		
 		if ($form->isSubmitted() && $form->isValid()) {
-			$entityManager = $this->getDoctrine()->getManager();
+			$entityManager = $this->doctrine->getManager();
 			
 			$newSerie = $form->get('serie')->getData();
 			foreach ($documents as $document) {
@@ -559,8 +579,8 @@ class DocumentController extends AbstractController
 			throw $this->createAccessDeniedException();
 		}
 		
-		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
-			$entityManager = $this->getDoctrine()->getManager();
+		if ($this->isCsrfTokenValid('delete', $request->get('_token'))) {
+			$entityManager = $this->doctrine->getManager();
 			
 			foreach ($documents as $document) {
 			   $entityManager->remove($document);

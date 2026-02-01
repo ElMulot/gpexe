@@ -3,25 +3,29 @@
 namespace App\Controller;
 
 use App\Entity\Company;
-use App\Entity\Document;
 use App\Entity\Version;
-use App\Form\QuickVersionType;
+use App\Entity\Document;
+use App\Entity\User;
 use App\Form\VersionType;
+use App\Service\FieldService;
+use App\Form\QuickVersionType;
+use App\Service\DocumentService;
+use App\Repository\StatusRepository;
+use App\Service\AjaxRedirectService;
 use App\Repository\CompanyRepository;
+use App\Repository\VersionRepository;
 use App\Repository\DocumentRepository;
 use App\Repository\MetadataRepository;
-use App\Repository\StatusRepository;
-use App\Repository\VersionRepository;
-use App\Service\AjaxRedirectService;
-use App\Service\DocumentService;
-use App\Service\FieldService;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Contracts\Translation\TranslatorInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class VersionController extends AbstractController
 {
+	private $doctrine;
+
 	private $translator;
 	
 	private $companyRepository;
@@ -37,9 +41,13 @@ class VersionController extends AbstractController
 	private $ajaxRedirectService;
 	
 	private $documentService;
+
+	private $fieldService;
+
 	
-	public function __construct(TranslatorInterface $translator, CompanyRepository $companyRepository, DocumentRepository $documentRepository, VersionRepository $versionRepository, MetadataRepository $metadataRepository, StatusRepository $statusRepository, AjaxRedirectService $ajaxRedirectService, DocumentService $documentService, FieldService $fieldService)
+	public function __construct(ManagerRegistry $doctrine, TranslatorInterface $translator, CompanyRepository $companyRepository, DocumentRepository $documentRepository, VersionRepository $versionRepository, MetadataRepository $metadataRepository, StatusRepository $statusRepository, AjaxRedirectService $ajaxRedirectService, DocumentService $documentService, FieldService $fieldService)
 	{
+		$this->doctrine = $doctrine;
 		$this->translator = $translator;
 		$this->companyRepository = $companyRepository;
 		$this->documentRepository = $documentRepository;
@@ -56,11 +64,13 @@ class VersionController extends AbstractController
 		$document = $version->getDocument();
 		$serie = $document->getSerie();
 		$project = $serie->getProject();
+		/** @var User $user */
+		$user = $this->getUser();
 		
-		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
+		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($user) === false) {
 			$this->createAccessDeniedException();
 		}
-		if ($this->getUser()->getCompany()->isMainContractor() === false && $this->getUser()->getCompany() !== $serie->getCompany()) {
+		if ($user->getCompany()->isMainContractor() === false && $user->getCompany() !== $serie->getCompany()) {
 			$this->createAccessDeniedException();
 		}
 		
@@ -160,7 +170,7 @@ class VersionController extends AbstractController
 				}
 			}
 			
-			$entityManager = $this->getDoctrine()->getManager();
+			$entityManager = $this->doctrine->getManager();
 			$entityManager->persist($version);
 			$entityManager->flush();
 			
@@ -212,7 +222,7 @@ class VersionController extends AbstractController
 		
 		if ($form->isSubmitted() && $form->isValid()) {
 			
-			$entityManager = $this->getDoctrine()->getManager();
+			$entityManager = $this->doctrine->getManager();
 			
 			foreach ($versions as $version) {
 				
@@ -312,8 +322,8 @@ class VersionController extends AbstractController
 			throw $this->createAccessDeniedException();
 		}
 		
-		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
-			$entityManager = $this->getDoctrine()->getManager();
+		if ($this->isCsrfTokenValid('delete', $request->get('_token'))) {
+			$entityManager = $this->doctrine->getManager();
 			
 			foreach ($versions as $version) {
 				$entityManager->remove($version);
@@ -376,7 +386,7 @@ class VersionController extends AbstractController
 				}
 			}
 			
-			$entityManager = $this->getDoctrine()->getManager();
+			$entityManager = $this->doctrine->getManager();
 			$entityManager->persist($newVersion);
 			$entityManager->flush();
 			
@@ -423,7 +433,7 @@ class VersionController extends AbstractController
 							$this->addFlash('danger', $e->getMessage());
 						}
 						
-						$entityManager = $this->getDoctrine()->getManager();
+						$entityManager = $this->doctrine->getManager();
 						$entityManager->persist($version);
 						$entityManager->flush();
 						

@@ -14,6 +14,7 @@ use App\Entity\Project;
 use App\Entity\Company;
 use App\Entity\Document;
 use App\Entity\MetadataValue;
+use App\Entity\Serie;
 use App\Entity\Status;
 use App\Entity\User;
 use App\Entity\Version;
@@ -72,8 +73,8 @@ class VersionRepository extends RepositoryService
 		}
 		
 		if ($request->query->has('sortAsc') || $request->query->has('sortDesc')) {
-			$sortedField = $request->query->get('sortAsc') ?? $request->query->get('sortDesc');
-			$order = ($request->query->get('sortAsc'))?'ASC':'DESC';
+			$sortedField = $request->get('sortAsc') ?? $request->get('sortDesc');
+			$order = ($request->get('sortAsc'))?'ASC':'DESC';
 			
 			switch ($sortedField) {
 				case 'version_name':
@@ -251,12 +252,12 @@ class VersionRepository extends RepositoryService
 		}
 		
 		//page
-		$page = $request->query->get('page');
+		$page = $request->get('page');
 		
-		if ($request->query->get('results_per_page') > 0) {
+		if ($request->get('results_per_page') > 0) {
 			$qb
-				->setFirstResult(($page -1) * $request->query->get('results_per_page'))
-				->setMaxResults($request->query->get('results_per_page'));
+				->setFirstResult(($page -1) * $request->get('results_per_page'))
+				->setMaxResults($request->get('results_per_page'));
 		}
 		
 		$display = array_keys($request->query->all('display') ?? []);
@@ -520,7 +521,7 @@ class VersionRepository extends RepositoryService
 			// 	$item['version_date'] = Regex::replace('/(\d{4})-(\d{2})-(\d{2})/', '${3}-${2}-${1}', $item['version_date'])->result();
 			// }
 			
-			if ($highlight = $request->query->get('highlight')) {
+			if ($highlight = $request->get('highlight')) {
 				
 				if ($item['version_is_required'] && array_key_exists($highlight, $item)) {
 					if ($item[$highlight] instanceof \DateTimeInterface) {
@@ -1059,6 +1060,8 @@ class VersionRepository extends RepositoryService
 				return Document::class;
 			case 'version':
 				return Version::class;
+			default:
+				return '';
 		};
 	}
 }

@@ -7,6 +7,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Doctrine\Persistence\ManagerRegistry;
 use App\Entity\User;
 use App\Form\NewUserType;
 use App\Form\EditUserType;
@@ -14,13 +15,16 @@ use App\Repository\UserRepository;
 
 class UserController extends AbstractController
 {
-	
+		
+	private $doctrine;
+
 	private $translator;
 	
 	private $passwordHasher;
 	
-	public function __construct(TranslatorInterface $translator, UserPasswordHasherInterface $passwordHasher)
+	public function __construct(ManagerRegistry $doctrine, TranslatorInterface $translator, UserPasswordHasherInterface $passwordHasher)
 	{
+		$this->doctrine = $doctrine;
 		$this->translator = $translator;
 		$this->passwordHasher = $passwordHasher;
 	}
@@ -43,7 +47,7 @@ class UserController extends AbstractController
 		
 		if ($form->isSubmitted() && $form->isValid()) {
 			$user->setPassword($this->passwordHasher->hashPassword($user, $user->getPassword()));
-			$entityManager = $this->getDoctrine()->getManager();
+			$entityManager = $this->doctrine->getManager();
 			$entityManager->persist($user);
 			$entityManager->flush();
 			
@@ -67,7 +71,7 @@ class UserController extends AbstractController
 			if (!empty($form->get('new_password')->getData())) {
 				$user->setPassword($this->passwordHasher->hashPassword($user, $form->get('new_password')->getData()));
 			}
-			$entityManager = $this->getDoctrine()->getManager();
+			$entityManager = $this->doctrine->getManager();
 			$entityManager->flush();
 			
 			return $this->redirectToRoute('user');
@@ -82,8 +86,8 @@ class UserController extends AbstractController
 	
 	public function delete(Request $request, User $user): Response
 	{
-		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
-			$entityManager = $this->getDoctrine()->getManager();
+		if ($this->isCsrfTokenValid('delete', $request->get('_token'))) {
+			$entityManager = $this->doctrine->getManager();
 			$entityManager->remove($user);
 			$entityManager->flush();
 			

@@ -14,7 +14,7 @@ class QueryBuilderService extends QueryBuilder
 	
 	private $aliases = [];
 	
-	public function addSelect($select = null)
+	public function addSelect($select = null): static
 	{
 		if (empty($select)) {
 			return $this;
@@ -132,7 +132,7 @@ class QueryBuilderService extends QueryBuilder
 		return in_array($alias, $this->getAllAliases());
 	}
 	
-	public function getAllAliases()
+	public function getAllAliases(): array
 	{
 		return array_merge(parent::getAllAliases(), $this->aliases);
 	}
@@ -181,7 +181,7 @@ class QueryBuilderService extends QueryBuilder
 		}
 		
 		if ($value instanceof \DateInterval) {
-			return $value;
+			return $value->format('%a');
 		}
 		
 		if (is_array($value)) {

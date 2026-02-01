@@ -4,7 +4,9 @@ namespace App\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
+use Doctrine\Persistence\ManagerRegistry;
 use App\Entity\Project;
+use App\Entity\User;
 use App\Repository\CompanyRepository;
 use App\Repository\ProjectRepository;
 use App\Repository\ProgramRepository;
@@ -12,18 +14,18 @@ use App\Form\ProjectType;
 
 class ProjectController extends AbstractController
 {
-	
-	private $companyRepository;
-	
 	private $projectRepository;
 	
 	private $programRepository;
 	
-	public function __construct(CompanyRepository $companyRepository, ProjectRepository $projectRepository, ProgramRepository $programRepository)
+	private $doctrine;
+	
+	public function __construct(ManagerRegistry $doctrine, ProjectRepository $projectRepository, ProgramRepository $programRepository)
 	{
-		$this->companyRepository = $companyRepository;
+		$this->doctrine = $doctrine;
 		$this->projectRepository = $projectRepository;
 		$this->programRepository = $programRepository;
+		
 	}
 
 	public function index(): Response
@@ -51,34 +53,37 @@ class ProjectController extends AbstractController
 
 	public function view(Request $request, Project $project, CompanyRepository $companyRepository): Response
 	{
-		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($this->getUser()) === false) {
+		/** @var User $user */
+		$user = $this->getUser();
+
+		if ($this->isGranted('ROLE_ADMIN') === false && $project->hasUser($user) === false) {
 			return $this->redirectToRoute('project');
 		}
 		
 		if ($this->isGranted('ROLE_ADMIN') ||
-			$this->isGranted('ROLE_CONTROLLER') && $this->getUser()->getCompany()->isMainContractor() ||
-			$this->isGranted('ROLE_EDIT_DOCUMENTS') && $project->hasUser($this->getUser())) {
+			$this->isGranted('ROLE_CONTROLLER') && $user->getCompany()->isMainContractor() ||
+			$this->isGranted('ROLE_EDIT_DOCUMENTS') && $project->hasUser($user)) {
 			
 			$mainContractors = $companyRepository->getMainContractors($project);
 			$subContractors= $companyRepository->getSubContractors($project);
 			
 		} else {
 			
-			$mainContractors = $companyRepository->getMainContractors($project, $this->getUser());
-			$subContractors= $companyRepository->getSubContractors($project, $this->getUser());
+			$mainContractors = $companyRepository->getMainContractors($project, $user);
+			$subContractors= $companyRepository->getSubContractors($project, $user);
 			
 		}
 		
 		$programs = [];
 		if ($this->isGranted('ROLE_ADMIN') ||
-			$this->isGranted('ROLE_CONTROLLER') && $this->getUser()->getCompany()->isMainContractor()) {
+			$this->isGranted('ROLE_CONTROLLER') && $user->getCompany()->isMainContractor()) {
 			$programs = $this->programRepository->getEnabledPrograms($project);
-		} else if ($this->isGranted('ROLE_USER') && $this->getUser()->getCompany()->isMainContractor()) {
+		} else if ($this->isGranted('ROLE_USER') && $user->getCompany()->isMainContractor()) {
 			$programs = $this->programRepository->getEnabledProgressPrograms($project);
 		}
 		
 		if ($this->isGranted('ROLE_ADMIN') === false) {
-			$projects = $this->projectRepository->getProjects($this->getUser());
+			$projects = $this->projectRepository->getProjects($user);
 			
 			if (sizeof($projects) == 1) {
 				return $this->render('project/view.html.twig', [
@@ -111,7 +116,7 @@ class ProjectController extends AbstractController
 		$form->handleRequest($request);
 
 		if ($form->isSubmitted() && $form->isValid()) {
-			$entityManager = $this->getDoctrine()->getManager();
+			$entityManager = $this->doctrine->getManager();
 			$entityManager->persist($project);
 			$entityManager->flush();
 
@@ -137,7 +142,7 @@ class ProjectController extends AbstractController
 		$form->handleRequest($request);
 		
 		if ($form->isSubmitted() && $form->isValid()) {
-			$entityManager = $this->getDoctrine()->getManager();
+			$entityManager = $this->doctrine->getManager();
 			$entityManager->flush();
 
 			$this->addFlash('success', 'Datas updated');
@@ -157,8 +162,8 @@ class ProjectController extends AbstractController
 			return $this->redirectToRoute('project');
 		}
 		
-		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
-			$entityManager = $this->getDoctrine()->getManager();
+		if ($this->isCsrfTokenValid('delete', $request->get('_token'))) {
+			$entityManager = $this->doctrine->getManager();
 			$entityManager->remove($project);
 			$entityManager->flush();
 

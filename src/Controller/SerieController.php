@@ -2,27 +2,32 @@
 
 namespace App\Controller;
 
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Contracts\Translation\TranslatorInterface;
 use App\Entity\Serie;
-use App\Entity\Project;
 use App\Entity\Company;
+use App\Entity\Project;
 use App\Form\SerieType;
 use App\Repository\SerieRepository;
 use App\Repository\MetadataRepository;
+use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Contracts\Translation\TranslatorInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class SerieController extends AbstractController
 {
+	
+	private $doctrine;
+	
 	private $translator;
 	
 	private $serieRepository;
 	
 	private $metadataRepository;
 	
-	public function __construct(TranslatorInterface $translator, SerieRepository $serieRepository, MetadataRepository $metadataRepository)
+	public function __construct(ManagerRegistry $doctrine, TranslatorInterface $translator, SerieRepository $serieRepository, MetadataRepository $metadataRepository)
 	{
+		$this->doctrine = $doctrine;
 		$this->translator = $translator;
 		$this->serieRepository = $serieRepository;
 		$this->metadataRepository = $metadataRepository;
@@ -123,10 +128,7 @@ class SerieController extends AbstractController
 				}
 			}
 			
-			$entityManager = $this->getDoctrine()->getManager();
-			$entityManager->persist($serie);
-			$entityManager->flush();
-			
+		$entityManager = $this->doctrine->getManager();
 			$this->addFlash('success', 'New serie created');
 			return $this->redirectToRoute('serie', [
 				'project' => $project->getId(),
@@ -185,7 +187,7 @@ class SerieController extends AbstractController
 				}
 			}
 			
-			$entityManager = $this->getDoctrine()->getManager();
+			$entityManager = $this->doctrine->getManager();
 			$entityManager->persist($serie);
 			$entityManager->flush();
 			$this->addFlash('success', 'Serie updated');
@@ -213,8 +215,8 @@ class SerieController extends AbstractController
 			return $this->redirectToRoute('project');
 		}
 		
-		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
-			$entityManager = $this->getDoctrine()->getManager();
+		if ($this->isCsrfTokenValid('delete', $request->get('_token'))) {
+			$entityManager = $this->doctrine->getManager();
 			$entityManager->remove($serie);
 			$entityManager->flush();
 			

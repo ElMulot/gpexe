@@ -1,0 +1,80 @@
+{% extends 'layout.html.twig' %}
+
+{% block nav %}
+	<div class="navbar-collapse">
+		<ul class="navbar-nav mr-auto ">
+			<li class="nav-item" style="{{ block('nav_item') }}">
+				<a class="nav-link" href={{ path('home') }}>{% trans %}Home{% endtrans %}</a>
+			</li>
+		</ul>
+	</div>
+	<div class="navbar-collapse ">
+		Admin
+	</div>
+	<div class="navbar-collapse">
+		<ul class="navbar-nav ml-auto">
+			{{ block('logout') }}
+		</ul>
+	</div>
+{% endblock %}
+
+{% block content %}
+	<div class="col-5 d-flex flex-column align-items-center">
+		<a class="btn-primary btn w-75 m-1" role="button" href="{{ path('clear_duplicate_documents') }}">Vérifier les documents en double</a>
+		<a class="btn-primary btn w-75 m-1" role="button" href="{{ path('clear_duplicate_versions') }}">Vérifier les versions en double</a>
+	</div>
+
+	<div class="jumbotron col-12">
+		{% if duplicated_documents is defined %}
+			{% if flush is defined %}
+				<p>Les documents suivants en double ont été supprimés :</p>
+				<ul>
+					{% for document in duplicated_documents %}
+						<li>{{ document }}</li>
+					{% else %}
+						<p>Aucun document en double</p>
+					{% endfor %}
+				</ul>
+			{% else %}
+				<p>Les documents suivants sont en double et peuvent être supprimés :</p>
+				<ul>
+					{% for document in duplicated_documents %}
+						<li>{{ document }}</li>
+					{% else %}
+						<p>Aucun document en double</p>
+					{% endfor %}
+					{% if duplicated_documents is not empty %}
+						<a class="btn-danger btn m-1" role="button" href="{{ path('clear_duplicate_documents', {flush: 'flush'}) }}">Supprimer les documents en double</a>
+					{% endif %}
+				</ul>
+			{% endif %}
+		{% endif %}
+
+		{% if duplicated_versions is defined %}
+			{% if flush is defined %}
+				<p>Les versions suivantes en double ont été supprimées :</p>
+				<ul>
+					{% for version in duplicated_versions %}
+						<li>{{ version }}</li>
+					{% else %}
+						<p>Aucune version en double</p>
+					{% endfor %}
+				</ul>
+			{% else %}
+				<p>Les versions suivantes sont en double et peuvent être supprimés :</p>
+				<ul>
+					{% for version in duplicated_versions %}
+						<li>{{ version }}</li>
+					{% else %}
+						<p>Aucune version en double</p>
+					{% endfor %}
+					{% if duplicated_versions is not empty %}
+						<a class="btn-danger btn m-1" role="button" href="{{ path('clear_duplicate_versions', {flush: 'flush'}) }}">Supprimer les versions en double</a>
+					{% endif %}
+				</ul>
+			{% endif %}
+		{% endif %}
+	</div>
+
+
+{% endblock %}

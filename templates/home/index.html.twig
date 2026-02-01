@@ -36,6 +36,7 @@
 					<a class="dropdown-item" href="https://github.com/ElMulot/gpexe/issues" target="_blank">{% trans %}Report bug{% endtrans %}</a>
 					<a class="dropdown-item" href="{{ path('about') }}">{% trans %}About{% endtrans %}</a>
 					{% if is_granted('ROLE_SUPER_ADMIN') %}
+						<a class="dropdown-item" href="{{ path('admin') }}">Admin</a>
 						<a class="dropdown-item" href="{{ path('test') }}">Test</a>
 					{% endif %}
 				</div>

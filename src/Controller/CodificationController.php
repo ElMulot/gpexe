@@ -1,22 +1,25 @@
 <?php
 namespace App\Controller;
 
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Entity\Project;
+use App\Entity\Codification;
+use App\Form\CodificationType;
+use Doctrine\Persistence\ManagerRegistry;
+use App\Repository\CodificationRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Contracts\Translation\TranslatorInterface;
-use App\Entity\Codification;
-use App\Form\CodificationType;
-use App\Repository\CodificationRepository;
-use App\Entity\Project;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class CodificationController extends AbstractController
 {
+	private $doctrine;
 
 	private $translator;
 	
-	public function __construct(TranslatorInterface $translator)
+	public function __construct(ManagerRegistry $doctrine, TranslatorInterface $translator)
 	{
+		$this->doctrine = $doctrine;
 		$this->translator = $translator;
 	}
 	
@@ -51,7 +54,7 @@ class CodificationController extends AbstractController
 		$form->handleRequest($request);
 
 		if ($form->isSubmitted() && $form->isValid()) {
-			$entityManager = $this->getDoctrine()->getManager();
+			$entityManager = $this->doctrine->getManager();
 			$entityManager->persist($codification);
 			$entityManager->flush();
 
@@ -82,7 +85,7 @@ class CodificationController extends AbstractController
 		$form->handleRequest($request);
 
 		if ($form->isSubmitted() && $form->isValid()) {
-			$entityManager = $this->getDoctrine()->getManager();
+			$entityManager = $this->doctrine->getManager();
 			$entityManager->flush();
 			$this->addFlash('success', 'Datas updated');
 			return $this->redirectToRoute('codification', [
@@ -107,8 +110,8 @@ class CodificationController extends AbstractController
 			return $this->redirectToRoute('project');
 		}
 		
-		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
-			$entityManager = $this->getDoctrine()->getManager();
+		if ($this->isCsrfTokenValid('delete', $request->get('_token'))) {
+			$entityManager = $this->doctrine->getManager();
 			$entityManager->remove($codification);
 			$entityManager->flush();
 

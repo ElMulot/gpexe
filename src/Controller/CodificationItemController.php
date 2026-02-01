@@ -1,23 +1,27 @@
 <?php
 namespace App\Controller;
 
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Contracts\Translation\TranslatorInterface;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
+use App\Entity\Codification;
 use App\Entity\CodificationItem;
 use App\Form\CodificationItemType;
+use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Component\HttpFoundation\Request;
 use App\Repository\CodificationItemRepository;
-use App\Entity\Codification;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Contracts\Translation\TranslatorInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 
 class CodificationItemController extends AbstractController
 {
 
+	private $doctrine;
+
 	private $translator;
 	
-	public function __construct(TranslatorInterface $translator)
+	public function __construct(ManagerRegistry $doctrine, TranslatorInterface $translator)
 	{
+		$this->doctrine = $doctrine;
 		$this->translator = $translator;
 	}
 	
@@ -54,7 +58,7 @@ class CodificationItemController extends AbstractController
 		$form->handleRequest($request);
 
 		if ($form->isSubmitted() && $form->isValid()) {
-			$entityManager = $this->getDoctrine()->getManager();
+			$entityManager = $this->doctrine->getManager();
 			$entityManager->persist($codificationItem);
 			$entityManager->flush();
 
@@ -88,7 +92,7 @@ class CodificationItemController extends AbstractController
 		$form->handleRequest($request);
 		
 		if ($form->isSubmitted() && $form->isValid()) {
-			$entityManager = $this->getDoctrine()->getManager();
+			$entityManager = $this->doctrine->getManager();
 			$entityManager->flush();
 			
 			$this->addFlash('success', 'Datas updated');
@@ -117,8 +121,8 @@ class CodificationItemController extends AbstractController
 			return $this->redirectToRoute('project');
 		}
 		
-		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
-			$entityManager = $this->getDoctrine()->getManager();
+		if ($this->isCsrfTokenValid('delete', $request->get('_token'))) {
+			$entityManager = $this->doctrine->getManager();
 			$entityManager->remove($codificationItem);
 			$entityManager->flush();
 

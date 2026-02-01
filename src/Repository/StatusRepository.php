@@ -67,7 +67,7 @@ class StatusRepository extends RepositoryService
 	}
 	
 	/**
-	 * @return Status[]
+	 * @return Status
 	 *
 	 */
 	public function getDefaultStatus(Project $project)
@@ -77,6 +77,7 @@ class StatusRepository extends RepositoryService
 			->andWhere($qb->eq('s.project', $project))
 			->andWhere($qb->eq('s.isDefault', true))
 			->getQuery()
+			->setMaxResults(1)
 			->getSingleResult()
 		;
 	}

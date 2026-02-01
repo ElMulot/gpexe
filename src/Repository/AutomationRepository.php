@@ -51,7 +51,7 @@ class AutomationRepository extends RepositoryService
 	}
 	
 	/**
-	 * @return Automation[]
+	 * @return Automation
 	 *
 	 */
 	public function getAutomationByCommandAndByArguments(string $command, array $arguments)

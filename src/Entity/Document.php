@@ -270,9 +270,16 @@ class Document
 			return null;
 		}
 
-
+		$serie = $this->getSerie();
+		if ($serie === null) {
+			return null;
+		}
 		
-		$project = $this->getSerie()->getProject();
+		$project = $serie->getProject();
+		if ($project === null) {
+			return null;
+		}
+
 		$references = [];
 		
 		foreach ($project->getCodifications()->getValues() as $codification) {
@@ -311,7 +318,16 @@ class Document
 	
 	public function setReference($value): self
 	{
-		$project = $this->getSerie()->getProject();
+		$serie = $this->getSerie();
+		if ($serie === null) {
+			throw new \Error(sprintf('Erreur: le document "%s" n\'est pas rattaché à une série.', $this->getName()));
+		}
+		
+		$project = $serie->getProject();
+		if ($project === null) {
+			throw new \Error(sprintf('Erreur: la série "%s" n\'est pas rattachée à un projet.', $serie()->getName()));
+		}
+
 		$references = explode($project->getSplitter(), $value);
 		
 		$reference = null;

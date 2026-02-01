@@ -1,23 +1,26 @@
 <?php
 namespace App\Controller;
 
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Contracts\Translation\TranslatorInterface;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
+use App\Entity\Metadata;
 use App\Entity\MetadataItem;
 use App\Form\MetadataItemType;
+use Doctrine\Persistence\ManagerRegistry;
 use App\Repository\MetadataItemRepository;
-use App\Entity\Metadata;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Contracts\Translation\TranslatorInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 
 class MetadataItemController extends AbstractController
 {
+	private $doctrine;
 
 	private $translator;
 	
-	public function __construct(TranslatorInterface $translator)
+	public function __construct(ManagerRegistry $doctrine, TranslatorInterface $translator)
 	{
+		$this->doctrine = $doctrine;
 		$this->translator = $translator;
 	}
 	
@@ -53,7 +56,7 @@ class MetadataItemController extends AbstractController
 		$form->handleRequest($request);
 
 		if ($form->isSubmitted() && $form->isValid()) {
-			$entityManager = $this->getDoctrine()->getManager();
+			$entityManager = $this->doctrine->getManager();
 			$entityManager->persist($metadataItem);
 			$entityManager->flush();
 
@@ -87,7 +90,7 @@ class MetadataItemController extends AbstractController
 		$form->handleRequest($request);
 
 		if ($form->isSubmitted() && $form->isValid()) {
-			$entityManager = $this->getDoctrine()->getManager();
+			$entityManager = $this->doctrine->getManager();
 			$entityManager->flush();
 
 			$this->addFlash('success', 'Datas updated');
@@ -116,8 +119,8 @@ class MetadataItemController extends AbstractController
 			return $this->redirectToRoute('project');
 		}
 		
-		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
-			$entityManager = $this->getDoctrine()->getManager();
+		if ($this->isCsrfTokenValid('delete', $request->get('_token'))) {
+			$entityManager = $this->doctrine->getManager();
 			$entityManager->remove($metadataItem);
 			$entityManager->flush();
 

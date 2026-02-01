@@ -70,7 +70,9 @@ class FieldService
 	
 	public function getFields($project): array
 	{
-		
+		/** @var User $user */	
+		$user = $this->security->getUser();
+
 	    $permissionWrite = ($this->security->getUser() !== null && ($this->security->isGranted('ROLE_EDIT_DOCUMENTS') && $project->hasUser($this->security->getUser())) || $this->security->isGranted('ROLE_ADMIN'));
 	    
 	    $fields = [
@@ -423,7 +425,7 @@ class FieldService
 					],
 					'permissions' => [
 						'read' => true,
-						'write' => ($this->security->getUser() !== null && $this->security->getUser()->getCompany() == $company || ($this->security->isGranted('ROLE_CONTROLLER') && $project->hasUser($this->security->getUser())) || $this->security->isGranted('ROLE_ADMIN')),
+						'write' => ($user !== null && $user->getCompany() == $company || ($this->security->isGranted('ROLE_CONTROLLER') && $project->hasUser($user)) || $this->security->isGranted('ROLE_ADMIN')),
 					],
 				];
 				

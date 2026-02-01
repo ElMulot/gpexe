@@ -15,6 +15,7 @@ use App\Service\Code\ProgramCache;
 use App\Service\FieldService;
 use App\Service\ParseService;
 use App\Service\ProgramService;
+use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -29,11 +30,10 @@ use Symfony\Component\HttpFoundation\File\Exception\FileException;
 
 class ProgramController extends AbstractController
 {
+	private $doctrine;
 	
 	private $translator;
-	
-	private $automationRepository;
-	
+		
 	private $programRepository;
 	
 	private $progressRepository;
@@ -46,10 +46,11 @@ class ProgramController extends AbstractController
 	
 	private $fieldService;
 		
-	public function __construct(TranslatorInterface $translator, AutomationRepository $automationRepository, ProgramRepository $programRepository, ProgressRepository $progressRepository, SerieRepository $serieRepository, ParseService $parseService, ProgramService $programService, FieldService $fieldService, Security $security)
+	public function __construct(ManagerRegistry $doctrine, TranslatorInterface $translator, ProgramRepository $programRepository, ProgressRepository $progressRepository, SerieRepository $serieRepository, ParseService $parseService, ProgramService $programService, FieldService $fieldService, Security $security)
 	{
+
+		$this->doctrine = $doctrine;
 		$this->translator = $translator;
-		$this->automationRepository = $automationRepository;
 		$this->programRepository = $programRepository;
 		$this->progressRepository = $progressRepository;
 		$this->serieRepository = $serieRepository;
@@ -78,10 +79,12 @@ class ProgramController extends AbstractController
 	public function dashboard(Request $request, Program $program): Response
 	{
 		$project = $program->getProject();
+		/** @var User $user */
+		$user = $this->getUser();
 		
 		if ($this->isGranted('ROLE_ADMIN') === false &&
 			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false) &&
-			($this->isGranted('ROLE_USER') === false || $project->hasUser($this->getUser()) === false || $this->getUser()->getCompany()->isMainContractor() === false || $program->isTypeProgress() === false)) {
+			($this->isGranted('ROLE_USER') === false || $project->hasUser($this->getUser()) === false || $user->getCompany()->isMainContractor() === false || $program->isTypeProgress() === false)) {
 				return $this->redirectToRoute('project');
 			}
 			
@@ -158,7 +161,7 @@ class ProgramController extends AbstractController
 						$this->programService->preload($program, $request);
 						return $this->redirectToRoute('program_load', [
 							'program' => $program->getId(),
-							'series' => $request->query->get('series'),
+							'series' => $request->get('series'),
 						]);
 					} catch (\Error $e) {
 						$this->addFlash('danger', $e->getMessage());
@@ -230,16 +233,18 @@ class ProgramController extends AbstractController
 	public function load(Request $request, Program $program): Response
 	{
 		$project = $program->getProject();
+		/** @var User $user */
+		$user = $this->getUser();
 		
 		if ($this->isGranted('ROLE_ADMIN') === false &&
 			($this->isGranted('ROLE_CONTROLLER') === false || $project->hasUser($this->getUser()) === false) &&
 			($this->isGranted('ROLE_USER') === false || $project->hasUser($this->getUser()) === false || (
-				$this->getUser()->getCompany()->isMainContractor() === false && array_intersect(
+				$user->getCompany()->isMainContractor() === false && array_intersect(
 					array_column(
 						$this->serieRepository->getSeriesByIdAsArray(
-							$this->getUser()->getCompany()->getSeries()->getValues()
+							$user->getCompany()->getSeries()->getValues()
 						), 'id'
-					), $request->query->get('series')) == false
+					), $request->get('series')) == false
 				) || $program->isTypeProgress() === false)) {
 				return $this->redirectToRoute('project');
 			}
@@ -312,7 +317,8 @@ class ProgramController extends AbstractController
 					try {
 						$this->programService->load($program);
 						$serializer = new Serializer([new DateTimeNormalizer(['datetime_format' => 'd-m-Y'])]);
-						if ($series = $request->query->get('series')) {
+						/** @var array $series */
+						if ($series = $request->get('series')) {
 							return new JsonResponse([
 								'series' => $this->serieRepository->getSeriesByIdAsArray($series),
 								'current_progress' => $this->programService->progress($program, $series),
@@ -370,7 +376,7 @@ class ProgramController extends AbstractController
 							'program' => $program,
 						]);
 						
-					} else {																	//check import
+					} else {																				//check import
 						
 						$filePath = $this->programService->getCache()->getParameter('file_path');
 						$pathParts = pathinfo($filePath);
@@ -391,7 +397,7 @@ class ProgramController extends AbstractController
 							'program' => $program,
 						]);
 						
-					} else {																	//check task
+					} else {																				//check task
 						
 						$this->programService->getCache()->setOption('ready_to_persist', true);
 						return $this->render('program/check.html.twig', [
@@ -463,7 +469,7 @@ class ProgramController extends AbstractController
 			
 			if ($request->request->has('program')) {														//validation du type de programme et affichage du formulaire principal
 				
-				if ($type = $request->request->get('program')['type'] ?? null) {
+				if ($type = $request->get('program')['type'] ?? null) {
 					
 					$program = new Program();
 					$program->setEnabled(true);
@@ -502,7 +508,7 @@ class ProgramController extends AbstractController
 						'fields' => $fields,
 					]);
 					
-				} elseif ($request->request->get('program')['name']) {				//validation du formulaire principal
+				} elseif ($request->get('program')['name']) {				//validation du formulaire principal
 					
 					$program = new Program();
 					$form = $this->createForm(ProgramType::class, $program);
@@ -524,13 +530,13 @@ class ProgramController extends AbstractController
 				$program->setCreatedBy($this->getUser());
 				$program->setLastModifiedBy($this->getUser());
 				
-				$entityManager = $this->getDoctrine()->getManager();
+				$entityManager = $this->doctrine->getManager();
 				$entityManager->persist($program);
 				$entityManager->flush();
 				
 				$this->addFlash('success', 'Nouveau programme créé');
 				
-				if ($request->request->get('submit') == 'save') {
+				if ($request->get('submit') == 'save') {
 					return $this->redirectToRoute('program_edit', [
 						'program' => $program->getId(),
 					]);
@@ -565,11 +571,11 @@ class ProgramController extends AbstractController
 				
 				$program->setLastModifiedBy($this->getUser());
 				
-				$entityManager = $this->getDoctrine()->getManager();
+				$entityManager = $this->doctrine->getManager();
 				$entityManager->flush();
 				$this->addFlash('success', 'Programme mis à jour');
 				
-				if ($request->request->get('submit') == 'save') {
+				if ($request->get('submit') == 'save') {
 					$view = $form->createView();
 					return $this->render('program/form.html.twig', [
 						'route_back' =>  $this->generateUrl('program', [
@@ -603,8 +609,8 @@ class ProgramController extends AbstractController
 				return $this->redirectToRoute('project');
 			}
 			
-			if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
-				$entityManager = $this->getDoctrine()->getManager();
+			if ($this->isCsrfTokenValid('delete', $request->get('_token'))) {
+				$entityManager = $this->doctrine->getManager();
 				$entityManager->remove($program);
 				$entityManager->flush();
 				

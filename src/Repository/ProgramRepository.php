@@ -99,7 +99,7 @@ class ProgramRepository extends RepositoryService
 	
 	
 	/**
-	 * @return Program[]
+	 * @return Program
 	 *
 	 */
 	public function getProgramById(int $id)

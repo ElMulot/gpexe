@@ -2,28 +2,32 @@
 
 namespace App\Controller;
 
-use App\Entity\Project;
 use App\Entity\View;
 use App\Form\ViewType;
+use App\Entity\Project;
+use App\Entity\User;
 use App\Repository\ViewRepository;
 use App\Service\AjaxRedirectService;
-use App\Service\FieldService;
-use App\Service\ProgramService;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\JsonResponse;
+use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Contracts\Translation\TranslatorInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class ViewController extends AbstractController
 {
+	private $doctrine;
+
+	private $translator;
 	
 	private $viewRepository;
 	
 	private $ajaxRedirectService;
 	
-	public function __construct(TranslatorInterface $translator, ViewRepository $viewRepository, AjaxRedirectService $ajaxRedirectService)
+	public function __construct(ManagerRegistry $doctrine, TranslatorInterface $translator, ViewRepository $viewRepository, AjaxRedirectService $ajaxRedirectService)
 	{
+		$this->doctrine = $doctrine;
 		$this->translator = $translator;
 		$this->viewRepository = $viewRepository;
 		$this->ajaxRedirectService = $ajaxRedirectService;
@@ -31,11 +35,14 @@ class ViewController extends AbstractController
 	
 	public function index(Project $project): Response
 	{
-		$views = $this->viewRepository->getViewsByProjectAndByUserAsArray($project, $this->getUser());
+		/** @var User $user */
+		$user = $this->getUser();
+		
+		$views = $this->viewRepository->getViewsByProjectAndByUserAsArray($project, $user);
 		
 		foreach ($views as &$view) {
-			if ($view['user_id'] == $this->getUser()->getId() || 
-				($this->isGranted('ROLE_CONTROLLER') && $project->hasUser($this->getUser()) === false)) {
+			if ($view['user_id'] == $user->getId() || 
+				($this->isGranted('ROLE_CONTROLLER') && $project->hasUser($user) === false)) {
 				$view['edit_url'] = $this->generateUrl('view_edit', [
 					'view' => $view['id'],
 				]);
@@ -60,7 +67,7 @@ class ViewController extends AbstractController
 		$form->handleRequest($request);
 		
 		if ($form->isSubmitted() && $form->isValid()) {
-			$entityManager = $this->getDoctrine()->getManager();
+			$entityManager = $this->doctrine->getManager();
 			$entityManager->persist($view);
 			$entityManager->flush();
 			
@@ -85,7 +92,7 @@ class ViewController extends AbstractController
 		$form->handleRequest($request);
 		
 		if ($form->isSubmitted() && $form->isValid()) {
-			$entityManager = $this->getDoctrine()->getManager();
+			$entityManager = $this->doctrine->getManager();
 			$entityManager->flush();
 			
 			$this->addFlash('success', $this->translator->trans('View updated'));
@@ -105,8 +112,8 @@ class ViewController extends AbstractController
 			throw $this->createAccessDeniedException();
 		}
 		
-		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
-			$entityManager = $this->getDoctrine()->getManager();
+		if ($this->isCsrfTokenValid('delete', $request->get('_token'))) {
+			$entityManager = $this->doctrine->getManager();
 			$entityManager->remove($view);
 			$entityManager->flush();
 			

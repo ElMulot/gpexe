@@ -204,3 +204,9 @@
         - Désormais, le changement du champ "isRequired" à "vrai" supprimera les éventuels visas apposés
         - Correction dans l'affectation des dates lors du changement de la variable "isRequired"
         - Ajout d'une sécurité lors des imports pour éviter la suppression accidentelle d'entrées
+- 
+    version: 0.5.21
+    date: 01/02/2026
+    changes:
+        - Correction de bugs
+        - Mise à jour de sécurité

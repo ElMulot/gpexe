@@ -7,6 +7,7 @@ use App\Entity\Project;
 use App\Form\AutomationType;
 use App\Repository\AutomationRepository;
 use App\Service\ProgramService;
+use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -19,17 +20,17 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 class AutomationController extends AbstractController
 {
 	
-	private $translator;
-	
 	private $automationRepository;
+
+	private $doctrine;
 	
-	private $programService;
-	
-	public function __construct(TranslatorInterface $translator, AutomationRepository $automationRepository, ProgramService $programService)
+	private $translator;
+
+	public function __construct(AutomationRepository $automationRepository, ManagerRegistry $doctrine, TranslatorInterface $translator)
 	{
+		$this->automationRepository = $automationRepository;	
+		$this->doctrine = $doctrine;
 		$this->translator = $translator;
-		$this->automationRepository = $automationRepository;
-		$this->programService = $programService;
 	}
 	
 	public function index(Project $project): Response
@@ -47,7 +48,7 @@ class AutomationController extends AbstractController
 		
 		if ($form->isSubmitted() && $form->isValid()) {
 			
-			$entityManager = $this->getDoctrine()->getManager();
+			$entityManager = $this->doctrine->getManager();
 			$entityManager->persist($automation);
 			$entityManager->flush();
 			

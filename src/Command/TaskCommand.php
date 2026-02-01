@@ -16,7 +16,11 @@ use Symfony\Component\HttpFoundation\RequestStack;
 class TaskCommand extends Command
 {
 	private $entityManager;
+
+	private $flashBag;
 	
+	private $automationRepository;
+
 	private $programRepository;
 	
 	private $programService;
@@ -26,7 +30,10 @@ class TaskCommand extends Command
 	public function __construct(EntityManagerInterface $entityManager, RequestStack $requestStack, AutomationRepository $automationRepository, ProgramRepository $programRepository, ProgramService $programService)
 	{
 		$this->entityManager = $entityManager;
-		$this->flashBag = $requestStack->getSession()->getFlashBag();
+		
+		/** @var Session $session */
+		$session = $requestStack->getSession();
+		$this->flashBag = $session->getFlashBag();
 		$this->automationRepository = $automationRepository;
 		$this->programRepository = $programRepository;
 		$this->programService = $programService;

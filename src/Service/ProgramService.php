@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\Document;
 use App\Entity\Program;
+use App\Entity\User;
 use App\Entity\Version;
 use App\Repository\DocumentRepository;
 use App\Repository\SerieRepository;
@@ -17,6 +18,7 @@ use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Stopwatch\Stopwatch;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -35,6 +37,8 @@ class ProgramService
 	private $flashBag;
 	
 	private $entityManager;
+
+	private $translator;
 	
 	private $serieRepository;
 	
@@ -70,7 +74,9 @@ class ProgramService
 	
 	public function __construct(RequestStack $requestStack, TranslatorInterface $translator, EntityManagerInterface $entityManager, SerieRepository $serieRepository, DocumentRepository $documentRepository, VersionRepository $versionRepository, StatusRepository $statusRespository, DocumentService $documentService, FieldService $fieldService, PropertyService $propertyService, Security $security, string $targetDirectory)
 	{
-		$this->flashBag = $requestStack->getSession()->getFlashBag();
+		/** @var Session $session */
+		$session = $requestStack->getSession();
+		$this->flashBag = $session->getFlashBag();
 		$this->translator = $translator;
 		$this->entityManager = $entityManager;
 		$this->serieRepository = $serieRepository;
@@ -92,8 +98,10 @@ class ProgramService
 		return $this->programCache;
 	}
 	
-	public function preload(Program $program, Request $request = null, File $file = null)
+	public function preload(Program $program, Request $request = null, UploadedFile $file = null)
 	{
+		/** @var User $user */
+		$user = $this->security->getUser();
 		
 		switch ($program->getType()) {
 			case Program::IMPORT:
@@ -102,19 +110,19 @@ class ProgramService
 				$this->flashBag->add('info', 'Démarrage de l\'opération');
 				break;
 		}
-			
+		
 		//setting up cache
 		if ($this->security->getUser() === null) {
 			$userName = $program->getLastModifiedBy()->getName();
 		} else {
-			$userName = $this->security->getUser()->getName();
+			$userName = $user->getName();
 		}
 		$this->programCache->setParameter('current_user', $userName);
 		$this->programCache->setProgram($program);
 		
 		foreach ($program->getParsedCode('option') as $name => $value) {
-			if ($request !== null && array_key_exists($name, $request->request->get('launcher')) === true) {
-				$this->programCache->setOption($name, $request->request->get('launcher')[$name]);
+			if ($request !== null && array_key_exists($name, $request->get('launcher')) === true) {
+				$this->programCache->setOption($name, $request->get('launcher')[$name]);
 			} elseif ($this->programCache->getOption($name) == true) {
 				$this->programCache->setOption($name, '0');
 			}
@@ -348,6 +356,7 @@ class ProgramService
 		$newBatch = false;
 		$defaultStatus = $this->statusRespository->getDefaultStatus($project);
 		$defaultSerie = $this->serieRepository->getDefaultSerie($project);
+		
 		if ($defaultStatus === null) {
 			throw new \Exception('Erreur : pas de status par défaut');
 		}
@@ -356,13 +365,12 @@ class ProgramService
 		$this->workbook = new Workbook($this->programCache);
 		$this->workbook->open($this->programCache->getParameter('file_path'), $this->programCache->getOption('ready_to_persist'));
 		$sheet = $this->workbook->getSheet();
-		
+
 		//load datas
 		$documents = $this->documentRepository->getDocumentsByProject($project);
 // 		$documents = [];
 		
 		$currentRow = $firstRow;
-		
 		while ($row = $sheet->getRow($currentRow)) {
 			
 			if ($row->getCell($this->programCache->getParameter('main_column'))->isEmpty()) {
@@ -828,7 +836,8 @@ class ProgramService
 		
 		//headers
 		$row = $sheet->getRow(1);
-		$order = $request->query->get('order');
+		/** @var array $order */
+		$order = $request->get('order');
 		if ($order == true) {
 			asort($order);
 			foreach ($fields as $key => $field) {
@@ -843,10 +852,10 @@ class ProgramService
 		
 		$colIndex = 0;
 		foreach ($fields as $field) {
-			if (in_array($field['id'], array_keys($request->query->get('display'))) === true) {
+			if (in_array($field['id'], array_keys($request->get('display'))) === true) {
 				$colAddress = Coordinate::stringFromColumnIndex($colIndex + 1);
 				$row->getCell($colAddress)
-					->setWidth(1.5 * $request->query->get('display')[$field['id']])
+					->setWidth(1.5 * $request->get('display')[$field['id']])
 					->setValue($field['title'])
 				;
 				$colIndex++;
@@ -860,7 +869,7 @@ class ProgramService
 			$row = $sheet->getRow($key+2);
 			$colIndex = 0;
 			foreach ($fields as $field) {
-				if (in_array($field['id'], array_keys($request->query->get('display'))) === true) {
+				if (in_array($field['id'], array_keys($request->get('display'))) === true) {
 					$colAddress = Coordinate::stringFromColumnIndex($colIndex + 1);
 					$row->getCell($colAddress)->setValue($version[$field['id']]);
 					$colIndex++;

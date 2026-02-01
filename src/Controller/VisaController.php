@@ -5,6 +5,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Contracts\Translation\TranslatorInterface;
+use Doctrine\Persistence\ManagerRegistry;
 use App\Entity\Visa;
 use App\Form\VisaType;
 use App\Repository\CompanyRepository;
@@ -13,6 +14,7 @@ use App\Entity\Project;
 
 class VisaController extends AbstractController
 {
+	private $doctrine;
 
 	private $translator;
 	
@@ -20,8 +22,9 @@ class VisaController extends AbstractController
 	
 	private $visaRepository;
 	
-	public function __construct(TranslatorInterface $translator, CompanyRepository $companyRepository, VisaRepository $visaRepository)
+	public function __construct(ManagerRegistry $doctrine, TranslatorInterface $translator, CompanyRepository $companyRepository, VisaRepository $visaRepository)
 	{
+		$this->doctrine = $doctrine;
 		$this->translator = $translator;
 		$this->companyRepository = $companyRepository;
 		$this->visaRepository = $visaRepository;
@@ -60,7 +63,7 @@ class VisaController extends AbstractController
 		$form->handleRequest($request);
 
 		if ($form->isSubmitted() && $form->isValid()) {
-			$entityManager = $this->getDoctrine()->getManager();
+			$entityManager = $this->doctrine->getManager();
 			$entityManager->persist($visa);
 			$entityManager->flush();
 
@@ -94,7 +97,7 @@ class VisaController extends AbstractController
 		$form->handleRequest($request);
 
 		if ($form->isSubmitted() && $form->isValid()) {
-			$entityManager = $this->getDoctrine()->getManager();
+			$entityManager = $this->doctrine->getManager();
 			$entityManager->flush();
 			$this->addFlash('success', 'Datas updated');
 			return $this->redirectToRoute('visa', [
@@ -119,8 +122,8 @@ class VisaController extends AbstractController
 			return $this->redirectToRoute('project');
 		}
 		
-		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
-			$entityManager = $this->getDoctrine()->getManager();
+		if ($this->isCsrfTokenValid('delete', $request->get('_token'))) {
+			$entityManager = $this->doctrine->getManager();
 			$entityManager->remove($visa);
 			$entityManager->flush();
 

@@ -7,7 +7,7 @@ class CodificationWithoutSplitter extends Constraint
 {
 	public $message = 'The codification use the splitter "{{ splitter }}" as a character.';
 	
-	public function getTargets()
+	public function getTargets(): string|array
 	{
 		return self::CLASS_CONSTRAINT;
 	}

@@ -1,22 +1,26 @@
 <?php
 namespace App\Controller;
 
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Contracts\Translation\TranslatorInterface;
+use App\Entity\Project;
 use App\Entity\Metadata;
 use App\Form\MetadataType;
 use App\Repository\MetadataRepository;
-use App\Entity\Project;
+use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Contracts\Translation\TranslatorInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class MetadataController extends AbstractController
 {
 	
+	private $doctrine;
+
 	private $translator;
 	
-	public function __construct(TranslatorInterface $translator)
+	public function __construct(ManagerRegistry $doctrine, TranslatorInterface $translator)
 	{
+		$this->doctrine = $doctrine;
 		$this->translator = $translator;
 	}
 	
@@ -50,7 +54,7 @@ class MetadataController extends AbstractController
 		$form->handleRequest($request);
 
 		if ($form->isSubmitted() && $form->isValid()) {
-			$entityManager = $this->getDoctrine()->getManager();
+			$entityManager = $this->doctrine->getManager();
 			$entityManager->persist($metadata);
 			$entityManager->flush();
 
@@ -81,7 +85,7 @@ class MetadataController extends AbstractController
 		$form->handleRequest($request);
 
 		if ($form->isSubmitted() && $form->isValid()) {
-			$entityManager = $this->getDoctrine()->getManager();
+			$entityManager = $this->doctrine->getManager();
 			$entityManager->flush();
 			$this->addFlash('success', 'Datas updated');
 			return $this->redirectToRoute('metadata', [
@@ -106,8 +110,8 @@ class MetadataController extends AbstractController
 			return $this->redirectToRoute('project');
 		}
 		
-		if ($this->isCsrfTokenValid('delete', $request->request->get('_token'))) {
-			$entityManager = $this->getDoctrine()->getManager();
+		if ($this->isCsrfTokenValid('delete', $request->get('_token'))) {
+			$entityManager = $this->doctrine->getManager();
 			$entityManager->remove($metadata);
 			$entityManager->flush();
 
